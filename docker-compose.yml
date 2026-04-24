@@ -1,0 +1,155 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: dms_postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: secretpassword
+      POSTGRES_DB: kreatif_dms
+    ports:
+      - "5432:5432"
+    volumes:
+      - dms_pgdata:/var/lib/postgresql/data
+    restart: unless-stopped
+    networks:
+      - dms_network
+
+  redis:
+    image: redis:7-alpine
+    container_name: dms_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - dms_redisdata:/data
+    restart: unless-stopped
+    networks:
+      - dms_network
+
+  minio:
+    image: quay.io/minio/minio
+    container_name: dms_minio
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: secretpassword
+    command: server /data --console-address ":9001"
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - dms_miniodata:/data
+    restart: unless-stopped
+    networks:
+      - dms_network
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.12.0
+    container_name: dms_elasticsearch
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ports:
+      - "9200:9200"
+    volumes:
+      - dms_esdata:/usr/share/elasticsearch/data
+    restart: unless-stopped
+    networks:
+      - dms_network
+
+  ocr-service:
+    build:
+      context: ./ocr-service
+    container_name: dms_ocr
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+    networks:
+      - dms_network
+
+  backend:
+    build:
+      context: ./backend
+    container_name: dms_backend
+    environment:
+      - APP_ENV=production
+      - DATABASE_URL=postgresql://postgres:secretpassword@postgres:5432/kreatif_dms?sslmode=disable
+      - REDIS_URL=redis:6379
+      - MINIO_ENDPOINT=minio:9000
+      - MINIO_ACCESS_KEY=minioadmin
+      - MINIO_SECRET_KEY=secretpassword
+      - ELASTICSEARCH_URL=http://elasticsearch:9200
+      - OCR_SERVICE_URL=http://ocr-service:8000
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+      - redis
+      - minio
+      - elasticsearch
+      - ocr-service
+    restart: unless-stopped
+    networks:
+      - dms_network
+
+  worker:
+    build:
+      context: ./backend
+    container_name: dms_worker
+    command: ["./worker"]
+    environment:
+      - APP_ENV=production
+      - DATABASE_URL=postgresql://postgres:secretpassword@postgres:5432/kreatif_dms?sslmode=disable
+      - REDIS_URL=redis:6379
+      - MINIO_ENDPOINT=minio:9000
+      - MINIO_ACCESS_KEY=minioadmin
+      - MINIO_SECRET_KEY=secretpassword
+      - ELASTICSEARCH_URL=http://elasticsearch:9200
+      - OCR_SERVICE_URL=http://ocr-service:8000
+    depends_on:
+      - postgres
+      - redis
+      - minio
+      - backend
+    restart: unless-stopped
+    networks:
+      - dms_network
+
+  frontend-dms:
+    build:
+      context: ./frontend
+    container_name: dms_frontend
+    environment:
+      - NUXT_PUBLIC_API_BASE=http://localhost:8080/api/v1
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    restart: unless-stopped
+    networks:
+      - dms_network
+
+  frontend-admin:
+    build:
+      context: ../kreatif-admin/frontend
+    container_name: dms_admin
+    environment:
+      - NUXT_PUBLIC_API_BASE=http://localhost:8080/api/v1
+    ports:
+      - "3001:3000"
+    depends_on:
+      - backend
+    restart: unless-stopped
+    networks:
+      - dms_network
+
+networks:
+  dms_network:
+    driver: bridge
+
+volumes:
+  dms_pgdata:
+  dms_redisdata:
+  dms_miniodata:
+  dms_esdata:

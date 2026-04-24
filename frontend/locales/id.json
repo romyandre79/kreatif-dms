@@ -1,0 +1,514 @@
+{
+  "upload": {
+    "title": "Ajukan Dokumen Baru",
+    "subtitle": "Daftarkan dokumen fisik atau digital Anda ke sistem",
+    "tabs": {
+      "manual": "Input Manual",
+      "bulk": "Upload Bulk (Excel)"
+    },
+    "form": {
+      "title": "Formulir Registrasi Dokumen",
+      "type": "Jenis Dokumen",
+      "type_placeholder": "Pilih jenis dokumen...",
+      "subject": "Subjek / Judul",
+      "subject_placeholder": "misal: Pengajuan Audit Keuangan Kuartal 3",
+      "category": "Kategori",
+      "category_placeholder": "Pilih kategori...",
+      "department": "Departemen",
+      "department_hint": "Terisi otomatis berdasarkan profil Anda",
+      "count": "Jumlah Dokumen",
+      "date": "Tanggal Registrasi",
+      "notes": "Catatan Tambahan",
+      "notes_placeholder": "Tambahkan instruksi khusus atau deskripsi di sini...",
+      "notes_urgent_placeholder": "Harap berikan alasan untuk pemrosesan mendesak...",
+      "urgency": "Tingkat Urgensi",
+      "urgency_levels": {
+        "normal": "Normal",
+        "high": "Tinggi",
+        "urgent": "Mendesak (Urgent)"
+      },
+      "urgent_warning": "Pemrosesan prioritas tinggi memerlukan persetujuan dari Kepala Departemen.",
+      "submit": "Ajukan Persetujuan",
+      "processing": "Memproses...",
+      "save_draft": "Simpan Draf",
+      "cancel": "Batal",
+      "char_limit": "{count} / 200 karakter"
+    },
+    "bulk": {
+      "title": "Upload Excel Bulk",
+      "subtitle": "Daftarkan banyak dokumen sekaligus dengan mengunggah template Excel yang telah diisi.",
+      "step1_title": "Unduh Template Excel",
+      "step1_filename": "DMS_Bulk_Upload_Template.xlsx",
+      "step1_version": "Versi 2.4 | 12 Okt 2023",
+      "step1_download": "Unduh Template",
+      "step1_info": "Template berisi kolom metadata dokumen yang diperlukan, termasuk ID Dokumen, Judul, Kategori, dan Departemen. Jangan ubah header kolom untuk menghindari kesalahan pemrosesan.",
+      "step2_title": "Unggah File Excel Anda",
+      "step2_dropzone": "Lepaskan file Excel Anda di sini",
+      "step2_formats": "Mendukung format .xlsx dan .xls hingga 20MB",
+      "step2_browse": "Pilih File",
+      "validation_rules_title": "Aturan Validasi",
+      "rules": [
+        "Maksimal 500 data per sesi unggah",
+        "Semua kolom 'Wajib' harus diisi",
+        "Tanggal harus mengikuti format DD.MM.YYYY",
+        "Pastikan ID Dokumen unik dan belum ada di sistem"
+      ],
+      "staging": {
+        "stats": {
+          "active_queue": "Antrean Saat Ini",
+          "active_label": "Aktif",
+          "avg_wait": "Rata-rata Waktu Tunggu",
+          "finished_today": "Selesai Hari Ini",
+          "late": "Terlambat",
+          "critical_label": "Kritikal"
+        },
+        "tabs": {
+          "all": "Semua ({count})",
+          "inbound": "Inbound ({count})",
+          "legacy": "Migrasi Legacy ({count})"
+        },
+        "table": {
+          "no": "NO",
+          "manifest_id": "MANIFEST ID",
+          "source": "SUMBER",
+          "requester": "PEMOHON",
+          "dept": "DEPARTEMEN",
+          "received_date": "TGL TERIMA",
+          "wait_time": "WAKTU TUNGGU",
+          "docs": "DOKUMEN",
+          "action": "AKSI",
+          "btn_digitalize": "Digitalisasi",
+          "late_label": "TERLAMBAT"
+        },
+        "pagination_info": "Menampilkan {start}-{end} dari {total} antrean",
+        "empty": {
+          "title": "Tidak Ada Dokumen dalam Antrean",
+          "desc": "Dokumen akan masuk ke sini setelah Admin melakukan penerimaan fisik di menu Inbound Pre-Registration",
+          "btn_inbound": "Ke Inbound Pre-Registration",
+          "btn_refresh": "Refresh Halaman"
+        },
+        "footer": {
+          "total": "Total Dokumen",
+          "updated": "Terakhir Diperbarui",
+          "build": "Build"
+        },
+        "print": {
+          "title": "Cetak Label QR",
+          "subtitle": "Buat dan cetak label QR untuk dokumen fisik.",
+          "tabs": {
+            "pending": "Menunggu Label ({count})",
+            "printed": "Sudah Cetak",
+            "stored": "Sudah Tersimpan"
+          },
+          "table": {
+            "system_id": "SYSTEM ID",
+            "title": "JUDUL",
+            "dept": "DEPARTEMEN",
+            "manifest_ref": "REF MANIFEST"
+          },
+          "bulk": {
+            "selected": "{count} dari {total} dokumen dipilih",
+            "status": "SIAP CETAK LABEL",
+            "btn_group": "Kelompokkan ke Boks",
+            "btn_print": "Cetak Label Terpilih"
+          },
+          "assignment": {
+            "title": "Pratinjau Label & Penempatan Boks",
+            "subtitle": "Konfigurasi dan tetapkan label item ke unit penyimpanan organisasi.",
+            "target_card": {
+              "title": "Target Penyimpanan Direkomendasikan",
+              "label": "LOKASI RAK TARGET",
+              "btn_change": "Ubah"
+            },
+            "preview_section": {
+              "title": "Pratinjau Pembuatan Label",
+              "child_label": "Label Item Anak (50x30mm)",
+              "parent_label": "Label Boks Induk (100x70mm)"
+            },
+            "side_panel": {
+              "title": "Kelompokkan ke Boks",
+              "search_placeholder": "Cari ID boks atau lokasi...",
+              "selection_title": "PILIHAN ITEM SAAT INI",
+              "items_count": "{count} Item",
+              "btn_assign": "Assign ke Boks",
+              "btn_draft": "Simpan sebagai Draft",
+              "info_text": "Setelah ditetapkan, label induk akan secara otomatis menyertakan item-item ini dalam manifest. Kode QR akan disinkronkan secara instan."
+            },
+            "footer": {
+              "btn_cancel": "Batal",
+              "btn_finalize": "Finalisasi Penempatan"
+            }
+          }
+        },
+        "bulk_action": {
+          "selected": "{count} manifest dipilih",
+          "btn_start_batch": "MULAI BATCH DIGITALISASI"
+        },
+        "queue": {
+          "title": "Antrean Digitalisasi",
+          "subtitle": "Kelola berkas fisik yang masuk ke staging area sebelum diproses.",
+          "table": {
+            "manifest_id": "ID MANIFEST",
+            "requester": "PEMOHON",
+            "dept": "DEPARTEMEN"
+          },
+          "drawer": {
+            "title": "Detail Manifest",
+            "info_section": "INFO MANIFEST",
+            "priority": "Prioritas",
+            "priority_high": "Tinggi",
+            "priority_normal": "Normal",
+            "estimation": "Estimasi",
+            "docs_count": "{count} Dokumen",
+            "docs_section": "DOKUMEN DALAM MANIFEST",
+            "cond_good": "KONDISI BAIK",
+            "cond_repair": "PERLU PERBAIKAN FISIK",
+            "timeline_section": "TIMELINE",
+            "timeline_steps": {
+              "processing": "Sedang Diproses Digitalisasi",
+              "received": "Diterima di Staging Area",
+              "submitted": "Manifest Diajukan"
+            },
+            "btn_digitalize_now": "Digitalisasi Sekarang"
+          },
+          "indexing": {
+            "title": "Penindeksan Dokumen",
+            "subtitle": "Harap masukkan metadata dokumen berdasarkan hasil scan fisik.",
+            "sections": {
+              "metadata": "METADATA DOKUMEN",
+              "parties": "PIHAK TERKAIT",
+              "value": "NILAI/NOMINAL",
+              "btn_view": "Lihat Hasil Index"
+            },
+            "link_close": "TUTUP PANEL",
+            "fields": {
+              "category": "Kategori Dokumen",
+              "type": "Tipe Dokumen",
+              "number": "Nomor Dokumen",
+              "date": "Tanggal Dokumen",
+              "expiry": "Tanggal Kedaluwarsa",
+              "party1": "Pihak 1 (Internal)",
+              "party2": "Pihak 2 (Eksternal)",
+              "currency": "Mata Uang",
+              "amount": "Total Nilai",
+              "physical_cond": "Kondisi Fisik"
+            },
+            "footer": {
+              "btn_save_next": "Simpan & Lanjut",
+              "btn_skip": "Batal/Skip",
+              "btn_finish_batch": "Selesai Batch"
+            },
+            "validation": {
+              "required": "{field} wajib diisi",
+              "invalid_format": "Format {field} tidak valid",
+              "min_length": "{field} minimal {min} karakter",
+              "future_date": "{field} tidak boleh tanggal di masa depan",
+              "past_date": "{field} harus setelah {start_date}"
+            }
+          }
+        }
+      },
+      "review": {
+        "title": "Review Upload Bulk",
+        "subtitle": "Tinjau dan validasi metadata dokumen Anda sebelum pengajuan final.",
+        "stats": {
+          "total": "Total Baris",
+          "valid": "Baris Valid",
+          "errors": "Kesalahan Validasi",
+          "success_rate": "{rate}% Sukses",
+          "action_required": "Perlu Tindakan",
+          "items": "Item"
+        },
+        "table": {
+          "status": "Status",
+          "type": "Jenis Dok",
+          "subject": "Subjek",
+          "category": "Kategori",
+          "date": "Tanggal",
+          "actions": "Aksi",
+          "empty": "[Kolom Kosong]"
+        },
+        "footer": {
+          "errors_found": "{count} kesalahan perlu diperhatikan sebelum Anda dapat mengirim.",
+          "upload_different": "Unggah File Lain",
+          "revalidate": "Validasi Ulang Semua",
+          "submit_all": "Kirim Semua ({count})",
+          "back_to_upload": "Kembali ke Upload"
+        }
+      },
+      "progress": {
+        "title": "Memproses Upload Bulk",
+        "subtitle": "Harap tunggu selagi kami memproses dokumen Anda...",
+        "action": "Membuat pra-registrasi...",
+        "count": "Memproses: {current} dari {total} dokumen",
+        "est_time": "Estimasi waktu: {time} detik",
+        "cancel": "Batalkan Unggahan"
+      },
+      "success": {
+        "status": "SUKSES!",
+        "title": "Upload Bulk Berhasil Diselesaikan",
+        "summary_title": "RINGKASAN UNGGAHAN",
+        "summary_text": "{count} pra-registrasi berhasil dibuat. Semua file telah diproses dan divalidasi terhadap skema DMS. Tidak ditemukan kesalahan selama proses sinkronisasi.",
+        "ids_title": "ID REGISTRASI YANG DIHASILKAN",
+        "copy_all": "Salin Semua",
+        "download_csv": "Unduh CSV",
+        "next_steps_title": "LANGKAH SELANJUTNYA",
+        "next_steps_text": "Dokumen-dokumen ini telah dipindahkan ke antrean Menunggu Persetujuan. Manajer departemen akan menerima notifikasi untuk meninjau dan menyelesaikan registrasi dalam waktu 24 jam.",
+        "submit_another": "Unggah Batch Lain",
+        "track": "Lacak Pengajuan",
+        "close": "Tutup"
+      }
+    },
+    "side": {
+      "next_title": "Apa Langkah Selanjutnya?",
+      "steps": [
+        { "title": "Langkah 1: Pengajuan Draf", "desc": "Anda melengkapi formulir ini dan mengirimkannya untuk verifikasi." },
+        { "title": "Langkah 2: Validasi Admin", "desc": "Admin DMS meninjau detail dokumen untuk akurasi." },
+        { "title": "Langkah 3: Barcoding", "desc": "ID pelacakan unik dihasilkan untuk pengarsipan fisik." },
+        { "title": "Langkah 4: Pengarsipan Akhir", "desc": "Dokumen dipindahkan ke penyimpanan digital permanen." }
+      ],
+      "tips_title": "Tips & Panduan",
+      "tips": [
+        "Pastikan judul dokumen deskriptif dan unik.",
+        "Periksa kembali Kategori untuk peran kerahasiaan.",
+        "Gunakan 'Catatan' untuk instruksi penanganan khusus."
+      ],
+      "recent_title": "Pengajuan Terbaru",
+      "view_history": "Lihat Semua Riwayat"
+    },
+    "success_modal": {
+      "title": "Pengajuan Berhasil!",
+      "subtitle": "Registrasi dokumen Anda telah dikirim untuk persetujuan",
+      "reg_id": "ID Registrasi",
+      "details_title": "Detail Pengajuan",
+      "next_title": "Apa Langkah Selanjutnya?",
+      "email_info": "Email konfirmasi telah dikirim ke alamat terdaftar Anda dengan detail ini.",
+      "submit_another": "Ajukan Dokumen Lain",
+      "view_tracking": "Lihat Pelacakan",
+      "print": "Cetak Ringkasan"
+    },
+    "manifest": {
+      "title": "Pratinjau Cetak Manifest",
+      "status_approved": "Disetujui oleh Manajer ({name} - {date})",
+      "header_title": "MANIFEST DOKUMEN",
+      "header_subtitle": "SISTEM MANAJEMEN DOKUMEN",
+      "manifest_id": "ID Manifest",
+      "generated_date": "Tanggal Dihasilkan",
+      "submitter": "Pengaju",
+      "approver": "Penyetuju",
+      "total_docs": "Total Dokumen",
+      "files": "{count} File",
+      "listing_title": "DAFTAR DOKUMEN",
+      "table": {
+        "no": "NO.",
+        "reg_id": "ID REG",
+        "title": "JUDUL DOKUMEN",
+        "category": "KATEGORI",
+        "qty": "JML",
+        "urgency": "URGENSI"
+      },
+      "delivery_title": "INSTRUKSI PENGIRIMAN",
+      "delivery_text": "Pastikan semua dokumen telah ditandatangani dan dicap sebelum diarsipkan. Kelompokkan dokumen berdasarkan kategori seperti yang tercantum dalam tabel di atas. Serahkan paket fisik ke:",
+      "delivery_location": "Kantor Pusat Dokumen (CDO) - Lantai 4, Ruang 402, Kantor Pusat.",
+      "delivery_qr_hint": "Pastikan penerima memindai kode QR manifest setibanya untuk pelacakan.",
+      "warning": "Penting: Manifest hanya berlaku selama 48 jam setelah persetujuan. Jika pengiriman fisik tertunda melampaui jendela ini, harap buat ulang manifest.",
+      "footer_info": "Dihasilkan via Portal DMS",
+      "verified_on": "Diverifikasi pada: {date}",
+      "page": "Halaman {current} dari {total}",
+      "version": "DMS V2.1",
+      "btn_back": "Kembali ke Dashboard",
+      "btn_print": "Cetak Manifest",
+      "btn_download": "Unduh PDF"
+    },
+    "manager_review": {
+      "title": "Persetujuan Dokumen Menunggu",
+      "subtitle": "Tinjau dan setujui permintaan registrasi dokumen yang masuk.",
+      "filters": {
+        "search": "Cari berdasarkan ID, nama, atau judul dokumen...",
+        "dept_placeholder": "Semua Departemen",
+        "date_range": "Rentang Tanggal"
+      },
+      "table": {
+        "reg_id": "ID REGISTRASI",
+        "submitted_by": "DIAJUKAN OLEH",
+        "doc_info": "INFO DOKUMEN",
+        "submission_date": "TANGGAL PENGAJUAN",
+        "urgency": "URGENSI",
+        "actions": "AKSI",
+        "review_btn": "Tinjau",
+        "files": "{count} File",
+        "showing": "Menampilkan {start}-{end} dari {total} dokumen tertunda"
+      },
+      "footer": {
+        "selected": "{count} Dokumen Dipilih",
+        "bulk_hint": "Tindakan massal akan segera diterapkan.",
+        "btn_reject": "Tolak Terpilih",
+        "btn_approve": "Setujui Terpilih",
+        "btn_cancel": "Batal"
+      }
+    },
+    "review_detail": {
+      "title": "TINJAUAN PRA-REGISTRASI",
+      "back_to_queue": "Kembali ke Antrean",
+      "status_pending": "MENUNGGU PERSETUJUAN ANDA",
+      "status_urgent": "MENDESAK",
+      "submission_details": {
+        "title": "DETAIL PENGAJUAN",
+        "submitted_by": "Diajukan Oleh",
+        "doc_info": "Informasi Dokumen",
+        "category": "Kategori",
+        "dept": "Departemen",
+        "date": "Tanggal Pengajuan",
+        "count": "Jumlah Dokumen",
+        "notes_title": "CATATAN",
+        "bulk_title": "Bagian dari Upload Bulk",
+        "bulk_desc": "Pengajuan ini termasuk dalam Batch {id}",
+        "view_batch": "Lihat Semua {count} Dokumen dalam Batch Ini"
+      },
+      "attachments": {
+        "title": "LAMPIRAN ({count})",
+        "download_all": "Unduh Semua (.zip)",
+        "preview": "Pratinjau",
+        "download": "Unduh"
+      },
+      "workflow": {
+        "title": "STATUS ALUR KERJA",
+        "step1": "Diajukan",
+        "step1_desc": "Oleh {name} • {date}",
+        "step2": "Menunggu Persetujuan Manajer",
+        "step2_desc": "Ditugaskan ke {name} (Anda)",
+        "step3": "Tinjauan Kepatuhan Hukum",
+        "step3_not_started": "Belum dimulai",
+        "step4": "Pengarsipan Akhir",
+        "step4_pending": "Menunggu rantai persetujuan"
+      },
+      "internal_notes": {
+        "title": "Catatan Internal Manajer (Privat)",
+        "placeholder": "Ketik catatan untuk rekaman Anda atau manajer lain..."
+      },
+      "footer": {
+        "btn_reject": "Tolak",
+        "btn_approve": "Setujui"
+      },
+      "approval_modal": {
+        "title": "Konfirmasi Persetujuan",
+        "summary_title": "RINGKASAN",
+        "ref_id": "ID Referensi",
+        "type": "Jenis",
+        "comments_title": "Komentar Keputusan (Opsional)",
+        "comments_placeholder": "Tambahkan umpan balik untuk pengaju...",
+        "info_text": "Dengan mengklik konfirmasi, dokumen ini akan dipindahkan ke antrean Departemen Hukum untuk pemeriksaan kepatuhan akhir.",
+        "btn_cancel": "Batal",
+        "btn_confirm": "Konfirmasi Persetujuan"
+      },
+      "reject_modal": {
+        "title": "TOLAK PENGAJUAN",
+        "summary": {
+          "reg_id": "ID REG",
+          "submitted_by": "DIAJUKAN OLEH",
+          "type": "JENIS DOKUMEN",
+          "qty": "JUMLAH"
+        },
+        "reason_title": "ALASAN PENOLAKAN (Wajib)",
+        "reasons": {
+          "incomplete": "Informasi tidak lengkap",
+          "duplicate": "Pengajuan duplikat",
+          "policy": "Tidak memenuhi kebijakan",
+          "category": "Kategori dokumen salah",
+          "approvals": "Kurang persetujuan yang diperlukan",
+          "other": "Lainnya (harap tentukan di bawah)"
+        },
+        "placeholder": "Misal: Lampiran Perjanjian Vendor kehilangan tanda tangan terakhir di halaman 12.",
+        "hint": "Harap jelaskan mengapa pengajuan ini ditolak. Pesan ini akan dikirim ke pengaju.",
+        "next_title": "APA LANGKAH SELANJUTNYA",
+        "next_steps": [
+          "Pengaju akan menerima notifikasi instan melalui email dan peringatan sistem.",
+          "Status pengajuan ini akan diperbarui menjadi Ditolak dalam log pelacakan.",
+          "Pengaju dapat mengedit dan mengirim ulang dokumen ini sebagai entri baru jika sudah diperbaiki."
+        ],
+        "btn_cancel": "Batal",
+        "btn_confirm": "Konfirmasi Penolakan"
+      }
+    },
+    "inbound": {
+      "title": "Penerimaan Dokumen Fisik",
+      "subtitle": "Scan QR Code pada Manifest Serah Terima untuk memulai proses penerimaan",
+      "scanner": {
+        "title": "Scan Manifest Serah Terima",
+        "desc": "Arahkan scanner ke QR Code pada dokumen Manifest fisik yang Anda terima dari kurir atau unit kerja.",
+        "placeholder": "Menunggu input scanner...",
+        "procedure_title": "Prosedur Penerimaan:",
+        "procedure_steps": [
+          "Verifikasi fisik Manifest dengan data yang muncul setelah scan.",
+          "Hitung jumlah box/amplop sesuai dengan daftar lampiran.",
+          "Lakukan konfirmasi 'Terima' atau 'Tolak' pada sistem."
+        ]
+      },
+      "stats": {
+        "received_today": "DITERIMA HARI INI",
+        "scan_queue": "ANTREAN SCAN",
+        "rejected": "DITOLAK"
+      }
+    },
+    "inbound_error": {
+      "title": "Manifest Tidak Ditemukan",
+      "desc": "Kode QR tidak cocok dengan data di sistem. Mohon periksa kembali label pada fisik dokumen.",
+      "scanned_title": "SCANNED VALUE",
+      "causes_title": "KEMUNGKINAN PENYEBAB:",
+      "causes": [
+        "Manifest belum di-approve oleh Atasan",
+        "QR Code rusak, kotor, atau tidak terbaca sempurna",
+        "Manifest sudah pernah diproses/diterima sebelumnya"
+      ],
+      "btn_rescan": "Scan Ulang",
+      "btn_manual": "Cari Manual",
+      "device_info": "ID Perangkat: {id} • Sesi Aktif: {session}"
+    },
+    "inbound_detail": {
+      "title": "Manifest Serah Terima",
+      "scan_another": "Scan Manifest Lain",
+      "requester": "Pemohon",
+      "department": "Departemen",
+      "list_title": "Daftar Dokumen yang Diserahkan ({count} Dokumen)",
+      "table": {
+        "no": "NO",
+        "title": "JUDUL DOKUMEN",
+        "type": "JENIS",
+        "date": "TGL DOKUMEN",
+        "condition": "KONDISI",
+        "check": "CEK",
+        "good": "Baik",
+        "damaged": "Rusak",
+        "damage_notes": "CATATAN KERUSAKAN"
+      },
+      "verification": {
+        "title": "STATUS VERIFIKASI FISIK",
+        "subtitle": "Progres pengecekan dokumen yang diterima",
+        "progress": "{percent}% ({current} dari {total} Terverifikasi)",
+        "stats_manifest": "MANIFEST",
+        "stats_good": "BAIK",
+        "stats_damaged": "RUSAK"
+      },
+      "footer": {
+        "notes_placeholder": "Tambahkan catatan penerimaan (opsional)...",
+        "btn_reject_all": "Tolak Semua",
+        "btn_accept": "Terima {count} Dokumen"
+      },
+      "inbound_receipt_modal": {
+        "title": "Konfirmasi Penerimaan Dokumen",
+        "manifest_id": "Manifest ID",
+        "requester": "Pemohon",
+        "count_accepted": "Jumlah Diterima",
+        "count_rejected": "Jumlah Ditolak/Rusak",
+        "docs": "{count} Dokumen",
+        "info_text": "Setelah diterima, tanggung jawab fisik dokumen berpindah ke Central Document dan masuk Antrean Scan.",
+        "btn_cancel": "Batal",
+        "btn_confirm": "Konfirmasi Terima"
+      },
+      "toast": {
+        "receipt_success": "{id} — {count} dokumen berhasil diterima",
+        "status_info": "Status: Diterima (Antrean Scan)"
+      }
+    }
+  }
+}

@@ -1,0 +1,50 @@
+{
+  "login": {
+    "title": "Sign In",
+    "subtitle": "Akses workspace perusahaan Anda",
+    "sso_tab": "SSO/LDAP",
+    "local_tab": "Akun Lokal",
+    "email_label": "Email Perusahaan",
+    "email_placeholder": "nama{'@'}perusahaan.co.id",
+    "password_label": "Kata Sandi",
+    "password_placeholder": "••••••••",
+    "forgot_password": "Lupa kata sandi?",
+    "sign_in_button": "Masuk",
+    "no_account": "Tidak punya akun?",
+    "register_now": "Klik Register",
+    "trouble_signing_in": "Mengalami masalah saat masuk?",
+    "contact_support": "Hubungi Dukungan IT",
+    "errors": {
+      "invalid_credentials": "Email atau Password salah. Silakan coba lagi."
+    }
+  },
+  "register": {
+    "title": "Daftar Akun",
+    "subtitle": "Buat akun baru untuk akses workspace",
+    "tab": "Registrasi",
+    "name_label": "Nama Lengkap",
+    "name_placeholder": "Masukkan nama lengkap Anda",
+    "confirm_password_label": "Konfirmasi Kata Sandi",
+    "confirm_password_placeholder": "Ulangi kata sandi Anda",
+    "submit_button": "Daftar Sekarang",
+    "already_have_account": "Sudah punya akun?",
+    "login_now": "Login di sini",
+    "success_message": "Registrasi berhasil! Mohon tunggu persetujuan dari Admin.",
+    "errors": {
+      "failed": "Registrasi gagal. Silakan coba lagi nanti.",
+      "password_mismatch": "Kata sandi tidak cocok."
+    }
+  },
+  "reset": {
+    "title": "Reset Password",
+    "info": "Link reset password akan dikirim ke email perusahaan yang terdaftar di sistem.",
+    "email_label": "Email Perusahaan",
+    "email_placeholder": "Masukkan alamat email Anda",
+    "cancel_button": "Batal",
+    "submit_button": "Kirim Link Reset",
+    "success_message": "Link reset password telah dikirim ke email Anda."
+  },
+  "common": {
+    "copyright": "Semua hak dilindungi."
+  }
+}

@@ -1,0 +1,37 @@
+-- name: CreateDocument :one
+INSERT INTO documents (
+    title, description, file_name, file_path, file_size, mime_type, 
+    company_id, branch_id, department_id, owner_id, status, batch_id
+) VALUES (
+    $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12
+) RETURNING *;
+
+-- name: GetDocument :one
+SELECT * FROM documents WHERE id = $1 LIMIT 1;
+
+-- name: ListDocumentsByDepartment :many
+SELECT * FROM documents 
+WHERE department_id = $1 
+ORDER BY created_at DESC;
+
+-- name: UpdateDocumentOCR :exec
+UPDATE documents 
+SET extracted_text = $2, is_ocr_processed = true, status = 'active', updated_at = NOW() 
+WHERE id = $1;
+
+-- name: GetDocumentsByBatch :many
+SELECT * FROM documents WHERE batch_id = $1;
+
+-- name: CreateBatch :one
+INSERT INTO processing_batches (user_id, total_files) 
+VALUES ($1, $2) RETURNING *;
+
+-- name: GetBatch :one
+SELECT * FROM processing_batches WHERE id = $1 LIMIT 1;
+
+-- name: UpdateBatchProgress :exec
+UPDATE processing_batches 
+SET processed_files = processed_files + 1, 
+    status = CASE WHEN processed_files + 1 >= total_files THEN 'completed' ELSE 'processing' END,
+    updated_at = NOW() 
+WHERE id = $1;

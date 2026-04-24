@@ -1,0 +1,120 @@
+package handler
+
+import (
+	"github.com/google/uuid"
+	"github.com/gofiber/fiber/v3"
+	"github.com/kreatif/dms-backend/internal/service"
+	"github.com/kreatif/dms-backend/pkg/response"
+	"github.com/kreatif/dms-backend/pkg/utils"
+)
+
+type AuthHandler struct {
+	svc *service.AuthService
+}
+
+func NewAuthHandler(svc *service.AuthService) *AuthHandler {
+	return &AuthHandler{svc: svc}
+}
+
+type loginRequest struct {
+	Email    string `json:"email" validate:"required,email"`
+	Password string `json:"password" validate:"required"`
+}
+
+// Login godoc
+// @Summary Login user
+// @Description Login with email and password to get JWT tokens
+// @Tags Auth
+// @Accept json
+// @Produce json
+// @Param body body loginRequest true "Login Credentials"
+// @Success 200 {object} response.APIResponse{data=service.LoginResponse}
+// @Failure 401 {object} response.APIResponse
+// @Router /auth/login [post]
+func (h *AuthHandler) Login(c fiber.Ctx) error {
+	req := new(loginRequest)
+	if err := c.Bind().JSON(req); err != nil {
+		return response.Error(c, fiber.StatusBadRequest, "Invalid request body", err.Error())
+	}
+
+	// Validate request
+	if errs := utils.ValidateStruct(req); len(errs) > 0 {
+		return response.Error(c, fiber.StatusBadRequest, "Validation failed", utils.FormatValidationErrors(errs))
+	}
+
+	res, err := h.svc.Login(c.Context(), req.Email, req.Password)
+	if err != nil {
+		return response.Error(c, fiber.StatusUnauthorized, "Login failed", err.Error())
+	}
+
+	return response.Success(c, fiber.StatusOK, "Login successful", res)
+}
+
+type registerRequest struct {
+	FullName string `json:"full_name" validate:"required,min=3"`
+	Email    string `json:"email" validate:"required,email"`
+	Password string `json:"password" validate:"required,min=6"`
+}
+
+func (h *AuthHandler) Register(c fiber.Ctx) error {
+	req := new(registerRequest)
+	if err := c.Bind().JSON(req); err != nil {
+		return response.Error(c, fiber.StatusBadRequest, "Invalid request body", err.Error())
+	}
+
+	if errs := utils.ValidateStruct(req); len(errs) > 0 {
+		return response.Error(c, fiber.StatusBadRequest, "Validation failed", utils.FormatValidationErrors(errs))
+	}
+
+	err := h.svc.Register(c.Context(), req.FullName, req.Email, req.Password)
+	if err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Registration failed", err.Error())
+	}
+
+	return response.Success(c, fiber.StatusCreated, "Registration successful. Please wait for admin approval.", nil)
+}
+
+func (h *AuthHandler) ListPendingUsers(c fiber.Ctx) error {
+	users, err := h.svc.ListPendingUsers(c.Context())
+	if err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to list pending users", err.Error())
+	}
+	return response.Success(c, fiber.StatusOK, "Pending users retrieved", users)
+}
+
+func (h *AuthHandler) ApproveUser(c fiber.Ctx) error {
+	idStr := c.Params("id")
+	userID, err := uuid.Parse(idStr)
+	if err != nil {
+		return response.Error(c, fiber.StatusBadRequest, "Invalid user ID", err.Error())
+	}
+
+	err = h.svc.ApproveUser(c.Context(), userID)
+	if err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to approve user", err.Error())
+	}
+
+	return response.Success(c, fiber.StatusOK, "User approved successfully", nil)
+}
+
+type forgotPasswordRequest struct {
+	Email string `json:"email" validate:"required,email"`
+}
+
+func (h *AuthHandler) ForgotPassword(c fiber.Ctx) error {
+	req := new(forgotPasswordRequest)
+	if err := c.Bind().JSON(req); err != nil {
+		return response.Error(c, fiber.StatusBadRequest, "Invalid request body", err.Error())
+	}
+
+	if errs := utils.ValidateStruct(req); len(errs) > 0 {
+		return response.Error(c, fiber.StatusBadRequest, "Validation failed", utils.FormatValidationErrors(errs))
+	}
+
+	err := h.svc.RequestPasswordReset(c.Context(), req.Email)
+	if err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to request password reset", err.Error())
+	}
+
+	return response.Success(c, fiber.StatusOK, "Reset link sent if email exists", nil)
+}

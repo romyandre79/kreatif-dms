@@ -1,0 +1,7 @@
+DELETE FROM users WHERE email IN ('admin@kreatif.id', 'manager@kreatif.id', 'controller@kreatif.id', 'user@kreatif.id');
+DELETE FROM ordners WHERE id = '550e8400-e29b-41d4-a716-446655440006';
+DELETE FROM boxes WHERE id = '550e8400-e29b-41d4-a716-446655440005';
+DELETE FROM racks WHERE id = '550e8400-e29b-41d4-a716-446655440004';
+DELETE FROM departments WHERE id IN ('550e8400-e29b-41d4-a716-446655440002', '550e8400-e29b-41d4-a716-446655440003');
+DELETE FROM branches WHERE id = '550e8400-e29b-41d4-a716-446655440001';
+DELETE FROM companies WHERE id = '550e8400-e29b-41d4-a716-446655440000';

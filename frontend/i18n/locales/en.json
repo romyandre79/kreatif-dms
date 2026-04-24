@@ -1,0 +1,50 @@
+{
+  "login": {
+    "title": "Sign In",
+    "subtitle": "Access your enterprise workspace",
+    "sso_tab": "SSO/LDAP",
+    "local_tab": "Local Account",
+    "email_label": "Company Email",
+    "email_placeholder": "name{'@'}company.com",
+    "password_label": "Password",
+    "password_placeholder": "••••••••",
+    "forgot_password": "Forgot password?",
+    "sign_in_button": "Sign In",
+    "no_account": "Don't have an account?",
+    "register_now": "Click Register",
+    "trouble_signing_in": "Having trouble signing in?",
+    "contact_support": "Contact IT Support",
+    "errors": {
+      "invalid_credentials": "Email or Password incorrect. Please try again."
+    }
+  },
+  "register": {
+    "title": "Create Account",
+    "subtitle": "Create a new account to access workspace",
+    "tab": "Register",
+    "name_label": "Full Name",
+    "name_placeholder": "Enter your full name",
+    "confirm_password_label": "Confirm Password",
+    "confirm_password_placeholder": "Repeat your password",
+    "submit_button": "Register Now",
+    "already_have_account": "Already have an account?",
+    "login_now": "Login here",
+    "success_message": "Registration successful! Please wait for admin approval.",
+    "errors": {
+      "failed": "Registration failed. Please try again later.",
+      "password_mismatch": "Passwords do not match."
+    }
+  },
+  "reset": {
+    "title": "Reset Password",
+    "info": "A reset password link will be sent to the company email registered in the system.",
+    "email_label": "Company Email",
+    "email_placeholder": "Enter your email address",
+    "cancel_button": "Cancel",
+    "submit_button": "Send Reset Link",
+    "success_message": "A reset password link has been sent to your email."
+  },
+  "common": {
+    "copyright": "All rights reserved."
+  }
+}
