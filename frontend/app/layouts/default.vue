@@ -41,7 +41,7 @@
             >
               <div class="flex items-center gap-3">
                 <component :is="item.icon" class="w-5 h-5" />
-                <span class="font-medium text-sm">{{ item.name }}</span>
+                <span class="font-medium text-sm">{{ $t(item.key) }}</span>
               </div>
               <span v-if="item.badge" class="bg-red-500 text-white text-[10px] font-black px-1.5 py-0.5 rounded-full">{{ item.badge }}</span>
             </NuxtLink>
@@ -54,7 +54,7 @@
               >
                 <div class="flex items-center gap-3">
                   <component :is="item.icon" class="w-5 h-5" />
-                  <span class="font-medium text-sm">{{ item.name }}</span>
+                  <span class="font-medium text-sm">{{ $t(item.key) }}</span>
                 </div>
                 <div class="flex items-center gap-2">
                   <span v-if="item.badge" class="bg-red-500 text-white text-[10px] font-black px-1.5 py-0.5 rounded-full">{{ item.badge }}</span>
@@ -78,7 +78,7 @@
                     @click="isSidebarOpen = false"
                     class="flex items-center justify-between px-4 py-2 text-xs font-medium text-slate-400 hover:text-white transition-colors"
                   >
-                    <span>{{ sub.name }}</span>
+                    <span>{{ $t(sub.key) }}</span>
                     <span v-if="sub.count" class="text-[10px] text-slate-500 font-bold">{{ sub.count }}</span>
                   </NuxtLink>
                 </div>
@@ -113,7 +113,7 @@
             <div class="hidden sm:flex items-center gap-2 text-xs font-bold text-slate-400">
               <span>DMS</span>
               <LucideChevronRight class="w-3 h-3" />
-              <span class="text-slate-900 dark:text-white">{{ currentPageTitle }}</span>
+              <span class="text-slate-900 dark:text-white">{{ $t(currentPageTitleKey) }}</span>
             </div>
           </div>
 
@@ -122,7 +122,9 @@
               <LucideSearch class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
               <input
                 type="text"
-                placeholder="Search documents, IDs, or metadata..."
+                v-model="searchQuery"
+                @keyup.enter="handleHeaderSearch"
+                :placeholder="$t('layout.navbar.search_placeholder')"
                 class="w-80 xl:w-96 pl-12 pr-4 py-2.5 text-sm rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/50 focus:outline-none focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 transition-all font-medium"
               />
             </div>
@@ -136,8 +138,8 @@
                   </button>
                 </template>
                 <div class="px-4 py-3 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-900/50">
-                  <span class="text-xs font-black uppercase tracking-widest text-slate-400">Notifications</span>
-                  <span class="text-[10px] font-bold text-primary-500 hover:underline cursor-pointer">Mark all as read</span>
+                  <span class="text-xs font-black uppercase tracking-widest text-slate-400">{{ $t('layout.navbar.notifications') }}</span>
+                  <span class="text-[10px] font-bold text-primary-500 hover:underline cursor-pointer">{{ $t('layout.navbar.mark_all_read') }}</span>
                 </div>
                 <div class="max-h-80 overflow-y-auto">
                   <div v-for="notif in notifications" :key="notif.id" class="px-4 py-4 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors border-b border-slate-100 dark:border-slate-800 last:border-0 cursor-pointer group">
@@ -154,7 +156,7 @@
                   </div>
                 </div>
                 <div class="px-4 py-3 bg-slate-50/50 dark:bg-slate-900/50 text-center border-t border-slate-100 dark:border-slate-800">
-                  <button class="text-xs font-black uppercase tracking-widest text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">View All Notifications</button>
+                  <button class="text-xs font-black uppercase tracking-widest text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">{{ $t('layout.navbar.view_all_notifications') }}</button>
                 </div>
               </Dropdown>
               
@@ -187,16 +189,16 @@
 
               <div class="py-1">
                 <button @click="navigateTo('/profile')" class="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
-                  <LucideUser class="w-4 h-4" /> My Profile
+                  <LucideUser class="w-4 h-4" /> {{ $t('layout.navbar.my_profile') }}
                 </button>
                 <button @click="navigateTo('/settings')" class="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
-                  <LucideSettings class="w-4 h-4" /> Account Settings
+                  <LucideSettings class="w-4 h-4" /> {{ $t('layout.navbar.account_settings') }}
                 </button>
               </div>
 
               <div class="border-t border-slate-100 dark:border-slate-800 mt-1 py-1">
                 <button @click="handleLogout" class="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-bold text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 transition-colors">
-                  <LucideLogOut class="w-4 h-4" /> Sign Out
+                  <LucideLogOut class="w-4 h-4" /> {{ $t('layout.navbar.sign_out') }}
                 </button>
               </div>
             </Dropdown>
@@ -248,9 +250,16 @@ const auth = useAuthStore()
 const config = useRuntimeConfig()
 const route = useRoute()
 const isSidebarOpen = ref(false)
+const searchQuery = ref('')
 
 const showNotifications = ref(false)
 const showUserMenu = ref(false)
+
+const handleHeaderSearch = () => {
+  if (searchQuery.value.trim()) {
+    navigateTo(`/documents?q=${encodeURIComponent(searchQuery.value)}`)
+  }
+}
 
 const notifications = [
   { id: 1, title: 'Document Approved', message: 'Your request for "Q4 Financial Report" has been approved.', time: '2 mins ago', icon: LucideCheckCircle2, color: 'text-green-500', bg: 'bg-green-50 dark:bg-green-900/20' },
@@ -260,11 +269,11 @@ const notifications = [
 
 const openSubmenus = ref([])
 
-const toggleSubmenu = (name) => {
-  if (openSubmenus.value.includes(name)) {
-    openSubmenus.value = openSubmenus.value.filter(n => n !== name)
+const toggleSubmenu = (key) => {
+  if (openSubmenus.value.includes(key)) {
+    openSubmenus.value = openSubmenus.value.filter(n => n !== key)
   } else {
-    openSubmenus.value.push(name)
+    openSubmenus.value.push(key)
   }
 }
 
@@ -279,224 +288,225 @@ onMounted(() => {
 
 const allMenuItems = {
   admin: [
-    { name: 'Dashboard', path: '/dashboard', icon: LucideLayoutDashboard },
+    { key: 'layout.menu.dashboard', path: '/dashboard', icon: LucideLayoutDashboard },
     { 
-      name: 'Document Registration', 
+      key: 'layout.menu.doc_reg', 
       icon: LucideFileText,
       children: [
-        { name: 'Inbound Pre-Registration', path: '/registration/pre' },
-        { name: 'New Document Input', path: '/registration/new' },
-        { name: 'Legacy Data Migration', path: '/registration/migration' },
-        { name: 'Staging Area', path: '/registration/staging' },
+        { key: 'layout.menu.inbound_pre', path: '/registration/pre' },
+        { key: 'layout.menu.new_doc', path: '/registration/new' },
+        { key: 'layout.menu.legacy_mig', path: '/registration/migration' },
+        { key: 'layout.menu.staging', path: '/registration/staging' },
       ]
     },
     { 
-      name: 'Warehouse Management', 
+      key: 'layout.menu.warehouse', 
       icon: LucideHome,
       children: [
-        { name: 'Location Structure', path: '/warehouse/structure' },
-        { name: 'Occupancy Map', path: '/warehouse/occupancy' },
-        { name: 'Department Zonation', path: '/warehouse/zonation' },
-        { name: 'Print QR Labels', path: '/warehouse/labels' },
+        { key: 'layout.menu.structure', path: '/warehouse/structure' },
+        { key: 'layout.menu.occupancy', path: '/warehouse/occupancy' },
+        { key: 'layout.menu.zonation', path: '/warehouse/zonation' },
+        { key: 'layout.menu.print_qr', path: '/warehouse/labels' },
       ]
     },
-    { name: 'Document Search', path: '/documents', icon: LucideSearch },
+    { key: 'layout.menu.search', path: '/documents', icon: LucideSearch },
     { 
-      name: 'Circulation', 
+      key: 'layout.menu.circulation', 
       icon: LucideRepeat,
       children: [
-        { name: 'Pickup Preparation', path: '/circulation/pickup' },
-        { name: 'Checkout (Handover)', path: '/circulation/checkout' },
-        { name: 'Check-in (Return)', path: '/circulation/checkin' },
-        { name: 'Overdue Monitor', path: '/circulation/overdue' },
-        { name: 'Softcopy Release', path: '/circulation/softcopy' },
+        { key: 'layout.menu.pickup', path: '/circulation/pickup' },
+        { key: 'layout.menu.checkout', path: '/circulation/checkout' },
+        { key: 'layout.menu.checkin', path: '/circulation/checkin' },
+        { key: 'layout.menu.overdue', path: '/circulation/overdue' },
+        { key: 'layout.menu.softcopy', path: '/circulation/softcopy' },
       ]
     },
     { 
-      name: 'Stock Take', 
+      key: 'layout.menu.stock_take', 
       icon: LucideBox,
       children: [
-        { name: 'Audit Mission List', path: '/stock/missions' },
-        { name: 'Scan Execution', path: '/stock/scan' },
-        { name: 'Reconciliation Report', path: '/stock/reconciliation' },
+        { key: 'layout.menu.audit_missions', path: '/stock/missions' },
+        { key: 'layout.menu.scan_exec', path: '/stock/scan' },
+        { key: 'layout.menu.reconciliation', path: '/stock/reconciliation' },
       ]
     },
     { 
-      name: 'Retention & Disposal', 
+      key: 'layout.menu.retention', 
       icon: LucideTrash2,
       children: [
-        { name: 'Approaching Retention', path: '/retention/approaching' },
-        { name: 'Disposal History', path: '/retention/history' },
+        { key: 'layout.menu.approaching', path: '/retention/approaching' },
+        { key: 'layout.menu.history', path: '/retention/history' },
       ]
     },
     { 
-      name: 'Reports', 
+      key: 'layout.menu.reports', 
       icon: LucideBarChart3,
       children: [
-        { name: 'Document Statistics', path: '/reports/statistics' },
-        { name: 'Warehouse Capacity', path: '/reports/capacity' },
-        { name: 'Audit Trail', path: '/reports/audit' },
+        { key: 'layout.menu.stats', path: '/reports/statistics' },
+        { key: 'layout.menu.capacity', path: '/reports/capacity' },
+        { key: 'layout.menu.audit_trail', path: '/reports/audit' },
       ]
     },
     { 
-      name: 'Configuration', 
+      key: 'layout.menu.config', 
       icon: LucideSettings,
       children: [
-        { name: 'Company Master', path: '/config/company' },
-        { name: 'Department Master', path: '/config/department' },
-        { name: 'System Parameters', path: '/config/params' },
+        { key: 'layout.menu.company', path: '/config/company' },
+        { key: 'layout.menu.dept', path: '/config/department' },
+        { key: 'layout.menu.params', path: '/config/params' },
       ]
     },
   ],
   user: [
-    { name: 'Dashboard', path: '/dashboard', icon: LucideLayoutDashboard },
-    { name: 'Search', path: '/documents', icon: LucideSearch },
-    { name: 'Submit', path: '/documents/upload', icon: LucideUploadCloud },
-    { name: 'Loans', path: '/loans', icon: LucideFileText },
-    { name: 'Tracking', path: '/tracking', icon: LucideBarChart3 },
+    { key: 'layout.menu.dashboard', path: '/dashboard', icon: LucideLayoutDashboard },
+    { key: 'layout.menu.search', path: '/documents', icon: LucideSearch },
+    { key: 'layout.menu.submit', path: '/documents/upload', icon: LucideUploadCloud },
+    { key: 'layout.menu.loans', path: '/loans', icon: LucideFileText },
+    { key: 'layout.menu.tracking', path: '/tracking', icon: LucideBarChart3 },
   ],
   manager: [
-    { name: 'Dashboard', path: '/dashboard', icon: LucideLayoutDashboard },
+    { key: 'layout.menu.dashboard', path: '/dashboard', icon: LucideLayoutDashboard },
     { 
-      name: 'Approval Management', 
+      key: 'layout.menu.approvals', 
       icon: LucideShieldCheck, 
       badge: 5,
       children: [
-        { name: 'Document Submissions', path: '/approvals/submissions', count: 2 },
-        { name: 'Document Loans', path: '/approvals/loans', count: 2 },
-        { name: 'Loan Extensions', path: '/approvals/extensions', count: 1 },
+        { key: 'layout.menu.submissions', path: '/approvals/submissions', count: 2 },
+        { key: 'layout.menu.loans', path: '/approvals/loans', count: 2 },
+        { key: 'layout.menu.extensions', path: '/approvals/extensions', count: 1 },
       ]
     },
-    { name: 'Document Search', path: '/documents', icon: LucideSearch },
+    { key: 'layout.menu.search', path: '/documents', icon: LucideSearch },
     { 
-      name: 'Loans', 
+      key: 'layout.menu.loans', 
       icon: LucideBookOpen,
       children: [
-        { name: 'Request Loan', path: '/loans/request' },
-        { name: 'My Loans', path: '/loans/my' },
-        { name: 'Softcopy Request', path: '/loans/softcopy' },
-        { name: 'Loan History', path: '/loans/history' },
+        { key: 'layout.menu.fast_track', path: '/loans/fast-track' },
+        { key: 'layout.menu.request_loan', path: '/loans/request' },
+        { key: 'layout.menu.my_loans', path: '/loans/my' },
+        { key: 'layout.menu.softcopy', path: '/loans/softcopy' },
+        { key: 'layout.menu.loan_history', path: '/loans/history' },
       ]
     },
     { 
-      name: 'Document Submissions', 
+      key: 'layout.menu.submissions', 
       icon: LucideFileStack,
       children: [
-        { name: 'Submit Document', path: '/documents/upload' },
-        { name: 'Submission Status', path: '/documents/status' },
+        { key: 'layout.menu.submit', path: '/documents/upload' },
+        { key: 'layout.menu.submission_status', path: '/documents/status' },
       ]
     },
-    { name: 'Notifications', path: '/notifications', icon: LucideBell, badge: 8 },
+    { key: 'layout.menu.notifications', path: '/notifications', icon: LucideBell, badge: 8 },
   ],
   doc_controller: [
-    { name: 'Dashboard', path: '/dashboard', icon: LucideLayoutDashboard },
+    { key: 'layout.menu.dashboard', path: '/dashboard', icon: LucideLayoutDashboard },
     { 
-      name: 'Approval', 
+      key: 'layout.menu.approvals', 
       icon: LucideShieldCheck, 
       badge: 5,
       children: [
-        { name: 'Document Loans', path: '/approvals/loans' },
-        { name: 'Softcopy Loans', path: '/approvals/softcopy' },
-        { name: 'Loan Extensions', path: '/approvals/extensions' },
-        { name: 'Document Disposal', path: '/approvals/disposal' },
+        { key: 'layout.menu.loans', path: '/approvals/loans' },
+        { key: 'layout.menu.softcopy', path: '/approvals/softcopy' },
+        { key: 'layout.menu.extensions', path: '/approvals/extensions' },
+        { key: 'layout.menu.disposal', path: '/approvals/disposal' },
       ]
     },
-    { name: 'Document Search', path: '/documents', icon: LucideSearch },
+    { key: 'layout.menu.search', path: '/documents', icon: LucideSearch },
     { 
-      name: 'Loans', 
+      key: 'layout.menu.loans', 
       icon: LucideBookOpen,
       children: [
-        { name: 'Request Loan', path: '/loans/request' },
-        { name: 'My Loans', path: '/loans/my' },
-        { name: 'Softcopy Request', path: '/loans/softcopy' },
-        { name: 'Loan History', path: '/loans/history' },
+        { key: 'layout.menu.request_loan', path: '/loans/request' },
+        { key: 'layout.menu.my_loans', path: '/loans/my' },
+        { key: 'layout.menu.softcopy', path: '/loans/softcopy' },
+        { key: 'layout.menu.loan_history', path: '/loans/history' },
       ]
     },
     { 
-      name: 'Department Reports', 
+      key: 'layout.menu.reports', 
       icon: LucideBarChart3,
       children: [
-        { name: 'Document Statistics', path: '/reports/statistics' },
-        { name: 'Circulation Report', path: '/reports/circulation' },
-        { name: 'Overdue Monitoring', path: '/reports/overdue' },
+        { key: 'layout.menu.stats', path: '/reports/statistics' },
+        { key: 'layout.menu.circulation_report', path: '/reports/circulation' },
+        { key: 'layout.menu.overdue_monitoring', path: '/reports/overdue' },
       ]
     },
     { 
-      name: 'Stock Take', 
+      key: 'layout.menu.stock_take', 
       icon: LucideBox,
       children: [
-        { name: 'Reconciliation Report', path: '/stock/reconciliation' },
+        { key: 'layout.menu.reconciliation', path: '/stock/reconciliation' },
       ]
     },
-    { name: 'Notifications', path: '/notifications', icon: LucideBell, badge: 8 },
+    { key: 'layout.menu.notifications', path: '/notifications', icon: LucideBell, badge: 8 },
   ],
   manager_doc_controller: [
-    { name: 'Dashboard', path: '/dashboard', icon: LucideLayoutDashboard },
+    { key: 'layout.menu.dashboard', path: '/dashboard', icon: LucideLayoutDashboard },
     { 
-      name: 'Document Registration', 
+      key: 'layout.menu.doc_reg', 
       icon: LucideFileText,
       children: [
-        { name: 'Inbound Pre-Registration', path: '/registration/pre' },
-        { name: 'New Document Input', path: '/registration/new' },
-        { name: 'Legacy Data Migration', path: '/registration/migration' },
-        { name: 'Staging Area', path: '/registration/staging' },
+        { key: 'layout.menu.inbound_pre', path: '/registration/pre' },
+        { key: 'layout.menu.new_doc', path: '/registration/new' },
+        { key: 'layout.menu.legacy_mig', path: '/registration/migration' },
+        { key: 'layout.menu.staging', path: '/registration/staging' },
       ]
     },
     { 
-      name: 'Warehouse Management', 
+      key: 'layout.menu.warehouse', 
       icon: LucideHome,
       children: [
-        { name: 'Location Structure', path: '/warehouse/structure' },
-        { name: 'Occupancy Map', path: '/warehouse/occupancy' },
-        { name: 'Department Zonation', path: '/warehouse/zonation' },
-        { name: 'Print QR Labels', path: '/warehouse/labels' },
+        { key: 'layout.menu.structure', path: '/warehouse/structure' },
+        { key: 'layout.menu.occupancy', path: '/warehouse/occupancy' },
+        { key: 'layout.menu.zonation', path: '/warehouse/zonation' },
+        { key: 'layout.menu.print_qr', path: '/warehouse/labels' },
       ]
     },
-    { name: 'Document Search', path: '/documents', icon: LucideSearch },
+    { key: 'layout.menu.search', path: '/documents', icon: LucideSearch },
     { 
-      name: 'Circulation', 
+      key: 'layout.menu.circulation', 
       icon: LucideRepeat,
       children: [
-        { name: 'Pickup Preparation', path: '/circulation/pickup' },
-        { name: 'Checkout (Handover)', path: '/circulation/checkout' },
-        { name: 'Check-in (Return)', path: '/circulation/checkin' },
-        { name: 'Overdue Monitor', path: '/circulation/overdue' },
-        { name: 'Softcopy Release', path: '/circulation/softcopy' },
+        { key: 'layout.menu.pickup', path: '/circulation/pickup' },
+        { key: 'layout.menu.checkout', path: '/circulation/checkout' },
+        { key: 'layout.menu.checkin', path: '/circulation/checkin' },
+        { key: 'layout.menu.overdue', path: '/circulation/overdue' },
+        { key: 'layout.menu.softcopy', path: '/circulation/softcopy' },
       ]
     },
     { 
-      name: 'Stock Take', 
+      key: 'layout.menu.stock_take', 
       icon: LucideBox,
       children: [
-        { name: 'Audit Mission List', path: '/stock/missions' },
-        { name: 'Scan Execution', path: '/stock/scan' },
-        { name: 'Reconciliation Report', path: '/stock/reconciliation' },
+        { key: 'layout.menu.audit_missions', path: '/stock/missions' },
+        { key: 'layout.menu.scan_exec', path: '/stock/scan' },
+        { key: 'layout.menu.reconciliation', path: '/stock/reconciliation' },
       ]
     },
     { 
-      name: 'Retention & Disposal', 
+      key: 'layout.menu.retention', 
       icon: LucideTrash2,
       children: [
-        { name: 'Approaching Retention', path: '/retention/approaching' },
-        { name: 'Disposal History', path: '/retention/history' },
+        { key: 'layout.menu.approaching', path: '/retention/approaching' },
+        { key: 'layout.menu.history', path: '/retention/history' },
       ]
     },
     { 
-      name: 'Reports', 
+      key: 'layout.menu.reports', 
       icon: LucideBarChart3,
       children: [
-        { name: 'Document Statistics', path: '/reports/statistics' },
-        { name: 'Warehouse Capacity', path: '/reports/capacity' },
-        { name: 'Audit Trail', path: '/reports/audit' },
+        { key: 'layout.menu.stats', path: '/reports/statistics' },
+        { key: 'layout.menu.capacity', path: '/reports/capacity' },
+        { key: 'layout.menu.audit_trail', path: '/reports/audit' },
       ]
     },
     { 
-      name: 'Configuration', 
+      key: 'layout.menu.config', 
       icon: LucideSettings,
       children: [
-        { name: 'Company Master', path: '/config/company' },
-        { name: 'Department Master', path: '/config/department' },
-        { name: 'System Parameters', path: '/config/params' },
+        { key: 'layout.menu.company', path: '/config/company' },
+        { key: 'layout.menu.dept', path: '/config/department' },
+        { key: 'layout.menu.params', path: '/config/params' },
       ]
     },
   ]
@@ -507,9 +517,19 @@ const menuItems = computed(() => {
   return allMenuItems[role] || allMenuItems.user
 })
 
-const currentPageTitle = computed(() => {
+const currentPageTitleKey = computed(() => {
   const current = menuItems.value.find(m => m.path === route.path)
-  return current ? current.name : 'Kreatif DMS'
+  if (current) return current.key
+  
+  // Check children
+  for (const item of menuItems.value) {
+    if (item.children) {
+      const child = item.children.find(c => c.path === route.path)
+      if (child) return child.key
+    }
+  }
+  
+  return 'layout.menu.dashboard'
 })
 
 // Auto-close sidebar on desktop resize

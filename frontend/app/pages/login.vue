@@ -14,12 +14,12 @@
           <span class="text-2xl font-black tracking-tighter uppercase">{{ config.public.appName }}</span>
         </div>
 
-        <h1 class="text-5xl font-bold leading-tight mb-6">Document Management System</h1>
+        <h1 class="text-5xl font-bold leading-tight mb-6">{{ $t('login.left_panel.title') }}</h1>
         <div class="inline-flex px-3 py-1 bg-white/20 border border-white/30 rounded-md text-[10px] font-bold uppercase tracking-widest mb-8">
-          Enterprise Edition
+          {{ $t('login.left_panel.edition') }}
         </div>
         <p class="text-xl text-white/70 max-w-sm leading-relaxed">
-          Secure. Organized. Accessible. Empowering your digital workflow with enterprise-grade reliability.
+          {{ $t('login.left_panel.subtitle') }}
         </p>
       </div>
 
@@ -79,7 +79,7 @@
 
           <div class="space-y-4">
             <label class="text-lg font-bold text-slate-700 dark:text-slate-300">
-              {{ authType === 'sso' ? $t('login.email_label') : 'Email Address' }}
+              {{ $t('login.email_label') }}
             </label>
             <div class="relative group">
               <LucideMail class="absolute left-6 top-1/2 -translate-y-1/2 w-7 h-7 text-slate-400 group-focus-within:text-primary-500 transition-colors" />

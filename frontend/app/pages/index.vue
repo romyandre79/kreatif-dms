@@ -10,15 +10,15 @@
       </div>
       
       <div class="hidden md:flex items-center gap-8">
-        <a href="#features" class="text-sm font-medium text-slate-400 hover:text-white transition-colors">Features</a>
-        <a href="#solutions" class="text-sm font-medium text-slate-400 hover:text-white transition-colors">Solutions</a>
-        <a href="#security" class="text-sm font-medium text-slate-400 hover:text-white transition-colors">Security</a>
+        <a href="#features" class="text-sm font-medium text-slate-400 hover:text-white transition-colors">{{ $t('landing.nav.features') }}</a>
+        <a href="#solutions" class="text-sm font-medium text-slate-400 hover:text-white transition-colors">{{ $t('landing.nav.solutions') }}</a>
+        <a href="#security" class="text-sm font-medium text-slate-400 hover:text-white transition-colors">{{ $t('landing.nav.security') }}</a>
       </div>
 
       <div class="flex items-center gap-4">
-        <NuxtLink to="/login" class="text-sm font-semibold hover:text-primary-400 transition-colors">Sign In</NuxtLink>
+        <NuxtLink to="/login" class="text-sm font-semibold hover:text-primary-400 transition-colors">{{ $t('landing.nav.sign_in') }}</NuxtLink>
         <NuxtLink to="/dashboard" class="px-5 py-2.5 rounded-full bg-white text-slate-950 text-sm font-bold hover:bg-slate-200 transition-all">
-          Get Started
+          {{ $t('landing.nav.get_started') }}
         </NuxtLink>
       </div>
     </nav>
@@ -33,20 +33,19 @@
         <div v-motion-slide-visible-left>
           <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary-500/10 border border-primary-500/20 text-primary-400 text-xs font-bold uppercase tracking-widest mb-6">
             <span class="w-2 h-2 rounded-full bg-primary-500 animate-pulse"></span>
-            Next Generation Document Management
+            {{ $t('landing.hero.badge') }}
           </div>
-          <h1 class="text-5xl lg:text-7xl font-extrabold tracking-tight leading-[1.1] mb-8">
-            Manage your <span class="bg-gradient-to-r from-primary-400 to-blue-400 bg-clip-text text-transparent">Documents</span> with Intelligence.
+          <h1 class="text-5xl lg:text-7xl font-extrabold tracking-tight leading-[1.1] mb-8" v-html="$t('landing.hero.title', { docs: `<span class='bg-gradient-to-r from-primary-400 to-blue-400 bg-clip-text text-transparent'>${$t('landing.hero.docs_highlight')}</span>` })">
           </h1>
           <p class="text-lg text-slate-400 max-w-xl mb-10 leading-relaxed">
-            Experience the future of DMS. AI-powered OCR, full-text search, and military-grade encryption all in one seamless, premium interface.
+            {{ $t('landing.hero.subtitle') }}
           </p>
           <div class="flex flex-wrap gap-4">
             <NuxtLink to="/dashboard" class="px-8 py-4 rounded-2xl bg-primary-500 text-white font-bold text-lg hover:bg-primary-400 shadow-xl shadow-primary-500/30 transition-all flex items-center gap-2">
-              Start Free Trial <LucideArrowRight class="w-5 h-5" />
+              {{ $t('landing.hero.btn_trial') }} <LucideArrowRight class="w-5 h-5" />
             </NuxtLink>
             <button class="px-8 py-4 rounded-2xl bg-white/5 border border-white/10 font-bold text-lg hover:bg-white/10 transition-all">
-              Watch Demo
+              {{ $t('landing.hero.btn_demo') }}
             </button>
           </div>
           
@@ -54,7 +53,7 @@
             <div class="flex -space-x-3">
               <div v-for="i in 4" :key="i" class="w-10 h-10 rounded-full border-2 border-[#020617] bg-slate-800"></div>
             </div>
-            <p class="text-sm font-medium">Trusted by <span class="text-white font-bold">500+</span> companies worldwide</p>
+            <p class="text-sm font-medium" v-html="$t('landing.hero.trusted', { count: '<span class=\'text-white font-bold\'>500</span>' })"></p>
           </div>
         </div>
 
@@ -73,7 +72,7 @@
                 <LucideShieldCheck class="w-6 h-6 text-green-500" />
              </div>
              <div>
-                <p class="text-xs font-bold text-slate-400">Security</p>
+                <p class="text-xs font-bold text-slate-400">{{ $t('landing.nav.security') }}</p>
                 <p class="text-sm font-bold">AES-256 Enabled</p>
              </div>
           </div>
@@ -85,8 +84,8 @@
     <section id="features" class="py-24 px-6 relative">
       <div class="max-w-7xl mx-auto">
         <div class="text-center max-w-2xl mx-auto mb-20">
-          <h2 class="text-4xl font-bold mb-4">Powerful features for modern teams</h2>
-          <p class="text-slate-400">Built from the ground up to provide the fastest, most secure, and most intelligent document experience.</p>
+          <h2 class="text-4xl font-bold mb-4">{{ $t('landing.features.title') }}</h2>
+          <p class="text-slate-400">{{ $t('landing.features.subtitle') }}</p>
         </div>
 
         <div class="grid md:grid-cols-3 gap-8">
@@ -94,8 +93,8 @@
             <div :class="`w-14 h-14 rounded-2xl flex items-center justify-center mb-6 bg-slate-900 group-hover:bg-primary-500 transition-colors`">
               <component :is="f.icon" class="w-8 h-8 text-primary-400 group-hover:text-white" />
             </div>
-            <h3 class="text-xl font-bold mb-4">{{ f.title }}</h3>
-            <p class="text-slate-400 leading-relaxed">{{ f.desc }}</p>
+            <h3 class="text-xl font-bold mb-4">{{ $t(f.titleKey) }}</h3>
+            <p class="text-slate-400 leading-relaxed">{{ $t(f.descKey) }}</p>
           </div>
         </div>
       </div>
@@ -106,7 +105,7 @@
       <div class="max-w-7xl mx-auto px-6 grid grid-cols-2 lg:grid-cols-4 gap-12 text-center">
         <div v-for="(s, i) in stats" :key="i">
           <p class="text-4xl font-extrabold mb-2">{{ s.value }}</p>
-          <p class="text-sm font-bold text-primary-500 uppercase tracking-widest">{{ s.label }}</p>
+          <p class="text-sm font-bold text-primary-500 uppercase tracking-widest">{{ $t(s.labelKey) }}</p>
         </div>
       </div>
     </section>
@@ -122,31 +121,31 @@
             <span class="text-lg font-bold tracking-tighter">Kreatif <span class="text-primary-500">DMS</span></span>
           </div>
           <p class="text-slate-500 max-w-sm">
-            Empowering organizations to handle their knowledge with precision, speed, and absolute security.
+            {{ $t('landing.footer.desc') }}
           </p>
         </div>
         <div>
-          <h4 class="font-bold mb-6">Product</h4>
+          <h4 class="font-bold mb-6">{{ $t('landing.footer.product') }}</h4>
           <ul class="space-y-4 text-sm text-slate-500">
-            <li><a href="#" class="hover:text-white transition-colors">Features</a></li>
-            <li><a href="#" class="hover:text-white transition-colors">Security</a></li>
-            <li><a href="#" class="hover:text-white transition-colors">Pricing</a></li>
+            <li><a href="#" class="hover:text-white transition-colors">{{ $t('landing.nav.features') }}</a></li>
+            <li><a href="#" class="hover:text-white transition-colors">{{ $t('landing.nav.security') }}</a></li>
+            <li><a href="#" class="hover:text-white transition-colors">{{ $t('landing.footer.pricing') }}</a></li>
           </ul>
         </div>
         <div>
-          <h4 class="font-bold mb-6">Company</h4>
+          <h4 class="font-bold mb-6">{{ $t('landing.footer.company') }}</h4>
           <ul class="space-y-4 text-sm text-slate-500">
-            <li><a href="#" class="hover:text-white transition-colors">About Us</a></li>
-            <li><a href="#" class="hover:text-white transition-colors">Careers</a></li>
-            <li><a href="#" class="hover:text-white transition-colors">Contact</a></li>
+            <li><a href="#" class="hover:text-white transition-colors">{{ $t('landing.footer.about') }}</a></li>
+            <li><a href="#" class="hover:text-white transition-colors">{{ $t('landing.footer.careers') }}</a></li>
+            <li><a href="#" class="hover:text-white transition-colors">{{ $t('landing.footer.contact') }}</a></li>
           </ul>
         </div>
       </div>
       <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center pt-8 border-t border-white/5 text-xs text-slate-600 font-bold">
-        <p>© 2024 Kreatif Digital. All rights reserved.</p>
+        <p>{{ $t('landing.footer.rights') }}</p>
         <div class="flex gap-8 mt-4 md:mt-0">
-          <a href="#">Privacy Policy</a>
-          <a href="#">Terms of Service</a>
+          <a href="#">{{ $t('landing.footer.privacy') }}</a>
+          <a href="#">{{ $t('landing.footer.terms') }}</a>
         </div>
       </div>
     </footer>
@@ -171,42 +170,42 @@ definePageMeta({
 
 const features = [
   { 
-    title: 'AI-Powered OCR', 
-    desc: 'Extract text from any document with 99.9% accuracy using our advanced neural network engine.', 
+    titleKey: 'landing.features.items.ocr.title', 
+    descKey: 'landing.features.items.ocr.desc', 
     icon: LucideScanText 
   },
   { 
-    title: 'Fast Search', 
-    desc: 'Instantly find any document by its content, metadata, or tags with sub-second latency.', 
+    titleKey: 'landing.features.items.search.title', 
+    descKey: 'landing.features.items.search.desc', 
     icon: LucideSearch 
   },
   { 
-    title: 'Military Security', 
-    desc: 'All documents are encrypted with AES-256 and stored in secure hierarchical compartments.', 
+    titleKey: 'landing.features.items.security.title', 
+    descKey: 'landing.features.items.security.desc', 
     icon: LucideShieldCheck 
   },
   { 
-    title: 'Smart Summaries', 
-    desc: 'Get instant insights from long documents using built-in AI summarization (Gemini/OpenAI).', 
+    titleKey: 'landing.features.items.summaries.title', 
+    descKey: 'landing.features.items.summaries.desc', 
     icon: LucideCpu 
   },
   { 
-    title: 'Cloud Storage', 
-    desc: 'Scalable MinIO storage ensures your documents are always accessible and highly available.', 
+    titleKey: 'landing.features.items.cloud.title', 
+    descKey: 'landing.features.items.cloud.desc', 
     icon: LucideCloud 
   },
   { 
-    title: 'Instant Preview', 
-    desc: 'View documents instantly with dynamic watermarking for unauthorized download protection.', 
+    titleKey: 'landing.features.items.preview.title', 
+    descKey: 'landing.features.items.preview.desc', 
     icon: LucideZap 
   }
 ]
 
 const stats = [
-  { label: 'Documents Processed', value: '10M+' },
-  { label: 'Uptime Guarantee', value: '99.9%' },
-  { label: 'Happy Companies', value: '500+' },
-  { label: 'AI Responses/sec', value: '250' }
+  { labelKey: 'landing.stats.docs', value: '10M+' },
+  { labelKey: 'landing.stats.uptime', value: '99.9%' },
+  { labelKey: 'landing.stats.companies', value: '500+' },
+  { labelKey: 'landing.stats.ai', value: '250' }
 ]
 </script>
 

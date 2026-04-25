@@ -81,6 +81,9 @@ services:
       - MINIO_SECRET_KEY=secretpassword
       - ELASTICSEARCH_URL=http://elasticsearch:9200
       - OCR_SERVICE_URL=http://ocr-service:8000
+      - AI_REFINEMENT_ENABLED=true
+      - AI_METADATA_ENABLED=true
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
     ports:
       - "8080:8080"
     depends_on:
@@ -107,6 +110,9 @@ services:
       - MINIO_SECRET_KEY=secretpassword
       - ELASTICSEARCH_URL=http://elasticsearch:9200
       - OCR_SERVICE_URL=http://ocr-service:8000
+      - AI_REFINEMENT_ENABLED=true
+      - AI_METADATA_ENABLED=true
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
     depends_on:
       - postgres
       - redis

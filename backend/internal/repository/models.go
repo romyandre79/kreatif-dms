@@ -162,4 +162,6 @@ type User struct {
 	Status       string             `json:"status"`
 	AvatarUrl    pgtype.Text        `json:"avatar_url"`
 	SignatureUrl pgtype.Text        `json:"signature_url"`
+	// 6-digit transaction PIN for high-security approvals (L2)
+	Pin pgtype.Text `json:"pin"`
 }

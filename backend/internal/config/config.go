@@ -33,6 +33,8 @@ type Config struct {
 	GeminiAPIKey string `mapstructure:"GEMINI_API_KEY"`
 	OpenAIAPIKey string `mapstructure:"OPENAI_API_KEY"`
 	OllamaURL    string `mapstructure:"OLLAMA_URL"`
+	AIRefinementEnabled bool `mapstructure:"AI_REFINEMENT_ENABLED"`
+	AIMetadataEnabled   bool `mapstructure:"AI_METADATA_ENABLED"`
 
 	SMTPHost string `mapstructure:"SMTP_HOST"`
 	SMTPPort int    `mapstructure:"SMTP_PORT"`

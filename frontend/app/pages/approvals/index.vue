@@ -9,8 +9,8 @@
       <div class="w-20 h-20 rounded-2xl bg-amber-50 dark:bg-amber-900/20 flex items-center justify-center text-amber-500">
         <LucideShieldCheck class="w-10 h-10" />
       </div>
-      <h2 class="text-xl font-bold">Approval Workflow Coming Soon</h2>
-      <p class="text-slate-500 max-w-md">The approval system is being prepared for secure document management.</p>
+      <h2 class="text-xl font-bold">{{ $t('placeholders.coming_soon_title', { page: 'Approvals' }) }}</h2>
+      <p class="text-slate-500 max-w-md">{{ $t('placeholders.coming_soon_desc', { page: 'Approvals' }) }}</p>
     </div>
   </div>
 </template>

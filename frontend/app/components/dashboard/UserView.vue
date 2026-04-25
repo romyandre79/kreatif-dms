@@ -3,15 +3,15 @@
     <!-- Action Header -->
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4" v-motion-fade>
       <div>
-        <h1 class="text-3xl font-bold text-slate-900 dark:text-white">Good Morning, {{ user?.full_name?.split(' ')[0] || 'User' }}!</h1>
-        <p class="text-slate-500 dark:text-slate-400 mt-1">Here's an overview of your document operations for today.</p>
+        <h1 class="text-3xl font-bold text-slate-900 dark:text-white">{{ $t('dashboard.greetings.morning', { name: user?.full_name?.split(' ')[0] || 'User' }) }}</h1>
+        <p class="text-slate-500 dark:text-slate-400 mt-1">{{ $t('dashboard.user.overview_desc') }}</p>
       </div>
       <button 
         @click="navigateTo('/documents/upload')"
         class="flex items-center gap-2 px-6 py-3 bg-[#1E3A5F] hover:bg-[#152943] text-white font-bold rounded-xl shadow-lg shadow-blue-900/20 transition-all"
       >
         <LucidePlus class="w-5 h-5" />
-        Submit New Document
+        {{ $t('dashboard.header.btn_submit_new') }}
       </button>
     </div>
 
@@ -19,7 +19,7 @@
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
       <!-- My Submissions -->
       <div v-motion-slide-visible-bottom class="glass p-6 rounded-2xl relative overflow-hidden group">
-        <p class="text-xs text-slate-400 font-bold uppercase tracking-wider mb-4">My Submissions</p>
+        <p class="text-xs text-slate-400 font-bold uppercase tracking-wider mb-4">{{ $t('dashboard.user.stats.my_submissions') }}</p>
         <div class="flex items-end justify-between">
           <p class="text-4xl font-black text-slate-900 dark:text-white">24</p>
           <div class="flex items-center gap-1 text-green-500 text-xs font-bold bg-green-500/10 px-2 py-1 rounded-lg">
@@ -31,32 +31,31 @@
 
       <!-- Pending Approvals -->
       <div v-motion-slide-visible-bottom class="glass p-6 rounded-2xl relative overflow-hidden group">
-        <p class="text-xs text-slate-400 font-bold uppercase tracking-wider mb-4">Pending Approvals</p>
+        <p class="text-xs text-slate-400 font-bold uppercase tracking-wider mb-4">{{ $t('dashboard.user.stats.pending_approvals') }}</p>
         <div class="flex items-center justify-between">
           <p class="text-4xl font-black text-slate-900 dark:text-white">3</p>
-          <div class="bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase leading-tight">
-            Action<br>Required
+          <div class="bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase leading-tight" v-html="$t('dashboard.user.stats.action_required')">
           </div>
         </div>
       </div>
 
       <!-- Active Loans -->
       <div v-motion-slide-visible-bottom class="glass p-6 rounded-2xl relative overflow-hidden group">
-        <p class="text-xs text-slate-400 font-bold uppercase tracking-wider mb-4">Active Loans</p>
+        <p class="text-xs text-slate-400 font-bold uppercase tracking-wider mb-4">{{ $t('dashboard.user.stats.active_loans') }}</p>
         <div class="flex items-center justify-between">
           <p class="text-4xl font-black text-slate-900 dark:text-white">2</p>
           <div class="bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 px-3 py-1 rounded-full text-[10px] font-black uppercase">
-            Active
+            {{ $t('dashboard.infrastructure.active_accuracy', { accuracy: '' }).split('(')[0].trim() }}
           </div>
         </div>
       </div>
 
       <!-- Search History -->
       <div v-motion-slide-visible-bottom class="glass p-6 rounded-2xl relative overflow-hidden group">
-        <p class="text-xs text-slate-400 font-bold uppercase tracking-wider mb-4">Search History</p>
+        <p class="text-xs text-slate-400 font-bold uppercase tracking-wider mb-4">{{ $t('dashboard.user.stats.search_history') }}</p>
         <div class="flex items-end justify-between">
           <p class="text-4xl font-black text-slate-900 dark:text-white">47</p>
-          <p class="text-slate-400 text-xs font-medium mb-1">Today</p>
+          <p class="text-slate-400 text-xs font-medium mb-1">{{ $t('dashboard.user.stats.today') }}</p>
         </div>
       </div>
     </div>
@@ -66,17 +65,17 @@
       <!-- Items Requiring My Action -->
       <div class="xl:col-span-2 glass rounded-2xl overflow-hidden" v-motion-slide-visible-bottom>
         <div class="px-6 py-5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
-          <h3 class="font-black text-lg text-slate-800 dark:text-white">Items Requiring My Action</h3>
-          <button class="text-primary-600 dark:text-primary-400 text-sm font-bold hover:underline">View All Tasks</button>
+          <h3 class="font-black text-lg text-slate-800 dark:text-white">{{ $t('dashboard.user.tasks.title') }}</h3>
+          <button class="text-primary-600 dark:text-primary-400 text-sm font-bold hover:underline">{{ $t('dashboard.queue.view_all_tasks') }}</button>
         </div>
         <div class="overflow-x-auto">
           <table class="w-full text-left">
             <thead>
               <tr class="text-slate-400 text-[10px] uppercase font-black tracking-widest bg-slate-50/50 dark:bg-slate-900/50">
-                <th class="px-6 py-4">Task Type</th>
-                <th class="px-6 py-4">Document / Manifest ID</th>
-                <th class="px-6 py-4">Due Date</th>
-                <th class="px-6 py-4 text-right">Action</th>
+                <th class="px-6 py-4">{{ $t('dashboard.user.tasks.table.task_type') }}</th>
+                <th class="px-6 py-4">{{ $t('dashboard.user.tasks.table.doc_manifest') }}</th>
+                <th class="px-6 py-4">{{ $t('dashboard.user.tasks.table.due_date') }}</th>
+                <th class="px-6 py-4 text-right">{{ $t('dashboard.user.tasks.table.action') }}</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
@@ -109,7 +108,7 @@
 
       <!-- Quick Actions -->
       <div class="glass rounded-3xl p-8" v-motion-slide-visible-bottom>
-        <h3 class="font-black text-lg text-slate-800 dark:text-white mb-8">Quick Actions</h3>
+        <h3 class="font-black text-lg text-slate-800 dark:text-white mb-8">{{ $t('dashboard.user.quick_actions.title') }}</h3>
         <div class="grid grid-cols-2 gap-4">
           <button v-for="action in quickActions" :key="action.label" class="flex flex-col items-center justify-center p-6 bg-slate-50 dark:bg-slate-900/50 rounded-2xl hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-all border border-transparent hover:border-primary-200 group">
             <div class="w-12 h-12 rounded-xl flex items-center justify-center mb-4 text-slate-400 group-hover:text-primary-500 transition-colors">
@@ -125,7 +124,7 @@
     <div class="grid grid-cols-1 xl:grid-cols-3 gap-8">
       <!-- Recent Activities -->
       <div class="xl:col-span-2 glass rounded-2xl p-8" v-motion-slide-visible-bottom>
-        <h3 class="font-black text-lg text-slate-800 dark:text-white mb-8">Recent Activities</h3>
+        <h3 class="font-black text-lg text-slate-800 dark:text-white mb-8">{{ $t('dashboard.user.activity.title') }}</h3>
         <div class="space-y-8">
           <div v-for="(activity, index) in activities" :key="index" class="flex gap-6 relative">
             <div v-if="index !== activities.length - 1" class="absolute left-3 top-8 w-0.5 h-8 bg-slate-100 dark:bg-slate-800"></div>
@@ -146,12 +145,12 @@
       <!-- System Update Banner -->
       <div class="bg-[#1E3A5F] rounded-2xl p-8 text-white relative overflow-hidden group shadow-2xl shadow-blue-900/40" v-motion-slide-visible-bottom>
         <div class="relative z-10">
-          <h3 class="font-black text-xl mb-4">System Update</h3>
+          <h3 class="font-black text-xl mb-4">{{ $t('dashboard.user.system_update.title') }}</h3>
           <p class="text-blue-100/80 text-sm leading-relaxed mb-8">
-            DMS v4.2 will be deployed this Sunday at 02:00 AM. Please ensure all sessions are closed.
+            {{ $t('dashboard.user.system_update.desc') }}
           </p>
           <button class="w-full py-3.5 bg-white text-[#1E3A5F] rounded-xl font-black text-xs uppercase tracking-widest hover:bg-blue-50 transition-all">
-            Read Release Notes
+            {{ $t('dashboard.user.system_update.btn_notes') }}
           </button>
         </div>
         <LucideInfo class="absolute -right-8 -bottom-8 w-48 h-48 text-white/5 opacity-10 rotate-12" />
@@ -161,22 +160,22 @@
     <!-- Loan History Table -->
     <div class="glass rounded-2xl overflow-hidden" v-motion-slide-visible-bottom>
       <div class="px-6 py-6 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
-        <h3 class="font-black text-lg text-slate-800 dark:text-white">Recent Loan History</h3>
+        <h3 class="font-black text-lg text-slate-800 dark:text-white">{{ $t('dashboard.user.loan_history.title') }}</h3>
         <div class="flex gap-2">
-          <button class="px-4 py-2 bg-slate-50 dark:bg-slate-900 rounded-lg text-xs font-black text-slate-500 border border-slate-200 dark:border-slate-800 hover:bg-slate-100">Export CSV</button>
-          <button class="px-4 py-2 bg-slate-50 dark:bg-slate-900 rounded-lg text-xs font-black text-slate-500 border border-slate-200 dark:border-slate-800 hover:bg-slate-100">Filter</button>
+          <button class="px-4 py-2 bg-slate-50 dark:bg-slate-900 rounded-lg text-xs font-black text-slate-500 border border-slate-200 dark:border-slate-800 hover:bg-slate-100">{{ $t('dashboard.user.loan_history.btn_export') }}</button>
+          <button class="px-4 py-2 bg-slate-50 dark:bg-slate-900 rounded-lg text-xs font-black text-slate-500 border border-slate-200 dark:border-slate-800 hover:bg-slate-100">{{ $t('dashboard.user.loan_history.btn_filter') }}</button>
         </div>
       </div>
       <div class="overflow-x-auto">
         <table class="w-full text-left">
           <thead>
             <tr class="text-slate-400 text-[10px] uppercase font-black tracking-widest bg-slate-50/50 dark:bg-slate-900/50">
-              <th class="px-6 py-4">Loan ID</th>
-              <th class="px-6 py-4">Document Title</th>
-              <th class="px-6 py-4">Loan Date</th>
-              <th class="px-6 py-4">Expected Return</th>
-              <th class="px-6 py-4">Status</th>
-              <th class="px-6 py-4 text-right">Action</th>
+              <th class="px-6 py-4">{{ $t('dashboard.user.loan_history.table.loan_id') }}</th>
+              <th class="px-6 py-4">{{ $t('dashboard.user.loan_history.table.doc_title') }}</th>
+              <th class="px-6 py-4">{{ $t('dashboard.user.loan_history.table.loan_date') }}</th>
+              <th class="px-6 py-4">{{ $t('dashboard.user.loan_history.table.expected_return') }}</th>
+              <th class="px-6 py-4">{{ $t('dashboard.user.loan_history.table.status') }}</th>
+              <th class="px-6 py-4 text-right">{{ $t('dashboard.user.loan_history.table.action') }}</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
@@ -212,6 +211,7 @@
 </template>
 
 <script setup>
+const { t } = useI18n()
 import { 
   LucidePlus, 
   LucideTrendingUp, 
@@ -230,22 +230,22 @@ const auth = useAuthStore()
 const user = computed(() => auth.user)
 
 const tasks = [
-  { id: 'MF-2023-8982', type: 'Print Manifest', dotColor: 'bg-orange-500', dueDate: 'Today,', dueTime: '14:00', btnLabel: 'Execute', btnClass: 'bg-slate-100 text-slate-600 hover:bg-slate-200' },
-  { id: 'DOC-A4-7721', type: 'Document Return', dotColor: 'bg-blue-500', dueDate: 'Tomorrow', dueTime: '', btnLabel: 'Process', btnClass: 'bg-slate-100 text-slate-600 hover:bg-slate-200' },
-  { id: 'VLD-2023-1102', type: 'Physical Validation', dotColor: 'bg-orange-500', dueDate: 'Sep 28,', dueTime: '2023', btnLabel: 'Verify', btnClass: 'bg-slate-100 text-slate-600 hover:bg-slate-200' },
+  { id: 'MF-2023-8982', type: t('dashboard.user.tasks.items.print_manifest'), dotColor: 'bg-orange-500', dueDate: t('dashboard.user.tasks.items.today'), dueTime: '14:00', btnLabel: t('dashboard.user.tasks.items.execute'), btnClass: 'bg-slate-100 text-slate-600 hover:bg-slate-200' },
+  { id: 'DOC-A4-7721', type: t('dashboard.user.tasks.items.doc_return'), dotColor: 'bg-blue-500', dueDate: t('dashboard.user.tasks.items.tomorrow'), dueTime: '', btnLabel: t('dashboard.user.tasks.items.process'), btnClass: 'bg-slate-100 text-slate-600 hover:bg-slate-200' },
+  { id: 'VLD-2023-1102', type: t('dashboard.user.tasks.items.phys_val'), dotColor: 'bg-orange-500', dueDate: 'Sep 28,', dueTime: '2023', btnLabel: t('dashboard.user.tasks.items.verify'), btnClass: 'bg-slate-100 text-slate-600 hover:bg-slate-200' },
 ]
 
 const quickActions = [
-  { label: 'Submit', icon: LucideUpload },
-  { label: 'Loan', icon: LucideBookOpen },
-  { label: 'Search', icon: LucideSearch },
-  { label: 'Track', icon: LucideLocateFixed },
+  { label: t('dashboard.user.quick_actions.items.submit'), icon: LucideUpload },
+  { label: t('dashboard.user.quick_actions.items.loan'), icon: LucideBookOpen },
+  { label: t('dashboard.user.quick_actions.items.search'), icon: LucideSearch },
+  { label: t('dashboard.user.quick_actions.items.track'), icon: LucideLocateFixed },
 ]
 
 const activities = [
-  { text: 'Document <span class="font-black text-slate-900 dark:text-white">AKR-V-002</span> has been approved', time: '10 minutes ago', action: 'Details', dot: 'bg-green-500' },
-  { text: 'New submission: <span class="font-black text-slate-900 dark:text-white">INV-9982-Jakarta</span>', time: '1 hour ago', action: 'View', dot: 'bg-blue-500' },
-  { text: 'Loan request <span class="font-black text-slate-900 dark:text-white">LR-772</span> requires signature', time: '3 hours ago', action: 'Sign Now', dot: 'bg-orange-500' },
+  { text: t('dashboard.user.activity.items.doc_approved', { id: 'AKR-V-002' }), time: t('dashboard.user.activity.items.ten_mins'), action: t('dashboard.user.activity.items.details'), dot: 'bg-green-500' },
+  { text: t('dashboard.user.activity.items.new_submission', { id: 'INV-9982-Jakarta' }), time: t('dashboard.user.activity.items.one_hour'), action: t('dashboard.user.activity.items.view'), dot: 'bg-blue-500' },
+  { text: t('dashboard.user.activity.items.loan_req_sig', { id: 'LR-772' }), time: t('dashboard.user.activity.items.three_hours'), action: t('dashboard.user.activity.items.sign_now'), dot: 'bg-orange-500' },
 ]
 
 const loans = [

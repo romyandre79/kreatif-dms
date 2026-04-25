@@ -1,8 +1,8 @@
 <template>
   <div class="max-w-4xl mx-auto space-y-8 pb-20">
     <div v-motion-fade>
-      <h1 class="text-3xl font-bold text-slate-900 dark:text-white">My Profile</h1>
-      <p class="text-slate-500 dark:text-slate-400 mt-1">Manage your identity and digital signatures.</p>
+      <h1 class="text-3xl font-bold text-slate-900 dark:text-white">{{ $t('profile.title') }}</h1>
+      <p class="text-slate-500 dark:text-slate-400 mt-1">{{ $t('profile.subtitle') }}</p>
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -25,9 +25,9 @@
         </div>
 
         <div class="glass rounded-2xl p-6" v-motion-slide-visible-bottom>
-          <h3 class="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-4">Account Security</h3>
+          <h3 class="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-4">{{ $t('profile.security.title') }}</h3>
           <button class="w-full py-3 bg-slate-50 dark:bg-slate-900/50 rounded-xl text-xs font-black uppercase tracking-widest text-slate-600 dark:text-slate-400 hover:bg-primary-50 dark:hover:bg-primary-900/20 hover:text-primary-600 transition-all">
-            Change Password
+            {{ $t('profile.security.change_password') }}
           </button>
         </div>
       </div>
@@ -36,10 +36,10 @@
       <div class="lg:col-span-2 space-y-8">
         <!-- Personal Info -->
         <div class="glass rounded-3xl p-8" v-motion-slide-visible-bottom>
-          <h3 class="font-black text-lg text-slate-800 dark:text-white mb-8">Personal Information</h3>
+          <h3 class="font-black text-lg text-slate-800 dark:text-white mb-8">{{ $t('profile.personal.title') }}</h3>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div class="space-y-2">
-              <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Full Name</label>
+              <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">{{ $t('profile.personal.name_label') }}</label>
               <input 
                 v-model="profileData.fullName"
                 type="text" 
@@ -47,7 +47,7 @@
               />
             </div>
             <div class="space-y-2">
-              <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Email Address</label>
+              <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">{{ $t('profile.personal.email_label') }}</label>
               <input 
                 :value="auth.user?.email"
                 disabled
@@ -61,20 +61,20 @@
         <!-- Digital Signature -->
         <div class="glass rounded-3xl p-8" v-motion-slide-visible-bottom>
           <div class="flex items-center justify-between mb-8">
-            <h3 class="font-black text-lg text-slate-800 dark:text-white">Digital Signature</h3>
-            <span class="bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 text-[9px] font-black uppercase px-2 py-1 rounded-md">Used for Approvals</span>
+            <h3 class="font-black text-lg text-slate-800 dark:text-white">{{ $t('profile.signature.title') }}</h3>
+            <span class="bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 text-[9px] font-black uppercase px-2 py-1 rounded-md">{{ $t('profile.signature.used_for') }}</span>
           </div>
           
           <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div class="space-y-4">
               <p class="text-xs font-bold text-slate-500 leading-relaxed">
-                Your signature will be used to authorize document loans and approvals. Ensure it is clear and legible.
+                {{ $t('profile.signature.hint') }}
               </p>
               <SignaturePad v-model="profileData.signature" />
             </div>
             
             <div class="flex flex-col items-center justify-center p-8 bg-slate-50/50 dark:bg-slate-900/50 rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-800">
-              <p class="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-6">Signature Preview</p>
+              <p class="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-6">{{ $t('profile.signature.preview') }}</p>
               <div class="w-full aspect-[2/1] bg-white dark:bg-slate-950 rounded-xl border border-slate-100 dark:border-slate-800 flex items-center justify-center overflow-hidden">
                 <img v-if="profileData.signature" :src="profileData.signature" class="max-w-full max-h-full object-contain p-4" />
                 <LucideShieldCheck v-else class="w-12 h-12 text-slate-100 dark:text-slate-900" />
@@ -86,15 +86,15 @@
         <!-- Actions -->
         <div class="flex justify-end gap-4" v-motion-fade>
           <button class="px-8 py-3.5 text-xs font-black uppercase tracking-widest text-slate-400 hover:text-slate-600 transition-colors">
-            Reset Changes
+            {{ $t('profile.actions.reset') }}
           </button>
           <button 
             @click="handleSave"
             :disabled="saving"
             class="px-10 py-3.5 bg-[#1E3A5F] hover:bg-[#152943] text-white rounded-xl font-black text-xs uppercase tracking-widest shadow-xl shadow-blue-900/20 transition-all disabled:opacity-50"
           >
-            <span v-if="saving">Saving Profile...</span>
-            <span v-else>Save All Changes</span>
+            <span v-if="saving">{{ $t('profile.actions.saving') }}</span>
+            <span v-else>{{ $t('profile.actions.save') }}</span>
           </button>
         </div>
       </div>
@@ -140,7 +140,8 @@ const handleSave = async () => {
       signature_url: profileData.value.signature
     })
     saving.value = false
-    alert('Profile updated successfully!')
+    const { t } = useI18n()
+    alert(t('profile.actions.success'))
   }, 1000)
 }
 </script>

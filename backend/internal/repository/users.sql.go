@@ -17,7 +17,7 @@ INSERT INTO users (
     email, password_hash, full_name, role_id, department_id, status
 ) VALUES (
     $1, $2, $3, $4, $5, $6
-) RETURNING id, email, password_hash, full_name, role_id, department_id, is_active, created_at, updated_at, status, avatar_url, signature_url
+) RETURNING id, email, password_hash, full_name, role_id, department_id, is_active, created_at, updated_at, status, avatar_url, signature_url, pin
 `
 
 type CreateUserParams struct {
@@ -52,6 +52,7 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 		&i.Status,
 		&i.AvatarUrl,
 		&i.SignatureUrl,
+		&i.Pin,
 	)
 	return i, err
 }
@@ -68,7 +69,7 @@ func (q *Queries) GetRoleIDByName(ctx context.Context, name string) (int32, erro
 }
 
 const getUserByEmail = `-- name: GetUserByEmail :one
-SELECT u.id, u.email, u.password_hash, u.full_name, u.role_id, u.department_id, u.is_active, u.created_at, u.updated_at, u.status, u.avatar_url, u.signature_url, r.name as role_name 
+SELECT u.id, u.email, u.password_hash, u.full_name, u.role_id, u.department_id, u.is_active, u.created_at, u.updated_at, u.status, u.avatar_url, u.signature_url, u.pin, r.name as role_name 
 FROM users u
 JOIN roles r ON u.role_id = r.id
 WHERE u.email = $1 LIMIT 1
@@ -87,6 +88,7 @@ type GetUserByEmailRow struct {
 	Status       string             `json:"status"`
 	AvatarUrl    pgtype.Text        `json:"avatar_url"`
 	SignatureUrl pgtype.Text        `json:"signature_url"`
+	Pin          pgtype.Text        `json:"pin"`
 	RoleName     string             `json:"role_name"`
 }
 
@@ -106,13 +108,14 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email string) (GetUserByEm
 		&i.Status,
 		&i.AvatarUrl,
 		&i.SignatureUrl,
+		&i.Pin,
 		&i.RoleName,
 	)
 	return i, err
 }
 
 const getUserByID = `-- name: GetUserByID :one
-SELECT id, email, password_hash, full_name, role_id, department_id, is_active, created_at, updated_at, status, avatar_url, signature_url FROM users WHERE id = $1 LIMIT 1
+SELECT id, email, password_hash, full_name, role_id, department_id, is_active, created_at, updated_at, status, avatar_url, signature_url, pin FROM users WHERE id = $1 LIMIT 1
 `
 
 func (q *Queries) GetUserByID(ctx context.Context, id uuid.UUID) (User, error) {
@@ -131,12 +134,13 @@ func (q *Queries) GetUserByID(ctx context.Context, id uuid.UUID) (User, error) {
 		&i.Status,
 		&i.AvatarUrl,
 		&i.SignatureUrl,
+		&i.Pin,
 	)
 	return i, err
 }
 
 const listPendingUsers = `-- name: ListPendingUsers :many
-SELECT id, email, password_hash, full_name, role_id, department_id, is_active, created_at, updated_at, status, avatar_url, signature_url FROM users WHERE status = 'pending' ORDER BY created_at ASC
+SELECT id, email, password_hash, full_name, role_id, department_id, is_active, created_at, updated_at, status, avatar_url, signature_url, pin FROM users WHERE status = 'pending' ORDER BY created_at ASC
 `
 
 func (q *Queries) ListPendingUsers(ctx context.Context) ([]User, error) {
@@ -161,6 +165,7 @@ func (q *Queries) ListPendingUsers(ctx context.Context) ([]User, error) {
 			&i.Status,
 			&i.AvatarUrl,
 			&i.SignatureUrl,
+			&i.Pin,
 		); err != nil {
 			return nil, err
 		}
@@ -173,7 +178,7 @@ func (q *Queries) ListPendingUsers(ctx context.Context) ([]User, error) {
 }
 
 const listUsers = `-- name: ListUsers :many
-SELECT id, email, password_hash, full_name, role_id, department_id, is_active, created_at, updated_at, status, avatar_url, signature_url FROM users ORDER BY created_at DESC
+SELECT id, email, password_hash, full_name, role_id, department_id, is_active, created_at, updated_at, status, avatar_url, signature_url, pin FROM users ORDER BY created_at DESC
 `
 
 func (q *Queries) ListUsers(ctx context.Context) ([]User, error) {
@@ -198,6 +203,7 @@ func (q *Queries) ListUsers(ctx context.Context) ([]User, error) {
 			&i.Status,
 			&i.AvatarUrl,
 			&i.SignatureUrl,
+			&i.Pin,
 		); err != nil {
 			return nil, err
 		}
@@ -213,7 +219,7 @@ const updateUserStatus = `-- name: UpdateUserStatus :one
 UPDATE users 
 SET status = $2, updated_at = NOW()
 WHERE id = $1
-RETURNING id, email, password_hash, full_name, role_id, department_id, is_active, created_at, updated_at, status, avatar_url, signature_url
+RETURNING id, email, password_hash, full_name, role_id, department_id, is_active, created_at, updated_at, status, avatar_url, signature_url, pin
 `
 
 type UpdateUserStatusParams struct {
@@ -237,6 +243,7 @@ func (q *Queries) UpdateUserStatus(ctx context.Context, arg UpdateUserStatusPara
 		&i.Status,
 		&i.AvatarUrl,
 		&i.SignatureUrl,
+		&i.Pin,
 	)
 	return i, err
 }

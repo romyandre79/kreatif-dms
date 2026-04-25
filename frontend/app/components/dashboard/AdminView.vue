@@ -3,8 +3,8 @@
     <!-- Greeting & Search Header -->
     <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6" v-motion-fade>
       <div>
-        <h1 class="text-3xl font-bold text-[#1E3A5F] dark:text-white">Good Morning, {{ user?.full_name?.split(' ')[0] || 'User' }}!</h1>
-        <p class="text-slate-500 font-medium mt-1">Here's your operational overview for today, {{ currentDate }}.</p>
+        <h1 class="text-3xl font-bold text-[#1E3A5F] dark:text-white">{{ $t('dashboard.greetings.morning', { name: user?.full_name?.split(' ')[0] || 'User' }) }}</h1>
+        <p class="text-slate-500 font-medium mt-1">{{ $t('dashboard.header.operational_overview', { date: currentDate }) }}</p>
       </div>
       <div class="flex flex-wrap items-center gap-4 flex-1 lg:max-w-xl justify-end">
         <button 
@@ -12,13 +12,13 @@
           class="flex items-center gap-2 px-6 py-3 bg-[#1E3A5F] hover:bg-[#152943] text-white font-bold rounded-xl shadow-lg shadow-blue-900/20 transition-all"
         >
           <LucidePlus class="w-5 h-5" />
-          Submit New Document
+          {{ $t('dashboard.header.btn_submit_new') }}
         </button>
         <div class="relative flex-1 min-w-[200px]">
           <LucideSearch class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
           <input
             type="text"
-            placeholder="Search Global Documents..."
+            :placeholder="$t('dashboard.header.search_placeholder')"
             class="w-full pl-12 pr-4 py-3 text-sm rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm focus:outline-none focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 transition-all font-medium"
           />
         </div>
@@ -34,14 +34,14 @@
       <!-- Daily Received -->
       <div v-motion-slide-visible-bottom class="glass p-6 rounded-2xl flex flex-col justify-between">
         <div class="flex items-center justify-between mb-6">
-          <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-tight">Daily<br>Received</p>
+          <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-tight" v-html="$t('dashboard.stats.daily_received').replace('\n', '<br>')"></p>
           <LucideInbox class="w-5 h-5 text-green-500" />
         </div>
         <div>
           <p class="text-3xl font-black text-slate-900 dark:text-white">128</p>
           <div class="flex items-center gap-1 text-[10px] font-black text-green-500 mt-1 uppercase tracking-tighter">
             <LucideTrendingUp class="w-3 h-3" />
-            +12% vs Yesterday
+            {{ $t('dashboard.stats.vs_yesterday', { percent: 12 }) }}
           </div>
         </div>
       </div>
@@ -49,14 +49,14 @@
       <!-- Daily Scanned -->
       <div v-motion-slide-visible-bottom class="glass p-6 rounded-2xl flex flex-col justify-between">
         <div class="flex items-center justify-between mb-6">
-          <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-tight">Daily<br>Scanned</p>
+          <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-tight" v-html="$t('dashboard.stats.daily_scanned').replace('\n', '<br>')"></p>
           <LucideScan class="w-5 h-5 text-blue-500" />
         </div>
         <div>
           <p class="text-3xl font-black text-slate-900 dark:text-white">94</p>
           <div class="flex items-center gap-1 text-[10px] font-black text-green-500 mt-1 uppercase tracking-tighter">
             <LucideTrendingUp class="w-3 h-3" />
-            +5% vs Yesterday
+            {{ $t('dashboard.stats.vs_yesterday', { percent: 5 }) }}
           </div>
         </div>
       </div>
@@ -64,14 +64,14 @@
       <!-- Daily Processed -->
       <div v-motion-slide-visible-bottom class="glass p-6 rounded-2xl flex flex-col justify-between">
         <div class="flex items-center justify-between mb-6">
-          <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-tight">Daily<br>Processed</p>
+          <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-tight" v-html="$t('dashboard.stats.daily_processed').replace('\n', '<br>')"></p>
           <LucideFileCheck class="w-5 h-5 text-primary-500" />
         </div>
         <div>
           <p class="text-3xl font-black text-slate-900 dark:text-white">82</p>
           <div class="flex items-center gap-1 text-[10px] font-black text-green-500 mt-1 uppercase tracking-tighter">
             <LucideTrendingUp class="w-3 h-3" />
-            +8% vs Yesterday
+            {{ $t('dashboard.stats.vs_yesterday', { percent: 8 }) }}
           </div>
         </div>
       </div>
@@ -79,7 +79,7 @@
       <!-- Warehouse Capacity -->
       <div v-motion-slide-visible-bottom class="glass p-6 rounded-2xl flex flex-col justify-between">
         <div class="flex items-center justify-between mb-6">
-          <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-tight">Warehouse<br>Capacity</p>
+          <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-tight" v-html="$t('dashboard.stats.warehouse_capacity').replace('\n', '<br>')"></p>
           <LucideLayers class="w-5 h-5 text-teal-500" />
         </div>
         <div>
@@ -93,12 +93,12 @@
       <!-- Active Tasks -->
       <div v-motion-slide-visible-bottom class="bg-[#2D9B7B] p-6 rounded-2xl flex flex-col justify-between text-white shadow-xl shadow-teal-900/20">
         <div class="flex items-center justify-between mb-6">
-          <p class="text-[10px] font-black uppercase tracking-widest leading-tight text-teal-50">Active<br>Tasks</p>
+          <p class="text-[10px] font-black uppercase tracking-widest leading-tight text-teal-50" v-html="$t('dashboard.stats.active_tasks').replace('\n', '<br>')"></p>
           <LucideClipboardList class="w-5 h-5 text-teal-50" />
         </div>
         <div>
           <p class="text-4xl font-black">31</p>
-          <p class="text-[10px] font-bold text-teal-50 mt-1">Requiring immediate attention</p>
+          <p class="text-[10px] font-bold text-teal-50 mt-1">{{ $t('dashboard.stats.immediate_attention') }}</p>
         </div>
       </div>
     </div>
@@ -108,17 +108,17 @@
       <!-- Priority Task Queue -->
       <div class="xl:col-span-2 glass rounded-2xl overflow-hidden" v-motion-slide-visible-bottom>
         <div class="px-8 py-6 flex items-center justify-between">
-          <h3 class="font-black text-lg text-[#1E3A5F] dark:text-white">Priority Task Queue</h3>
-          <button class="text-primary-600 font-black text-xs hover:underline uppercase tracking-widest">View All Tasks</button>
+          <h3 class="font-black text-lg text-[#1E3A5F] dark:text-white">{{ $t('dashboard.queue.priority_tasks') }}</h3>
+          <button class="text-primary-600 font-black text-xs hover:underline uppercase tracking-widest">{{ $t('dashboard.queue.view_all_tasks') }}</button>
         </div>
         <div class="overflow-x-auto">
           <table class="w-full text-left">
             <thead>
               <tr class="text-slate-400 text-[10px] uppercase font-black tracking-widest border-b border-slate-100 dark:border-slate-800">
-                <th class="px-8 py-4">Inbound Manifest</th>
-                <th class="px-8 py-4">Queue Type</th>
-                <th class="px-8 py-4">Status</th>
-                <th class="px-8 py-4 text-right">Urgency</th>
+                <th class="px-8 py-4">{{ $t('dashboard.queue.table.manifest') }}</th>
+                <th class="px-8 py-4">{{ $t('dashboard.queue.table.type') }}</th>
+                <th class="px-8 py-4">{{ $t('dashboard.queue.table.status') }}</th>
+                <th class="px-8 py-4 text-right">{{ $t('dashboard.queue.table.urgency') }}</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-50 dark:divide-slate-900">
@@ -146,7 +146,7 @@
 
       <!-- Recent Activity -->
       <div class="glass rounded-2xl p-8 flex flex-col" v-motion-slide-visible-bottom>
-        <h3 class="font-black text-lg text-[#1E3A5F] dark:text-white mb-10 text-center">Recent Activity</h3>
+        <h3 class="font-black text-lg text-[#1E3A5F] dark:text-white mb-10 text-center">{{ $t('dashboard.activity.title_recent') }}</h3>
         <div class="space-y-10 flex-1">
           <div v-for="(act, index) in activities" :key="index" class="flex gap-6 relative">
             <div v-if="index !== activities.length - 1" class="absolute left-3.5 top-8 w-0.5 h-10 bg-slate-100 dark:bg-slate-800"></div>
@@ -161,7 +161,7 @@
           </div>
         </div>
         <button class="w-full mt-10 py-3.5 bg-slate-50 dark:bg-slate-800/50 rounded-xl text-[10px] font-black uppercase tracking-widest text-slate-400 hover:bg-slate-100 transition-all">
-          View System Logs
+          {{ $t('dashboard.activity.btn_logs') }}
         </button>
       </div>
     </div>
@@ -174,9 +174,9 @@
           <LucidePrinter class="w-7 h-7" />
         </div>
         <div>
-          <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Scanner</p>
+          <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">{{ $t('dashboard.infrastructure.scanner') }}</p>
           <p class="text-sm font-black text-slate-800 dark:text-white">Canon DR-M260</p>
-          <p class="text-[10px] font-bold text-green-500 uppercase">Connected</p>
+          <p class="text-[10px] font-bold text-green-500 uppercase">{{ $t('dashboard.infrastructure.connected') }}</p>
         </div>
       </div>
 
@@ -186,9 +186,9 @@
           <LucideCpu class="w-7 h-7" />
         </div>
         <div>
-          <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">OCR Engine</p>
+          <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">{{ $t('dashboard.infrastructure.ocr_engine') }}</p>
           <p class="text-sm font-black text-slate-800 dark:text-white">Abbyy Finereader</p>
-          <p class="text-[10px] font-bold text-green-500 uppercase">Active (99.2% Acc)</p>
+          <p class="text-[10px] font-bold text-green-500 uppercase">{{ $t('dashboard.infrastructure.active_accuracy', { accuracy: 99.2 }) }}</p>
         </div>
       </div>
 
@@ -198,9 +198,9 @@
           <LucideDatabase class="w-7 h-7" />
         </div>
         <div>
-          <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Database</p>
+          <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">{{ $t('dashboard.infrastructure.database') }}</p>
           <p class="text-sm font-black text-slate-800 dark:text-white">Oracle Cloud</p>
-          <p class="text-[10px] font-bold text-green-500 uppercase">Synchronized</p>
+          <p class="text-[10px] font-bold text-green-500 uppercase">{{ $t('dashboard.infrastructure.synchronized') }}</p>
         </div>
       </div>
     </div>
@@ -229,6 +229,7 @@ import {
 import { useAuthStore } from '~/stores/auth'
 
 const auth = useAuthStore()
+const { t } = useI18n()
 const user = computed(() => auth.user)
 
 const currentDate = computed(() => {
@@ -240,16 +241,16 @@ const currentDate = computed(() => {
 })
 
 const taskQueue = [
-  { id: 'MFST-2023-0941', desc: 'Finance Dept (Legal Vouchers)', type: 'Scanning Queue', status: 'In Progress', urgency: 'HIGH', urgencyBg: 'bg-red-50 text-red-500' },
-  { id: 'MFST-2023-0942', desc: 'HR Services (Employee Files)', type: 'Metadata Entry', status: 'Pending', urgency: 'MEDIUM', urgencyBg: 'bg-orange-50 text-orange-500' },
-  { id: 'MFST-2023-0899', desc: 'Procurement (Vendor Contracts)', type: 'Inbound Audit', status: 'Pending', urgency: 'LOW', urgencyBg: 'bg-slate-50 text-slate-400' },
-  { id: 'MFST-2023-0945', desc: 'Board Records (Annual 2022)', type: 'Scanning Queue', status: 'In Progress', urgency: 'HIGH', urgencyBg: 'bg-red-50 text-red-500' },
+  { id: 'MFST-2023-0941', desc: 'Finance Dept (Legal Vouchers)', type: t('dashboard.queue.items.bulk_scan'), status: t('dashboard.queue.items.on_schedule'), urgency: 'HIGH', urgencyBg: 'bg-red-50 text-red-500' },
+  { id: 'MFST-2023-0942', desc: 'HR Services (Employee Files)', type: t('dashboard.queue.items.indexing'), status: t('dashboard.queue.items.on_schedule'), urgency: 'MEDIUM', urgencyBg: 'bg-orange-50 text-orange-500' },
+  { id: 'MFST-2023-0899', desc: 'Procurement (Vendor Contracts)', type: t('dashboard.queue.items.receive'), status: t('dashboard.queue.items.on_schedule'), urgency: 'LOW', urgencyBg: 'bg-slate-50 text-slate-400' },
+  { id: 'MFST-2023-0945', desc: 'Board Records (Annual 2022)', type: t('dashboard.queue.items.bulk_scan'), status: t('dashboard.queue.items.on_schedule'), urgency: 'HIGH', urgencyBg: 'bg-red-50 text-red-500' },
 ]
 
 const activities = [
-  { title: 'New Manifest Registered', desc: 'Andi from Logistics registered MFST-2023-0948 (42 items)', time: '12 mins ago', icon: LucideFileStack, color: 'text-primary-500', bg: 'bg-primary-50 dark:bg-primary-900/20' },
-  { title: 'Retention Alert', desc: '340 documents from Finance Dept are reaching 10-year retention limit.', time: '45 mins ago', icon: LucideAlertCircle, color: 'text-red-500', bg: 'bg-red-50 dark:bg-red-900/20' },
-  { title: 'Location Occupancy Updated', desc: 'Zone A-04 marked as 95% full after bulk deposit MFST-0881.', time: '2 hours ago', icon: LucideLayers, color: 'text-teal-500', bg: 'bg-teal-50 dark:bg-teal-900/20' },
-  { title: 'Admin Login', desc: 'User "Dewi Puspitasari" logged in from 10.20.44.12', time: '4 hours ago', icon: LucideUser, color: 'text-green-500', bg: 'bg-green-50 dark:bg-green-900/20' },
+  { title: t('dashboard.activity.items.ocr_completed', { id: '2023-0948' }), desc: t('dashboard.activity.items.ocr_sub', { count: 42 }), time: t('dashboard.activity.items.mins_ago', { count: 12 }), icon: LucideFileStack, color: 'text-primary-500', bg: 'bg-primary-50 dark:bg-primary-900/20' },
+  { title: t('retention.approaching.title'), desc: '340 documents from Finance Dept are reaching 10-year retention limit.', time: t('dashboard.activity.items.mins_ago', { count: 45 }), icon: LucideAlertCircle, color: 'text-red-500', bg: 'bg-red-50 dark:bg-red-900/20' },
+  { title: t('dashboard.infrastructure.database'), desc: 'Zone A-04 marked as 95% full after bulk deposit MFST-0881.', time: t('dashboard.activity.items.hour_ago'), icon: LucideLayers, color: 'text-teal-500', bg: 'bg-teal-50 dark:bg-teal-900/20' },
+  { title: t('dashboard.activity.items.security_login'), desc: t('dashboard.activity.items.security_sub', { ip: '10.20.44.12' }), time: '4 hours ago', icon: LucideUser, color: 'text-green-500', bg: 'bg-green-50 dark:bg-green-900/20' },
 ]
 </script>

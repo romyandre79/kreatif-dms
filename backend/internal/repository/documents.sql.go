@@ -274,18 +274,39 @@ func (q *Queries) UpdateBatchProgress(ctx context.Context, id uuid.UUID) error {
 	return err
 }
 
+const updateDocumentMetadata = `-- name: UpdateDocumentMetadata :exec
+UPDATE documents 
+SET metadata = $2, updated_at = NOW() 
+WHERE id = $1
+`
+
+type UpdateDocumentMetadataParams struct {
+	ID       uuid.UUID `json:"id"`
+	Metadata []byte    `json:"metadata"`
+}
+
+func (q *Queries) UpdateDocumentMetadata(ctx context.Context, arg UpdateDocumentMetadataParams) error {
+	_, err := q.db.Exec(ctx, updateDocumentMetadata, arg.ID, arg.Metadata)
+	return err
+}
+
 const updateDocumentOCR = `-- name: UpdateDocumentOCR :exec
 UPDATE documents 
-SET extracted_text = $2, is_ocr_processed = true, status = 'active', updated_at = NOW() 
+SET extracted_text = $2, 
+    metadata = $3,
+    is_ocr_processed = true, 
+    status = 'active', 
+    updated_at = NOW() 
 WHERE id = $1
 `
 
 type UpdateDocumentOCRParams struct {
 	ID            uuid.UUID   `json:"id"`
 	ExtractedText pgtype.Text `json:"extracted_text"`
+	Metadata      []byte      `json:"metadata"`
 }
 
 func (q *Queries) UpdateDocumentOCR(ctx context.Context, arg UpdateDocumentOCRParams) error {
-	_, err := q.db.Exec(ctx, updateDocumentOCR, arg.ID, arg.ExtractedText)
+	_, err := q.db.Exec(ctx, updateDocumentOCR, arg.ID, arg.ExtractedText, arg.Metadata)
 	return err
 }

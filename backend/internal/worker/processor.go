@@ -54,16 +54,33 @@ func (p *TaskProcessor) ProcessDocumentOCR(ctx context.Context, t *asynq.Task) e
 	}
 
 	// 3. Process OCR
-	text, err := p.ai.ProcessOCR(ctx, doc.FileName, content)
+	rawText, err := p.ai.ProcessOCR(ctx, doc.FileName, content)
 	if err != nil {
 		log.Printf("[TaskProcessor] Error processing OCR for doc %s: %v", doc.ID, err)
 		return err
 	}
 
+	// 3.1 AI Refinement (Optional based on config)
+	text, err := p.ai.RefineOCRText(ctx, rawText)
+	if err != nil {
+		log.Printf("[TaskProcessor] Warning: AI refinement failed for doc %s: %v", doc.ID, err)
+		text = rawText // Fallback
+	}
+
+	// 3.2 AI Metadata Extraction (Optional based on config)
+	metadata, err := p.ai.ExtractMetadata(ctx, text)
+	if err != nil {
+		log.Printf("[TaskProcessor] Warning: AI metadata extraction failed for doc %s: %v", doc.ID, err)
+		metadata = map[string]interface{}{} // Fallback
+	}
+
+	metadataJSON, _ := json.Marshal(metadata)
+
 	// 4. Update DB
 	err = p.repo.UpdateDocumentOCR(ctx, repository.UpdateDocumentOCRParams{
 		ID:            doc.ID,
 		ExtractedText: pgtype.Text{String: text, Valid: text != ""},
+		Metadata:      metadataJSON,
 	})
 	if err != nil {
 		log.Printf("[TaskProcessor] Error updating DB with OCR text for doc %s: %v", doc.ID, err)

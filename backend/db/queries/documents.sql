@@ -16,7 +16,16 @@ ORDER BY created_at DESC;
 
 -- name: UpdateDocumentOCR :exec
 UPDATE documents 
-SET extracted_text = $2, is_ocr_processed = true, status = 'active', updated_at = NOW() 
+SET extracted_text = $2, 
+    metadata = $3,
+    is_ocr_processed = true, 
+    status = 'active', 
+    updated_at = NOW() 
+WHERE id = $1;
+
+-- name: UpdateDocumentMetadata :exec
+UPDATE documents 
+SET metadata = $2, updated_at = NOW() 
 WHERE id = $1;
 
 -- name: GetDocumentsByBatch :many

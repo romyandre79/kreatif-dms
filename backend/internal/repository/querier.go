@@ -25,6 +25,7 @@ type Querier interface {
 	ListPendingUsers(ctx context.Context) ([]User, error)
 	ListUsers(ctx context.Context) ([]User, error)
 	UpdateBatchProgress(ctx context.Context, id uuid.UUID) error
+	UpdateDocumentMetadata(ctx context.Context, arg UpdateDocumentMetadataParams) error
 	UpdateDocumentOCR(ctx context.Context, arg UpdateDocumentOCRParams) error
 	UpdateUserStatus(ctx context.Context, arg UpdateUserStatusParams) (User, error)
 }
