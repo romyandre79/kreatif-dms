@@ -1,3 +1,4 @@
+<!-- HMR Test -->
 <template>
   <div class="min-h-screen flex flex-col md:flex-row bg-white dark:bg-slate-950">
     <!-- Left Side: Branding & Info -->
@@ -30,7 +31,7 @@
     </div>
 
     <!-- Right Side: Login Form -->
-    <div class="flex-1 flex flex-col justify-center items-center p-8 py-12 lg:p-12 bg-white dark:bg-slate-950 md:w-7/12" v-motion-slide-right>
+    <div class="flex-1 flex flex-col justify-center items-center p-8 py-12 lg:p-12 bg-white dark:bg-slate-950 md:w-7/12">
       <div class="max-w-lg w-full">
         <h2 class="text-3xl md:text-5xl font-extrabold text-slate-900 dark:text-white mb-2 md:mb-4">
           {{ mode === 'login' ? $t('login.title') : $t('register.title') }}
@@ -79,14 +80,14 @@
 
           <div class="space-y-4">
             <label class="text-lg font-bold text-slate-700 dark:text-slate-300">
-              {{ $t('login.email_label') }}
+              {{ authType === 'sso' ? $t('login.username_label') : $t('login.email_label') }}
             </label>
             <div class="relative group">
               <LucideMail class="absolute left-6 top-1/2 -translate-y-1/2 w-7 h-7 text-slate-400 group-focus-within:text-primary-500 transition-colors" />
               <input 
                 v-model="form.email"
-                type="email" 
-                :placeholder="$t('login.email_placeholder')"
+                type="text" 
+                :placeholder="authType === 'sso' ? $t('login.username_placeholder') : $t('login.email_placeholder')"
                 class="w-full pl-14 md:pl-16 pr-6 py-4 md:py-5.5 rounded-[1.5rem] md:rounded-[2rem] border-2 border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 focus:outline-none focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 transition-all text-base md:text-lg"
                 required
               />
@@ -142,12 +143,19 @@
             </div>
           </div>
 
-          <!-- Success Alert -->
-          <Alert 
-            v-model="showSuccess" 
-            :message="successMessage" 
-            type="success" 
-          />
+          <!-- Alerts -->
+          <div class="space-y-4">
+            <Alert 
+              v-model="showError" 
+              :message="error" 
+              type="error" 
+            />
+            <Alert 
+              v-model="showSuccess" 
+              :message="successMessage" 
+              type="success" 
+            />
+          </div>
 
           <button 
             type="submit"
@@ -316,8 +324,9 @@ const handleLogin = async () => {
     const res = await $fetch(`${config.public.apiBase}/auth/login`, {
       method: 'POST',
       body: {
-        email: form.email,
-        password: form.password
+        identifier: form.email,
+        password: form.password,
+        auth_type: authType.value
       }
     })
     

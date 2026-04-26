@@ -1,0 +1,21 @@
+{
+  "common": {
+    "status": {
+      "active": "ACTIVE",
+      "overdue": "OVERDUE",
+      "pending": "PENDING",
+      "critical": "CRITICAL",
+      "returned": "RETURNED"
+    }
+  },
+  "error": {
+    "page_not_found": "Page not found",
+    "back_to_home": "Back to Home",
+    "unauthorized": "You are not authorized to access this page",
+    "btn_dashboard": "Back to Dashboard"
+  },
+  "placeholders": {
+    "coming_soon_title": "{page} Feature Coming Soon",
+    "coming_soon_desc": "We are preparing the {page} page for a better experience. Please check back later."
+  }
+}

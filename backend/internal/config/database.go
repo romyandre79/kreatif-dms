@@ -8,10 +8,11 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-func InitDatabase(databaseURL string) *pgxpool.Pool {
+func InitDatabase(databaseURL string) (*pgxpool.Pool, error) {
 	config, err := pgxpool.ParseConfig(databaseURL)
 	if err != nil {
-		log.Fatalf("Unable to parse database URL: %v", err)
+		log.Printf("ERROR: Unable to parse database URL: %v\n", err)
+		return nil, err
 	}
 
 	config.MaxConns = 25
@@ -21,15 +22,17 @@ func InitDatabase(databaseURL string) *pgxpool.Pool {
 
 	pool, err := pgxpool.NewWithConfig(context.Background(), config)
 	if err != nil {
-		log.Fatalf("Unable to connect to database: %v", err)
+		log.Printf("WARNING: Unable to connect to database: %v\n", err)
+		return nil, err
 	}
 
 	// Test connection
 	err = pool.Ping(context.Background())
 	if err != nil {
-		log.Fatalf("Database ping failed: %v", err)
+		log.Printf("WARNING: Database ping failed: %v\n", err)
+		return pool, err // Return pool anyway, it might connect later
 	}
 
 	log.Println("Database connection established")
-	return pool
+	return pool, nil
 }

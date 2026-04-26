@@ -75,14 +75,18 @@ func (s *DocumentService) UploadDocument(ctx context.Context, p UploadDocumentPa
 	}
 
 	// 4. Enqueue OCR Task
-	task, err := worker.NewDocumentOCRTask(doc.ID)
-	if err == nil {
-		_, err = s.asynq.Enqueue(task)
-		if err != nil {
-			log.Printf("[DocumentService] Error enqueuing OCR task: %v", err)
-		} else {
-			log.Printf("[DocumentService] OCR task enqueued for doc: %s", doc.ID)
+	if s.asynq != nil {
+		task, err := worker.NewDocumentOCRTask(doc.ID)
+		if err == nil {
+			_, err = s.asynq.Enqueue(task)
+			if err != nil {
+				log.Printf("[DocumentService] Error enqueuing OCR task: %v", err)
+			} else {
+				log.Printf("[DocumentService] OCR task enqueued for doc: %s", doc.ID)
+			}
 		}
+	} else {
+		log.Printf("[DocumentService] WARNING: Skipping OCR task for doc %s because Redis/Asynq is unavailable", doc.ID)
 	}
 
 	log.Printf("[DocumentService] Document uploaded successfully: %s", doc.ID)

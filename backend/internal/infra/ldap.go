@@ -3,6 +3,8 @@ package infra
 import (
 	"fmt"
 	"log"
+	"runtime"
+	"strings"
 
 	"github.com/go-ldap/ldap/v3"
 	"github.com/kreatif/dms-backend/internal/config"
@@ -27,11 +29,45 @@ func (s *LDAPService) Authenticate(username, password string) (*LDAPUser, error)
 		return nil, fmt.Errorf("LDAP authentication is disabled")
 	}
 
+	// === SIMULATION MODE ===
+	if s.cfg.LDAPSimulation {
+		log.Printf("[LDAPService] (SIMULATION) Authenticating user: %s", username)
+		mockUsers := map[string]*LDAPUser{
+			"admin": {Username: "admin", Email: "admin@kreatif.id", FullName: "System Administrator"},
+			"user":  {Username: "user", Email: "user@kreatif.id", FullName: "Standard User"},
+			"budi":  {Username: "budi", Email: "budi@kreatif.id", FullName: "Budi Qartono"},
+			"siti":  {Username: "siti", Email: "siti@kreatif.id", FullName: "Siti Rahma"},
+		}
+
+		user, ok := mockUsers[username]
+		if !ok {
+			return nil, fmt.Errorf("user not found in simulation")
+		}
+
+		// In simulation, password "password" or username+"123" is always correct
+		if password != "password" && password != username+"123" {
+			return nil, fmt.Errorf("invalid simulation credentials")
+		}
+
+		return user, nil
+	}
+
+	// === REAL LDAP MODE ===
 	log.Printf("[LDAPService] Authenticating user: %s", username)
+
+	// Detailed logging for connection attempt
+	log.Printf("[LDAPService] Connecting to: %s", s.cfg.LDAPURL)
+
+	// Detect if user is trying to use LDAP over IPC (ldapi) on Windows
+	if strings.HasPrefix(strings.ToLower(s.cfg.LDAPURL), "ldapi://") && runtime.GOOS == "windows" {
+		log.Println("[LDAPService] ERROR: 'ldapi://' (LDAP over IPC) is NOT supported on Windows. Use 'ldap://' or 'ldaps://'.")
+		return nil, fmt.Errorf("ldapi:// is not supported on Windows (IPC error)")
+	}
 
 	l, err := ldap.DialURL(s.cfg.LDAPURL)
 	if err != nil {
-		return nil, fmt.Errorf("failed to connect to LDAP: %v", err)
+		log.Printf("[LDAPService] Connection error: %v", err)
+		return nil, fmt.Errorf("failed to connect to LDAP at %s: %v", s.cfg.LDAPURL, err)
 	}
 	defer l.Close()
 
@@ -79,4 +115,20 @@ func (s *LDAPService) Authenticate(username, password string) (*LDAPUser, error)
 		Email:    userEmail,
 		FullName: userFullName,
 	}, nil
+}
+
+func (s *LDAPService) SearchUsers(query string) ([]LDAPUser, error) {
+	if s.cfg.LDAPSimulation {
+		log.Printf("[LDAPService] (SIMULATION) Searching users with query: %s", query)
+		return []LDAPUser{
+			{Username: "admin", Email: "admin@kreatif.id", FullName: "System Administrator"},
+			{Username: "budi", Email: "budi@kreatif.id", FullName: "Budi Qartono"},
+			{Username: "siti", Email: "siti@kreatif.id", FullName: "Siti Rahma"},
+			{Username: "agus", Email: "agus@kreatif.id", FullName: "Agus Santoso"},
+			{Username: "ani", Email: "ani@kreatif.id", FullName: "Ani Wijaya"},
+		}, nil
+	}
+
+	// TODO: Implement real LDAP search if needed
+	return nil, fmt.Errorf("not implemented for real LDAP yet")
 }

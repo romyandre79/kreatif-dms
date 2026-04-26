@@ -1,0 +1,97 @@
+{
+  "warehouse": {
+    "title": "Warehouse Management",
+    "stats": {
+      "total_boxes": "Total Boxes",
+      "occupied_racks": "Occupied Racks",
+      "available_space": "Available Space"
+    }
+  },
+  "warehouse_structure": {
+    "title": "Warehouse Structure",
+    "subtitle": "Manage physical document locations and rack settings",
+    "tabs": {
+      "overview": "Overview",
+      "racks": "Rack Management",
+      "aisles": "Aisles",
+      "floors": "Floors"
+    },
+    "stats": {
+      "total_capacity": "Total Capacity",
+      "utilized": "Utilized",
+      "utilization_rate": "Utilization Rate",
+      "active_racks": "Active Racks",
+      "pending_maintenance": "Pending Maintenance"
+    },
+    "actions": {
+      "add_rack": "Add New Rack",
+      "add_aisle": "Add Aisle",
+      "export_map": "Export Map",
+      "print_labels": "Print Location Labels"
+    },
+    "table": {
+      "rack_id": "RACK ID",
+      "location": "LOCATION",
+      "capacity": "CAPACITY",
+      "status": "STATUS",
+      "action": "ACTION",
+      "status_full": "FULL",
+      "status_available": "AVAILABLE",
+      "status_warning": "NEAR FULL"
+    }
+  },
+  "warehouse_management": {
+    "title": "Warehouse Management",
+    "subtitle": "Manage physical storage and box inventory",
+    "stats": {
+      "total_boxes": "Total Boxes",
+      "occupied_racks": "Occupied Racks",
+      "storage_usage": "Storage Usage",
+      "total_capacity": "Total Capacity",
+      "vs_last_month": "{percent}% vs last month"
+    },
+    "actions": {
+      "add_box": "Add Box",
+      "move_box": "Move Box",
+      "inventory_check": "Inventory Check",
+      "print_manifest": "Print Manifest"
+    },
+    "filters": {
+      "all_locations": "All Locations",
+      "floor": "Floor",
+      "aisle": "Aisle",
+      "status": "Status"
+    },
+    "table": {
+      "box_id": "BOX ID",
+      "location": "LOCATION",
+      "contents": "CONTENTS",
+      "last_audit": "LAST AUDIT",
+      "status": "STATUS",
+      "status_active": "Active",
+      "status_moved": "Moved",
+      "status_archived": "Archived"
+    }
+  },
+  "warehouse_scan": {
+    "title": "Warehouse Structure Scan",
+    "subtitle": "Map physical locations using handheld scanners",
+    "form": {
+      "rack_code": "Rack Code",
+      "aisle_code": "Aisle Code",
+      "level": "Level",
+      "position": "Position"
+    },
+    "summary": {
+      "total_scanned": "Total Scanned",
+      "confidence": "Confidence Level",
+      "btn_cancel": "Cancel",
+      "btn_confirm": "Confirm"
+    },
+    "footer": {
+      "assignee": "ASSIGNEE",
+      "sync": "SYNC",
+      "location": "LOCATION"
+    }
+  }
+}

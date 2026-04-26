@@ -1,0 +1,74 @@
+{
+  "approvals": {
+    "loans": {
+      "title": "Persetujuan Pinjaman {level}",
+      "subtitle_l1": "Tinjau permintaan pinjaman dokumen dari departemen Anda.",
+      "subtitle_l2": "Verifikasi dan siapkan dokumen fisik untuk pengambilan.",
+      "l1_validated": "L1 Tervalidasi",
+      "filter": "Filter",
+      "export": "Ekspor CSV",
+      "stats": {
+        "l1_waiting": "MENUNGGU REVIEW",
+        "l2_waiting": "SIAP DIPROSES",
+        "l1_approved": "DISETUJUI HARI INI",
+        "l2_release": "SIAP DIAMBIL",
+        "l1_rejected": "DITOLAK BULAN INI",
+        "l2_pickup": "TELAH DIAMBIL",
+        "l1_sla": "MENDEKATI SLA",
+        "l2_overdue": "TERLAMBAT KEMBALI"
+      },
+      "queue": {
+        "title_l1": "Antrean Persetujuan Departemen",
+        "title_l2": "Antrean Persiapan Fisik",
+        "all_l1_approved": "Semua request telah divalidasi Manajer L1",
+        "table": {
+          "req_no": "NO. REQUEST",
+          "requestor": "PEMOHON",
+          "dept": "DEPARTEMEN",
+          "method": "METODE",
+          "approver_l1": "MANAJER L1",
+          "purpose": "TUJUAN",
+          "security": "KEAMANAN",
+          "docs": "BERKAS",
+          "duration": "DURASI",
+          "priority": "PRIORITAS"
+        }
+      },
+      "summary": {
+        "title_l1": "Ringkasan Permohonan",
+        "title_l2": "Verifikasi Fisik L2",
+        "l1_approval_status": "STATUS PERSETUJUAN L1",
+        "purpose_title": "TUJUAN PEMINJAMAN",
+        "storage_validation": "VALIDASI LOKASI PENYIMPANAN",
+        "in_stock": "TERSEDIA",
+        "docs_requested": "{count} Dokumen Diminta",
+        "security_checklist": "CHECKLIST KEAMANAN & FISIK",
+        "policy_l1": "Dengan menyetujui, Anda menjamin bahwa pemohon memiliki izin akses terhadap informasi dalam dokumen ini.",
+        "policy_l2": "Pastikan semua label QR telah ditempel dan dokumen telah discan sebelum diserahkan ke kurir/pemohon.",
+        "empty": {
+          "title": "Pilih Permohonan",
+          "desc": "Pilih salah satu item dari antrean {level} untuk melihat detail dan melakukan aksi."
+        }
+      },
+      "actions": {
+        "rejection_reason": "ALASAN PENOLAKAN",
+        "rejection_hint": "WAJIB DIISI",
+        "rejection_placeholder": "Jelaskan alasan mengapa permohonan ini ditolak...",
+        "btn_back_approve": "KEMBALI KE PERSETUJUAN",
+        "btn_confirm_reject": "KONFIRMASI PENOLAKAN",
+        "btn_approve_l1": "SETUJUI PERMOHONAN",
+        "btn_approve_l2": "KONFIRMASI PENGELUARAN",
+        "btn_reject": "TOLAK PERMOHONAN",
+        "footer_hint_l1": "Aksi ini akan diteruskan ke tim Manajemen Arsip (L2).",
+        "footer_hint_l2": "Aksi ini akan memperbarui status pelacakan menjadi 'SIAP DIAMBIL'."
+      },
+      "modal_pin": {
+        "title": "Konfirmasi Otoritas",
+        "desc": "Masukkan PIN 6-digit Anda untuk melakukan verifikasi akhir pengeluaran dokumen fisik.",
+        "btn_confirm": "VERIFIKASI & SELESAIKAN",
+        "btn_cancel": "BATALKAN",
+        "footer": "PIN Anda digunakan sebagai tanda tangan digital yang sah."
+      }
+    }
+  }
+}

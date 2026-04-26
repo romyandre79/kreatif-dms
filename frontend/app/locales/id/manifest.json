@@ -1,0 +1,35 @@
+{
+  "manifest": {
+    "title": "Manifest Registrasi Dokumen",
+    "header_title": "MANIFEST PENGIRIMAN",
+    "header_subtitle": "SISTEM MANAJEMEN ARSIP",
+    "status_approved": "Disetujui oleh {name} pada {date}",
+    "manifest_id": "ID MANIFEST",
+    "generated_date": "TANGGAL DIBUAT",
+    "submitter": "PENGIRIM",
+    "approver": "PENYETUJU",
+    "total_docs": "TOTAL DOKUMEN",
+    "files": "{count} Berkas",
+    "listing_title": "DAFTAR DOKUMEN",
+    "table": {
+      "no": "NO",
+      "reg_id": "ID REGISTRASI",
+      "title": "JUDUL DOKUMEN",
+      "category": "KATEGORI",
+      "qty": "QTY",
+      "urgency": "URGENSI"
+    },
+    "delivery_title": "INSTRUKSI PENGIRIMAN",
+    "delivery_text": "Harap lampirkan manifest ini pada bagian luar kotak pengiriman. Pastikan semua dokumen fisik disusun sesuai ID Registrasi.",
+    "delivery_location": "Kirim ke: Gudang Arsip Pusat - Zona B, Lantai 2",
+    "delivery_qr_hint": "Scanner akan menggunakan kode QR di atas untuk verifikasi batch saat tiba.",
+    "warning": "Modifikasi tidak sah pada manifest ini akan membatalkan proses registrasi.",
+    "footer_info": "Dokumen ini dibuat otomatis oleh sistem dan sah tanpa tanda tangan.",
+    "verified_on": "Verifikasi pada {date}",
+    "page": "Halaman {current} dari {total}",
+    "version": "v2.4.1",
+    "btn_back": "Kembali",
+    "btn_print": "Cetak Manifest",
+    "btn_download": "Unduh PDF"
+  }
+}

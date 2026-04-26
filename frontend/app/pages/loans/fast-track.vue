@@ -91,7 +91,7 @@
       </div>
 
       <!-- STEP 2: SELECTION -->
-      <div v-else class="space-y-10" v-motion-fade>
+      <div v-else-if="step === 2" class="space-y-10" v-motion-fade>
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
           <div class="lg:col-span-8 space-y-12">
             <!-- Mandatory Section -->
@@ -271,7 +271,7 @@
                 </div>
 
                 <div class="space-y-3">
-                  <button class="w-full py-5 bg-[#1E3A5F] hover:bg-[#152943] text-white rounded-2xl text-xs font-black uppercase tracking-widest shadow-xl shadow-blue-900/20 transition-all">
+                  <button @click="step = 3" class="w-full py-5 bg-[#1E3A5F] hover:bg-[#152943] text-white rounded-2xl text-xs font-black uppercase tracking-widest shadow-xl shadow-blue-900/20 transition-all">
                     {{ $t('loans.fast_track.step2.summary.btn_review', { count: 2 }) }}
                   </button>
                   <button @click="step = 1" class="w-full py-4 bg-white border border-slate-200 text-slate-600 rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-slate-50 transition-all text-center block">

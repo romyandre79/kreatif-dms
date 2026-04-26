@@ -1,0 +1,50 @@
+{
+  "landing": {
+    "nav": {
+      "features": "Features",
+      "solutions": "Solutions",
+      "security": "Security",
+      "sign_in": "Sign In",
+      "get_started": "Get Started"
+    },
+    "hero": {
+      "badge": "New: Gemini AI Integration",
+      "title": "Empower Your Enterprise with Intelligent {docs}",
+      "docs_highlight": "Archiving",
+      "subtitle": "Transform physical document management into a secure, scalable, and AI-driven digital experience for maximum efficiency.",
+      "btn_trial": "Start Free Trial",
+      "btn_demo": "Book a Demo",
+      "trusted": "Trusted by over {count} industry-leading organizations"
+    },
+    "features": {
+      "title": "Core Features",
+      "subtitle": "A smart platform designed to handle your entire document lifecycle.",
+      "items": {
+        "ocr": { "title": "AI-Powered OCR", "desc": "Automatic text extraction from physical documents with up to 99% accuracy." },
+        "search": { "title": "Instant Search", "desc": "Find any document in seconds with full-text search and advanced filters." },
+        "security": { "title": "Military Security", "desc": "AES-256 encryption and role-based access control to protect your assets." },
+        "summaries": { "title": "Smart Summaries", "desc": "Get key document points automatically generated using AI." },
+        "cloud": { "title": "Cloud Access", "desc": "Access your documents anytime, anywhere with secure cloud infrastructure." },
+        "preview": { "title": "Quick Preview", "desc": "Instantly view document contents without needing to download files." }
+      }
+    },
+    "stats": {
+      "docs": "Archived Documents",
+      "uptime": "System Uptime",
+      "companies": "Organizations",
+      "ai": "AI Ops / Second"
+    },
+    "footer": {
+      "desc": "Smart document management solutions for your enterprise's digital future.",
+      "product": "Product",
+      "pricing": "Pricing",
+      "company": "Company",
+      "about": "About Us",
+      "careers": "Careers",
+      "contact": "Contact",
+      "rights": "© 2024 Kreatif DMS. All rights reserved.",
+      "privacy": "Privacy Policy",
+      "terms": "Terms of Service"
+    }
+  }
+}

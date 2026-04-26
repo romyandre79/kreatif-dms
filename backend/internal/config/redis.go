@@ -7,7 +7,7 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-func InitRedis(redisURL string) *redis.Client {
+func InitRedis(redisURL string) (*redis.Client, error) {
 	rdb := redis.NewClient(&redis.Options{
 		Addr: redisURL,
 	})
@@ -15,9 +15,10 @@ func InitRedis(redisURL string) *redis.Client {
 	// Test connection
 	_, err := rdb.Ping(context.Background()).Result()
 	if err != nil {
-		log.Fatalf("Redis connection failed: %v", err)
+		log.Printf("WARNING: Redis connection failed: %v. Application will run without Redis.\n", err)
+		return nil, err // Return nil so services know it's not available
 	}
 
 	log.Println("Redis connection established")
-	return rdb
+	return rdb, nil
 }

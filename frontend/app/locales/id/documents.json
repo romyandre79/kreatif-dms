@@ -1,0 +1,68 @@
+{
+  "documents": {
+    "title": "Manajemen Dokumen",
+    "explorer": {
+      "title": "Document Explorer",
+      "search_placeholder": "Cari folder...",
+      "stats_total": "Total {count} dokumen"
+    },
+    "search": {
+      "results_for": "Hasil pencarian untuk \"{query}\" ({count})",
+      "stats_desc": "Menemukan sekitar {total} hasil dalam {time} detik",
+      "within_placeholder": "Cari hasil dalam folder ini...",
+      "no_found": "Hasil Tidak Ditemukan",
+      "no_found_desc": "Maaf, kami tidak dapat menemukan dokumen yang sesuai dengan kriteria pencarian Anda. Coba kata kunci yang lebih umum.",
+      "did_you_mean": "Apakah maksud Anda:"
+    },
+    "filters": {
+      "search_within": "Cari di dalam folder ini...",
+      "doc_type": "Jenis Dok:",
+      "year": "Tahun:",
+      "status": "Status:",
+      "all": "Semua",
+      "available": "Tersedia",
+      "on_loan": "Dipinjam",
+      "sort": "Urutkan"
+    },
+    "table": {
+      "name": "NAMA DOKUMEN",
+      "type": "JENIS",
+      "date": "TANGGAL",
+      "dept": "DEPT",
+      "status": "STATUS",
+      "actions": "AKSI"
+    },
+    "cart": {
+      "items_in_cart": "{count} item di keranjang",
+      "ready_desc": "Siap untuk pengajuan pinjaman",
+      "btn_view": "Lihat Keranjang"
+    },
+    "mock": {
+      "root_folder": "PT AKIRADATA PRATAMA",
+      "accounting": "Accounting",
+      "finance": "Finance",
+      "hr": "HR",
+      "it": "IT",
+      "legal": "Legal",
+      "tax": "Pajak",
+      "january": "Januari",
+      "february": "Februari",
+      "docs": {
+        "vendor_contract": "Kontrak Vendor",
+        "rent_invoice": "Invoice Sewa",
+        "tax_report": "Laporan Pajak",
+        "type_contract": "Kontrak",
+        "type_invoice": "Invoice",
+        "type_report": "Report"
+      },
+      "search": {
+        "result_1_name": "Kontrak Cleaning Service 2024",
+        "result_1_snippet": "Dokumen ini berisi detail perjanjian kerjasama cleaning service antara PT Akiradata dengan pihak ketiga untuk periode 2024...",
+        "result_2_name": "Addendum Kontrak Maintenance",
+        "result_2_snippet": "Perubahan pasal 4 mengenai biaya maintenance perangkat IT tahun 2025 yang disetujui oleh Direksi...",
+        "result_3_name": "SOP Kebersihan Kantor",
+        "result_3_snippet": "Standar operasional prosedur mengenai tata kelola kebersihan dan pemeliharaan gedung kantor pusat..."
+      }
+    }
+  }
+}

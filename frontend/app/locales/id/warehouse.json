@@ -1,0 +1,97 @@
+{
+  "warehouse": {
+    "title": "Manajemen Gudang",
+    "stats": {
+      "total_boxes": "Total Kotak",
+      "occupied_racks": "Rak Terisi",
+      "available_space": "Ruang Tersedia"
+    }
+  },
+  "warehouse_structure": {
+    "title": "Struktur Gudang",
+    "subtitle": "Kelola lokasi fisik dokumen dan pengaturan rak",
+    "tabs": {
+      "overview": "Ikhtisar",
+      "racks": "Manajemen Rak",
+      "aisles": "Lorong",
+      "floors": "Lantai"
+    },
+    "stats": {
+      "total_capacity": "Total Kapasitas",
+      "utilized": "Terisi",
+      "utilization_rate": "Tingkat Pemanfaatan",
+      "active_racks": "Rak Aktif",
+      "pending_maintenance": "Perawatan Tertunda"
+    },
+    "actions": {
+      "add_rack": "Tambah Rak Baru",
+      "add_aisle": "Tambah Lorong",
+      "export_map": "Ekspor Peta",
+      "print_labels": "Cetak Label Lokasi"
+    },
+    "table": {
+      "rack_id": "ID RAK",
+      "location": "LOKASI",
+      "capacity": "KAPASITAS",
+      "status": "STATUS",
+      "action": "AKSI",
+      "status_full": "PENUH",
+      "status_available": "TERSEDIA",
+      "status_warning": "HAMPIR PENUH"
+    }
+  },
+  "warehouse_management": {
+    "title": "Manajemen Gudang",
+    "subtitle": "Kelola penyimpanan fisik dan inventaris kotak",
+    "stats": {
+      "total_boxes": "Total Kotak",
+      "occupied_racks": "Rak Terisi",
+      "storage_usage": "Penggunaan Gudang",
+      "total_capacity": "Kapasitas Total",
+      "vs_last_month": "{percent}% vs bulan lalu"
+    },
+    "actions": {
+      "add_box": "Tambah Kotak",
+      "move_box": "Pindah Kotak",
+      "inventory_check": "Cek Inventaris",
+      "print_manifest": "Cetak Manifest"
+    },
+    "filters": {
+      "all_locations": "Semua Lokasi",
+      "floor": "Lantai",
+      "aisle": "Lorong",
+      "status": "Status"
+    },
+    "table": {
+      "box_id": "ID KOTAK",
+      "location": "LOKASI",
+      "contents": "ISI",
+      "last_audit": "AUDIT TERAKHIR",
+      "status": "STATUS",
+      "status_active": "Aktif",
+      "status_moved": "Pindah",
+      "status_archived": "Diarsipkan"
+    }
+  },
+  "warehouse_scan": {
+    "title": "Pemindaian Struktur Gudang",
+    "subtitle": "Pemetaan lokasi fisik menggunakan scanner genggam",
+    "form": {
+      "rack_code": "Kode Rak",
+      "aisle_code": "Kode Lorong",
+      "level": "Tingkat",
+      "position": "Posisi"
+    },
+    "summary": {
+      "total_scanned": "Total Dipindai",
+      "confidence": "Tingkat Akurasi",
+      "btn_cancel": "Batal",
+      "btn_confirm": "Konfirmasi"
+    },
+    "footer": {
+      "assignee": "PETUGAS",
+      "sync": "SINKRONISASI",
+      "location": "LOKASI"
+    }
+  }
+}

@@ -30,7 +30,7 @@
               status === 'approved' ? 'bg-emerald-50 text-emerald-500 border-emerald-100' : 
               status === 'rejected' ? 'bg-red-50 text-red-500 border-red-100' :
               'bg-orange-50 text-orange-500 border-orange-100'}`">
-              {{ status.toUpperCase().replace('_', ' ') }}
+              {{ $t(`loans.tracking.status.${status}`) }}
             </span>
           </div>
           <p class="text-xs font-bold text-slate-400 flex items-center gap-2">
@@ -210,7 +210,7 @@ import {
   LucideMoreHorizontal, LucideKey, LucidePackage, LucideInfo, LucideShieldCheck, LucideAlertCircle, LucideSend, LucideX, LucideShieldAlert
 } from 'lucide-vue-next'
 
-const status = ref('rejected') // Toggle between 'waiting_l2_approval', 'approved', 'rejected'
+const status = ref('waiting_l2') // Options: 'waiting_l1', 'waiting_l2', 'approved', 'rejected'
 </script>
 
 <style scoped>

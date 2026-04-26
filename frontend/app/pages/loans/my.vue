@@ -195,7 +195,7 @@
           {{ $t('loans.my.detail.ext_promo.btn') }}
         </button>
       </div>
-    </div>div>
+    </div>
     
     <!-- Request Extension Modal -->
     <Transition name="scale">

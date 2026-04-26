@@ -22,18 +22,78 @@ type ActivityLog struct {
 	CreatedAt  pgtype.Timestamptz `json:"created_at"`
 }
 
+type ApprovalWorkflow struct {
+	ID              uuid.UUID          `json:"id"`
+	EntityType      string             `json:"entity_type"`
+	EntityID        uuid.UUID          `json:"entity_id"`
+	Level           int32              `json:"level"`
+	ApproverID      uuid.UUID          `json:"approver_id"`
+	Status          string             `json:"status"`
+	DecisionNote    pgtype.Text        `json:"decision_note"`
+	RejectionReason pgtype.Text        `json:"rejection_reason"`
+	RequiresPin     pgtype.Bool        `json:"requires_pin"`
+	PinVerified     pgtype.Bool        `json:"pin_verified"`
+	DecidedAt       pgtype.Timestamptz `json:"decided_at"`
+	CreatedAt       pgtype.Timestamptz `json:"created_at"`
+}
+
+type ArchivalNumberSequence struct {
+	ID             uuid.UUID          `json:"id"`
+	Prefix         string             `json:"prefix"`
+	DepartmentID   pgtype.UUID        `json:"department_id"`
+	CurrentSeq     int32              `json:"current_seq"`
+	Year           int32              `json:"year"`
+	FormatTemplate string             `json:"format_template"`
+	UpdatedAt      pgtype.Timestamptz `json:"updated_at"`
+}
+
+type AsyncTaskQueue struct {
+	ID                uuid.UUID          `json:"id"`
+	TaskType          string             `json:"task_type"`
+	AsynqTaskID       pgtype.Text        `json:"asynq_task_id"`
+	EntityType        string             `json:"entity_type"`
+	EntityID          uuid.UUID          `json:"entity_id"`
+	QueueName         pgtype.Text        `json:"queue_name"`
+	Priority          pgtype.Int4        `json:"priority"`
+	MaxRetries        pgtype.Int4        `json:"max_retries"`
+	RetryCount        pgtype.Int4        `json:"retry_count"`
+	Status            string             `json:"status"`
+	ErrorMessage      pgtype.Text        `json:"error_message"`
+	EnqueuedAt        pgtype.Timestamptz `json:"enqueued_at"`
+	StartedAt         pgtype.Timestamptz `json:"started_at"`
+	CompletedAt       pgtype.Timestamptz `json:"completed_at"`
+	EnqueuedBy        pgtype.UUID        `json:"enqueued_by"`
+	ProcessedByWorker pgtype.Text        `json:"processed_by_worker"`
+}
+
+type BackupRecord struct {
+	ID           uuid.UUID          `json:"id"`
+	BackupType   string             `json:"backup_type"`
+	Target       string             `json:"target"`
+	FilePath     pgtype.Text        `json:"file_path"`
+	FileSize     pgtype.Int8        `json:"file_size"`
+	Status       string             `json:"status"`
+	ErrorMessage pgtype.Text        `json:"error_message"`
+	StartedAt    pgtype.Timestamptz `json:"started_at"`
+	CompletedAt  pgtype.Timestamptz `json:"completed_at"`
+	CreatedBy    pgtype.UUID        `json:"created_by"`
+}
+
 type BorrowRequest struct {
-	ID         uuid.UUID          `json:"id"`
-	DocumentID uuid.UUID          `json:"document_id"`
-	UserID     uuid.UUID          `json:"user_id"`
-	Reason     string             `json:"reason"`
-	Status     string             `json:"status"`
-	BorrowDate pgtype.Timestamptz `json:"borrow_date"`
-	DueDate    pgtype.Timestamptz `json:"due_date"`
-	ReturnDate pgtype.Timestamptz `json:"return_date"`
-	ApprovedBy pgtype.UUID        `json:"approved_by"`
-	CreatedAt  pgtype.Timestamptz `json:"created_at"`
-	UpdatedAt  pgtype.Timestamptz `json:"updated_at"`
+	ID           uuid.UUID          `json:"id"`
+	DocumentID   uuid.UUID          `json:"document_id"`
+	UserID       uuid.UUID          `json:"user_id"`
+	Reason       string             `json:"reason"`
+	Status       string             `json:"status"`
+	BorrowDate   pgtype.Timestamptz `json:"borrow_date"`
+	DueDate      pgtype.Timestamptz `json:"due_date"`
+	ReturnDate   pgtype.Timestamptz `json:"return_date"`
+	ApprovedBy   pgtype.UUID        `json:"approved_by"`
+	CreatedAt    pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt    pgtype.Timestamptz `json:"updated_at"`
+	L2ApprovedBy pgtype.UUID        `json:"l2_approved_by"`
+	L2ApprovedAt pgtype.Timestamptz `json:"l2_approved_at"`
+	RfidTagID    pgtype.Text        `json:"rfid_tag_id"`
 }
 
 type Box struct {
@@ -59,6 +119,40 @@ type Company struct {
 	CreatedAt pgtype.Timestamptz `json:"created_at"`
 }
 
+type ComplianceCheck struct {
+	ID             uuid.UUID          `json:"id"`
+	CheckType      string             `json:"check_type"`
+	Source         pgtype.Text        `json:"source"`
+	CheckID        pgtype.Text        `json:"check_id"`
+	Result         string             `json:"result"`
+	Details        []byte             `json:"details"`
+	HealthScorePct pgtype.Int4        `json:"health_score_pct"`
+	CheckedAt      pgtype.Timestamptz `json:"checked_at"`
+}
+
+type ComplianceRemediation struct {
+	ID                uuid.UUID          `json:"id"`
+	ComplianceCheckID pgtype.UUID        `json:"compliance_check_id"`
+	Severity          string             `json:"severity"`
+	Title             string             `json:"title"`
+	Description       pgtype.Text        `json:"description"`
+	ActionType        pgtype.Text        `json:"action_type"`
+	Status            pgtype.Text        `json:"status"`
+	ResolvedBy        pgtype.UUID        `json:"resolved_by"`
+	ResolvedAt        pgtype.Timestamptz `json:"resolved_at"`
+	CreatedAt         pgtype.Timestamptz `json:"created_at"`
+}
+
+type DashboardStatsCache struct {
+	ID         uuid.UUID          `json:"id"`
+	StatType   string             `json:"stat_type"`
+	ScopeType  pgtype.Text        `json:"scope_type"`
+	ScopeID    pgtype.UUID        `json:"scope_id"`
+	Value      pgtype.Numeric     `json:"value"`
+	Metadata   []byte             `json:"metadata"`
+	ComputedAt pgtype.Timestamptz `json:"computed_at"`
+}
+
 type Department struct {
 	ID        uuid.UUID          `json:"id"`
 	BranchID  uuid.UUID          `json:"branch_id"`
@@ -67,37 +161,139 @@ type Department struct {
 	CreatedAt pgtype.Timestamptz `json:"created_at"`
 }
 
-type Document struct {
+type DestructionLog struct {
+	ID            uuid.UUID          `json:"id"`
+	BatchID       uuid.UUID          `json:"batch_id"`
+	Method        string             `json:"method"`
+	WitnessUserID pgtype.UUID        `json:"witness_user_id"`
+	BastFilePath  pgtype.Text        `json:"bast_file_path"`
+	Notes         pgtype.Text        `json:"notes"`
+	DestroyedAt   pgtype.Timestamptz `json:"destroyed_at"`
+}
+
+type DigitalSignature struct {
 	ID             uuid.UUID          `json:"id"`
-	Title          string             `json:"title"`
-	Description    pgtype.Text        `json:"description"`
-	FileName       string             `json:"file_name"`
-	FilePath       string             `json:"file_path"`
-	FileSize       int64              `json:"file_size"`
-	MimeType       string             `json:"mime_type"`
-	Checksum       pgtype.Text        `json:"checksum"`
-	CompanyID      uuid.UUID          `json:"company_id"`
-	BranchID       uuid.UUID          `json:"branch_id"`
-	DepartmentID   uuid.UUID          `json:"department_id"`
-	RackID         pgtype.UUID        `json:"rack_id"`
-	BoxID          pgtype.UUID        `json:"box_id"`
-	OrdnerID       pgtype.UUID        `json:"ordner_id"`
-	OwnerID        uuid.UUID          `json:"owner_id"`
-	CurrentVersion int32              `json:"current_version"`
-	Status         string             `json:"status"`
-	Tags           []string           `json:"tags"`
-	Metadata       []byte             `json:"metadata"`
-	ExtractedText  pgtype.Text        `json:"extracted_text"`
-	IsOcrProcessed pgtype.Bool        `json:"is_ocr_processed"`
-	CreatedAt      pgtype.Timestamptz `json:"created_at"`
-	UpdatedAt      pgtype.Timestamptz `json:"updated_at"`
-	BatchID        pgtype.UUID        `json:"batch_id"`
+	EntityType     string             `json:"entity_type"`
+	EntityID       uuid.UUID          `json:"entity_id"`
+	UserID         uuid.UUID          `json:"user_id"`
+	SignatureType  pgtype.Text        `json:"signature_type"`
+	SignatureData  pgtype.Text        `json:"signature_data"`
+	ApprovalStatus pgtype.Text        `json:"approval_status"`
+	Note           pgtype.Text        `json:"note"`
+	IpAddress      *netip.Addr        `json:"ip_address"`
+	SignedAt       pgtype.Timestamptz `json:"signed_at"`
+}
+
+type DistributionRecord struct {
+	ID              uuid.UUID          `json:"id"`
+	CirculationID   uuid.UUID          `json:"circulation_id"`
+	RecipientUserID uuid.UUID          `json:"recipient_user_id"`
+	Channel         pgtype.Text        `json:"channel"`
+	Status          pgtype.Text        `json:"status"`
+	SentAt          pgtype.Timestamptz `json:"sent_at"`
+	ReadAt          pgtype.Timestamptz `json:"read_at"`
+	CreatedAt       pgtype.Timestamptz `json:"created_at"`
+}
+
+type Document struct {
+	ID                  uuid.UUID          `json:"id"`
+	Title               string             `json:"title"`
+	Description         pgtype.Text        `json:"description"`
+	FileName            string             `json:"file_name"`
+	FilePath            string             `json:"file_path"`
+	FileSize            int64              `json:"file_size"`
+	MimeType            string             `json:"mime_type"`
+	Checksum            pgtype.Text        `json:"checksum"`
+	CompanyID           uuid.UUID          `json:"company_id"`
+	BranchID            uuid.UUID          `json:"branch_id"`
+	DepartmentID        uuid.UUID          `json:"department_id"`
+	RackID              pgtype.UUID        `json:"rack_id"`
+	BoxID               pgtype.UUID        `json:"box_id"`
+	OrdnerID            pgtype.UUID        `json:"ordner_id"`
+	OwnerID             uuid.UUID          `json:"owner_id"`
+	CurrentVersion      int32              `json:"current_version"`
+	Status              string             `json:"status"`
+	Tags                []string           `json:"tags"`
+	Metadata            []byte             `json:"metadata"`
+	ExtractedText       pgtype.Text        `json:"extracted_text"`
+	IsOcrProcessed      pgtype.Bool        `json:"is_ocr_processed"`
+	CreatedAt           pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt           pgtype.Timestamptz `json:"updated_at"`
+	BatchID             pgtype.UUID        `json:"batch_id"`
+	RetentionYears      pgtype.Int4        `json:"retention_years"`
+	RetentionExpiryDate pgtype.Date        `json:"retention_expiry_date"`
+	Sensitivity         pgtype.Text        `json:"sensitivity"`
+	CirculationID       pgtype.UUID        `json:"circulation_id"`
+	MinioBucket         pgtype.Text        `json:"minio_bucket"`
+	EsIndexed           pgtype.Bool        `json:"es_indexed"`
+}
+
+type DocumentCirculation struct {
+	ID              uuid.UUID          `json:"id"`
+	RefNo           string             `json:"ref_no"`
+	Direction       string             `json:"direction"`
+	Sender          pgtype.Text        `json:"sender"`
+	RecipientOrg    pgtype.Text        `json:"recipient_org"`
+	Subject         string             `json:"subject"`
+	DocTitle        pgtype.Text        `json:"doc_title"`
+	Classification  pgtype.Text        `json:"classification"`
+	Nature          pgtype.Text        `json:"nature"`
+	Priority        pgtype.Text        `json:"priority"`
+	ReceivedDate    pgtype.Timestamptz `json:"received_date"`
+	DocumentID      pgtype.UUID        `json:"document_id"`
+	OcrQualityPct   pgtype.Int4        `json:"ocr_quality_pct"`
+	CompletenessPct pgtype.Int4        `json:"completeness_pct"`
+	IsDuplicate     pgtype.Bool        `json:"is_duplicate"`
+	Status          string             `json:"status"`
+	RegisteredBy    pgtype.UUID        `json:"registered_by"`
+	CreatedAt       pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt       pgtype.Timestamptz `json:"updated_at"`
+	CompanyID       pgtype.UUID        `json:"company_id"`
+	BranchID        pgtype.UUID        `json:"branch_id"`
+	DepartmentID    pgtype.UUID        `json:"department_id"`
+}
+
+type DocumentRegistration struct {
+	ID                  uuid.UUID          `json:"id"`
+	SourceFilename      string             `json:"source_filename"`
+	SourcePages         pgtype.Int4        `json:"source_pages"`
+	DocType             pgtype.Text        `json:"doc_type"`
+	DocNumber           pgtype.Text        `json:"doc_number"`
+	OcrTitle            pgtype.Text        `json:"ocr_title"`
+	OcrAccuracyPct      pgtype.Int4        `json:"ocr_accuracy_pct"`
+	VerifiedTitle       pgtype.Text        `json:"verified_title"`
+	DepartmentID        pgtype.UUID        `json:"department_id"`
+	IsDuplicateChecked  pgtype.Bool        `json:"is_duplicate_checked"`
+	DuplicateDocumentID pgtype.UUID        `json:"duplicate_document_id"`
+	AssignedRackID      pgtype.UUID        `json:"assigned_rack_id"`
+	AssignedBoxID       pgtype.UUID        `json:"assigned_box_id"`
+	AssignedOrdnerID    pgtype.UUID        `json:"assigned_ordner_id"`
+	CapacityScorePct    pgtype.Int4        `json:"capacity_score_pct"`
+	FinalFilename       pgtype.Text        `json:"final_filename"`
+	FinalDocumentID     pgtype.UUID        `json:"final_document_id"`
+	Status              string             `json:"status"`
+	RegisteredBy        pgtype.UUID        `json:"registered_by"`
+	CreatedAt           pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt           pgtype.Timestamptz `json:"updated_at"`
 }
 
 type DocumentRoleAccess struct {
 	ID         uuid.UUID `json:"id"`
 	DocumentID uuid.UUID `json:"document_id"`
 	RoleID     int32     `json:"role_id"`
+}
+
+type DocumentTrackingEvent struct {
+	ID           uuid.UUID          `json:"id"`
+	DocumentID   uuid.UUID          `json:"document_id"`
+	EventType    string             `json:"event_type"`
+	FromLocation pgtype.Text        `json:"from_location"`
+	ToLocation   pgtype.Text        `json:"to_location"`
+	PerformedBy  uuid.UUID          `json:"performed_by"`
+	RfidTagID    pgtype.Text        `json:"rfid_tag_id"`
+	Note         pgtype.Text        `json:"note"`
+	IpAddress    *netip.Addr        `json:"ip_address"`
+	CreatedAt    pgtype.Timestamptz `json:"created_at"`
 }
 
 type DocumentVersion struct {
@@ -111,6 +307,195 @@ type DocumentVersion struct {
 	CreatedAt  pgtype.Timestamptz `json:"created_at"`
 }
 
+type FileStorageObject struct {
+	ID                  uuid.UUID          `json:"id"`
+	BucketName          string             `json:"bucket_name"`
+	ObjectKey           string             `json:"object_key"`
+	EntityType          string             `json:"entity_type"`
+	EntityID            uuid.UUID          `json:"entity_id"`
+	FileName            string             `json:"file_name"`
+	FileSize            int64              `json:"file_size"`
+	MimeType            pgtype.Text        `json:"mime_type"`
+	Checksum            pgtype.Text        `json:"checksum"`
+	IsEncrypted         pgtype.Bool        `json:"is_encrypted"`
+	EncryptionAlgorithm pgtype.Text        `json:"encryption_algorithm"`
+	IsDeleted           pgtype.Bool        `json:"is_deleted"`
+	DeletedAt           pgtype.Timestamptz `json:"deleted_at"`
+	UploadedBy          pgtype.UUID        `json:"uploaded_by"`
+	CreatedAt           pgtype.Timestamptz `json:"created_at"`
+}
+
+type GeneratedLabel struct {
+	ID            uuid.UUID          `json:"id"`
+	LabelType     string             `json:"label_type"`
+	LabelCode     string             `json:"label_code"`
+	EntityType    string             `json:"entity_type"`
+	EntityID      uuid.UUID          `json:"entity_id"`
+	QrData        pgtype.Text        `json:"qr_data"`
+	EncodingLevel pgtype.Text        `json:"encoding_level"`
+	PrinterName   pgtype.Text        `json:"printer_name"`
+	Copies        pgtype.Int4        `json:"copies"`
+	LastPrintedAt pgtype.Timestamptz `json:"last_printed_at"`
+	PrintCount    pgtype.Int4        `json:"print_count"`
+	CreatedBy     pgtype.UUID        `json:"created_by"`
+	CreatedAt     pgtype.Timestamptz `json:"created_at"`
+}
+
+type ImportJob struct {
+	ID             uuid.UUID          `json:"id"`
+	SourceType     string             `json:"source_type"`
+	SourceFilename pgtype.Text        `json:"source_filename"`
+	TotalRows      pgtype.Int4        `json:"total_rows"`
+	ProcessedRows  pgtype.Int4        `json:"processed_rows"`
+	SuccessRows    pgtype.Int4        `json:"success_rows"`
+	ErrorRows      pgtype.Int4        `json:"error_rows"`
+	Status         string             `json:"status"`
+	ErrorLog       []byte             `json:"error_log"`
+	UploadedBy     pgtype.UUID        `json:"uploaded_by"`
+	CreatedAt      pgtype.Timestamptz `json:"created_at"`
+	CompletedAt    pgtype.Timestamptz `json:"completed_at"`
+}
+
+type IntakeSession struct {
+	ID                    uuid.UUID          `json:"id"`
+	Source                string             `json:"source"`
+	SourceDetail          pgtype.Text        `json:"source_detail"`
+	OriginalFilename      pgtype.Text        `json:"original_filename"`
+	FilePath              pgtype.Text        `json:"file_path"`
+	FileSize              pgtype.Int8        `json:"file_size"`
+	MimeType              pgtype.Text        `json:"mime_type"`
+	PageCount             pgtype.Int4        `json:"page_count"`
+	ExternalSender        pgtype.Text        `json:"external_sender"`
+	ExternalRefNo         pgtype.Text        `json:"external_ref_no"`
+	ExternalDate          pgtype.Date        `json:"external_date"`
+	OcrStatus             pgtype.Text        `json:"ocr_status"`
+	OcrText               pgtype.Text        `json:"ocr_text"`
+	OcrConfidencePct      pgtype.Int4        `json:"ocr_confidence_pct"`
+	AiRefinedText         pgtype.Text        `json:"ai_refined_text"`
+	ReviewedBy            pgtype.UUID        `json:"reviewed_by"`
+	ReviewStatus          pgtype.Text        `json:"review_status"`
+	ReviewNote            pgtype.Text        `json:"review_note"`
+	DuplicateStatus       pgtype.Text        `json:"duplicate_status"`
+	DuplicateDocumentID   pgtype.UUID        `json:"duplicate_document_id"`
+	SuggestedDepartmentID pgtype.UUID        `json:"suggested_department_id"`
+	SuggestedRackID       pgtype.UUID        `json:"suggested_rack_id"`
+	PathOverride          pgtype.Bool        `json:"path_override"`
+	FinalDocumentID       pgtype.UUID        `json:"final_document_id"`
+	Status                string             `json:"status"`
+	CreatedBy             pgtype.UUID        `json:"created_by"`
+	CreatedAt             pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt             pgtype.Timestamptz `json:"updated_at"`
+}
+
+type IntegrationMonitor struct {
+	ID             uuid.UUID          `json:"id"`
+	ServiceName    string             `json:"service_name"`
+	Endpoint       pgtype.Text        `json:"endpoint"`
+	Status         string             `json:"status"`
+	ResponseTimeMs pgtype.Int4        `json:"response_time_ms"`
+	LastCheckAt    pgtype.Timestamptz `json:"last_check_at"`
+	ErrorMessage   pgtype.Text        `json:"error_message"`
+	Metadata       []byte             `json:"metadata"`
+}
+
+type LoanCartItem struct {
+	ID         uuid.UUID          `json:"id"`
+	UserID     uuid.UUID          `json:"user_id"`
+	DocumentID uuid.UUID          `json:"document_id"`
+	Category   pgtype.Text        `json:"category"`
+	AddedAt    pgtype.Timestamptz `json:"added_at"`
+}
+
+type LoanExtension struct {
+	ID            uuid.UUID          `json:"id"`
+	LoanRequestID uuid.UUID          `json:"loan_request_id"`
+	RequestedBy   uuid.UUID          `json:"requested_by"`
+	ExtensionDays int32              `json:"extension_days"`
+	Reason        string             `json:"reason"`
+	Status        pgtype.Text        `json:"status"`
+	ApprovedBy    pgtype.UUID        `json:"approved_by"`
+	DecidedAt     pgtype.Timestamptz `json:"decided_at"`
+	CreatedAt     pgtype.Timestamptz `json:"created_at"`
+}
+
+type LoanRequest struct {
+	ID                uuid.UUID          `json:"id"`
+	RequestNo         string             `json:"request_no"`
+	UserID            uuid.UUID          `json:"user_id"`
+	Purpose           string             `json:"purpose"`
+	DepartmentFilter  pgtype.Text        `json:"department_filter"`
+	DurationDays      int32              `json:"duration_days"`
+	Notes             pgtype.Text        `json:"notes"`
+	ApproverNotes     pgtype.Text        `json:"approver_notes"`
+	Status            string             `json:"status"`
+	L1ApprovedBy      pgtype.UUID        `json:"l1_approved_by"`
+	L1ApprovedAt      pgtype.Timestamptz `json:"l1_approved_at"`
+	L1RejectionReason pgtype.Text        `json:"l1_rejection_reason"`
+	L2ApprovedBy      pgtype.UUID        `json:"l2_approved_by"`
+	L2ApprovedAt      pgtype.Timestamptz `json:"l2_approved_at"`
+	L2RejectionReason pgtype.Text        `json:"l2_rejection_reason"`
+	BorrowDate        pgtype.Timestamptz `json:"borrow_date"`
+	DueDate           pgtype.Timestamptz `json:"due_date"`
+	ReturnDate        pgtype.Timestamptz `json:"return_date"`
+	CreatedAt         pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt         pgtype.Timestamptz `json:"updated_at"`
+	CompanyID         pgtype.UUID        `json:"company_id"`
+	BranchID          pgtype.UUID        `json:"branch_id"`
+	DepartmentID      pgtype.UUID        `json:"department_id"`
+}
+
+type LoanRequestItem struct {
+	ID            uuid.UUID          `json:"id"`
+	LoanRequestID uuid.UUID          `json:"loan_request_id"`
+	DocumentID    uuid.UUID          `json:"document_id"`
+	Category      pgtype.Text        `json:"category"`
+	Sensitivity   pgtype.Text        `json:"sensitivity"`
+	Reason        pgtype.Text        `json:"reason"`
+	Method        pgtype.Text        `json:"method"`
+	Status        pgtype.Text        `json:"status"`
+	PickedUpAt    pgtype.Timestamptz `json:"picked_up_at"`
+	ReturnedAt    pgtype.Timestamptz `json:"returned_at"`
+	CreatedAt     pgtype.Timestamptz `json:"created_at"`
+}
+
+type Notification struct {
+	ID         uuid.UUID          `json:"id"`
+	UserID     uuid.UUID          `json:"user_id"`
+	Title      string             `json:"title"`
+	Body       pgtype.Text        `json:"body"`
+	Type       string             `json:"type"`
+	EntityType pgtype.Text        `json:"entity_type"`
+	EntityID   pgtype.UUID        `json:"entity_id"`
+	Channel    pgtype.Text        `json:"channel"`
+	IsRead     pgtype.Bool        `json:"is_read"`
+	ReadAt     pgtype.Timestamptz `json:"read_at"`
+	CreatedAt  pgtype.Timestamptz `json:"created_at"`
+}
+
+type OcrJob struct {
+	ID                 uuid.UUID          `json:"id"`
+	EntityType         string             `json:"entity_type"`
+	EntityID           uuid.UUID          `json:"entity_id"`
+	OcrServiceUrl      pgtype.Text        `json:"ocr_service_url"`
+	OcrEngine          pgtype.Text        `json:"ocr_engine"`
+	SourceFilePath     pgtype.Text        `json:"source_file_path"`
+	SourcePages        pgtype.Int4        `json:"source_pages"`
+	RawText            pgtype.Text        `json:"raw_text"`
+	WordCount          pgtype.Int4        `json:"word_count"`
+	ConfidenceAvg      pgtype.Numeric     `json:"confidence_avg"`
+	WordsJson          []byte             `json:"words_json"`
+	AiProvider         pgtype.Text        `json:"ai_provider"`
+	AiRefinedText      pgtype.Text        `json:"ai_refined_text"`
+	AiMetadata         []byte             `json:"ai_metadata"`
+	AiRefinementStatus pgtype.Text        `json:"ai_refinement_status"`
+	Status             string             `json:"status"`
+	ErrorMessage       pgtype.Text        `json:"error_message"`
+	ProcessingTimeMs   pgtype.Int4        `json:"processing_time_ms"`
+	AsyncTaskID        pgtype.UUID        `json:"async_task_id"`
+	CreatedAt          pgtype.Timestamptz `json:"created_at"`
+	CompletedAt        pgtype.Timestamptz `json:"completed_at"`
+}
+
 type Ordner struct {
 	ID        uuid.UUID          `json:"id"`
 	BoxID     uuid.UUID          `json:"box_id"`
@@ -118,14 +503,27 @@ type Ordner struct {
 	CreatedAt pgtype.Timestamptz `json:"created_at"`
 }
 
+type PrintJob struct {
+	ID           uuid.UUID          `json:"id"`
+	LabelID      pgtype.UUID        `json:"label_id"`
+	PrinterName  string             `json:"printer_name"`
+	Copies       pgtype.Int4        `json:"copies"`
+	Status       string             `json:"status"`
+	ErrorMessage pgtype.Text        `json:"error_message"`
+	PrintedBy    pgtype.UUID        `json:"printed_by"`
+	PrintedAt    pgtype.Timestamptz `json:"printed_at"`
+}
+
 type ProcessingBatch struct {
-	ID             uuid.UUID          `json:"id"`
-	UserID         uuid.UUID          `json:"user_id"`
-	TotalFiles     int32              `json:"total_files"`
-	ProcessedFiles pgtype.Int4        `json:"processed_files"`
-	Status         pgtype.Text        `json:"status"`
-	CreatedAt      pgtype.Timestamptz `json:"created_at"`
-	UpdatedAt      pgtype.Timestamptz `json:"updated_at"`
+	ID              uuid.UUID          `json:"id"`
+	UserID          uuid.UUID          `json:"user_id"`
+	TotalFiles      int32              `json:"total_files"`
+	ProcessedFiles  pgtype.Int4        `json:"processed_files"`
+	Status          pgtype.Text        `json:"status"`
+	CreatedAt       pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt       pgtype.Timestamptz `json:"updated_at"`
+	IntakeSessionID pgtype.UUID        `json:"intake_session_id"`
+	DepartmentID    pgtype.UUID        `json:"department_id"`
 }
 
 type Rack struct {
@@ -134,6 +532,55 @@ type Rack struct {
 	Name           string             `json:"name"`
 	LocationDetail pgtype.Text        `json:"location_detail"`
 	CreatedAt      pgtype.Timestamptz `json:"created_at"`
+}
+
+type RackCapacity struct {
+	ID           uuid.UUID          `json:"id"`
+	RackID       uuid.UUID          `json:"rack_id"`
+	MaxCapacity  int32              `json:"max_capacity"`
+	CurrentUsage int32              `json:"current_usage"`
+	UsagePct     pgtype.Numeric     `json:"usage_pct"`
+	LastAuditAt  pgtype.Timestamptz `json:"last_audit_at"`
+	UpdatedAt    pgtype.Timestamptz `json:"updated_at"`
+}
+
+type RetentionBatch struct {
+	ID                 uuid.UUID          `json:"id"`
+	BatchNo            string             `json:"batch_no"`
+	DepartmentID       pgtype.UUID        `json:"department_id"`
+	TotalItems         int32              `json:"total_items"`
+	TotalVolumeM3      pgtype.Numeric     `json:"total_volume_m3"`
+	RiskLevel          pgtype.Text        `json:"risk_level"`
+	Decision           pgtype.Text        `json:"decision"`
+	DecisionRefNo      pgtype.Text        `json:"decision_ref_no"`
+	DecisionBy         pgtype.UUID        `json:"decision_by"`
+	DecisionAt         pgtype.Timestamptz `json:"decision_at"`
+	DecisionAttachment pgtype.Text        `json:"decision_attachment"`
+	Status             string             `json:"status"`
+	CreatedAt          pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt          pgtype.Timestamptz `json:"updated_at"`
+}
+
+type RetentionItem struct {
+	ID          uuid.UUID          `json:"id"`
+	BatchID     uuid.UUID          `json:"batch_id"`
+	DocumentID  uuid.UUID          `json:"document_id"`
+	ExpiryDate  pgtype.Date        `json:"expiry_date"`
+	Status      pgtype.Text        `json:"status"`
+	DestroyedAt pgtype.Timestamptz `json:"destroyed_at"`
+	CreatedAt   pgtype.Timestamptz `json:"created_at"`
+}
+
+type RetentionPolicy struct {
+	ID               uuid.UUID          `json:"id"`
+	Name             string             `json:"name"`
+	Description      pgtype.Text        `json:"description"`
+	RetentionYears   int32              `json:"retention_years"`
+	DepartmentID     pgtype.UUID        `json:"department_id"`
+	DocumentCategory pgtype.Text        `json:"document_category"`
+	IsActive         pgtype.Bool        `json:"is_active"`
+	CreatedAt        pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt        pgtype.Timestamptz `json:"updated_at"`
 }
 
 type RfidTag struct {
@@ -147,6 +594,116 @@ type Role struct {
 	ID          int32       `json:"id"`
 	Name        string      `json:"name"`
 	Description pgtype.Text `json:"description"`
+}
+
+type RoutingSlipRecipient struct {
+	ID            uuid.UUID          `json:"id"`
+	CirculationID uuid.UUID          `json:"circulation_id"`
+	UserID        uuid.UUID          `json:"user_id"`
+	OrderSeq      int32              `json:"order_seq"`
+	RoleLabel     pgtype.Text        `json:"role_label"`
+	Status        pgtype.Text        `json:"status"`
+	SignedAt      pgtype.Timestamptz `json:"signed_at"`
+	Note          pgtype.Text        `json:"note"`
+	CreatedAt     pgtype.Timestamptz `json:"created_at"`
+}
+
+type SearchIndexStatus struct {
+	ID           uuid.UUID          `json:"id"`
+	DocumentID   uuid.UUID          `json:"document_id"`
+	IndexName    string             `json:"index_name"`
+	EsDocID      pgtype.Text        `json:"es_doc_id"`
+	Status       string             `json:"status"`
+	Version      pgtype.Int4        `json:"version"`
+	IndexedAt    pgtype.Timestamptz `json:"indexed_at"`
+	LastSyncedAt pgtype.Timestamptz `json:"last_synced_at"`
+	ErrorMessage pgtype.Text        `json:"error_message"`
+	CreatedAt    pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt    pgtype.Timestamptz `json:"updated_at"`
+}
+
+type SsoSyncLog struct {
+	ID           uuid.UUID          `json:"id"`
+	Provider     string             `json:"provider"`
+	Status       string             `json:"status"`
+	UsersSynced  pgtype.Int4        `json:"users_synced"`
+	GroupsSynced pgtype.Int4        `json:"groups_synced"`
+	Errors       pgtype.Int4        `json:"errors"`
+	ErrorDetails []byte             `json:"error_details"`
+	StartedAt    pgtype.Timestamptz `json:"started_at"`
+	CompletedAt  pgtype.Timestamptz `json:"completed_at"`
+	CreatedAt    pgtype.Timestamptz `json:"created_at"`
+}
+
+type StagingDocument struct {
+	ID               uuid.UUID          `json:"id"`
+	RegistrationID   pgtype.UUID        `json:"registration_id"`
+	OriginalFilename string             `json:"original_filename"`
+	FilePath         string             `json:"file_path"`
+	FileSize         pgtype.Int8        `json:"file_size"`
+	MimeType         pgtype.Text        `json:"mime_type"`
+	Status           pgtype.Text        `json:"status"`
+	ErrorMessage     pgtype.Text        `json:"error_message"`
+	UploadedBy       pgtype.UUID        `json:"uploaded_by"`
+	CreatedAt        pgtype.Timestamptz `json:"created_at"`
+}
+
+type StockOpnameItem struct {
+	ID             uuid.UUID          `json:"id"`
+	SessionID      uuid.UUID          `json:"session_id"`
+	DocumentID     pgtype.UUID        `json:"document_id"`
+	SkuCode        pgtype.Text        `json:"sku_code"`
+	ItemName       pgtype.Text        `json:"item_name"`
+	SystemQty      int32              `json:"system_qty"`
+	PhysicalQty    int32              `json:"physical_qty"`
+	Variance       pgtype.Int4        `json:"variance"`
+	Status         string             `json:"status"`
+	LocationName   pgtype.Text        `json:"location_name"`
+	SubLocation    pgtype.Text        `json:"sub_location"`
+	Resolution     pgtype.Text        `json:"resolution"`
+	ResolutionNote pgtype.Text        `json:"resolution_note"`
+	ScannedAt      pgtype.Timestamptz `json:"scanned_at"`
+}
+
+type StockOpnameMission struct {
+	ID          uuid.UUID          `json:"id"`
+	SessionID   pgtype.UUID        `json:"session_id"`
+	Title       string             `json:"title"`
+	Description pgtype.Text        `json:"description"`
+	AssignedTo  uuid.UUID          `json:"assigned_to"`
+	TargetArea  pgtype.Text        `json:"target_area"`
+	Status      pgtype.Text        `json:"status"`
+	CompletedAt pgtype.Timestamptz `json:"completed_at"`
+	CreatedAt   pgtype.Timestamptz `json:"created_at"`
+}
+
+type StockOpnameSession struct {
+	ID             uuid.UUID          `json:"id"`
+	SessionNo      string             `json:"session_no"`
+	BranchID       pgtype.UUID        `json:"branch_id"`
+	DepartmentID   pgtype.UUID        `json:"department_id"`
+	ConductedBy    uuid.UUID          `json:"conducted_by"`
+	TotalMatched   pgtype.Int4        `json:"total_matched"`
+	TotalOnLoan    pgtype.Int4        `json:"total_on_loan"`
+	TotalMissing   pgtype.Int4        `json:"total_missing"`
+	TotalExtra     pgtype.Int4        `json:"total_extra"`
+	Status         string             `json:"status"`
+	ApprovedBy     pgtype.UUID        `json:"approved_by"`
+	ApprovedAt     pgtype.Timestamptz `json:"approved_at"`
+	ResolutionNote pgtype.Text        `json:"resolution_note"`
+	CreatedAt      pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt      pgtype.Timestamptz `json:"updated_at"`
+}
+
+type SystemSetting struct {
+	ID          uuid.UUID          `json:"id"`
+	Category    string             `json:"category"`
+	Key         string             `json:"key"`
+	Value       pgtype.Text        `json:"value"`
+	ValueType   pgtype.Text        `json:"value_type"`
+	Description pgtype.Text        `json:"description"`
+	UpdatedBy   pgtype.UUID        `json:"updated_by"`
+	UpdatedAt   pgtype.Timestamptz `json:"updated_at"`
 }
 
 type User struct {

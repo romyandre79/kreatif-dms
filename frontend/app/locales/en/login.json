@@ -1,0 +1,22 @@
+{
+  "login": {
+    "title": "Welcome Back",
+    "subtitle": "Sign in to access your secure document dashboard",
+    "left_panel": {
+      "title": "Next Generation Document Intelligence",
+      "desc": "A secure, scalable, and AI-powered enterprise archive management platform."
+    },
+    "form": {
+      "email": "Email Address",
+      "password": "Password",
+      "remember_me": "Remember me",
+      "forgot_password": "Forgot password?",
+      "sign_in": "Sign In",
+      "signing_in": "Processing...",
+      "no_account": "Don't have an account?",
+      "contact_admin": "Contact Admin",
+      "error_invalid": "Invalid email or password.",
+      "error_server": "Server error. Please try again later."
+    }
+  }
+}

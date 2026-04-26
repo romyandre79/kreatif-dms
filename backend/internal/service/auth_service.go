@@ -37,21 +37,20 @@ type LoginResponse struct {
 	SignatureUrl string    `json:"signature_url"`
 }
 
-func (s *AuthService) Login(ctx context.Context, email, password string) (*LoginResponse, error) {
-	log.Printf("[AuthService] Login attempt for email/user: %s", email)
+func (s *AuthService) Login(ctx context.Context, identifier, password, authType string) (*LoginResponse, error) {
+	log.Printf("[AuthService] Login attempt for: %s (Type: %s)", identifier, authType)
 
-	// 1. Try LDAP if enabled
-	if s.cfg.LDAPEnabled {
-		ldapUser, ldapErr := s.ldapSvc.Authenticate(email, password)
+	if authType == "sso" && s.cfg.LDAPEnabled {
+		// 1. Corporate LDAP Authentication
+		log.Printf("[AuthService] Attempting Corporate LDAP login for: %s", identifier)
+		ldapUser, ldapErr := s.ldapSvc.Authenticate(identifier, password)
 		if ldapErr == nil {
-			// LDAP Success! Now find or create user in our DB
+			// LDAP Success! Find or create user in our DB
 			row, err := s.repo.GetUserByEmail(ctx, ldapUser.Email)
 			if err != nil {
-				// User not in DB, create JIT (Just-In-Time) - LDAP users are auto-approved
+				// JIT (Just-In-Time) Provisioning
 				log.Printf("[AuthService] Creating JIT user for LDAP: %s", ldapUser.Email)
-				
 				roleID, _ := s.repo.GetRoleIDByName(ctx, "user")
-				
 				user, err := s.repo.CreateUser(ctx, repository.CreateUserParams{
 					FullName:     ldapUser.FullName,
 					Email:        ldapUser.Email,
@@ -62,30 +61,50 @@ func (s *AuthService) Login(ctx context.Context, email, password string) (*Login
 				if err != nil {
 					return nil, err
 				}
-				// Since we just created it, we know the role is 'user'
 				return s.generateLoginResponse(user.ID, user.FullName, "user", user.DepartmentID, user.AvatarUrl.String, user.SignatureUrl.String)
 			}
-			return s.generateLoginResponse(row.ID, row.FullName, row.RoleName, row.DepartmentID, row.AvatarUrl.String, row.SignatureUrl.String)
+			roleName := "user"
+			if row.RoleName.Valid {
+				roleName = row.RoleName.String
+			}
+			return s.generateLoginResponse(row.ID, row.FullName, roleName, row.DepartmentID, row.AvatarUrl.String, row.SignatureUrl.String)
 		}
-		log.Printf("[AuthService] LDAP auth failed or skipped for %s: %v", email, ldapErr)
+		return nil, fmt.Errorf("corporate login failed: %v", ldapErr)
 	}
 
-	// 2. Fallback to Local DB Auth
-	row, err := s.repo.GetUserByEmail(ctx, email)
+	// 2. Local Database Authentication (for Emails or fallback)
+	log.Printf("[AuthService] Attempting Local DB login for email: [%s]", identifier)
+	row, err := s.repo.GetUserByEmail(ctx, identifier)
 	if err != nil {
-		return nil, errors.New("invalid email or password")
+		log.Printf("[AuthService] User not found: [%s]. Error: %v", identifier, err)
+		
+		// Diagnostic: List all users to see if we're in the right DB
+		users, _ := s.repo.ListUsers(ctx)
+		var emails []string
+		for _, u := range users {
+			emails = append(emails, u.Email)
+		}
+		log.Printf("[AuthService] DIAGNOSTIC: Total users in DB: %d. Available emails: %v", len(users), emails)
+		
+		return nil, errors.New("user not found in local database")
 	}
 
 	err = bcrypt.CompareHashAndPassword([]byte(row.PasswordHash), []byte(password))
 	if err != nil {
-		return nil, errors.New("invalid email or password")
+		log.Printf("[AuthService] Password mismatch for user: %s", identifier)
+		return nil, errors.New("invalid password")
 	}
 
 	if row.Status != "approved" {
-		return nil, errors.New("your account is pending approval by an administrator")
+		return nil, fmt.Errorf("your account status is %s. Please wait for administrator approval", row.Status)
 	}
 
-	return s.generateLoginResponse(row.ID, row.FullName, row.RoleName, row.DepartmentID, row.AvatarUrl.String, row.SignatureUrl.String)
+	roleName := "user"
+	if row.RoleName.Valid {
+		roleName = row.RoleName.String
+	}
+
+	return s.generateLoginResponse(row.ID, row.FullName, roleName, row.DepartmentID, row.AvatarUrl.String, row.SignatureUrl.String)
 }
 
 func (s *AuthService) Register(ctx context.Context, fullName, email, password string) error {
@@ -103,13 +122,13 @@ func (s *AuthService) Register(ctx context.Context, fullName, email, password st
 		return err
 	}
 
-	// 3. Create user with 'pending' status
+	// 3. Create user with 'approved' status (auto-approve for testing)
 	user, err := s.repo.CreateUser(ctx, repository.CreateUserParams{
 		FullName:     fullName,
 		Email:        email,
 		PasswordHash: string(hashed),
 		RoleID:       roleID,
-		Status:       "pending",
+		Status:       "approved",
 	})
 	if err != nil {
 		return err
@@ -213,4 +232,38 @@ func (s *AuthService) generateLoginResponse(userID uuid.UUID, fullName, roleName
 		AvatarUrl:    avatarUrl,
 		SignatureUrl: signatureUrl,
 	}, nil
+}
+func (s *AuthService) SetPIN(ctx context.Context, userID uuid.UUID, pin string) error {
+	if len(pin) != 6 {
+		return errors.New("PIN must be 6 digits")
+	}
+
+	// Hash the PIN using bcrypt
+	hashed, err := bcrypt.GenerateFromPassword([]byte(pin), bcrypt.DefaultCost)
+	if err != nil {
+		return err
+	}
+
+	return s.repo.UpdateUserPIN(ctx, repository.UpdateUserPINParams{
+		ID:  userID,
+		Pin: pgtype.Text{String: string(hashed), Valid: true},
+	})
+}
+
+func (s *AuthService) VerifyPIN(ctx context.Context, userID uuid.UUID, pin string) (bool, error) {
+	user, err := s.repo.GetUserByID(ctx, userID)
+	if err != nil {
+		return false, err
+	}
+
+	if !user.Pin.Valid {
+		return false, errors.New("PIN not set for this user")
+	}
+
+	err = bcrypt.CompareHashAndPassword([]byte(user.Pin.String), []byte(pin))
+	if err != nil {
+		return false, nil // Invalid PIN
+	}
+
+	return true, nil
 }

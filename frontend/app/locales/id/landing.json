@@ -1,0 +1,50 @@
+{
+  "landing": {
+    "nav": {
+      "features": "Fitur",
+      "solutions": "Solusi",
+      "security": "Keamanan",
+      "sign_in": "Masuk",
+      "get_started": "Mulai Sekarang"
+    },
+    "hero": {
+      "badge": "Terbaru: Integrasi AI Gemini",
+      "title": "Kelola Arsip Perusahaan dengan {docs} Cerdas",
+      "docs_highlight": "Teknologi",
+      "subtitle": "Transformasi manajemen dokumen fisik Anda ke digital dengan efisiensi maksimal, keamanan tingkat tinggi, dan kemudahan akses di mana saja.",
+      "btn_trial": "Coba Gratis",
+      "btn_demo": "Lihat Demo",
+      "trusted": "Dipercaya oleh lebih dari {count} perusahaan terkemuka"
+    },
+    "features": {
+      "title": "Fitur Unggulan",
+      "subtitle": "Platform cerdas yang dirancang untuk menangani seluruh siklus hidup dokumen Anda.",
+      "items": {
+        "ocr": { "title": "OCR Bertenaga AI", "desc": "Ekstraksi teks otomatis dari dokumen fisik dengan tingkat akurasi hingga 99%." },
+        "search": { "title": "Pencarian Instan", "desc": "Temukan dokumen apa pun dalam hitungan detik dengan pencarian teks lengkap." },
+        "security": { "title": "Keamanan Militer", "desc": "Enkripsi AES-256 dan kontrol akses berbasis peran untuk melindungi aset Anda." },
+        "summaries": { "title": "Ringkasan Cerdas", "desc": "Dapatkan poin-poin penting dokumen secara otomatis menggunakan AI." },
+        "cloud": { "title": "Akses Cloud", "desc": "Akses dokumen Anda kapan saja, di mana saja dengan infrastruktur cloud yang aman." },
+        "preview": { "title": "Pratinjau Cepat", "desc": "Lihat isi dokumen secara instan tanpa perlu mengunduh file terlebih dahulu." }
+      }
+    },
+    "stats": {
+      "docs": "Dokumen Terarsip",
+      "uptime": "Waktu Aktif",
+      "companies": "Perusahaan",
+      "ai": "Proses AI / Detik"
+    },
+    "footer": {
+      "desc": "Solusi manajemen dokumen cerdas untuk masa depan digital perusahaan Anda.",
+      "product": "Produk",
+      "pricing": "Harga",
+      "company": "Perusahaan",
+      "about": "Tentang Kami",
+      "careers": "Karir",
+      "contact": "Kontak",
+      "rights": "© 2024 Kreatif DMS. Seluruh hak cipta dilindungi undang-undang.",
+      "privacy": "Kebijakan Privasi",
+      "terms": "Syarat & Ketentuan"
+    }
+  }
+}

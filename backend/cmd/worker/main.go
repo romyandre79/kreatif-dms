@@ -17,10 +17,16 @@ func main() {
 		log.Fatalf("Could not load config: %v", err)
 	}
 
-	dbPool := config.InitDatabase(cfg.DatabaseURL)
+	dbPool, err := config.InitDatabase(cfg.DatabaseURL)
+	if err != nil {
+		log.Fatalf("Database initialization failed: %v", err)
+	}
 	defer dbPool.Close()
 
-	minioClient := config.InitMinIO(cfg.MinIOEndpoint, cfg.MinIOAccessKey, cfg.MinIOSecretKey, cfg.MinIOUseSSL, cfg.MinIOBucket)
+	minioClient, err := config.InitMinIO(cfg.MinIOEndpoint, cfg.MinIOAccessKey, cfg.MinIOSecretKey, cfg.MinIOUseSSL, cfg.MinIOBucket)
+	if err != nil {
+		log.Printf("WARNING: Worker starting without MinIO: %v", err)
+	}
 	
 	es, err := elasticsearch.NewClient(elasticsearch.Config{
 		Addresses: []string{cfg.ElasticsearchURL},

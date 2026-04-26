@@ -36,7 +36,7 @@
               :class="[
                 $route.path === item.path
                   ? 'bg-[#2D9B7B] text-white shadow-lg shadow-[#2D9B7B]/30'
-                  : 'text-slate-300 hover:bg-slate-100/10'
+                  : 'text-slate-500 dark:text-slate-400 hover:text-[#2D9B7B] dark:hover:text-[#2D9B7B] hover:bg-slate-100/10'
               ]"
             >
               <div class="flex items-center gap-3">
@@ -50,7 +50,7 @@
             <div v-else class="mb-1">
               <button
                 @click="toggleSubmenu(item.name)"
-                class="w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all duration-200 group text-slate-300 hover:bg-slate-100/10"
+                class="w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all duration-200 group text-slate-500 dark:text-slate-400 hover:text-[#2D9B7B] dark:hover:text-[#2D9B7B] hover:bg-slate-100/10"
               >
                 <div class="flex items-center gap-3">
                   <component :is="item.icon" class="w-5 h-5" />
@@ -76,7 +76,7 @@
                     :key="sub.path"
                     :to="sub.path"
                     @click="isSidebarOpen = false"
-                    class="flex items-center justify-between px-4 py-2 text-xs font-medium text-slate-400 hover:text-white transition-colors"
+                    class="flex items-center justify-between px-4 py-2 text-xs font-medium text-slate-500 dark:text-slate-400 hover:text-[#2D9B7B] dark:hover:text-[#2D9B7B] transition-colors"
                   >
                     <span>{{ $t(sub.key) }}</span>
                     <span v-if="sub.count" class="text-[10px] text-slate-500 font-bold">{{ sub.count }}</span>
