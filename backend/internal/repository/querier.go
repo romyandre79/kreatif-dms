@@ -13,21 +13,80 @@ import (
 
 type Querier interface {
 	CreateBatch(ctx context.Context, arg CreateBatchParams) (ProcessingBatch, error)
+	CreateBox(ctx context.Context, arg CreateBoxParams) (Box, error)
+	CreateBranch(ctx context.Context, arg CreateBranchParams) (Branch, error)
+	CreateCompany(ctx context.Context, arg CreateCompanyParams) (Company, error)
+	CreateDepartment(ctx context.Context, arg CreateDepartmentParams) (Department, error)
 	CreateDocument(ctx context.Context, arg CreateDocumentParams) (Document, error)
+	CreateOrdner(ctx context.Context, arg CreateOrdnerParams) (Ordner, error)
+	CreateRack(ctx context.Context, arg CreateRackParams) (Rack, error)
+	CreateRetentionPolicy(ctx context.Context, arg CreateRetentionPolicyParams) (RetentionPolicy, error)
+	CreateRfidTag(ctx context.Context, arg CreateRfidTagParams) (RfidTag, error)
+	CreateRole(ctx context.Context, arg CreateRoleParams) (Role, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
+	DeleteBox(ctx context.Context, id uuid.UUID) error
+	DeleteBranch(ctx context.Context, id uuid.UUID) error
+	DeleteCompany(ctx context.Context, id uuid.UUID) error
+	DeleteDepartment(ctx context.Context, id uuid.UUID) error
+	DeleteOrdner(ctx context.Context, id uuid.UUID) error
+	DeleteRack(ctx context.Context, id uuid.UUID) error
+	DeleteRetentionPolicy(ctx context.Context, id uuid.UUID) error
+	DeleteRole(ctx context.Context, id int32) error
 	GetBatch(ctx context.Context, id uuid.UUID) (ProcessingBatch, error)
+	GetBox(ctx context.Context, id uuid.UUID) (Box, error)
+	GetBranch(ctx context.Context, id uuid.UUID) (Branch, error)
+	GetCompany(ctx context.Context, id uuid.UUID) (Company, error)
+	GetDepartment(ctx context.Context, id uuid.UUID) (Department, error)
 	GetDocument(ctx context.Context, id uuid.UUID) (Document, error)
 	GetDocumentsByBatch(ctx context.Context, batchID pgtype.UUID) ([]Document, error)
+	GetOrdner(ctx context.Context, id uuid.UUID) (Ordner, error)
+	GetRack(ctx context.Context, id uuid.UUID) (Rack, error)
+	GetRfidTag(ctx context.Context, tagID string) (RfidTag, error)
+	GetRole(ctx context.Context, id int32) (Role, error)
 	GetRoleIDByName(ctx context.Context, name string) (int32, error)
+	GetSystemSetting(ctx context.Context, arg GetSystemSettingParams) (SystemSetting, error)
+	// System Settings
+	GetSystemSettingsByCategory(ctx context.Context, category string) ([]SystemSetting, error)
 	GetUserByEmail(ctx context.Context, email string) (GetUserByEmailRow, error)
 	GetUserByID(ctx context.Context, id uuid.UUID) (User, error)
+	// Topology
+	GetWarehouseTopology(ctx context.Context) ([]GetWarehouseTopologyRow, error)
+	// Boxes
+	ListBoxes(ctx context.Context, rackID uuid.UUID) ([]Box, error)
+	// Branches
+	ListBranches(ctx context.Context, companyID uuid.UUID) ([]Branch, error)
+	// Companies
+	ListCompanies(ctx context.Context) ([]Company, error)
+	// Departments
+	ListDepartments(ctx context.Context, branchID uuid.UUID) ([]Department, error)
 	ListDocumentsByDepartment(ctx context.Context, departmentID uuid.UUID) ([]Document, error)
+	// Ordners
+	ListOrdners(ctx context.Context, boxID uuid.UUID) ([]Ordner, error)
 	ListPendingUsers(ctx context.Context) ([]User, error)
+	// Racks
+	ListRacks(ctx context.Context, departmentID uuid.UUID) ([]Rack, error)
+	// Retention Policies
+	ListRetentionPolicies(ctx context.Context) ([]RetentionPolicy, error)
+	// RFID Tags
+	ListRfidTags(ctx context.Context) ([]RfidTag, error)
+	// Roles
+	ListRoles(ctx context.Context) ([]Role, error)
 	ListUsers(ctx context.Context) ([]User, error)
 	UpdateBatchProgress(ctx context.Context, id uuid.UUID) error
+	UpdateBox(ctx context.Context, arg UpdateBoxParams) (Box, error)
+	UpdateBranch(ctx context.Context, arg UpdateBranchParams) (Branch, error)
+	UpdateCompany(ctx context.Context, arg UpdateCompanyParams) (Company, error)
+	UpdateDepartment(ctx context.Context, arg UpdateDepartmentParams) (Department, error)
 	UpdateDocumentMetadata(ctx context.Context, arg UpdateDocumentMetadataParams) error
 	UpdateDocumentOCR(ctx context.Context, arg UpdateDocumentOCRParams) error
+	UpdateOrdner(ctx context.Context, arg UpdateOrdnerParams) (Ordner, error)
+	UpdateRack(ctx context.Context, arg UpdateRackParams) (Rack, error)
+	UpdateRetentionPolicy(ctx context.Context, arg UpdateRetentionPolicyParams) (RetentionPolicy, error)
+	UpdateRfidTagStatus(ctx context.Context, arg UpdateRfidTagStatusParams) (RfidTag, error)
+	UpdateRole(ctx context.Context, arg UpdateRoleParams) (Role, error)
+	UpdateUserPIN(ctx context.Context, arg UpdateUserPINParams) error
 	UpdateUserStatus(ctx context.Context, arg UpdateUserStatusParams) (User, error)
+	UpsertSystemSetting(ctx context.Context, arg UpsertSystemSettingParams) (SystemSetting, error)
 }
 
 var _ Querier = (*Queries)(nil)

@@ -1,0 +1,239 @@
+{
+  "dashboard": {
+    "greetings": {
+      "morning": "Good Morning, {name}",
+      "afternoon": "Good Afternoon, {name}",
+      "evening": "Good Evening, {name}"
+    },
+    "header": {
+      "operational_overview": "Today's operational overview - {date}",
+      "btn_submit_new": "Submit New",
+      "search_placeholder": "Search manifest, document, or ID..."
+    },
+    "welcome": "Welcome Back, {name}",
+    "stats": {
+      "daily_received": "DAILY\nRECEIVED",
+      "daily_scanned": "DAILY\nSCANNED",
+      "daily_processed": "DAILY\nPROCESSED",
+      "warehouse_capacity": "WAREHOUSE\nCAPACITY",
+      "active_tasks": "ACTIVE\nTASKS",
+      "vs_yesterday": "{percent}% vs yesterday",
+      "immediate_attention": "Requires immediate attention"
+    },
+    "queue": {
+      "priority_tasks": "Priority Task Queue",
+      "view_all_tasks": "VIEW ALL TASKS",
+      "table": {
+        "manifest": "MANIFEST / DESCRIPTION",
+        "type": "TYPE",
+        "status": "STATUS",
+        "urgency": "URGENSI"
+      },
+      "items": {
+        "bulk_scan": "Bulk Scan",
+        "indexing": "Indexing",
+        "receive": "Receive",
+        "on_schedule": "On Schedule",
+        "overdue_2h": "2h Overdue",
+        "due_45m": "Due in 45m"
+      },
+      "tabs": {
+        "all": "All Queues",
+        "receive": "Receiving",
+        "scan": "Scanning",
+        "metadata": "Metadata",
+        "loan_prep": "Loan Prep",
+        "urgent": "Urgent",
+        "normal": "Normal"
+      },
+      "start_scanning": "START SCAN",
+      "receive_pkg": "RECEIVE PKG",
+      "apply_metadata": "APPLY METADATA"
+    },
+    "activity": {
+      "title_recent": "Recent Activity",
+      "btn_logs": "VIEW ALL LOGS",
+      "items": {
+        "ocr_completed": "OCR Completed: {id}",
+        "ocr_sub": "{count} pages processed",
+        "retention_alert": "Retention Alert",
+        "retention_sub": "128 documents ready for disposal",
+        "storage_sub": "Cloud Backup Successful",
+        "security_login": "Security Login",
+        "security_sub": "Login from IP {ip}",
+        "mins_ago": "{count} mins ago",
+        "hour_ago": "1 hour ago",
+        "ten_mins": "10 mins ago",
+        "one_hour": "1 hour ago",
+        "three_hours": "3 hours ago",
+        "box_received": "Box Received: {id}",
+        "box_sub": "Rack Location: {loc}",
+        "loan_pending": "Loan Pending: {id}",
+        "loan_sub": "Requester: {name} ({dept})",
+        "retention_overdue_title": "Retention Review Overdue",
+        "retention_overdue_desc": "128 records are past disposal date.",
+        "storage_warning_title": "Storage Threshold Warning",
+        "storage_warning_desc": "Cloud Bucket is at 92% capacity."
+      },
+      "title": "Recent Activity"
+    },
+    "infrastructure": {
+      "scanner": "SCANNER STATUS",
+      "connected": "CONNECTED",
+      "ocr_engine": "OCR ENGINE",
+      "active_accuracy": "ACTIVE - ACCURACY {accuracy}%",
+      "database": "DATABASE",
+      "synchronized": "SYNCHRONIZED"
+    },
+    "manager": {
+      "alert_title": "Urgent Approvals Required",
+      "alert_desc": "You have {count} documents awaiting your critical review.",
+      "btn_review_all": "REVIEW ALL",
+      "stats": {
+        "priority_pending": "PRIORITY PENDING",
+        "approved_today": "APPROVED TODAY",
+        "team_submissions": "TEAM SUBMISSIONS",
+        "avg_approval_time": "AVG TIME"
+      },
+      "queue": {
+        "title": "Urgent Approval Queue",
+        "tabs": {
+          "urgent": "Urgent",
+          "normal": "Normal",
+          "all": "All"
+        },
+        "table": {
+          "submission": "SUBMISSION",
+          "staff_name": "STAFF",
+          "days_elapsed": "DAYS ELAPSED",
+          "status": "STATUS",
+          "actions": "ACTIONS"
+        },
+        "items": {
+          "inv_8821": "Vendor Invoice - PT Sentosa",
+          "doc_xp_012": "Executive Contract - Project X",
+          "pr_990_2": "Equipment Purchase Request"
+        }
+      },
+      "compliance": {
+        "title": "SLA COMPLIANCE",
+        "target": "Target: {target}%"
+      },
+      "top_submitters": {
+        "title": "TOP SUBMITTERS",
+        "docs": "docs",
+        "items": {
+          "indra": "Indra Wijaya",
+          "maya": "Maya Kartika",
+          "dedi": "Dedi Kurniawan"
+        }
+      },
+      "bulk_actions": {
+        "title": "QUICK BULK ACTIONS",
+        "items": {
+          "bulk_approve": { "label": "Bulk Approve", "desc": "Process fast queue" },
+          "deep_analytics": { "label": "Deep Analytics", "desc": "Team compliance report" },
+          "archive_log": { "label": "Archive Log", "desc": "Download monthly history" },
+          "help_desk": { "label": "Help Desk", "desc": "Contact IT Support" }
+        }
+      },
+      "decisions": {
+        "title": "Recent Decisions Log",
+        "action_approved": "Approved",
+        "action_rejected": "Rejected",
+        "action_commented": "Commented on",
+        "submitter": "by {name}",
+        "items": {
+          "tr_2201": "Tax Report 2023",
+          "rq_882": "Requisition 882",
+          "po_991": "Purchase Order 991"
+        }
+      }
+    },
+    "user": {
+      "overview_desc": "Manage your personal documents and loan status.",
+      "stats": {
+        "my_submissions": "MY SUBMISSIONS",
+        "pending_approvals": "PENDING APPROVALS",
+        "active_loans": "ACTIVE LOANS",
+        "search_history": "SEARCH HISTORY",
+        "action_required": "ACTION\nREQUIRED",
+        "today": "Today"
+      },
+      "tasks": {
+        "title": "Items Requiring My Action",
+        "table": {
+          "task_type": "TASK TYPE",
+          "doc_manifest": "DOC MANIFEST",
+          "due_date": "DUE DATE",
+          "action": "ACTION"
+        },
+        "items": {
+          "print_manifest": "Print Manifest",
+          "doc_return": "Document Return",
+          "phys_val": "Physical Validation",
+          "today": "Today",
+          "tomorrow": "Tomorrow",
+          "execute": "EXECUTE",
+          "process": "PROCESS",
+          "verify": "VERIFY"
+        }
+      },
+      "quick_actions": {
+        "title": "Quick Actions",
+        "items": {
+          "submit": "SUBMIT",
+          "loan": "LOAN",
+          "search": "SEARCH",
+          "track": "TRACK"
+        }
+      },
+      "activity": {
+        "title": "Recent Activity",
+        "items": {
+          "doc_approved": "Document {id} has been approved by Manager.",
+          "new_submission": "New submission {id} successfully received.",
+          "loan_req_sig": "Loan request {id} requires signature.",
+          "ten_mins": "10 mins ago",
+          "one_hour": "1 hour ago",
+          "three_hours": "3 hours ago",
+          "details": "DETAILS",
+          "view": "VIEW",
+          "sign_now": "SIGN NOW"
+        }
+      },
+      "system_update": {
+        "title": "System Update",
+        "desc": "Version 4.2.0 is now available. New features include AI-powered search and faster approval workflows.",
+        "btn_notes": "RELEASE NOTES"
+      },
+      "loan_history": {
+        "title": "Document Loan History",
+        "btn_export": "Export",
+        "btn_filter": "Filter",
+        "table": {
+          "loan_id": "LOAN ID",
+          "doc_title": "DOC TITLE",
+          "loan_date": "LOAN DATE",
+          "expected_return": "EST. RETURN",
+          "status": "STATUS",
+          "action": "ACTION"
+        }
+      }
+    },
+    "tools": {
+      "label_printing": "Label Printing",
+      "quick_scan": "Quick Scan",
+      "audit_logs": "Audit Logs",
+      "inventory_map": "Inventory Map",
+      "user_access": "User Access",
+      "it_support": "IT Support"
+    },
+    "footer_stats": {
+      "throughput": "THROUGHPUT",
+      "turnaround": "TURNAROUND",
+      "ocr_accuracy": "OCR ACCURACY",
+      "sla_satisfaction": "SLA SATISFACTION"
+    }
+  }
+}

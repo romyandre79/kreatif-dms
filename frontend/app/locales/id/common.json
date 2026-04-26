@@ -1,0 +1,21 @@
+{
+  "common": {
+    "status": {
+      "active": "AKTIF",
+      "overdue": "TERLAMBAT",
+      "pending": "TERTUNDA",
+      "critical": "KRITIS",
+      "returned": "DIKEMBALIKAN"
+    }
+  },
+  "error": {
+    "page_not_found": "Halaman tidak ditemukan",
+    "back_to_home": "Kembali ke Beranda",
+    "unauthorized": "Anda tidak memiliki akses ke halaman ini",
+    "btn_dashboard": "Kembali ke Dashboard"
+  },
+  "placeholders": {
+    "coming_soon_title": "Fitur {page} Segera Hadir",
+    "coming_soon_desc": "Kami sedang mempersiapkan halaman {page} untuk pengalaman yang lebih baik. Silakan kembali lagi nanti."
+  }
+}

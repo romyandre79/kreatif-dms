@@ -1,0 +1,126 @@
+{
+  "loans": {
+    "my": {
+      "title": "Loan Tracking",
+      "subtitle": "Manage and track your currently borrowed physical documents.",
+      "success_banner": "Extension request sent successfully. Waiting for Legal team approval.",
+      "btn_request_ext": "REQUEST EXTENSION",
+      "tabs": {
+        "all": "All",
+        "due_soon": "Due Soon",
+        "overdue": "Overdue"
+      },
+      "table": {
+        "req_no": "REQUEST NO",
+        "total_docs": "TOTAL DOCS",
+        "checkout_date": "CHECKOUT DATE",
+        "due_date": "DUE DATE",
+        "remaining_days": "REMAINING DAYS",
+        "status": "STATUS",
+        "docs_count": "{count} Documents"
+      },
+      "detail": {
+        "title": "Request Details",
+        "time_remaining": "TIME REMAINING",
+        "expires_hint": "Expires on {date} at 17:00",
+        "tracking_progress": "TRACKING PROGRESS",
+        "steps": {
+          "approved": "Approved",
+          "ready": "Ready",
+          "on_loan": "On Loan",
+          "current_status": "Current status",
+          "ext_requested": "Extension Requested",
+          "waiting_legal": "Waiting for Legal Review"
+        },
+        "policy": {
+          "notif_hint": "Reminder: Automatic notifications will be sent 24 hours before the deadline.",
+          "penalty_title": "Penalty Policy",
+          "penalty_desc": "Late return fee: IDR 50.000 / Document / Day"
+        },
+        "ext_pending": {
+          "title": "Extension Processing",
+          "desc": "Your extension request is being reviewed. The original deadline still applies until approved."
+        },
+        "ext_promo": {
+          "title": "Need more time?",
+          "desc": "You can request an extension up to 2 times for each document loan request.",
+          "btn": "RE-SCHEDULE RETURN"
+        }
+      },
+      "modal": {
+        "title": "Request Extension",
+        "doc_label": "Document No: {no}",
+        "days_label": "EXTENSION DURATION (DAYS)",
+        "days_suffix": "DAYS",
+        "days_hint": "Maximum extension is 14 days.",
+        "reason_label": "REASON FOR EXTENSION",
+        "reason_placeholder": "Explain why you still need this document...",
+        "info_box": "Extension requests require approval from Department Manager and Archive Management team.",
+        "btn_cancel": "CANCEL",
+        "btn_submit": "SUBMIT REQUEST"
+      }
+    },
+    "tracking": {
+      "success_banner": "Your document is ready for pickup at the archival center.",
+      "rejection_banner": {
+        "title": "Request Rejected by Legal",
+        "example": "\"Reason: The requested document requires an additional power of attorney from the Board for level 2 access.\""
+      },
+      "header": {
+        "request_id": "Tracking {id}",
+        "submitted_at": "Submitted on {date} • {time}",
+        "btn_resubmit": "Resubmit",
+        "btn_refresh": "Refresh"
+      },
+      "meta": {
+        "method": "TTD METHOD",
+        "digital_sign": "Digital Signature",
+        "purpose": "LOAN PURPOSE",
+        "next_step": "NEXT STEP",
+        "last_status": "LAST STATUS",
+        "eta": "ESTIMATED COMPLETION",
+        "waiting_pickup": "Waiting for Pickup",
+        "rejected_by": "Rejected by {name}",
+        "eta_value": "In 2-3 Hours"
+      },
+      "status": {
+        "waiting_l1": "WAITING L1 APPROVAL",
+        "waiting_l2": "WAITING L2 APPROVAL",
+        "approved": "APPROVED",
+        "rejected": "REJECTED"
+      },
+      "progress": {
+        "title": "Tracking Progress",
+        "steps": {
+          "step1": {
+            "title": "Submitted by User",
+            "desc": "Request successfully created and logged into the portal."
+          },
+          "step2": {
+            "title": "L1 Atasan Decision",
+            "desc": "Approved by Department Head {name}. No remarks provided."
+          },
+          "step3": {
+            "title": "L2 Head Legal Decision",
+            "status_rejected": "REJECTED",
+            "status_in_progress": "IN PROGRESS",
+            "card_approved": "Review Approved",
+            "card_rejected": "Review Rejected",
+            "card_pending": "Awaiting PIN-Secured Approval",
+            "desc_approved": "Legal Head has verified and approved access to the physical document.",
+            "desc_rejected": "Request rejected on {date}. Please review the rejection reason above.",
+            "desc_pending": "The Legal Head is currently reviewing the document attachments. This step requires a secure digital PIN authorization."
+          },
+          "step4": {
+            "title": "Admin Pickup Preparation",
+            "status_in_progress": "PROCESSING",
+            "desc_approved": "Archive officer is locating and preparing the physical document in the storage rack.",
+            "desc_rejected": "Process cancelled due to request rejection.",
+            "desc_pending": "Will be scheduled once L2 approval is completed."
+          }
+        }
+      },
+      "empty_history": "No rejection history for this request yet"
+    }
+  }
+}

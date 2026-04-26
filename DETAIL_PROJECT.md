@@ -2,31 +2,42 @@ File ini menjelaskan detail setiap fitur yang ada pada sistem document managemen
 saya, fitur tersebut ada di tabel dokumen, user, sirkulasi, pinjam dan 
 documan detail.
 
-### BP-01
-### 1 Login Page
+### BP-01: User Access & Document Intake
 
+### 1. Login Page
+- **Status**: ✅ Frontend ada, ✅ Backend ada
+- **Vue File**: `frontend/app/pages/login.vue`
+- **Deskripsi**: Antarmuka login premium dengan fitur:
+  - **Multi-Auth**: SSO (LDAP/AD) dan Akun Lokal.
+  - **Security**: Password recovery, MFA ready, dan animasi glassmorphism.
+- **Backend API**: ✅ `POST /api/v1/auth/login`
 
-### 2 Dashboard Staff Operasional DMS (User)
+---
 
+### 2. Multi-Role Dashboard System
+- **Status**: ⚠️ Integrasi Sedang Berjalan (Frontend ✅, Backend 🚧)
+- **Vue Files**: 
+  - `frontend/app/pages/dashboard.vue` (Router)
+  - `frontend/app/components/dashboard/*.vue`
+- **Backend API**: 🚧 `GET /api/v1/dashboard/summary`
+- **Logic**: Mengembalikan data ringkasan berbeda (Staff/Manager/Admin) berdasarkan JWT role.
+- **Handler**: `dashboard_handler.go` (Sedang dibuat)
+- **Service**: `dashboard_service.go` (Sedang dibuat)
 
+---
 
-### 3 Dashboard Section Head (Atasan / Manajer)
-
-
-### 4 Dashboard Admin Doc Controller
-
-
-### 5 Dashboard Kepala Doc Controller 
-
-
-### 6 Dashboard Super Admin 
-
-
-### 7 Submit New Documents (Manual Entry)
-
-
-
-### 8 Submit Bulk Upload Excel 
+### 3. Document Intake System (Manual & Bulk)
+- **Status**: ⚠️ Integrasi Sedang Berjalan (Frontend ✅, Backend 🚧)
+- **Vue File**: `frontend/app/pages/documents/upload.vue`
+- **Backend API**:
+  - ✅ `POST /api/v1/documents/` — Manual Entry
+  - 🚧 `POST /api/v1/documents/bulk-import` — Excel Bulk Processing
+  - ✅ `POST /api/v1/batches/` — Batch Control
+- **Logic**: 
+  - Manual: Menyimpan satu dokumen dengan metadata lengkap.
+  - Bulk: Parsing file Excel, validasi baris, dan pembuatan dokumen massal dalam satu batch.
+- **Handler**: `document_handler.go` & `batch_handler.go`
+- **Service**: `document_service.go`
 
 
 
@@ -62,85 +73,54 @@ BP-07
 ---
 
 ### 1. Pengaturan Single Sign On
-- **Status**: ✅ Frontend ada, ❌ Backend belum ada
+- **Status**: ✅ Selesai (Frontend ✅, Backend ✅)
 - **Vue File**: `frontend/app/pages/settings/sso.vue`
-- **Backend API**: ❌ Belum ada endpoint — perlu:
-  - `GET /api/v1/settings/sso` — ambil konfigurasi LDAP/AD
-  - `PUT /api/v1/settings/sso` — simpan konfigurasi
-  - `POST /api/v1/settings/sso/test` — test koneksi LDAP
-  - `POST /api/v1/settings/sso/sync` — jalankan sinkronisasi manual
-  - `GET /api/v1/settings/sso/logs` — riwayat sync
-- **Handler yang dibutuhkan**: `sso_handler.go`
-- **Service yang dibutuhkan**: `sso_service.go`
-- **Database Tables**:
-  - `system_settings` (category='sso') — konfigurasi koneksi LDAP
-  - `sso_sync_logs` — riwayat sinkronisasi user/group
-  - `integration_monitors` (service_name='ldap') — health check
-- **Relasi Service**: LDAP/Active Directory (external), Redis (cache config)
-- **Catatan**: UI sudah lengkap dengan form Connection, Mapping, Filters, dan Sync Activity footer. Perlu implementasi backend LDAP client.
+- **Backend API**: ✅ `GET/POST /api/v1/master/settings/sso`
+- **Handler**: `master_handler.go`
+- **Simulation**: ✅ LDAP Simulation Mode Aktif
 
 ---
 
 ### 2. Pengaturan Role / Role Management
-- **Status**: ✅ Frontend ada, ⚠️ Backend parsial (hanya `RoleMiddleware`)
+- **Status**: ✅ Selesai (Frontend ✅, Backend ✅)
 - **Vue File**: `frontend/app/pages/admin/roles.vue`
-- **Backend API**: ⚠️ Parsial — perlu ditambah:
-  - `GET /api/v1/roles` — list semua role
-  - `POST /api/v1/roles` — buat role baru
-  - `PUT /api/v1/roles/:id` — update role
-  - `DELETE /api/v1/roles/:id` — hapus role
-  - `GET /api/v1/roles/:id/permissions` — list permission per role
-  - `PUT /api/v1/roles/:id/permissions` — update permissions
-- **Handler yang dibutuhkan**: `role_handler.go`
-- **Service yang dibutuhkan**: `role_service.go`
-- **Database Tables**:
-  - `roles` ✅ (sudah ada dari migration 000001)
-  - `document_role_access` ✅ (sudah ada dari migration 000002)
-- **Relasi Service**: PostgreSQL, Redis (cache roles)
-- **Catatan**: Tabel `roles` sudah ada tapi hanya memiliki `id`, `name`, `description`. Jika butuh granular permission (RBAC), perlu tambah tabel `permissions` dan `role_permissions`.
+- **Backend API**: ✅ CRUD `/api/v1/master/roles`
+- **Handler**: `master_handler.go`
+- **Role Baru**: `superadmin`, `manajer`, `admin doc controller`, `kepala doc controller`, `user`
 
 ---
 
 ### 3. Pendaftaran PIN Pengguna
-- **Status**: ✅ Frontend ada, ❌ Backend belum ada
+- **Status**: ✅ Selesai (Frontend ✅, Backend ✅)
 - **Vue File**: `frontend/app/pages/admin/security/pin.vue`
-- **Backend API**: ❌ Belum ada endpoint — perlu:
-  - `POST /api/v1/users/:id/pin` — set PIN baru
-  - `PUT /api/v1/users/:id/pin` — update PIN
-  - `POST /api/v1/users/:id/pin/verify` — verifikasi PIN (untuk L2 approval)
-  - `DELETE /api/v1/users/:id/pin` — reset PIN
-- **Handler yang dibutuhkan**: `pin_handler.go` atau tambah di `user_handler.go`
-- **Service yang dibutuhkan**: Tambah method di `auth_service.go`
-- **Database Tables**:
-  - `users.pin` ✅ (sudah ada dari migration 000009)
-- **Relasi Service**: PostgreSQL, bcrypt (hash PIN)
-- **Catatan**: Kolom `pin` sudah ada di tabel users. PIN digunakan untuk konfirmasi approval L2 di halaman `approvals/loans.vue`.
+- **Backend API**: ✅ `POST /api/v1/auth/pin` (Set & Verify)
+- **Handler**: `auth_handler.go`
 
 ---
 
 ### 4. Pengaturan Departemen / Departemen Management
-- **Status**: ✅ Frontend ada, ❌ Backend belum ada
+- **Status**: ✅ Selesai (Frontend ✅, Backend ✅)
 - **Vue File**: `frontend/app/pages/admin/warehouse/departments.vue`
-- **Backend API**: ❌ Belum ada endpoint — perlu:
-  - `GET /api/v1/departments` — list semua departemen
-  - `POST /api/v1/departments` — buat departemen baru
-  - `PUT /api/v1/departments/:id` — update departemen
-  - `DELETE /api/v1/departments/:id` — hapus departemen
-  - `GET /api/v1/departments/:id/users` — list user per departemen
-  - `GET /api/v1/departments/:id/racks` — list rak per departemen
-- **Handler yang dibutuhkan**: `department_handler.go`
-- **Service yang dibutuhkan**: `department_service.go`
-- **Database Tables**:
-  - `departments` ✅ (sudah ada dari migration 000001)
-  - `branches` ✅ (relasi parent)
-  - `racks` ✅ (relasi child)
-  - `users.department_id` ✅ (relasi member)
-- **Relasi Service**: PostgreSQL
-- **Catatan**: Tabel sudah lengkap. Hanya perlu CRUD handler + service layer.
+- **Backend API**: ✅ CRUD `/api/v1/master/departments` (via `organization_handler`)
+- **Handler**: `master_handler.go` & `organization_handler.go`
 
 ---
 
-### 5. User / Document Detail (Legacy Bridge)
+### 5. Kebijakan Retensi / Retention Policies
+- **Status**: ✅ Selesai (Frontend ✅, Backend ✅)
+- **Backend API**: ✅ `GET /api/v1/master/retention`
+- **Handler**: `master_handler.go`
+
+---
+
+### 6. Manajemen Hardware (RFID & Labeling)
+- **Status**: ✅ Selesai (Frontend ✅, Backend ✅)
+- **Backend API**: ✅ `POST /api/v1/hardware/rfid/assign`, `GET /api/v1/hardware/labels/generate`
+- **Handler**: `hardware_handler.go`
+
+---
+
+### 7. User / Document Detail (Legacy Bridge)
 - **Status**: ✅ Frontend ada, ⚠️ Backend parsial
 - **Vue Files**:
   - `frontend/app/pages/admin/users/index.vue` — user management
@@ -339,25 +319,13 @@ BP-07
 ---
 
 ### 14. RFID / QR Label Generation
-- **Status**: ✅ Frontend ada, ❌ Backend belum ada
+- **Status**: ✅ Selesai (Frontend ✅, Backend ✅)
 - **Vue Files**:
   - `frontend/app/pages/admin/warehouse/label-generation.vue` — generate label QR/barcode
   - `frontend/app/pages/admin/rfid/model-f16.vue` — konfigurasi RFID reader
-- **Backend API**: ❌ Belum ada — perlu:
-  - `POST /api/v1/labels/generate` — generate QR/barcode label
-  - `GET /api/v1/labels` — list label yang sudah dibuat
-  - `GET /api/v1/labels/:id/qr` — download gambar QR
-  - `POST /api/v1/rfid/tags` — assign RFID tag ke dokumen
-  - `GET /api/v1/rfid/tags` — list RFID tags
-  - `POST /api/v1/rfid/scan` — proses hasil scan RFID
-- **Handler yang dibutuhkan**: `label_handler.go`, `rfid_handler.go`
-- **Service yang dibutuhkan**: `label_service.go`
-- **Database Tables**:
-  - `generated_labels` (baru dari migration 000010)
-  - `rfid_tags` ✅ (sudah ada dari migration 000001)
-  - `documents` ✅ (relasi target)
-- **Relasi Service**: PostgreSQL, library QR (go-qrcode)
-- **Catatan**: Label bisa di-generate untuk entity type: document, rack, box, ordner. RFID tags sudah ada tabelnya tapi belum ada handler API.
+- **Backend API**: ✅ `POST /api/v1/hardware/rfid/assign`, `GET /api/v1/hardware/labels/generate`
+- **Handler**: `hardware_handler.go`
+- **Service**: `hardware_service.go`
 
 ---
 
@@ -400,24 +368,12 @@ BP-07
 ---
 
 ### 17. Warehouse Topology Explorer
-- **Status**: ✅ Frontend ada (2 file), ❌ Backend belum ada
+- **Status**: ✅ Selesai (Frontend ✅, Backend ✅)
 - **Vue Files**:
-  - `frontend/app/pages/admin/warehouse/topology.vue` — visual explorer hirarki gudang
-  - `frontend/app/pages/warehouse/structure.vue` — struktur fisik warehouse
-  - `frontend/app/pages/admin/warehouse/location-detail.vue` — detail per lokasi
-- **Backend API**: ❌ Belum ada — perlu:
-  - `GET /api/v1/warehouse/topology` — tree structure (company → branch → dept → rack → box → ordner)
-  - `GET /api/v1/warehouse/topology/:id` — detail node + children
-  - `GET /api/v1/warehouse/topology/:id/documents` — dokumen di lokasi tertentu
-  - `GET /api/v1/warehouse/stats` — statistik per level hirarki
-- **Handler yang dibutuhkan**: Tambah di `warehouse_handler.go`
-- **Service yang dibutuhkan**: Tambah di `warehouse_service.go`
-- **Database Tables**:
-  - `companies` ✅ → `branches` ✅ → `departments` ✅ → `racks` ✅ → `boxes` ✅ → `ordners` ✅
-  - `rack_capacities` (baru) — kapasitas per node
-  - `documents` ✅ — count per lokasi
-- **Relasi Service**: PostgreSQL
-- **Catatan**: Semua tabel hirarki sudah ada dari migration 000001. Yang diperlukan hanya API endpoint yang mengembalikan tree structure dengan recursive query (CTE).
+  - `frontend/app/pages/admin/warehouse/topology.vue`
+  - `frontend/app/pages/warehouse/structure.vue`
+- **Backend API**: ✅ `GET /api/v1/master/topology` (Recursive hierarchy)
+- **Handler**: `master_handler.go`
 
 ---
 
@@ -836,33 +792,44 @@ BP-07
 
 ---
 
-### 40. RFID Gate Security Monitor
-- **Status**: ❌ Frontend belum ada (placeholder), ❌ Backend belum ada
-- **Vue File**: Belum ada — perlu buat `frontend/app/pages/admin/rfid/gate-monitor.vue`
-- **Deskripsi UI**: Real-time dashboard gate RFID: last 50 scan events, alert saat dokumen melewati gate tanpa izin (unauthorized removal), live status per gate.
+### 40. RFID Gate Monitor
+- **Status**: ✅ Frontend ada, ❌ Backend belum ada
+- **Vue File**: `frontend/app/pages/admin/rfid/gate-monitor.vue` (New)
+- **Deskripsi UI**: Konsol pemantauan keamanan gerbang RFID (Gate Security) secara real-time. Menampilkan:
+  - **Live Event Stream**: Daftar log aktivitas RFID (Tag ID, User/Doc, Status Authorized/Unauthorized) yang masuk secara terus-menerus.
+  - **Incident Alert Module**: Panel peringatan kritis saat terjadi pelanggaran (Invalid Exit), lengkap dengan informasi subjek (User), kelas dokumen, waktu deteksi milidetik, dan Gate ID.
+  - **Hardware Diagnostics**: Status kesehatan perangkat keras gerbang (Antenna Power, DB Latency) dan heatmap frekuensi lalu lintas.
+  - **Command & Control Panel**: Tombol intervensi cepat untuk Acknowledge Alarm, Lock User Access, dan Notify Security.
+  - **System Overrides**: Toggle untuk Emergency Open dan Hard Lockdown pada gerbang fisik.
 - **Backend API**: ❌ Belum ada — perlu:
-  - `GET /api/v1/rfid/gates` — list gate + status
-  - `GET /api/v1/rfid/gates/:id/events?limit=50` — recent scan events (SSE)
-  - `POST /api/v1/rfid/gates/:id/alert` — trigger manual alert
-- **Handler**: Tambah di `rfid_handler.go`
-- **Service**: Tambah di `rfid_service.go`
-- **Database Tables**: `rfid_gate_events` (baru), `rfid_tags` ✅, `documents` ✅
-- **Relasi Service**: PostgreSQL, RFID Gate Hardware, Redis (real-time event stream)
+  - `WS /api/v1/rfid/gate/stream` — real-time event stream from local gate controller
+  - `POST /api/v1/rfid/gate/control` — execute lockdown or emergency open
+  - `POST /api/v1/rfid/gate/acknowledge` — clear current alarm
+- **Handler**: `rfid_handler.go` (baru)
+- **Service**: `rfid_service.go` (baru)
+- **Relasi Service**: RFID Hardware Gateway, WebSocket, Notification Service (Push to Security)
 
 ---
 
-### 41. Complete History Log Explorer
-- **Status**: ❌ Frontend belum ada (placeholder), ❌ Backend belum ada
-- **Vue File**: Belum ada — perlu buat `frontend/app/pages/admin/logs/explorer.vue`
-- **Deskripsi UI**: Full audit trail explorer: filterable table (user, action, target, timestamp), search within logs, date range picker, export. Actions: view, checkout, borrow, return, delete, OCR, print.
+### 41. History Log Explorer
+- **Status**: ✅ Frontend ada, ❌ Backend belum ada
+- **Vue File**: `frontend/app/pages/admin/logs/explorer.vue` (New)
+- **Deskripsi UI**: Antarmuka eksplorasi riwayat aktivitas sistem yang komprehensif. Menampilkan:
+  - **Advanced Filter Bar**: Pencarian berdasarkan tipe event, administrator, dan rentang tanggal yang presisi.
+  - **System Activity Table**: Daftar log kronologis dengan informasi user (avatar), tipe event (Badge color-coded), dan dokumen terkait.
+  - **Event Detail Sidebar**: Panel detail mendalam mencakup:
+    - **Action Performed**: Ringkasan tindakan (misal: Document Deletion).
+    - **Document Info**: Nama file, repository path, dan Object GUID.
+    - **User Metadata**: Login ID, access level, departemen, dan Terminal ID.
+    - **Network Details**: IP Address, MAC Address, dan Browser Agent String.
+    - **Blockchain Hash Evidence**: Bukti integritas log yang terdaftar di private chain (SHA-256).
 - **Backend API**: ❌ Belum ada — perlu:
-  - `GET /api/v1/logs?user=&action=&from=&to=&page=&limit=` — paginated logs
-  - `GET /api/v1/logs/:id` — log detail
-  - `GET /api/v1/logs/export?format=csv` — export
+  - `GET /api/v1/logs` — search and filter audit logs
+  - `GET /api/v1/logs/:id/detail` — get full log metadata and blockchain hash
 - **Handler**: `audit_handler.go` (baru)
 - **Service**: `audit_service.go` (baru)
-- **Database Tables**: `document_tracking_events` (baru, migration 000010), `users` ✅
-- **Relasi Service**: PostgreSQL, Elasticsearch (log search)
+- **Database Tables**: `audit_logs` ✅, `blockchain_evidence` (baru)
+- **Relasi Service**: PostgreSQL, Elasticsearch, Blockchain Node (Immutable Ledger)
 
 ---
 
@@ -1459,7 +1426,7 @@ BP-07
 | 37 | Security Trimming | ✅ | ❌ | ✅ |
 | 38 | Encryption Compliance | ✅ | ❌ | ❌ |
 | 39 | Access Policy Matrix | ✅ | ⚠️ Parsial | ✅ |
-| 40 | RFID Gate Monitor | ❌ | ❌ | ❌ |
+| 40 | RFID Gate Monitor | ✅ | ❌ | ❌ |
 | 41 | History Log Explorer | ❌ | ❌ | ✅ |
 | 42 | Version & Checkout | ✅ (parsial) | ❌ | ✅ |
 | 43 | Redaction & Annotation | ❌ | ❌ | ❌ |

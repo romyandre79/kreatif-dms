@@ -274,6 +274,8 @@ import {
   LucideEye, LucideShoppingCart, LucideFilter, LucideArrowRight, LucideX
 } from 'lucide-vue-next'
 
+const { t } = useI18n()
+
 const route = useRoute()
 const query = computed(() => route.query.q)
 
@@ -372,7 +374,7 @@ const documents = ref([
     typeColor: 'bg-blue-50 text-blue-600 border border-blue-100',
     date: '12 Feb 2026',
     dept: t('documents.mock.finance'),
-    status: 'On Loan',
+    status: t('documents.filters.on_loan'),
     statusColor: 'bg-red-500',
     iconBg: 'bg-blue-50',
     iconColor: 'text-blue-500',
@@ -384,7 +386,7 @@ const documents = ref([
     type: t('documents.mock.docs.type_report'),
     typeColor: 'bg-orange-50 text-orange-600 border border-orange-100',
     date: '10 Feb 2026',
-    dept: 'Tax',
+    dept: t('documents.mock.tax'),
     status: t('documents.filters.available'),
     statusColor: 'bg-green-500',
     iconBg: 'bg-orange-50',

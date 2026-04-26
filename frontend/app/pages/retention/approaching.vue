@@ -8,8 +8,11 @@
       </div>
       <div class="flex items-center gap-4">
         <button class="px-6 py-4 bg-white border border-slate-200 text-slate-400 rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-slate-50 transition-all flex items-center gap-2">
-        </div>
+          <LucideFilter class="w-4 h-4" />
+          {{ $t('common.filter') || 'Filter' }}
+        </button>
       </div>
+    </div>
 
       <div class="glass p-10 rounded-[3rem] bg-white border border-slate-100 shadow-xl shadow-slate-200/50 space-y-6 relative overflow-hidden group">
         <div class="absolute right-0 top-0 p-8 text-slate-50 group-hover:text-orange-50 transition-colors">
@@ -29,7 +32,6 @@
           <p class="text-xs font-bold text-slate-400">{{ $t('retention.approaching.stats.hold_desc') }}</p>
         </div>
       </div>
-    </div>
 
     <!-- Info Banner -->
     <div class="p-8 bg-[#1E3A5F] rounded-3xl border border-blue-900/20 flex items-start gap-6 shadow-xl shadow-blue-900/10" v-motion-fade>

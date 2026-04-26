@@ -8,20 +8,6 @@ A premium, microservice-based Document Management System with AI-powered search,
 - **OCR Service**: Python (FastAPI + PaddleOCR) - [Docs](./ocr-service/README.md)
 - **Infrastructure**: Docker Compose (PostgreSQL, Redis, MinIO, Elasticsearch)
 
-## 🚀 Quick Start (Docker)
-Ensure you have Docker and Docker Compose installed.
-
-```bash
-# Start all services
-docker-compose up -d
-```
-
-## 🛠️ Components
-1. **API Server**: Handles business logic, authentication, and document metadata.
-2. **Task Worker**: Processes asynchronous tasks like OCR and indexing.
-3. **OCR Engine**: Extracts text from images and PDFs using AI.
-4. **Web UI**: Modern dashboard for managing and searching documents.
-
 ## 🔐 Key Features
 - **AES256 Encryption** on MinIO.
 - **Full-Text Search** across all documents.
@@ -31,3 +17,64 @@ docker-compose up -d
 - **Batch Processing Tracking**: Real-time progress monitoring for multiple uploads.
 - **System Observability**: Integrated logging across all services.
 - **Rate Limiting & Security**: Configurable API protection.
+
+## 🚀 How To Run (Detailed)
+
+### 1. Prasyarat
+- **Docker Desktop** (untuk Database & Storage)
+- **Go 1.22+**
+- **Node.js 20+**
+- **Git Bash / Terminal**
+
+### 2. Jalankan Infrastruktur (Docker)
+Gunakan perintah ini untuk menjalankan database tanpa membebani RAM dengan build aplikasi:
+```bash
+docker-compose up -d
+```
+Service yang berjalan:
+- **PostgreSQL**: `localhost:5432` (User/DB: `postgres/kreatif_dms`)
+- **Redis**: `localhost:6379`
+- **MinIO**: `localhost:9000` (Console: `localhost:9001`)
+- **Elasticsearch**: `localhost:9200`
+
+### 3. Setup Backend
+```bash
+cd backend
+# Salin environment (sesuaikan jika perlu)
+cp .env.example .env
+# Jalankan migrasi database
+go run cmd/server/main.go migrate up
+# Jalankan server
+go run cmd/server/main.go
+```
+API akan berjalan di `http://localhost:8080`.
+
+### 4. Setup Worker (Background Tasks)
+Worker wajib dijalankan agar proses asinkronus (seperti OCR dan Indexing) bisa berjalan:
+```bash
+cd backend
+# Jalankan worker
+go run cmd/worker/main.go
+```
+
+### 5. Setup Frontend
+```bash
+cd frontend
+# Install dependencies
+npm install
+# Jalankan development server
+npm run dev
+```
+Dashboard akan berjalan di `http://localhost:3000`.
+
+### 6. Setup OCR Service (Opsional)
+Jika membutuhkan fitur OCR, jalankan service Python:
+```bash
+cd ocr-service
+# Gunakan virtualenv
+python -m venv venv
+source venv/scripts/activate
+pip install -r requirements.txt
+python main.py
+```
+OCR akan berjalan di `http://localhost:8000`.

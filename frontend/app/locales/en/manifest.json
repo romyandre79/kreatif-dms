@@ -1,0 +1,35 @@
+{
+  "manifest": {
+    "title": "Document Registration Manifest",
+    "header_title": "DELIVERY MANIFEST",
+    "header_subtitle": "ARCHIVE MANAGEMENT SYSTEM",
+    "status_approved": "Approved by {name} on {date}",
+    "manifest_id": "MANIFEST ID",
+    "generated_date": "GENERATED DATE",
+    "submitter": "SUBMITTER",
+    "approver": "APPROVER",
+    "total_docs": "TOTAL DOCUMENTS",
+    "files": "{count} Files",
+    "listing_title": "DOCUMENT LISTING",
+    "table": {
+      "no": "NO",
+      "reg_id": "REGISTRATION ID",
+      "title": "DOCUMENT TITLE",
+      "category": "CATEGORY",
+      "qty": "QTY",
+      "urgency": "URGENCY"
+    },
+    "delivery_title": "DELIVERY INSTRUCTIONS",
+    "delivery_text": "Please attach this manifest to the outside of the delivery box. Ensure all physical documents are sorted by Registration ID.",
+    "delivery_location": "Delivery to: Central Archive Warehouse - Zone B, Level 2",
+    "delivery_qr_hint": "Scanner will use the QR code above for batch verification upon arrival.",
+    "warning": "Unauthorized modification of this manifest will void the registration process.",
+    "footer_info": "This document is system-generated and valid without signature.",
+    "verified_on": "Verified on {date}",
+    "page": "Page {current} of {total}",
+    "version": "v2.4.1",
+    "btn_back": "Back",
+    "btn_print": "Print Manifest",
+    "btn_download": "Download PDF"
+  }
+}

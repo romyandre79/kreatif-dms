@@ -17,6 +17,9 @@ func NewCacheService(client *redis.Client) *CacheService {
 }
 
 func (s *CacheService) Set(ctx context.Context, key string, value interface{}, ttl time.Duration) error {
+	if s.client == nil {
+		return nil // Graceful bypass
+	}
 	data, err := json.Marshal(value)
 	if err != nil {
 		return err
@@ -25,6 +28,9 @@ func (s *CacheService) Set(ctx context.Context, key string, value interface{}, t
 }
 
 func (s *CacheService) Get(ctx context.Context, key string, dest interface{}) (bool, error) {
+	if s.client == nil {
+		return false, nil // Graceful bypass
+	}
 	val, err := s.client.Get(ctx, key).Result()
 	if err == redis.Nil {
 		return false, nil
@@ -41,5 +47,8 @@ func (s *CacheService) Get(ctx context.Context, key string, dest interface{}) (b
 }
 
 func (s *CacheService) Delete(ctx context.Context, key string) error {
+	if s.client == nil {
+		return nil // Graceful bypass
+	}
 	return s.client.Del(ctx, key).Err()
 }

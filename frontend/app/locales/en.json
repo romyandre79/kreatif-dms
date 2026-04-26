@@ -1,0 +1,1198 @@
+{
+  "layout": {
+    "sidebar": {
+      "dashboard": "Dashboard",
+      "documents": "Documents",
+      "upload": "Upload",
+      "search": "Search",
+      "settings": "Settings",
+      "logout": "Logout",
+      "collapse": "Collapse",
+      "expand": "Expand"
+    },
+    "navbar": {
+      "search_placeholder": "Search documents...",
+      "notifications": "Notifications",
+      "mark_all_read": "Mark all as read",
+      "view_all_notifications": "View all notifications",
+      "my_profile": "My Profile",
+      "account_settings": "Account Settings",
+      "sign_out": "Sign Out"
+    },
+    "menu": {
+      "dashboard": "Dashboard",
+      "doc_reg": "Document Registration",
+      "inbound_pre": "Inbound Pre-Registration",
+      "new_doc": "New Document Input",
+      "legacy_mig": "Legacy Data Migration",
+      "staging": "Staging Area",
+      "bulk_upload": "Bulk Upload",
+      "warehouse": "Warehouse Management",
+      "structure": "Warehouse Structure",
+      "occupancy": "Rack Occupancy",
+      "zonation": "Room Zonation",
+      "print_qr": "Print QR Labels",
+      "search": "Document Search",
+      "circulation": "Document Circulation",
+      "pickup": "Pickup",
+      "checkout": "Checkout (Out)",
+      "checkin": "Check-in (In)",
+      "overdue": "Overdue Items",
+      "softcopy": "Softcopy Request",
+      "stock_take": "Stock Take / Inventory",
+      "audit_missions": "Audit Missions",
+      "scan_exec": "Scan Execution",
+      "reconciliation": "Reconciliation",
+      "retention": "Document Retention",
+      "approaching": "Approaching Expiration",
+      "history": "Disposal History",
+      "reports": "Reports & Analytics",
+      "stats": "Operational Statistics",
+      "capacity": "Capacity Report",
+      "audit_trail": "Audit Trail",
+      "config": "System Configuration",
+      "company": "Company Profile",
+      "dept": "Department & Units",
+      "params": "System Parameters",
+      "submit": "Submit Document",
+      "loans": "My Loans",
+      "tracking": "Document Tracking",
+      "approvals": "Approvals",
+      "submissions": "Inbound Submissions",
+      "extensions": "Extensions",
+      "disposal": "Disposal",
+      "fast_track": "Fast Track",
+      "request_loan": "Request Loan",
+      "my_loans": "My Loans",
+      "loan_history": "Loan History",
+      "submission_status": "Submission Status",
+      "circulation_report": "Circulation Report",
+      "overdue_monitoring": "Overdue Monitoring",
+      "notifications": "Notifications",
+      "tracking": "Tracking"
+    }
+  },
+  "landing": {
+    "nav": {
+      "features": "Features",
+      "solutions": "Solutions",
+      "security": "Security",
+      "sign_in": "Sign In",
+      "get_started": "Get Started"
+    },
+    "hero": {
+      "badge": "New: Gemini AI Integration",
+      "title": "Empower Your Enterprise with Intelligent {docs}",
+      "docs_highlight": "Archiving",
+      "subtitle": "Transform physical document management into a secure, scalable, and AI-driven digital experience for maximum efficiency.",
+      "btn_trial": "Start Free Trial",
+      "btn_demo": "Book a Demo",
+      "trusted": "Trusted by over {count} industry-leading organizations"
+    },
+    "features": {
+      "title": "Core Features",
+      "subtitle": "A smart platform designed to handle your entire document lifecycle.",
+      "items": {
+        "ocr": { "title": "AI-Powered OCR", "desc": "Automatic text extraction from physical documents with up to 99% accuracy." },
+        "search": { "title": "Instant Search", "desc": "Find any document in seconds with full-text search and advanced filters." },
+        "security": { "title": "Military Security", "desc": "AES-256 encryption and role-based access control to protect your assets." },
+        "summaries": { "title": "Smart Summaries", "desc": "Get key document points automatically generated using AI." },
+        "cloud": { "title": "Cloud Access", "desc": "Access your documents anytime, anywhere with secure cloud infrastructure." },
+        "preview": { "title": "Quick Preview", "desc": "Instantly view document contents without needing to download files." }
+      }
+    },
+    "stats": {
+      "docs": "Archived Documents",
+      "uptime": "System Uptime",
+      "companies": "Organizations",
+      "ai": "AI Ops / Second"
+    },
+    "footer": {
+      "desc": "Smart document management solutions for your enterprise's digital future.",
+      "product": "Product",
+      "pricing": "Pricing",
+      "company": "Company",
+      "about": "About Us",
+      "careers": "Careers",
+      "contact": "Contact",
+      "rights": "© 2024 Kreatif DMS. All rights reserved.",
+      "privacy": "Privacy Policy",
+      "terms": "Terms of Service"
+    }
+  },
+  "approvals": {
+    "title": "Approval Management",
+    "tabs": {
+      "pending": "Pending",
+      "approved": "Approved",
+      "rejected": "Rejected"
+    }
+  },
+  "login": {
+    "title": "Welcome Back",
+    "subtitle": "Sign in to access your secure document dashboard",
+    "left_panel": {
+      "title": "Next Generation Document Intelligence",
+      "desc": "A secure, scalable, and AI-powered enterprise archive management platform."
+    },
+    "form": {
+      "email": "Email Address",
+      "password": "Password",
+      "remember_me": "Remember me",
+      "forgot_password": "Forgot password?",
+      "sign_in": "Sign In",
+      "signing_in": "Processing...",
+      "no_account": "Don't have an account?",
+      "contact_admin": "Contact Admin",
+      "error_invalid": "Invalid email or password.",
+      "error_server": "Server error. Please try again later."
+    }
+  },
+  "documents": {
+    "title": "Document Management",
+    "explorer": {
+      "title": "Document Explorer",
+      "search_placeholder": "Filter folders...",
+      "stats_total": "Total {count} documents"
+    },
+    "search": {
+      "results_for": "Search results for \"{query}\" ({count})",
+      "stats_desc": "Found about {total} results in {time} seconds",
+      "within_placeholder": "Search within this folder...",
+      "no_found": "No Results Found",
+      "no_found_desc": "Sorry, we couldn't find any documents matching your search criteria. Try more general keywords.",
+      "did_you_mean": "Did you mean:"
+    },
+    "filters": {
+      "search_within": "Search within this folder...",
+      "doc_type": "Doc Type:",
+      "year": "Year:",
+      "status": "Status:",
+      "all": "All",
+      "available": "Available",
+      "on_loan": "On Loan",
+      "sort": "Sort"
+    },
+    "table": {
+      "name": "DOCUMENT NAME",
+      "type": "DOC TYPE",
+      "date": "DATE",
+      "dept": "DEPT",
+      "status": "STATUS",
+      "actions": "ACTIONS"
+    },
+    "cart": {
+      "items_in_cart": "{count} items in cart",
+      "ready_desc": "Ready for loan request",
+      "btn_view": "View Cart"
+    },
+    "mock": {
+      "root_folder": "PT AKIRADATA PRATAMA",
+      "accounting": "Accounting",
+      "finance": "Finance",
+      "hr": "HR",
+      "it": "IT",
+      "legal": "Legal",
+      "tax": "Tax",
+      "january": "January",
+      "february": "February",
+      "docs": {
+        "vendor_contract": "Vendor Contract",
+        "rent_invoice": "Rent Invoice",
+        "tax_report": "Tax Report",
+        "type_contract": "Contract",
+        "type_invoice": "Invoice",
+        "type_report": "Report"
+      },
+      "search": {
+        "result_1_name": "Cleaning Service Contract 2024",
+        "result_1_snippet": "This document contains details of the cleaning service cooperation agreement between PT Akiradata and a third party for the 2024 period...",
+        "result_2_name": "Maintenance Contract Addendum",
+        "result_2_snippet": "Amendment to article 4 regarding the maintenance costs of IT equipment for 2025 approved by the Board of Directors...",
+        "result_3_name": "Office Cleanliness SOP",
+        "result_3_snippet": "Standard operating procedure regarding cleanliness management and maintenance of the head office building..."
+      }
+    }
+  },
+  "upload": {
+    "title": "Upload Document",
+    "subtitle": "Register new documents into the digital archive system.",
+    "tabs": {
+      "manual": "Manual Entry",
+      "bulk": "Bulk Upload (Excel)"
+    },
+    "form": {
+      "title": "Document Details",
+      "type": "Document Type",
+      "type_placeholder": "Select document type",
+      "subject": "Subject / Title",
+      "subject_placeholder": "Enter a short title for the document",
+      "category": "Confidentiality Category",
+      "category_placeholder": "Select category",
+      "department": "Owner Department",
+      "department_hint": "Automatically determined based on your department",
+      "count": "Number of Pages",
+      "date": "Document Date",
+      "notes": "Additional Notes",
+      "notes_placeholder": "Additional information if any...",
+      "notes_urgent_placeholder": "Please enter a reason for urgency...",
+      "urgency": "Urgency Level",
+      "urgency_levels": {
+        "normal": "Normal",
+        "high": "High",
+        "urgent": "Urgent"
+      },
+      "urgent_warning": "Urgent requests will be prioritized in the scanning queue.",
+      "char_limit": "{count} / 200 characters",
+      "save_draft": "Save Draft",
+      "cancel": "Cancel",
+      "submit": "Submit Document",
+      "processing": "Processing...",
+      "options": {
+        "types": {
+          "invoice": "Invoice / Billing",
+          "contract": "Contract / Agreement",
+          "personnel": "Personnel Documents",
+          "financial": "Financial Reports"
+        },
+        "options": {
+          "confidential": "Strictly Confidential",
+          "internal": "Internal",
+          "public": "Public"
+        }
+      }
+    },
+    "bulk": {
+      "title": "Mass Bulk Upload",
+      "subtitle": "Use the Excel template to register multiple documents at once.",
+      "step1_title": "Download Template",
+      "step1_filename": "DMS_Bulk_Template.xlsx",
+      "step1_version": "Version 2.1 - Updated 2 days ago",
+      "step1_download": "DOWNLOAD EXCEL TEMPLATE",
+      "step1_info": "Please do not change the column headers in the template for a smooth validation process.",
+      "step2_title": "Upload Data File",
+      "step2_dropzone": "Drag your Excel file here",
+      "step2_formats": "Supports .xlsx and .xls formats (Max 10MB)",
+      "step2_browse": "BROWSE FILES",
+      "validation_rules_title": "Important Validation Rules",
+      "rules": [
+        "Document Type and Subject columns are required.",
+        "Date format must be DD.MM.YYYY.",
+        "Maximum 500 rows per upload file."
+      ],
+      "review": {
+        "subtitle": "Please review the extracted data before confirmation.",
+        "stats": {
+          "total": "TOTAL ROWS",
+          "items": "items",
+          "valid": "VALID DATA",
+          "success_rate": "{rate}% Accuracy Rate",
+          "errors": "REQUIRES FIX",
+          "action_required": "Action Required"
+        },
+        "table": {
+          "status": "STATUS",
+          "type": "TYPE",
+          "subject": "SUBJECT",
+          "category": "CATEGORY",
+          "date": "DATE",
+          "actions": "ACTIONS",
+          "empty": "[EMPTY]"
+        },
+        "footer": {
+          "bulk_actions_label": "BULK ACTIONS:",
+          "select_action": "Select Action...",
+          "delete_selected": "Delete Selected",
+          "change_category": "Change Category",
+          "apply": "APPLY",
+          "revalidate": "REVALIDATE",
+          "errors_found": "{count} Errors found in this batch.",
+          "upload_different": "UPLOAD DIFFERENT FILE",
+          "submit_all": "SUBMIT ALL ({count} ITEMS)"
+        }
+      },
+      "progress": {
+        "title": "Processing Data",
+        "subtitle": "Please wait, we are validating your data rows.",
+        "action": "VALIDATING...",
+        "cancel": "CANCEL"
+      },
+      "success": {
+        "status": "UPLOAD SUCCESSFUL",
+        "title": "Data Successfully Registered!",
+        "summary_title": "BATCH SUMMARY",
+        "summary_text": "{count} documents have been successfully registered and are awaiting physical delivery.",
+        "ids_title": "REGISTERED IDS",
+        "copy_all": "COPY ALL",
+        "download_csv": "DOWNLOAD CSV",
+        "next_steps_title": "NEXT STEPS",
+        "next_steps_text": "Print the manifest and attach it to the physical box/file before sending to the archive center.",
+        "submit_another": "Upload Another Batch",
+        "close": "CLOSE"
+      }
+    },
+    "side": {
+      "next_title": "Next Steps",
+      "steps": [
+        { "title": "System Registration", "desc": "Document data is registered digitally." },
+        { "title": "Print Manifest", "desc": "Physical manifest as a delivery receipt." },
+        { "title": "Physical Delivery", "desc": "Send documents to the archive processing center." },
+        { "title": "Digital Processing", "desc": "Documents are fully scanned and indexed." }
+      ],
+      "tips_title": "Filing Tips",
+      "tips": [
+        "Ensure document subjects are specific for easy searching.",
+        "Group documents by department before uploading.",
+        "Use bulk upload for more than 10 documents."
+      ],
+      "recent_title": "Recent Submissions",
+      "view_history": "VIEW ALL HISTORY"
+    },
+    "mock": {
+      "recents": {
+        "two_hours_ago": "2 hours ago",
+        "approved": "Approved",
+        "yesterday": "Yesterday",
+        "pending": "Pending",
+        "draft": "Draft"
+      },
+      "bulk_data": {
+        "invoice": "Invoice",
+        "subject_1": "Electricity Bill - Jan 2024",
+        "contract": "Contract",
+        "memo": "Memo",
+        "subject_3": "Internal Memo - New Policy",
+        "tax": "Tax",
+        "subject_4": "Monthly VAT Report",
+        "err_missing_subject": "Document subject is required",
+        "err_invalid_cat": "Unknown category"
+      },
+      "manifest": {
+        "item_1": "Office Lease Contract 2024",
+        "item_2": "Annual Tax Report",
+        "item_3": "Employee Payroll - Feb",
+        "item_42": "Warehouse Operations SOP"
+      }
+    },
+    "success_modal": {
+      "print": "PRINT MANIFEST"
+    }
+  },
+  "manifest": {
+    "title": "Document Registration Manifest",
+    "header_title": "DELIVERY MANIFEST",
+    "header_subtitle": "ARCHIVE MANAGEMENT SYSTEM",
+    "status_approved": "Approved by {name} on {date}",
+    "manifest_id": "MANIFEST ID",
+    "generated_date": "GENERATED DATE",
+    "submitter": "SUBMITTER",
+    "approver": "APPROVER",
+    "total_docs": "TOTAL DOCUMENTS",
+    "files": "{count} Files",
+    "listing_title": "DOCUMENT LISTING",
+    "table": {
+      "no": "NO",
+      "reg_id": "REGISTRATION ID",
+      "title": "DOCUMENT TITLE",
+      "category": "CATEGORY",
+      "qty": "QTY",
+      "urgency": "URGENCY"
+    },
+    "delivery_title": "DELIVERY INSTRUCTIONS",
+    "delivery_text": "Please attach this manifest to the outside of the delivery box. Ensure all physical documents are sorted by Registration ID.",
+    "delivery_location": "Delivery to: Central Archive Warehouse - Zone B, Level 2",
+    "delivery_qr_hint": "Scanner will use the QR code above for batch verification upon arrival.",
+    "warning": "Unauthorized modification of this manifest will void the registration process.",
+    "footer_info": "This document is system-generated and valid without signature.",
+    "verified_on": "Verified on {date}",
+    "page": "Page {current} of {total}",
+    "version": "v2.4.1",
+    "btn_back": "Back",
+    "btn_print": "Print Manifest",
+    "btn_download": "Download PDF"
+  },
+  "warehouse": {
+    "title": "Warehouse Management",
+    "stats": {
+      "total_boxes": "Total Boxes",
+      "occupied_racks": "Occupied Racks",
+      "available_space": "Available Space"
+    }
+  },
+  "error": {
+    "page_not_found": "Page not found",
+    "back_to_home": "Back to Home",
+    "unauthorized": "You are not authorized to access this page",
+    "btn_dashboard": "Back to Dashboard"
+  },
+  "warehouse_structure": {
+    "title": "Warehouse Structure",
+    "subtitle": "Manage physical document locations and rack settings",
+    "tabs": {
+      "overview": "Overview",
+      "racks": "Rack Management",
+      "aisles": "Aisles",
+      "floors": "Floors"
+    },
+    "stats": {
+      "total_capacity": "Total Capacity",
+      "utilized": "Utilized",
+      "utilization_rate": "Utilization Rate",
+      "active_racks": "Active Racks",
+      "pending_maintenance": "Pending Maintenance"
+    },
+    "actions": {
+      "add_rack": "Add New Rack",
+      "add_aisle": "Add Aisle",
+      "export_map": "Export Map",
+      "print_labels": "Print Location Labels"
+    },
+    "table": {
+      "rack_id": "RACK ID",
+      "location": "LOCATION",
+      "capacity": "CAPACITY",
+      "status": "STATUS",
+      "action": "ACTION",
+      "status_full": "FULL",
+      "status_available": "AVAILABLE",
+      "status_warning": "NEAR FULL"
+    }
+  },
+  "metadata": {
+    "title": "Metadata Management",
+    "subtitle": "Configure document fields and schemas",
+    "btn_add_field": "Add Field",
+    "table": {
+      "field_name": "FIELD NAME",
+      "data_type": "DATA TYPE",
+      "required": "REQUIRED",
+      "searchable": "SEARCHABLE",
+      "actions": "ACTIONS"
+    }
+  },
+  "search": {
+    "title": "Advanced Document Search",
+    "placeholder": "Search by title, manifest, or document content...",
+    "filters": {
+      "title": "Filters",
+      "date_range": "Date Range",
+      "doc_type": "Document Type",
+      "department": "Department",
+      "status": "Status",
+      "clear_all": "Clear All"
+    },
+    "results": {
+      "found": "Found {count} documents",
+      "no_results": "No documents found",
+      "table": {
+        "id": "ID",
+        "title": "TITLE",
+        "date": "DATE",
+        "dept": "DEPT",
+        "status": "STATUS"
+      }
+    }
+  },
+  "settings": {
+    "title": "System Settings",
+    "general": {
+      "title": "General",
+      "app_name": "App Name",
+      "timezone": "Timezone",
+      "language": "Default Language"
+    },
+    "security": {
+      "title": "Security",
+      "password_policy": "Password Policy",
+      "two_factor": "Two-Factor Auth",
+      "session_timeout": "Session Timeout"
+    },
+    "notifications": {
+      "title": "Notifications",
+      "email_alerts": "Email Alerts",
+      "system_alerts": "System Alerts",
+      "push_notifications": "Push Notifications"
+    }
+  },
+  "retention": {
+    "title": "Retention Policy",
+    "table": {
+      "policy_name": "Policy Name",
+      "duration": "Duration (Years)",
+      "action": "Final Action",
+      "status": "Status",
+      "action_destroy": "Destroy",
+      "action_archive": "Permanent Archive"
+    }
+  },
+  "audit": {
+    "title": "System Audit Logs",
+    "table": {
+      "timestamp": "TIMESTAMP",
+      "user": "USER",
+      "action": "ACTION",
+      "module": "MODULE",
+      "ip_address": "IP ADDRESS"
+    }
+  },
+  "warehouse_management": {
+    "title": "Warehouse Management",
+    "subtitle": "Manage physical storage and box inventory",
+    "stats": {
+      "total_boxes": "Total Boxes",
+      "occupied_racks": "Occupied Racks",
+      "storage_usage": "Storage Usage",
+      "total_capacity": "Total Capacity",
+      "vs_last_month": "{percent}% vs last month"
+    },
+    "actions": {
+      "add_box": "Add Box",
+      "move_box": "Move Box",
+      "inventory_check": "Inventory Check",
+      "print_manifest": "Print Manifest"
+    },
+    "filters": {
+      "all_locations": "All Locations",
+      "floor": "Floor",
+      "aisle": "Aisle",
+      "status": "Status"
+    },
+    "table": {
+      "box_id": "BOX ID",
+      "location": "LOCATION",
+      "contents": "CONTENTS",
+      "last_audit": "LAST AUDIT",
+      "status": "STATUS",
+      "status_active": "Active",
+      "status_moved": "Moved",
+      "status_archived": "Archived"
+    }
+  },
+  "metadata_management": {
+    "title": "Metadata Management",
+    "subtitle": "Configure document indexing schemas",
+    "field_groups": {
+      "general": "General Information",
+      "legal": "Legal Information",
+      "finance": "Finance Information",
+      "hr": "Human Resources"
+    },
+    "actions": {
+      "new_field": "New Field",
+      "import_schema": "Import Schema",
+      "export_schema": "Export Schema"
+    },
+    "table": {
+      "field_label": "FIELD LABEL",
+      "key": "KEY",
+      "type": "TYPE",
+      "validation": "VALIDATION",
+      "required": "REQUIRED"
+    }
+  },
+  "reports_analytics": {
+    "title": "Reports & Analytics",
+    "subtitle": "Operational insights and system performance",
+    "charts": {
+      "doc_growth": "Document Growth",
+      "scan_throughput": "Scanning Throughput",
+      "user_activity": "User Activity",
+      "storage_forecast": "Storage Forecast"
+    },
+    "metrics": {
+      "avg_processing_time": "Avg Processing Time",
+      "ocr_accuracy": "OCR Accuracy",
+      "error_rate": "Error Rate",
+      "system_uptime": "System Uptime"
+    }
+  },
+  "loan_management": {
+    "title": "Document Loan Management",
+    "subtitle": "Track physical requests and returns",
+    "tabs": {
+      "pending": "Pending Approval",
+      "active": "Active Loans",
+      "overdue": "Overdue",
+      "history": "Full History"
+    },
+    "table": {
+      "request_id": "REQUEST ID",
+      "borrower": "BORROWER",
+      "document": "DOCUMENT",
+      "due_date": "DUE DATE",
+      "status": "STATUS"
+    }
+  },
+  "system_administration": {
+    "title": "System Administration",
+    "subtitle": "Advanced configuration and system management",
+    "sections": {
+      "user_roles": "User Roles & Permissions",
+      "api_keys": "API Key Management",
+      "storage_config": "Storage Configuration",
+      "backup_restore": "Backup & Restore"
+    }
+  },
+  "retention_disposition": {
+    "title": "Retention & Disposition",
+    "subtitle": "Manage document lifecycles and disposal",
+    "actions": {
+      "disposal_report": "Disposal Report",
+      "extend_retention": "Extend Retention",
+      "approve_destruction": "Approve Destruction"
+    },
+    "table": {
+      "policy_id": "POLICY ID",
+      "doc_count": "DOC COUNT",
+      "expiration": "EXPIRATION",
+      "action": "ACTION"
+    }
+  },
+  "archive_search": {
+    "title": "Archive Search",
+    "subtitle": "Search across millions of records with smart filters",
+    "advanced_filters": {
+      "date_range": "Date Range",
+      "location": "Physical Location",
+      "classification": "Classification",
+      "owner": "Document Owner"
+    }
+  },
+  "document_staging": {
+    "title": "Staging Area",
+    "subtitle": "Validate documents before main archive entry",
+    "actions": {
+      "approve_selected": "Approve Selected",
+      "reject_selected": "Reject Selected",
+      "edit_metadata": "Edit Metadata"
+    },
+    "table": {
+      "temp_id": "TEMP ID",
+      "source": "SOURCE",
+      "scan_quality": "SCAN QUALITY",
+      "status": "STATUS"
+    }
+  },
+  "legacy_migration": {
+    "title": "Legacy Data Migration",
+    "subtitle": "Import data from old systems or bulk files",
+    "steps": {
+      "upload": "Upload Files",
+      "mapping": "Column Mapping",
+      "validation": "Data Validation",
+      "import": "Process Import"
+    }
+  },
+  "user_management": {
+    "title": "User Management",
+    "subtitle": "Manage user access and privileges",
+    "actions": {
+      "new_user": "New User",
+      "export_users": "Export List",
+      "bulk_invite": "Bulk Invite"
+    },
+    "table": {
+      "full_name": "FULL NAME",
+      "email": "EMAIL",
+      "role": "ROLE",
+      "last_login": "LAST LOGIN",
+      "status": "STATUS"
+    }
+  },
+  "role_permissions": {
+    "title": "Roles & Permissions",
+    "subtitle": "Configure Role-Based Access Control (RBAC)",
+    "table": {
+      "role_name": "ROLE NAME",
+      "description": "DESCRIPTION",
+      "user_count": "USER COUNT",
+      "actions": "ACTIONS"
+    }
+  },
+  "system_logs": {
+    "title": "System Audit Logs",
+    "subtitle": "Track every action within the platform",
+    "filters": {
+      "all_modules": "All Modules",
+      "all_users": "All Users",
+      "severity": "Severity"
+    }
+  },
+  "capacity_management": {
+    "title": "Capacity Management",
+    "subtitle": "Monitor physical and digital storage space",
+    "stats": {
+      "physical_usage": "Physical Usage",
+      "digital_usage": "Digital Usage",
+      "available_racks": "Available Racks",
+      "forecast": "Estimated Full"
+    }
+  },
+  "warehouse_scan": {
+    "title": "Warehouse Structure Scan",
+    "subtitle": "Map physical locations using handheld scanners",
+    "form": {
+      "rack_code": "Rack Code",
+      "aisle_code": "Aisle Code",
+      "level": "Level",
+      "position": "Position"
+    },
+    "summary": {
+      "total_scanned": "Total Scanned",
+      "confidence": "Confidence Level",
+      "btn_cancel": "Cancel",
+      "btn_confirm": "Confirm"
+    },
+    "footer": {
+      "assignee": "ASSIGNEE",
+      "sync": "SYNC",
+      "location": "LOCATION"
+    }
+  },
+  "dashboard": {
+    "greetings": {
+      "morning": "Good Morning, {name}",
+      "afternoon": "Good Afternoon, {name}",
+      "evening": "Good Evening, {name}"
+    },
+    "header": {
+      "operational_overview": "Today's operational overview - {date}",
+      "btn_submit_new": "Submit New",
+      "search_placeholder": "Search manifest, document, or ID..."
+    },
+    "welcome": "Welcome Back, {name}",
+    "stats": {
+      "daily_received": "DAILY\nRECEIVED",
+      "daily_scanned": "DAILY\nSCANNED",
+      "daily_processed": "DAILY\nPROCESSED",
+      "warehouse_capacity": "WAREHOUSE\nCAPACITY",
+      "active_tasks": "ACTIVE\nTASKS",
+      "vs_yesterday": "{percent}% vs yesterday",
+      "immediate_attention": "Requires immediate attention"
+    },
+    "queue": {
+      "priority_tasks": "Priority Task Queue",
+      "view_all_tasks": "VIEW ALL TASKS",
+      "table": {
+        "manifest": "MANIFEST / DESCRIPTION",
+        "type": "TYPE",
+        "status": "STATUS",
+        "urgency": "URGENCY"
+      },
+      "items": {
+        "bulk_scan": "Bulk Scan",
+        "indexing": "Indexing",
+        "receive": "Receive",
+        "on_schedule": "On Schedule",
+        "overdue_2h": "2h Overdue",
+        "due_45m": "Due in 45m"
+      },
+      "tabs": {
+        "all": "All Queues",
+        "receive": "Receiving",
+        "scan": "Scanning",
+        "metadata": "Metadata",
+        "loan_prep": "Loan Prep",
+        "urgent": "Urgent",
+        "normal": "Normal"
+      },
+      "start_scanning": "START SCAN",
+      "receive_pkg": "RECEIVE PKG",
+      "apply_metadata": "APPLY METADATA"
+    },
+    "activity": {
+      "title_recent": "Recent Activity",
+      "btn_logs": "VIEW ALL LOGS",
+      "items": {
+        "ocr_completed": "OCR Completed: {id}",
+        "ocr_sub": "{count} pages processed",
+        "retention_alert": "Retention Alert",
+        "retention_sub": "128 documents ready for disposal",
+        "storage_sub": "Cloud Backup Successful",
+        "security_login": "Security Login",
+        "security_sub": "Login from IP {ip}",
+        "mins_ago": "{count} mins ago",
+        "hour_ago": "1 hour ago",
+        "ten_mins": "10 mins ago",
+        "one_hour": "1 hour ago",
+        "three_hours": "3 hours ago",
+        "box_received": "Box Received: {id}",
+        "box_sub": "Rack Location: {loc}",
+        "loan_pending": "Loan Pending: {id}",
+        "loan_sub": "Requester: {name} ({dept})",
+        "retention_overdue_title": "Retention Review Overdue",
+        "retention_overdue_desc": "128 records are past disposal date.",
+        "storage_warning_title": "Storage Threshold Warning",
+        "storage_warning_desc": "Cloud Bucket is at 92% capacity."
+      },
+      "title": "Recent Activity"
+    },
+    "infrastructure": {
+      "scanner": "SCANNER STATUS",
+      "connected": "CONNECTED",
+      "ocr_engine": "OCR ENGINE",
+      "active_accuracy": "ACTIVE - ACCURACY {accuracy}%",
+      "database": "DATABASE",
+      "synchronized": "SYNCHRONIZED"
+    },
+    "manager": {
+      "alert_title": "Urgent Approvals Required",
+      "alert_desc": "You have {count} documents awaiting your critical review.",
+      "btn_review_all": "REVIEW ALL",
+      "stats": {
+        "priority_pending": "PRIORITY PENDING",
+        "approved_today": "APPROVED TODAY",
+        "team_submissions": "TEAM SUBMISSIONS",
+        "avg_approval_time": "AVG TIME"
+      },
+      "queue": {
+        "title": "Urgent Approval Queue",
+        "tabs": {
+          "urgent": "Urgent",
+          "normal": "Normal",
+          "all": "All"
+        },
+        "table": {
+          "submission": "SUBMISSION",
+          "staff_name": "STAFF",
+          "days_elapsed": "DAYS ELAPSED",
+          "status": "STATUS",
+          "actions": "ACTIONS"
+        },
+        "items": {
+          "inv_8821": "Vendor Invoice - PT Sentosa",
+          "doc_xp_012": "Executive Contract - Project X",
+          "pr_990_2": "Equipment Purchase Request"
+        }
+      },
+      "compliance": {
+        "title": "SLA COMPLIANCE",
+        "target": "Target: {target}%"
+      },
+      "top_submitters": {
+        "title": "TOP SUBMITTERS",
+        "docs": "docs",
+        "items": {
+          "indra": "Indra Wijaya",
+          "maya": "Maya Kartika",
+          "dedi": "Dedi Kurniawan"
+        }
+      },
+      "bulk_actions": {
+        "title": "QUICK BULK ACTIONS",
+        "items": {
+          "bulk_approve": { "label": "Bulk Approve", "desc": "Process fast queue" },
+          "deep_analytics": { "label": "Deep Analytics", "desc": "Team compliance report" },
+          "archive_log": { "label": "Archive Log", "desc": "Download monthly history" },
+          "help_desk": { "label": "Help Desk", "desc": "Contact IT Support" }
+        }
+      },
+      "decisions": {
+        "title": "Recent Decisions Log",
+        "action_approved": "Approved",
+        "action_rejected": "Rejected",
+        "action_commented": "Commented on",
+        "submitter": "by {name}",
+        "items": {
+          "tr_2201": "Tax Report 2023",
+          "rq_882": "Requisition 882",
+          "po_991": "Purchase Order 991"
+        }
+      }
+    },
+    "user": {
+      "overview_desc": "Manage your personal documents and loan status.",
+      "stats": {
+        "my_submissions": "MY SUBMISSIONS",
+        "pending_approvals": "PENDING APPROVALS",
+        "active_loans": "ACTIVE LOANS",
+        "search_history": "SEARCH HISTORY",
+        "action_required": "ACTION\nREQUIRED",
+        "today": "Today"
+      },
+      "tasks": {
+        "title": "Items Requiring My Action",
+        "table": {
+          "task_type": "TASK TYPE",
+          "doc_manifest": "DOC MANIFEST",
+          "due_date": "DUE DATE",
+          "action": "ACTION"
+        },
+        "items": {
+          "print_manifest": "Print Manifest",
+          "doc_return": "Document Return",
+          "phys_val": "Physical Validation",
+          "today": "Today",
+          "tomorrow": "Tomorrow",
+          "execute": "EXECUTE",
+          "process": "PROCESS",
+          "verify": "VERIFY"
+        }
+      },
+      "quick_actions": {
+        "title": "Quick Actions",
+        "items": {
+          "submit": "SUBMIT",
+          "loan": "LOAN",
+          "search": "SEARCH",
+          "track": "TRACK"
+        }
+      },
+      "activity": {
+        "title": "Recent Activity",
+        "items": {
+          "doc_approved": "Document {id} has been approved by Manager.",
+          "new_submission": "New submission {id} successfully received.",
+          "loan_req_sig": "Loan request {id} requires signature.",
+          "ten_mins": "10 mins ago",
+          "one_hour": "1 hour ago",
+          "three_hours": "3 hours ago",
+          "details": "DETAILS",
+          "view": "VIEW",
+          "sign_now": "SIGN NOW"
+        }
+      },
+      "system_update": {
+        "title": "System Update",
+        "desc": "Version 4.2.0 is now available. New features include AI-powered search and faster approval workflows.",
+        "btn_notes": "RELEASE NOTES"
+      },
+      "loan_history": {
+        "title": "Document Loan History",
+        "btn_export": "Export",
+        "btn_filter": "Filter",
+        "table": {
+          "loan_id": "LOAN ID",
+          "doc_title": "DOC TITLE",
+          "loan_date": "LOAN DATE",
+          "expected_return": "EST. RETURN",
+          "status": "STATUS",
+          "action": "ACTION"
+        }
+      }
+    },
+    "tools": {
+      "label_printing": "Label Printing",
+      "quick_scan": "Quick Scan",
+      "audit_logs": "Audit Logs",
+      "inventory_map": "Inventory Map",
+      "user_access": "User Access",
+      "it_support": "IT Support"
+    },
+    "footer_stats": {
+      "throughput": "THROUGHPUT",
+      "turnaround": "TURNAROUND",
+      "ocr_accuracy": "OCR ACCURACY",
+      "sla_satisfaction": "SLA SATISFACTION"
+    }
+  },
+  "loans": {
+    "my": {
+      "title": "Loan Tracking",
+      "subtitle": "Manage and track your currently borrowed physical documents.",
+      "success_banner": "Extension request sent successfully. Waiting for Legal team approval.",
+      "btn_request_ext": "REQUEST EXTENSION",
+      "tabs": {
+        "all": "All",
+        "due_soon": "Due Soon",
+        "overdue": "Overdue"
+      },
+      "table": {
+        "req_no": "REQUEST NO",
+        "total_docs": "TOTAL DOCS",
+        "checkout_date": "CHECKOUT DATE",
+        "due_date": "DUE DATE",
+        "remaining_days": "REMAINING DAYS",
+        "status": "STATUS",
+        "docs_count": "{count} Documents"
+      },
+      "detail": {
+        "title": "Request Details",
+        "time_remaining": "TIME REMAINING",
+        "expires_hint": "Expires on {date} at 17:00",
+        "tracking_progress": "TRACKING PROGRESS",
+        "steps": {
+          "approved": "Approved",
+          "ready": "Ready",
+          "on_loan": "On Loan",
+          "current_status": "Current status",
+          "ext_requested": "Extension Requested",
+          "waiting_legal": "Waiting for Legal Review"
+        },
+        "policy": {
+          "notif_hint": "Reminder: Automatic notifications will be sent 24 hours before the deadline.",
+          "penalty_title": "Penalty Policy",
+          "penalty_desc": "Late return fee: IDR 50.000 / Document / Day"
+        },
+        "ext_pending": {
+          "title": "Extension Processing",
+          "desc": "Your extension request is being reviewed. The original deadline still applies until approved."
+        },
+        "ext_promo": {
+          "title": "Need more time?",
+          "desc": "You can request an extension up to 2 times for each document loan request.",
+          "btn": "RE-SCHEDULE RETURN"
+        }
+      },
+      "modal": {
+        "title": "Request Extension",
+        "doc_label": "Document No: {no}",
+        "days_label": "EXTENSION DURATION (DAYS)",
+        "days_suffix": "DAYS",
+        "days_hint": "Maximum extension is 14 days.",
+        "reason_label": "REASON FOR EXTENSION",
+        "reason_placeholder": "Explain why you still need this document...",
+        "info_box": "Extension requests require approval from Department Manager and Archive Management team.",
+        "btn_cancel": "CANCEL",
+        "btn_submit": "SUBMIT REQUEST"
+      }
+    },
+    "tracking": {
+      "success_banner": "Your document is ready for pickup at the archival center.",
+      "rejection_banner": {
+        "title": "Request Rejected by Legal",
+        "example": "\"Reason: The requested document requires an additional power of attorney from the Board for level 2 access.\""
+      },
+      "header": {
+        "request_id": "Tracking {id}",
+        "submitted_at": "Submitted on {date} • {time}",
+        "btn_resubmit": "Resubmit",
+        "btn_refresh": "Refresh"
+      },
+      "meta": {
+        "method": "TTD METHOD",
+        "digital_sign": "Digital Signature",
+        "purpose": "LOAN PURPOSE",
+        "next_step": "NEXT STEP",
+        "last_status": "LAST STATUS",
+        "eta": "ESTIMATED COMPLETION",
+        "waiting_pickup": "Waiting for Pickup",
+        "rejected_by": "Rejected by {name}",
+        "eta_value": "In 2-3 Hours"
+      },
+      "status": {
+        "waiting_l1": "WAITING L1 APPROVAL",
+        "waiting_l2": "WAITING L2 APPROVAL",
+        "approved": "APPROVED",
+        "rejected": "REJECTED"
+      },
+      "progress": {
+        "title": "Tracking Progress",
+        "steps": {
+          "step1": {
+            "title": "Submitted by User",
+            "desc": "Request successfully created and logged into the portal."
+          },
+          "step2": {
+            "title": "L1 Atasan Decision",
+            "desc": "Approved by Department Head {name}. No remarks provided."
+          },
+          "step3": {
+            "title": "L2 Head Legal Decision",
+            "status_rejected": "REJECTED",
+            "status_in_progress": "IN PROGRESS",
+            "card_approved": "Review Approved",
+            "card_rejected": "Review Rejected",
+            "card_pending": "Awaiting PIN-Secured Approval",
+            "desc_approved": "Legal Head has verified and approved access to the physical document.",
+            "desc_rejected": "Request rejected on {date}. Please review the rejection reason above.",
+            "desc_pending": "The Legal Head is currently reviewing the document attachments. This step requires a secure digital PIN authorization."
+          },
+          "step4": {
+            "title": "Admin Pickup Preparation",
+            "status_in_progress": "PROCESSING",
+            "desc_approved": "Archive officer is locating and preparing the physical document in the storage rack.",
+            "desc_rejected": "Process cancelled due to request rejection.",
+            "desc_pending": "Will be scheduled once L2 approval is completed."
+          }
+        }
+      },
+      "empty_history": "No rejection history for this request yet"
+    }
+  },
+  "placeholders": {
+    "coming_soon_title": "{page} Feature Coming Soon",
+    "coming_soon_desc": "We are preparing the {page} page for a better experience. Please check back later."
+  },
+  "approvals": {
+    "loans": {
+      "title": "{level} Loan Approvals",
+      "subtitle_l1": "Review document loan requests from your department.",
+      "subtitle_l2": "Verify and prepare physical documents for pickup.",
+      "l1_validated": "L1 Validated",
+      "filter": "Filter",
+      "export": "Export CSV",
+      "stats": {
+        "l1_waiting": "WAITING REVIEW",
+        "l2_waiting": "READY TO PROCESS",
+        "l1_approved": "APPROVED TODAY",
+        "l2_release": "READY FOR PICKUP",
+        "l1_rejected": "REJECTED THIS MONTH",
+        "l2_pickup": "PICKED UP",
+        "l1_sla": "SLA APPROACHING",
+        "l2_overdue": "OVERDUE RETURN"
+      },
+      "queue": {
+        "title_l1": "Department Approval Queue",
+        "title_l2": "Physical Preparation Queue",
+        "all_l1_approved": "All requests have been validated by L1 Manager",
+        "table": {
+          "req_no": "REQ NO",
+          "requestor": "REQUESTOR",
+          "dept": "DEPARTMENT",
+          "method": "METHOD",
+          "approver_l1": "L1 APPROVER",
+          "purpose": "PURPOSE",
+          "security": "SECURITY",
+          "docs": "DOCS",
+          "duration": "DURATION",
+          "priority": "PRIORITY"
+        }
+      },
+      "summary": {
+        "title_l1": "Request Summary",
+        "title_l2": "L2 Physical Verification",
+        "l1_approval_status": "L1 APPROVAL STATUS",
+        "purpose_title": "LOAN PURPOSE",
+        "storage_validation": "STORAGE LOCATION VALIDATION",
+        "in_stock": "IN STOCK",
+        "docs_requested": "{count} Documents Requested",
+        "security_checklist": "SECURITY & PHYSICAL CHECKLIST",
+        "policy_l1": "By approving, you guarantee that the requestor has permission to access the information in this document.",
+        "policy_l2": "Ensure all QR labels are attached and documents are scanned before handing over to courier/requestor.",
+        "empty": {
+          "title": "Select a Request",
+          "desc": "Select an item from the {level} queue to view details and perform actions."
+        }
+      },
+      "actions": {
+        "rejection_reason": "REJECTION REASON",
+        "rejection_hint": "REQUIRED",
+        "rejection_placeholder": "Explain why this request is being rejected...",
+        "btn_back_approve": "BACK TO APPROVAL",
+        "btn_confirm_reject": "CONFIRM REJECTION",
+        "btn_approve_l1": "APPROVE REQUEST",
+        "btn_approve_l2": "CONFIRM RELEASE",
+        "btn_reject": "REJECT REQUEST",
+        "footer_hint_l1": "This action will be forwarded to the Archive Management team (L2).",
+        "footer_hint_l2": "This action will update the tracking status to 'READY FOR PICKUP'."
+      },
+      "modal_pin": {
+        "title": "Authority Confirmation",
+        "desc": "Enter your 6-digit PIN to perform final physical document release verification.",
+        "btn_confirm": "VERIFY & COMPLETE",
+        "btn_cancel": "CANCEL",
+        "footer": "Your PIN is used as a valid digital signature."
+      }
+    }
+  },
+  "common": {
+    "status": {
+      "active": "ACTIVE",
+      "overdue": "OVERDUE",
+      "pending": "PENDING",
+      "critical": "CRITICAL",
+      "returned": "RETURNED"
+    }
+  }
+}

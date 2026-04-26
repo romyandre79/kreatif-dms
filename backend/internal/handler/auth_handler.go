@@ -17,8 +17,9 @@ func NewAuthHandler(svc *service.AuthService) *AuthHandler {
 }
 
 type loginRequest struct {
-	Email    string `json:"email" validate:"required,email"`
-	Password string `json:"password" validate:"required"`
+	Identifier string `json:"identifier" validate:"required"`
+	Password   string `json:"password" validate:"required"`
+	AuthType   string `json:"auth_type"` // "sso" or "local"
 }
 
 // Login godoc
@@ -42,7 +43,7 @@ func (h *AuthHandler) Login(c fiber.Ctx) error {
 		return response.Error(c, fiber.StatusBadRequest, "Validation failed", utils.FormatValidationErrors(errs))
 	}
 
-	res, err := h.svc.Login(c.Context(), req.Email, req.Password)
+	res, err := h.svc.Login(c.Context(), req.Identifier, req.Password, req.AuthType)
 	if err != nil {
 		return response.Error(c, fiber.StatusUnauthorized, "Login failed", err.Error())
 	}
@@ -117,4 +118,46 @@ func (h *AuthHandler) ForgotPassword(c fiber.Ctx) error {
 	}
 
 	return response.Success(c, fiber.StatusOK, "Reset link sent if email exists", nil)
+}
+
+type pinRequest struct {
+	PIN string `json:"pin" validate:"required,len=6,numeric"`
+}
+
+func (h *AuthHandler) SetPIN(c fiber.Ctx) error {
+	userID := c.Locals("user_id").(uuid.UUID)
+	req := new(pinRequest)
+	if err := c.Bind().JSON(req); err != nil {
+		return response.Error(c, fiber.StatusBadRequest, "Invalid request body", err.Error())
+	}
+
+	if errs := utils.ValidateStruct(req); len(errs) > 0 {
+		return response.Error(c, fiber.StatusBadRequest, "Validation failed", utils.FormatValidationErrors(errs))
+	}
+
+	err := h.svc.SetPIN(c.Context(), userID, req.PIN)
+	if err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to set PIN", err.Error())
+	}
+
+	return response.Success(c, fiber.StatusOK, "PIN set successfully", nil)
+}
+
+func (h *AuthHandler) VerifyPIN(c fiber.Ctx) error {
+	userID := c.Locals("user_id").(uuid.UUID)
+	req := new(pinRequest)
+	if err := c.Bind().JSON(req); err != nil {
+		return response.Error(c, fiber.StatusBadRequest, "Invalid request body", err.Error())
+	}
+
+	valid, err := h.svc.VerifyPIN(c.Context(), userID, req.PIN)
+	if err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "PIN verification failed", err.Error())
+	}
+
+	if !valid {
+		return response.Error(c, fiber.StatusUnauthorized, "Invalid PIN", "")
+	}
+
+	return response.Success(c, fiber.StatusOK, "PIN verified", nil)
 }

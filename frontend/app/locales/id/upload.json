@@ -1,0 +1,166 @@
+{
+  "upload": {
+    "title": "Unggah Dokumen",
+    "subtitle": "Daftarkan dokumen baru ke dalam sistem arsip digital.",
+    "tabs": {
+      "manual": "Entri Manual",
+      "bulk": "Unggah Massal (Excel)"
+    },
+    "form": {
+      "title": "Detail Dokumen",
+      "type": "Jenis Dokumen",
+      "type_placeholder": "Pilih jenis dokumen",
+      "subject": "Subjek / Judul",
+      "subject_placeholder": "Masukkan judul singkat dokumen",
+      "category": "Kategori Kerahasiaan",
+      "category_placeholder": "Pilih kategori",
+      "department": "Departemen Pemilik",
+      "department_hint": "Otomatis ditentukan berdasarkan departemen Anda",
+      "count": "Jumlah Lembar",
+      "date": "Tanggal Dokumen",
+      "notes": "Catatan Tambahan",
+      "notes_placeholder": "Informasi tambahan jika ada...",
+      "notes_urgent_placeholder": "Harap masukkan alasan urgensi...",
+      "urgency": "Tingkat Urgensi",
+      "urgency_levels": {
+        "normal": "Normal",
+        "high": "Tinggi",
+        "urgent": "Mendesak"
+      },
+      "urgent_warning": "Permintaan mendesak akan diprioritaskan dalam antrean pemindaian.",
+      "char_limit": "{count} / 200 karakter",
+      "save_draft": "Simpan Draf",
+      "cancel": "Batal",
+      "submit": "Kirim Dokumen",
+      "processing": "Memproses...",
+      "options": {
+        "types": {
+          "invoice": "Invoice / Tagihan",
+          "contract": "Kontrak / Perjanjian",
+          "personnel": "Dokumen Personalia",
+          "financial": "Laporan Keuangan"
+        },
+        "categories": {
+          "confidential": "Sangat Rahasia",
+          "internal": "Internal",
+          "public": "Publik"
+        }
+      }
+    },
+    "bulk": {
+      "title": "Unggah Batch Massal",
+      "subtitle": "Gunakan template Excel untuk mendaftarkan banyak dokumen sekaligus.",
+      "step1_title": "Unduh Template",
+      "step1_filename": "DMS_Bulk_Template.xlsx",
+      "step1_version": "Versi 2.1 - Diperbarui 2 hari lalu",
+      "step1_download": "UNDUH TEMPLATE EXCEL",
+      "step1_info": "Harap jangan mengubah header kolom pada template agar proses validasi berjalan lancar.",
+      "step2_title": "Unggah File Data",
+      "step2_dropzone": "Tarik file Excel Anda ke sini",
+      "step2_formats": "Mendukung format .xlsx dan .xls (Maks. 10MB)",
+      "step2_browse": "TELUSURI FILE",
+      "validation_rules_title": "Aturan Validasi Penting",
+      "rules": [
+        "Kolom Jenis Dokumen dan Subjek wajib diisi.",
+        "Format tanggal harus DD.MM.YYYY.",
+        "Maksimum 500 baris per file unggahan."
+      ],
+      "review": {
+        "subtitle": "Harap tinjau data hasil ekstraksi sebelum konfirmasi.",
+        "stats": {
+          "total": "TOTAL BARIS",
+          "items": "item",
+          "valid": "DATA VALID",
+          "success_rate": "Tingkat Akurasi {rate}%",
+          "errors": "PERLU PERBAIKAN",
+          "action_required": "Tindakan Diperlukan"
+        },
+        "table": {
+          "status": "STATUS",
+          "type": "JENIS",
+          "subject": "SUBJEK",
+          "category": "KATEGORI",
+          "date": "TANGGAL",
+          "actions": "AKSI",
+          "empty": "[KOSONG]"
+        },
+        "footer": {
+          "bulk_actions_label": "AKSI MASSAL:",
+          "select_action": "Pilih Aksi...",
+          "delete_selected": "Hapus Terpilih",
+          "change_category": "Ubah Kategori",
+          "apply": "TERAPKAN",
+          "revalidate": "VALIDASI ULANG",
+          "errors_found": "{count} Kesalahan ditemukan dalam batch ini.",
+          "upload_different": "UNGGAH FILE LAIN",
+          "submit_all": "KIRIM SEMUA ({count} ITEM)"
+        }
+      },
+      "progress": {
+        "title": "Memproses Data",
+        "subtitle": "Harap tunggu, kami sedang memvalidasi baris data Anda.",
+        "action": "VALIDASI...",
+        "cancel": "BATALKAN"
+      },
+      "success": {
+        "status": "UNGGAH BERHASIL",
+        "title": "Data Berhasil Terdaftar!",
+        "summary_title": "RINGKASAN BATCH",
+        "summary_text": "{count} dokumen telah berhasil didaftarkan dan menunggu pengiriman fisik.",
+        "ids_title": "ID REGISTRASI TERDAFTAR",
+        "copy_all": "SALIN SEMUA",
+        "download_csv": "UNDUH CSV",
+        "next_steps_title": "LANGKAH SELANJUTNYA",
+        "next_steps_text": "Cetak manifest dan lampirkan pada kotak/berkas fisik sebelum dikirim ke pusat arsip.",
+        "submit_another": "Unggah Batch Lain",
+        "close": "TUTUP"
+      }
+    },
+    "side": {
+      "next_title": "Langkah Selanjutnya",
+      "steps": [
+        { "title": "Registrasi Sistem", "desc": "Data dokumen didaftarkan secara digital." },
+        { "title": "Cetak Manifest", "desc": "Manifest fisik sebagai tanda terima pengiriman." },
+        { "title": "Pengiriman Fisik", "desc": "Kirim dokumen ke pusat pengolahan arsip." },
+        { "title": "Proses Digital", "desc": "Dokumen dipindai dan diindeks sepenuhnya." }
+      ],
+      "tips_title": "Tips Pengarsipan",
+      "tips": [
+        "Pastikan subjek dokumen spesifik agar mudah dicari.",
+        "Kelompokkan dokumen per departemen sebelum diunggah.",
+        "Gunakan fitur unggah massal untuk lebih dari 10 dokumen."
+      ],
+      "recent_title": "Pengajuan Terbaru",
+      "view_history": "LIHAT SEMUA RIWAYAT"
+    },
+    "mock": {
+      "recents": {
+        "two_hours_ago": "2 jam lalu",
+        "approved": "Disetujui",
+        "yesterday": "Kemarin",
+        "pending": "Tertunda",
+        "draft": "Draf"
+      },
+      "bulk_data": {
+        "invoice": "Invoice",
+        "subject_1": "Tagihan Listrik - Jan 2024",
+        "contract": "Kontrak",
+        "memo": "Memo",
+        "subject_3": "Memo Internal - Kebijakan Baru",
+        "tax": "Pajak",
+        "subject_4": "Laporan PPN Masa",
+        "err_missing_subject": "Subjek dokumen wajib diisi",
+        "err_invalid_cat": "Kategori tidak dikenal"
+      },
+      "manifest": {
+        "item_1": "Kontrak Sewa Kantor 2024",
+        "item_2": "Laporan Pajak Tahunan",
+        "item_3": "Daftar Gaji Karyawan - Feb",
+        "item_42": "SOP Operasional Gudang"
+      }
+    },
+    "success_modal": {
+      "print": "CETAK MANIFEST"
+    }
+  }
+}

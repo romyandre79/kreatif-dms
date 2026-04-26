@@ -14,7 +14,7 @@ import (
 
 const createBatch = `-- name: CreateBatch :one
 INSERT INTO processing_batches (user_id, total_files) 
-VALUES ($1, $2) RETURNING id, user_id, total_files, processed_files, status, created_at, updated_at
+VALUES ($1, $2) RETURNING id, user_id, total_files, processed_files, status, created_at, updated_at, intake_session_id, department_id
 `
 
 type CreateBatchParams struct {
@@ -33,6 +33,8 @@ func (q *Queries) CreateBatch(ctx context.Context, arg CreateBatchParams) (Proce
 		&i.Status,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.IntakeSessionID,
+		&i.DepartmentID,
 	)
 	return i, err
 }
@@ -43,7 +45,7 @@ INSERT INTO documents (
     company_id, branch_id, department_id, owner_id, status, batch_id
 ) VALUES (
     $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12
-) RETURNING id, title, description, file_name, file_path, file_size, mime_type, checksum, company_id, branch_id, department_id, rack_id, box_id, ordner_id, owner_id, current_version, status, tags, metadata, extracted_text, is_ocr_processed, created_at, updated_at, batch_id
+) RETURNING id, title, description, file_name, file_path, file_size, mime_type, checksum, company_id, branch_id, department_id, rack_id, box_id, ordner_id, owner_id, current_version, status, tags, metadata, extracted_text, is_ocr_processed, created_at, updated_at, batch_id, retention_years, retention_expiry_date, sensitivity, circulation_id, minio_bucket, es_indexed
 `
 
 type CreateDocumentParams struct {
@@ -102,12 +104,18 @@ func (q *Queries) CreateDocument(ctx context.Context, arg CreateDocumentParams) 
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.BatchID,
+		&i.RetentionYears,
+		&i.RetentionExpiryDate,
+		&i.Sensitivity,
+		&i.CirculationID,
+		&i.MinioBucket,
+		&i.EsIndexed,
 	)
 	return i, err
 }
 
 const getBatch = `-- name: GetBatch :one
-SELECT id, user_id, total_files, processed_files, status, created_at, updated_at FROM processing_batches WHERE id = $1 LIMIT 1
+SELECT id, user_id, total_files, processed_files, status, created_at, updated_at, intake_session_id, department_id FROM processing_batches WHERE id = $1 LIMIT 1
 `
 
 func (q *Queries) GetBatch(ctx context.Context, id uuid.UUID) (ProcessingBatch, error) {
@@ -121,12 +129,14 @@ func (q *Queries) GetBatch(ctx context.Context, id uuid.UUID) (ProcessingBatch, 
 		&i.Status,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.IntakeSessionID,
+		&i.DepartmentID,
 	)
 	return i, err
 }
 
 const getDocument = `-- name: GetDocument :one
-SELECT id, title, description, file_name, file_path, file_size, mime_type, checksum, company_id, branch_id, department_id, rack_id, box_id, ordner_id, owner_id, current_version, status, tags, metadata, extracted_text, is_ocr_processed, created_at, updated_at, batch_id FROM documents WHERE id = $1 LIMIT 1
+SELECT id, title, description, file_name, file_path, file_size, mime_type, checksum, company_id, branch_id, department_id, rack_id, box_id, ordner_id, owner_id, current_version, status, tags, metadata, extracted_text, is_ocr_processed, created_at, updated_at, batch_id, retention_years, retention_expiry_date, sensitivity, circulation_id, minio_bucket, es_indexed FROM documents WHERE id = $1 LIMIT 1
 `
 
 func (q *Queries) GetDocument(ctx context.Context, id uuid.UUID) (Document, error) {
@@ -157,12 +167,18 @@ func (q *Queries) GetDocument(ctx context.Context, id uuid.UUID) (Document, erro
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.BatchID,
+		&i.RetentionYears,
+		&i.RetentionExpiryDate,
+		&i.Sensitivity,
+		&i.CirculationID,
+		&i.MinioBucket,
+		&i.EsIndexed,
 	)
 	return i, err
 }
 
 const getDocumentsByBatch = `-- name: GetDocumentsByBatch :many
-SELECT id, title, description, file_name, file_path, file_size, mime_type, checksum, company_id, branch_id, department_id, rack_id, box_id, ordner_id, owner_id, current_version, status, tags, metadata, extracted_text, is_ocr_processed, created_at, updated_at, batch_id FROM documents WHERE batch_id = $1
+SELECT id, title, description, file_name, file_path, file_size, mime_type, checksum, company_id, branch_id, department_id, rack_id, box_id, ordner_id, owner_id, current_version, status, tags, metadata, extracted_text, is_ocr_processed, created_at, updated_at, batch_id, retention_years, retention_expiry_date, sensitivity, circulation_id, minio_bucket, es_indexed FROM documents WHERE batch_id = $1
 `
 
 func (q *Queries) GetDocumentsByBatch(ctx context.Context, batchID pgtype.UUID) ([]Document, error) {
@@ -199,6 +215,12 @@ func (q *Queries) GetDocumentsByBatch(ctx context.Context, batchID pgtype.UUID) 
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.BatchID,
+			&i.RetentionYears,
+			&i.RetentionExpiryDate,
+			&i.Sensitivity,
+			&i.CirculationID,
+			&i.MinioBucket,
+			&i.EsIndexed,
 		); err != nil {
 			return nil, err
 		}
@@ -211,7 +233,7 @@ func (q *Queries) GetDocumentsByBatch(ctx context.Context, batchID pgtype.UUID) 
 }
 
 const listDocumentsByDepartment = `-- name: ListDocumentsByDepartment :many
-SELECT id, title, description, file_name, file_path, file_size, mime_type, checksum, company_id, branch_id, department_id, rack_id, box_id, ordner_id, owner_id, current_version, status, tags, metadata, extracted_text, is_ocr_processed, created_at, updated_at, batch_id FROM documents 
+SELECT id, title, description, file_name, file_path, file_size, mime_type, checksum, company_id, branch_id, department_id, rack_id, box_id, ordner_id, owner_id, current_version, status, tags, metadata, extracted_text, is_ocr_processed, created_at, updated_at, batch_id, retention_years, retention_expiry_date, sensitivity, circulation_id, minio_bucket, es_indexed FROM documents 
 WHERE department_id = $1 
 ORDER BY created_at DESC
 `
@@ -250,6 +272,12 @@ func (q *Queries) ListDocumentsByDepartment(ctx context.Context, departmentID uu
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.BatchID,
+			&i.RetentionYears,
+			&i.RetentionExpiryDate,
+			&i.Sensitivity,
+			&i.CirculationID,
+			&i.MinioBucket,
+			&i.EsIndexed,
 		); err != nil {
 			return nil, err
 		}

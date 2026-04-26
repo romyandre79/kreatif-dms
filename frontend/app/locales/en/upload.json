@@ -1,0 +1,166 @@
+{
+  "upload": {
+    "title": "Upload Document",
+    "subtitle": "Register new documents into the digital archive system.",
+    "tabs": {
+      "manual": "Manual Entry",
+      "bulk": "Bulk Upload (Excel)"
+    },
+    "form": {
+      "title": "Document Details",
+      "type": "Document Type",
+      "type_placeholder": "Select document type",
+      "subject": "Subject / Title",
+      "subject_placeholder": "Enter a short title for the document",
+      "category": "Confidentiality Category",
+      "category_placeholder": "Select category",
+      "department": "Owner Department",
+      "department_hint": "Automatically determined based on your department",
+      "count": "Number of Pages",
+      "date": "Document Date",
+      "notes": "Additional Notes",
+      "notes_placeholder": "Additional information if any...",
+      "notes_urgent_placeholder": "Please enter a reason for urgency...",
+      "urgency": "Urgency Level",
+      "urgency_levels": {
+        "normal": "Normal",
+        "high": "High",
+        "urgent": "Urgent"
+      },
+      "urgent_warning": "Urgent requests will be prioritized in the scanning queue.",
+      "char_limit": "{count} / 200 characters",
+      "save_draft": "Save Draft",
+      "cancel": "Cancel",
+      "submit": "Submit Document",
+      "processing": "Processing...",
+      "options": {
+        "types": {
+          "invoice": "Invoice / Billing",
+          "contract": "Contract / Agreement",
+          "personnel": "Personnel Documents",
+          "financial": "Financial Reports"
+        },
+        "options": {
+          "confidential": "Strictly Confidential",
+          "internal": "Internal",
+          "public": "Public"
+        }
+      }
+    },
+    "bulk": {
+      "title": "Mass Bulk Upload",
+      "subtitle": "Use the Excel template to register multiple documents at once.",
+      "step1_title": "Download Template",
+      "step1_filename": "DMS_Bulk_Template.xlsx",
+      "step1_version": "Version 2.1 - Updated 2 days ago",
+      "step1_download": "DOWNLOAD EXCEL TEMPLATE",
+      "step1_info": "Please do not change the column headers in the template for a smooth validation process.",
+      "step2_title": "Upload Data File",
+      "step2_dropzone": "Drag your Excel file here",
+      "step2_formats": "Supports .xlsx and .xls formats (Max 10MB)",
+      "step2_browse": "BROWSE FILES",
+      "validation_rules_title": "Important Validation Rules",
+      "rules": [
+        "Document Type and Subject columns are required.",
+        "Date format must be DD.MM.YYYY.",
+        "Maximum 500 rows per upload file."
+      ],
+      "review": {
+        "subtitle": "Please review the extracted data before confirmation.",
+        "stats": {
+          "total": "TOTAL ROWS",
+          "items": "items",
+          "valid": "VALID DATA",
+          "success_rate": "{rate}% Accuracy Rate",
+          "errors": "REQUIRES FIX",
+          "action_required": "Action Required"
+        },
+        "table": {
+          "status": "STATUS",
+          "type": "TYPE",
+          "subject": "SUBJECT",
+          "category": "CATEGORY",
+          "date": "DATE",
+          "actions": "ACTIONS",
+          "empty": "[EMPTY]"
+        },
+        "footer": {
+          "bulk_actions_label": "BULK ACTIONS:",
+          "select_action": "Select Action...",
+          "delete_selected": "Delete Selected",
+          "change_category": "Change Category",
+          "apply": "APPLY",
+          "revalidate": "REVALIDATE",
+          "errors_found": "{count} Errors found in this batch.",
+          "upload_different": "UPLOAD DIFFERENT FILE",
+          "submit_all": "SUBMIT ALL ({count} ITEMS)"
+        }
+      },
+      "progress": {
+        "title": "Processing Data",
+        "subtitle": "Please wait, we are validating your data rows.",
+        "action": "VALIDATING...",
+        "cancel": "CANCEL"
+      },
+      "success": {
+        "status": "UPLOAD SUCCESSFUL",
+        "title": "Data Successfully Registered!",
+        "summary_title": "BATCH SUMMARY",
+        "summary_text": "{count} documents have been successfully registered and are awaiting physical delivery.",
+        "ids_title": "REGISTERED IDS",
+        "copy_all": "COPY ALL",
+        "download_csv": "DOWNLOAD CSV",
+        "next_steps_title": "NEXT STEPS",
+        "next_steps_text": "Print the manifest and attach it to the physical box/file before sending to the archive center.",
+        "submit_another": "Upload Another Batch",
+        "close": "CLOSE"
+      }
+    },
+    "side": {
+      "next_title": "Next Steps",
+      "steps": [
+        { "title": "System Registration", "desc": "Document data is registered digitally." },
+        { "title": "Print Manifest", "desc": "Physical manifest as a delivery receipt." },
+        { "title": "Physical Delivery", "desc": "Send documents to the archive processing center." },
+        { "title": "Digital Processing", "desc": "Documents are fully scanned and indexed." }
+      ],
+      "tips_title": "Filing Tips",
+      "tips": [
+        "Ensure document subjects are specific for easy searching.",
+        "Group documents by department before uploading.",
+        "Use bulk upload for more than 10 documents."
+      ],
+      "recent_title": "Recent Submissions",
+      "view_history": "VIEW ALL HISTORY"
+    },
+    "mock": {
+      "recents": {
+        "two_hours_ago": "2 hours ago",
+        "approved": "Approved",
+        "yesterday": "Yesterday",
+        "pending": "Pending",
+        "draft": "Draft"
+      },
+      "bulk_data": {
+        "invoice": "Invoice",
+        "subject_1": "Electricity Bill - Jan 2024",
+        "contract": "Contract",
+        "memo": "Memo",
+        "subject_3": "Internal Memo - New Policy",
+        "tax": "Tax",
+        "subject_4": "Monthly VAT Report",
+        "err_missing_subject": "Document subject is required",
+        "err_invalid_cat": "Unknown category"
+      },
+      "manifest": {
+        "item_1": "Office Lease Contract 2024",
+        "item_2": "Annual Tax Report",
+        "item_3": "Employee Payroll - Feb",
+        "item_42": "Warehouse Operations SOP"
+      }
+    },
+    "success_modal": {
+      "print": "PRINT MANIFEST"
+    }
+  }
+}

@@ -50,6 +50,7 @@ type Config struct {
 	LDAPBindDN   string `mapstructure:"LDAP_BIND_DN"`
 	LDAPBindPass string `mapstructure:"LDAP_BIND_PASS"`
 	LDAPUserFilter string `mapstructure:"LDAP_USER_FILTER"`
+	LDAPSimulation bool   `mapstructure:"LDAP_SIMULATION"`
 }
 
 func LoadConfig(path string) (config Config, err error) {

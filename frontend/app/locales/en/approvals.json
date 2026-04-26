@@ -1,0 +1,74 @@
+{
+  "approvals": {
+    "loans": {
+      "title": "{level} Loan Approvals",
+      "subtitle_l1": "Review document loan requests from your department.",
+      "subtitle_l2": "Verify and prepare physical documents for pickup.",
+      "l1_validated": "L1 Validated",
+      "filter": "Filter",
+      "export": "Export CSV",
+      "stats": {
+        "l1_waiting": "WAITING REVIEW",
+        "l2_waiting": "READY TO PROCESS",
+        "l1_approved": "APPROVED TODAY",
+        "l2_release": "READY FOR PICKUP",
+        "l1_rejected": "REJECTED THIS MONTH",
+        "l2_pickup": "PICKED UP",
+        "l1_sla": "SLA APPROACHING",
+        "l2_overdue": "OVERDUE RETURN"
+      },
+      "queue": {
+        "title_l1": "Department Approval Queue",
+        "title_l2": "Physical Preparation Queue",
+        "all_l1_approved": "All requests have been validated by L1 Manager",
+        "table": {
+          "req_no": "REQ NO",
+          "requestor": "REQUESTOR",
+          "dept": "DEPARTMENT",
+          "method": "METHOD",
+          "approver_l1": "L1 APPROVER",
+          "purpose": "PURPOSE",
+          "security": "SECURITY",
+          "docs": "DOCS",
+          "duration": "DURATION",
+          "priority": "PRIORITY"
+        }
+      },
+      "summary": {
+        "title_l1": "Request Summary",
+        "title_l2": "L2 Physical Verification",
+        "l1_approval_status": "L1 APPROVAL STATUS",
+        "purpose_title": "LOAN PURPOSE",
+        "storage_validation": "STORAGE LOCATION VALIDATION",
+        "in_stock": "IN STOCK",
+        "docs_requested": "{count} Documents Requested",
+        "security_checklist": "SECURITY & PHYSICAL CHECKLIST",
+        "policy_l1": "By approving, you guarantee that the requestor has permission to access the information in this document.",
+        "policy_l2": "Ensure all QR labels are attached and documents are scanned before handing over to courier/requestor.",
+        "empty": {
+          "title": "Select a Request",
+          "desc": "Select an item from the {level} queue to view details and perform actions."
+        }
+      },
+      "actions": {
+        "rejection_reason": "REJECTION REASON",
+        "rejection_hint": "REQUIRED",
+        "rejection_placeholder": "Explain why this request is being rejected...",
+        "btn_back_approve": "BACK TO APPROVAL",
+        "btn_confirm_reject": "CONFIRM REJECTION",
+        "btn_approve_l1": "APPROVE REQUEST",
+        "btn_approve_l2": "CONFIRM RELEASE",
+        "btn_reject": "REJECT REQUEST",
+        "footer_hint_l1": "This action will be forwarded to the Archive Management team (L2).",
+        "footer_hint_l2": "This action will update the tracking status to 'READY FOR PICKUP'."
+      },
+      "modal_pin": {
+        "title": "Authority Confirmation",
+        "desc": "Enter your 6-digit PIN to perform final physical document release verification.",
+        "btn_confirm": "VERIFY & COMPLETE",
+        "btn_cancel": "CANCEL",
+        "footer": "Your PIN is used as a valid digital signature."
+      }
+    }
+  }
+}

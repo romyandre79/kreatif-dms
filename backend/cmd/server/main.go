@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"os"
+	"runtime"
 	"time"
 
 	"github.com/elastic/go-elasticsearch/v8"
@@ -62,23 +63,33 @@ func main() {
 	}
 
 	// Initialize Infrastructure
-	dbPool := config.InitDatabase(cfg.DatabaseURL)
-	defer dbPool.Close()
+	dbPool, err := config.InitDatabase(cfg.DatabaseURL)
+	if err != nil {
+		log.Printf("WARNING: Application starting without Database: %v\n", err)
+	} else {
+		defer dbPool.Close()
+	}
 
-	rdb := config.InitRedis(cfg.RedisURL)
-	defer rdb.Close()
+	rdb, err := config.InitRedis(cfg.RedisURL)
+	var asynqClient *asynq.Client
+	if err != nil {
+		log.Printf("WARNING: Application starting without Redis: %v\n", err)
+	} else {
+		defer rdb.Close()
+		asynqClient = asynq.NewClient(asynq.RedisClientOpt{Addr: cfg.RedisURL})
+		defer asynqClient.Close()
+	}
 
-	asynqClient := asynq.NewClient(asynq.RedisClientOpt{Addr: cfg.RedisURL})
-	defer asynqClient.Close()
-
-	minioClient := config.InitMinIO(cfg.MinIOEndpoint, cfg.MinIOAccessKey, cfg.MinIOSecretKey, cfg.MinIOUseSSL, cfg.MinIOBucket)
-	_ = minioClient // For later use
+	minioClient, err := config.InitMinIO(cfg.MinIOEndpoint, cfg.MinIOAccessKey, cfg.MinIOSecretKey, cfg.MinIOUseSSL, cfg.MinIOBucket)
+	if err != nil {
+		log.Printf("WARNING: Application starting without MinIO: %v\n", err)
+	}
 
 	es, err := elasticsearch.NewClient(elasticsearch.Config{
 		Addresses: []string{cfg.ElasticsearchURL},
 	})
 	if err != nil {
-		log.Fatalf("ES client error: %v", err)
+		log.Printf("WARNING: Elasticsearch client error: %v\n", err)
 	}
 
 	// Repositories
@@ -92,12 +103,16 @@ func main() {
 	docSvc := service.NewDocumentService(repo, storageSvc, asynqClient)
 	searchSvc := infra.NewSearchService(es)
 	_ = service.NewCacheService(rdb) // Initialized for performance later
+	masterSvc := service.NewMasterService(repo)
+	hardwareSvc := service.NewHardwareService(repo)
 
 	// Handlers
 	authHandler := handler.NewAuthHandler(authSvc)
 	userHandler := handler.NewUserHandler(repo)
 	docHandler := handler.NewDocumentHandler(docSvc, searchSvc)
 	batchHandler := handler.NewBatchHandler(docSvc)
+	masterHandler := handler.NewMasterHandler(masterSvc)
+	hardwareHandler := handler.NewHardwareHandler(hardwareSvc)
 
 	// Create Fiber App
 	app := fiber.New(fiber.Config{
@@ -132,6 +147,11 @@ func main() {
 	authGroup.Post("/login", authHandler.Login)
 	authGroup.Post("/register", authHandler.Register)
 	authGroup.Post("/forgot-password", authHandler.ForgotPassword)
+	
+	// Protected Auth Routes
+	authGroup.Use(middleware.AuthMiddleware(cfg.JWTSecret))
+	authGroup.Post("/pin", authHandler.SetPIN)
+	authGroup.Post("/pin/verify", authHandler.VerifyPIN)
 
 	// User Routes
 	userGroup := api.Group("/users")
@@ -152,6 +172,24 @@ func main() {
 	batchGroup.Use(middleware.AuthMiddleware(cfg.JWTSecret))
 	batchGroup.Post("/", batchHandler.Create)
 	batchGroup.Get("/:id", batchHandler.GetStatus)
+
+	// Master Data Routes
+	masterGroup := api.Group("/master")
+	masterGroup.Use(middleware.AuthMiddleware(cfg.JWTSecret))
+	masterGroup.Get("/companies", masterHandler.ListCompanies)
+	masterGroup.Get("/branches", masterHandler.ListBranches)
+	masterGroup.Get("/topology", masterHandler.GetTopology)
+	masterGroup.Get("/roles", masterHandler.ListRoles)
+	masterGroup.Get("/retention", masterHandler.ListRetentionPolicies)
+	masterGroup.Get("/settings/:category", masterHandler.GetSettings)
+	masterGroup.Post("/settings/:category", masterHandler.UpdateSetting)
+
+	// Hardware Master Routes
+	hardwareGroup := api.Group("/hardware")
+	hardwareGroup.Use(middleware.AuthMiddleware(cfg.JWTSecret))
+	hardwareGroup.Post("/rfid/assign", hardwareHandler.AssignRFID)
+	hardwareGroup.Get("/rfid", hardwareHandler.ListRFID)
+	hardwareGroup.Get("/labels/generate", hardwareHandler.GenerateLabel)
 
 	// Health check
 	app.Get("/health", func(c fiber.Ctx) error {
@@ -284,7 +322,16 @@ func main() {
 
 	// Start server
 	log.Printf("Server starting on port %s", cfg.AppPort)
+	// Detect Windows to avoid Prefork IPC issues
+	enablePrefork := cfg.AppPrefork
+	if runtime.GOOS == "windows" {
+		if enablePrefork {
+			log.Println("WARNING: Fiber Prefork is not stable on Windows. Forcing EnablePrefork to false.")
+		}
+		enablePrefork = false
+	}
+
 	log.Fatal(app.Listen(":"+cfg.AppPort, fiber.ListenConfig{
-		EnablePrefork: cfg.AppPrefork,
+		EnablePrefork: enablePrefork,
 	}))
 }

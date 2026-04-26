@@ -1,12 +1,13 @@
+// https://nuxt.com/docs/api/configuration/nuxt-config
 import tailwindcss from "@tailwindcss/vite";
 
-// https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
   future: {
-    compatibilityVersion: 4,
   },
-  devtools: { enabled: true },
+  ssr: false, // Disable SSR to avoid vite-node IPC issues on Windows
+  devtools: { enabled: false }, // Disable devtools to save RAM
+  sourcemap: { server: false, client: false }, // Disable sourcemaps to save RAM
   app: {
     head: {
       link: [
@@ -22,55 +23,51 @@ export default defineNuxtConfig({
     '@vueuse/motion/nuxt',
     '@nuxt/eslint',
     'nuxt-security',
-    '@nuxtjs/i18n',
-    '@vite-pwa/nuxt'
+    '@nuxtjs/i18n'
   ],
-  pwa: {
-    registerType: 'autoUpdate',
-    manifest: {
-      name: 'Kreatif DMS',
-      short_name: 'KreatifDMS',
-      theme_color: '#1E3A5F',
-      icons: [
-        {
-          src: 'icons/icon.png',
-          sizes: '192x192',
-          type: 'image/png'
-        },
-        {
-          src: 'icons/icon.png',
-          sizes: '512x512',
-          type: 'image/png'
-        },
-        {
-          src: 'icons/icon.png',
-          sizes: '512x512',
-          type: 'image/png',
-          purpose: 'any maskable'
-        }
-      ]
-    },
-    workbox: {
-      navigateFallback: '/',
-      globPatterns: ['**/*.{js,css,html,png,svg,ico}']
-    },
-    client: {
-      installPrompt: true,
-      periodicSyncForUpdates: 3600,
-    },
-    devOptions: {
-      enabled: true,
-      type: 'classic',
-    }
-  },
   i18n: {
     locales: [
-      { code: 'en', name: 'English', file: 'en.json' },
-      { code: 'id', name: 'Bahasa Indonesia', file: 'id.json' }
+      { 
+        code: 'en', 
+        name: 'English', 
+        files: [
+          'en/common.json',
+          'en/layout.json',
+          'en/landing.json',
+          'en/login.json',
+          'en/dashboard.json',
+          'en/documents.json',
+          'en/upload.json',
+          'en/manifest.json',
+          'en/warehouse.json',
+          'en/loans.json',
+          'en/approvals.json',
+          'en/admin.json'
+        ] 
+      },
+      { 
+        code: 'id', 
+        name: 'Bahasa Indonesia', 
+        files: [
+          'id/common.json',
+          'id/layout.json',
+          'id/landing.json',
+          'id/login.json',
+          'id/dashboard.json',
+          'id/documents.json',
+          'id/upload.json',
+          'id/manifest.json',
+          'id/warehouse.json',
+          'id/loans.json',
+          'id/approvals.json',
+          'id/admin.json'
+        ] 
+      }
     ],
     defaultLocale: 'id',
     lazy: false,
-    langDir: './locales',
+    langDir: 'locales',
+    restructureDir: 'app',
     strategy: 'no_prefix'
   },
   runtimeConfig: {
@@ -87,10 +84,36 @@ export default defineNuxtConfig({
       },
     },
   },
+  devServer: {
+    host: 'localhost',
+    port: 3000
+  },
   vite: {
     plugins: [
       tailwindcss(),
     ],
+    optimizeDeps: {
+      include: [
+        'lucide-vue-next',
+      ]
+    },
+    server: {
+      watch: {
+        usePolling: true,
+        interval: 1000, // Faster polling than 2500 for better responsiveness
+        binaryInterval: 1000
+      },
+      hmr: {
+        overlay: false, // Disable HMR overlay to save RAM
+        protocol: 'ws' // Explicitly use WebSockets to avoid IPC channel issues
+      }
+    },
+    build: {
+      chunkSizeWarningLimit: 1000,
+      commonjsOptions: {
+        transformMixedEsModules: true
+      }
+    }
   },
   css: ['./app/assets/css/main.css'],
 })

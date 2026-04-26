@@ -16,6 +16,26 @@
       </div>
 
       <div class="flex items-center gap-4">
+        <!-- Language Switcher -->
+        <div class="relative group mr-2">
+          <button class="flex items-center gap-2 text-sm font-medium text-slate-400 hover:text-white transition-colors uppercase">
+            <LucideLanguages class="w-4 h-4" />
+            {{ locale }}
+          </button>
+          <div class="absolute right-0 mt-2 w-40 glass border border-white/10 rounded-xl py-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50">
+            <button 
+              v-for="loc in locales" 
+              :key="loc.code"
+              @click="setLocale(loc.code)"
+              class="w-full flex items-center justify-between px-4 py-2 text-sm font-bold transition-colors"
+              :class="locale === loc.code ? 'text-primary-400 bg-white/5' : 'text-slate-400 hover:text-white hover:bg-white/10'"
+            >
+              <span>{{ loc.name }}</span>
+              <LucideCheck v-if="locale === loc.code" class="w-3 h-3" />
+            </button>
+          </div>
+        </div>
+
         <NuxtLink to="/login" class="text-sm font-semibold hover:text-primary-400 transition-colors">{{ $t('landing.nav.sign_in') }}</NuxtLink>
         <NuxtLink to="/dashboard" class="px-5 py-2.5 rounded-full bg-white text-slate-950 text-sm font-bold hover:bg-slate-200 transition-all">
           {{ $t('landing.nav.get_started') }}
@@ -100,6 +120,72 @@
       </div>
     </section>
 
+    <!-- Solutions Section -->
+    <section id="solutions" class="py-24 px-6 bg-white/[0.02]">
+      <div class="max-w-7xl mx-auto">
+        <div class="grid lg:grid-cols-2 gap-16 items-center">
+          <div v-motion-slide-visible-left>
+            <h2 class="text-4xl font-bold mb-6">Solutions for every <span class="text-primary-500">Industry</span></h2>
+            <p class="text-slate-400 mb-10 leading-relaxed text-lg">
+              Whether you are in Finance, Legal, or Manufacturing, Kreatif DMS adapts to your specific compliance and archival needs.
+            </p>
+            <div class="space-y-6">
+              <div v-for="(sol, i) in solutions" :key="i" class="flex gap-4 p-4 rounded-2xl hover:bg-white/5 transition-all cursor-default group">
+                <div class="w-12 h-12 rounded-xl bg-primary-500/10 flex items-center justify-center flex-shrink-0 group-hover:bg-primary-500 transition-colors">
+                  <component :is="sol.icon" class="w-6 h-6 text-primary-400 group-hover:text-white" />
+                </div>
+                <div>
+                  <h4 class="font-bold mb-1">{{ sol.title }}</h4>
+                  <p class="text-sm text-slate-500">{{ sol.desc }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div v-motion-slide-visible-right class="relative">
+            <div class="aspect-square glass rounded-[3rem] p-8 flex items-center justify-center relative overflow-hidden">
+               <div class="absolute inset-0 bg-primary-500/5 animate-pulse"></div>
+               <LucideCpu class="w-48 h-48 text-primary-500/20" />
+               <div class="absolute inset-0 flex items-center justify-center">
+                  <div class="text-center">
+                    <p class="text-5xl font-black text-white mb-2">99.9%</p>
+                    <p class="text-xs font-bold uppercase tracking-[0.2em] text-primary-400">OCR Accuracy</p>
+                  </div>
+               </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Security Section -->
+    <section id="security" class="py-32 px-6 relative overflow-hidden">
+      <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-blue-500/5 blur-[120px] rounded-full -z-10"></div>
+      <div class="max-w-4xl mx-auto text-center" v-motion-fade-visible>
+        <div class="inline-flex p-4 rounded-3xl bg-green-500/10 border border-green-500/20 mb-8">
+          <LucideLock class="w-10 h-10 text-green-500" />
+        </div>
+        <h2 class="text-4xl md:text-6xl font-bold mb-8">Military-Grade <span class="text-green-500">Security</span></h2>
+        <p class="text-xl text-slate-400 leading-relaxed mb-12">
+          Your documents are your most valuable assets. We protect them with AES-256 bit encryption, 
+          multi-factor authentication, and immutable audit trails.
+        </p>
+        <div class="grid sm:grid-cols-3 gap-6">
+          <div class="p-6 glass rounded-2xl">
+            <p class="text-2xl font-bold mb-1">AES-256</p>
+            <p class="text-xs text-slate-500 font-bold uppercase">Encryption</p>
+          </div>
+          <div class="p-6 glass rounded-2xl">
+            <p class="text-2xl font-bold mb-1">ISO 27001</p>
+            <p class="text-xs text-slate-500 font-bold uppercase">Compliance</p>
+          </div>
+          <div class="p-6 glass rounded-2xl">
+            <p class="text-2xl font-bold mb-1">SLA 99.9%</p>
+            <p class="text-xs text-slate-500 font-bold uppercase">Uptime</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- Stats Section -->
     <section class="py-20 border-y border-white/5 bg-white/[0.02]">
       <div class="max-w-7xl mx-auto px-6 grid grid-cols-2 lg:grid-cols-4 gap-12 text-center">
@@ -161,8 +247,12 @@ import {
   LucideZap, 
   LucideSearch, 
   LucideCpu, 
-  LucideCloud 
+  LucideCloud,
+  LucideLanguages,
+  LucideCheck
 } from 'lucide-vue-next'
+
+const { locale, locales, setLocale } = useI18n()
 
 definePageMeta({
   layout: false

@@ -1,0 +1,239 @@
+{
+  "metadata": {
+    "title": "Metadata Management",
+    "subtitle": "Configure document fields and schemas",
+    "btn_add_field": "Add Field",
+    "table": {
+      "field_name": "FIELD NAME",
+      "data_type": "DATA TYPE",
+      "required": "REQUIRED",
+      "searchable": "SEARCHABLE",
+      "actions": "ACTIONS"
+    }
+  },
+  "search": {
+    "title": "Advanced Document Search",
+    "placeholder": "Search by title, manifest, or document content...",
+    "filters": {
+      "title": "Filters",
+      "date_range": "Date Range",
+      "doc_type": "Document Type",
+      "department": "Department",
+      "status": "Status",
+      "clear_all": "Clear All"
+    },
+    "results": {
+      "found": "Found {count} documents",
+      "no_results": "No documents found",
+      "table": {
+        "id": "ID",
+        "title": "TITLE",
+        "date": "DATE",
+        "dept": "DEPT",
+        "status": "STATUS"
+      }
+    }
+  },
+  "settings": {
+    "title": "System Settings",
+    "general": {
+      "title": "General",
+      "app_name": "App Name",
+      "timezone": "Timezone",
+      "language": "Default Language"
+    },
+    "security": {
+      "title": "Security",
+      "password_policy": "Password Policy",
+      "two_factor": "Two-Factor Auth",
+      "session_timeout": "Session Timeout"
+    },
+    "notifications": {
+      "title": "Notifications",
+      "email_alerts": "Email Alerts",
+      "system_alerts": "System Alerts",
+      "push_notifications": "Push Notifications"
+    }
+  },
+  "retention": {
+    "title": "Retention Policy",
+    "table": {
+      "policy_name": "Policy Name",
+      "duration": "Duration (Years)",
+      "action": "Final Action",
+      "status": "Status",
+      "action_destroy": "Destroy",
+      "action_archive": "Permanent Archive"
+    }
+  },
+  "audit": {
+    "title": "System Audit Logs",
+    "table": {
+      "timestamp": "TIMESTAMP",
+      "user": "USER",
+      "action": "ACTION",
+      "module": "MODULE",
+      "ip_address": "IP ADDRESS"
+    }
+  },
+  "metadata_management": {
+    "title": "Metadata Management",
+    "subtitle": "Configure document indexing schemas",
+    "field_groups": {
+      "general": "General Information",
+      "legal": "Legal Information",
+      "finance": "Finance Information",
+      "hr": "Human Resources"
+    },
+    "actions": {
+      "new_field": "New Field",
+      "import_schema": "Import Schema",
+      "export_schema": "Export Schema"
+    },
+    "table": {
+      "field_label": "FIELD LABEL",
+      "key": "KEY",
+      "type": "TYPE",
+      "validation": "VALIDATION",
+      "required": "REQUIRED"
+    }
+  },
+  "reports_analytics": {
+    "title": "Reports & Analytics",
+    "subtitle": "Operational insights and system performance",
+    "charts": {
+      "doc_growth": "Document Growth",
+      "scan_throughput": "Scanning Throughput",
+      "user_activity": "User Activity",
+      "storage_forecast": "Storage Forecast"
+    },
+    "metrics": {
+      "avg_processing_time": "Avg Processing Time",
+      "ocr_accuracy": "OCR Accuracy",
+      "error_rate": "Error Rate",
+      "system_uptime": "System Uptime"
+    }
+  },
+  "loan_management": {
+    "title": "Document Loan Management",
+    "subtitle": "Track physical requests and returns",
+    "tabs": {
+      "pending": "Pending Approval",
+      "active": "Active Loans",
+      "overdue": "Overdue",
+      "history": "Full History"
+    },
+    "table": {
+      "request_id": "REQUEST ID",
+      "borrower": "BORROWER",
+      "document": "DOCUMENT",
+      "due_date": "DUE DATE",
+      "status": "STATUS"
+    }
+  },
+  "system_administration": {
+    "title": "System Administration",
+    "subtitle": "Advanced configuration and system management",
+    "sections": {
+      "user_roles": "User Roles & Permissions",
+      "api_keys": "API Key Management",
+      "storage_config": "Storage Configuration",
+      "backup_restore": "Backup & Restore"
+    }
+  },
+  "retention_disposition": {
+    "title": "Retention & Disposition",
+    "subtitle": "Manage document lifecycles and disposal",
+    "actions": {
+      "disposal_report": "Disposal Report",
+      "extend_retention": "Extend Retention",
+      "approve_destruction": "Approve Destruction"
+    },
+    "table": {
+      "policy_id": "POLICY ID",
+      "doc_count": "DOC COUNT",
+      "expiration": "EXPIRATION",
+      "action": "ACTION"
+    }
+  },
+  "archive_search": {
+    "title": "Archive Search",
+    "subtitle": "Search across millions of records with smart filters",
+    "advanced_filters": {
+      "date_range": "Date Range",
+      "location": "Physical Location",
+      "classification": "Classification",
+      "owner": "Document Owner"
+    }
+  },
+  "document_staging": {
+    "title": "Staging Area",
+    "subtitle": "Validate documents before main archive entry",
+    "actions": {
+      "approve_selected": "Approve Selected",
+      "reject_selected": "Reject Selected",
+      "edit_metadata": "Edit Metadata"
+    },
+    "table": {
+      "temp_id": "TEMP ID",
+      "source": "SOURCE",
+      "scan_quality": "SCAN QUALITY",
+      "status": "STATUS"
+    }
+  },
+  "legacy_migration": {
+    "title": "Legacy Data Migration",
+    "subtitle": "Import data from old systems or bulk files",
+    "steps": {
+      "upload": "Upload Files",
+      "mapping": "Column Mapping",
+      "validation": "Data Validation",
+      "import": "Process Import"
+    }
+  },
+  "user_management": {
+    "title": "User Management",
+    "subtitle": "Manage user access and privileges",
+    "actions": {
+      "new_user": "New User",
+      "export_users": "Export List",
+      "bulk_invite": "Bulk Invite"
+    },
+    "table": {
+      "full_name": "FULL NAME",
+      "email": "EMAIL",
+      "role": "ROLE",
+      "last_login": "LAST LOGIN",
+      "status": "STATUS"
+    }
+  },
+  "role_permissions": {
+    "title": "Roles & Permissions",
+    "subtitle": "Configure Role-Based Access Control (RBAC)",
+    "table": {
+      "role_name": "ROLE NAME",
+      "description": "DESCRIPTION",
+      "user_count": "USER COUNT",
+      "actions": "ACTIONS"
+    }
+  },
+  "system_logs": {
+    "title": "System Audit Logs",
+    "subtitle": "Track every action within the platform",
+    "filters": {
+      "all_modules": "All Modules",
+      "all_users": "All Users",
+      "severity": "Severity"
+    }
+  },
+  "capacity_management": {
+    "title": "Capacity Management",
+    "subtitle": "Monitor physical and digital storage space",
+    "stats": {
+      "physical_usage": "Physical Usage",
+      "digital_usage": "Digital Usage",
+      "available_racks": "Available Racks",
+      "forecast": "Estimated Full"
+    }
+  }
+}

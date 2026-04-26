@@ -1,0 +1,239 @@
+{
+  "dashboard": {
+    "greetings": {
+      "morning": "Selamat Pagi, {name}",
+      "afternoon": "Selamat Siang, {name}",
+      "evening": "Selamat Sore, {name}"
+    },
+    "header": {
+      "operational_overview": "Gambaran operasional hari ini - {date}",
+      "btn_submit_new": "Ajukan Baru",
+      "search_placeholder": "Cari manifest, dokumen, atau ID..."
+    },
+    "welcome": "Selamat Datang Kembali, {name}",
+    "stats": {
+      "daily_received": "DOKUMEN\nDITERIMA",
+      "daily_scanned": "DOKUMEN\nDIPINDAI",
+      "daily_processed": "DOKUMEN\nDIPROSES",
+      "warehouse_capacity": "KAPASITAS\nGUDANG",
+      "active_tasks": "TUGAS\nAKTIF",
+      "vs_yesterday": "{percent}% vs kemarin",
+      "immediate_attention": "Memerlukan perhatian segera"
+    },
+    "queue": {
+      "priority_tasks": "Antrean Tugas Prioritas",
+      "view_all_tasks": "LIHAT SEMUA TUGAS",
+      "table": {
+        "manifest": "MANIFEST / DESKRIPSI",
+        "type": "JENIS",
+        "status": "STATUS",
+        "urgency": "URGENSI"
+      },
+      "items": {
+        "bulk_scan": "Pemindaian Massal",
+        "indexing": "Pengindeksan",
+        "receive": "Penerimaan",
+        "on_schedule": "Sesuai Jadwal",
+        "overdue_2h": "Terlambat 2 Jam",
+        "due_45m": "Jatuh Tempo 45 Menit"
+      },
+      "tabs": {
+        "all": "Semua Antrean",
+        "receive": "Penerimaan",
+        "scan": "Pemindaian",
+        "metadata": "Metadata",
+        "loan_prep": "Persiapan Pinjaman",
+        "urgent": "Mendesak",
+        "normal": "Normal"
+      },
+      "start_scanning": "MULAI PINDAI",
+      "receive_pkg": "TERIMA PAKET",
+      "apply_metadata": "ISI METADATA"
+    },
+    "activity": {
+      "title_recent": "Aktivitas Terbaru",
+      "btn_logs": "LIHAT SEMUA LOG",
+      "items": {
+        "ocr_completed": "OCR Selesai: {id}",
+        "ocr_sub": "{count} halaman diproses",
+        "retention_alert": "Peringatan Retensi",
+        "retention_sub": "128 dokumen siap dibuang",
+        "storage_sub": "Pencadangan Cloud Berhasil",
+        "security_login": "Login Keamanan",
+        "security_sub": "Login dari IP {ip}",
+        "mins_ago": "{count} menit yang lalu",
+        "hour_ago": "1 jam yang lalu",
+        "ten_mins": "10 menit yang lalu",
+        "one_hour": "1 jam yang lalu",
+        "three_hours": "3 jam yang lalu",
+        "box_received": "Kotak Diterima: {id}",
+        "box_sub": "Lokasi Rak: {loc}",
+        "loan_pending": "Pinjaman Tertunda: {id}",
+        "loan_sub": "Pemohon: {name} ({dept})",
+        "retention_overdue_title": "Tinjauan Retensi Terlambat",
+        "retention_overdue_desc": "128 dokumen melewati tanggal pembuangan.",
+        "storage_warning_title": "Peringatan Kapasitas Penyimpanan",
+        "storage_warning_desc": "Kapasitas Cloud Bucket mencapai 92%."
+      },
+      "title": "Aktivitas Terbaru"
+    },
+    "infrastructure": {
+      "scanner": "STATUS PEMINDAI",
+      "connected": "TERHUBUNG",
+      "ocr_engine": "MESIN OCR",
+      "active_accuracy": "AKTIF - AKURASI {accuracy}%",
+      "database": "BASIS DATA",
+      "synchronized": "TERSINKRONISASI"
+    },
+    "manager": {
+      "alert_title": "Persetujuan Mendesak Diperlukan",
+      "alert_desc": "Ada {count} dokumen yang menunggu tinjauan kritis Anda.",
+      "btn_review_all": "TINJAU SEMUA",
+      "stats": {
+        "priority_pending": "PENDING PRIORITAS",
+        "approved_today": "DISETUJUI HARI INI",
+        "team_submissions": "PENGAJUAN TIM",
+        "avg_approval_time": "RATA-RATA WAKTU"
+      },
+      "queue": {
+        "title": "Antrean Persetujuan Mendesak",
+        "tabs": {
+          "urgent": "Mendesak",
+          "normal": "Normal",
+          "all": "Semua"
+        },
+        "table": {
+          "submission": "PENGAJUAN",
+          "staff_name": "STAF",
+          "days_elapsed": "WAKTU BERJALAN",
+          "status": "STATUS",
+          "actions": "AKSI"
+        },
+        "items": {
+          "inv_8821": "Tagihan Vendor - PT Sentosa",
+          "doc_xp_012": "Kontrak Eksekutif - Proyek X",
+          "pr_990_2": "Permintaan Pembelian Alat"
+        }
+      },
+      "compliance": {
+        "title": "KEPATUHAN SLA",
+        "target": "Target: {target}%"
+      },
+      "top_submitters": {
+        "title": "PENGAJU TERBANYAK",
+        "docs": "dok",
+        "items": {
+          "indra": "Indra Wijaya",
+          "maya": "Maya Kartika",
+          "dedi": "Dedi Kurniawan"
+        }
+      },
+      "bulk_actions": {
+        "title": "AKSI MASSAL CEPAT",
+        "items": {
+          "bulk_approve": { "label": "Setujui Semua", "desc": "Proses antrean cepat" },
+          "deep_analytics": { "label": "Analisis Dalam", "desc": "Laporan kepatuhan tim" },
+          "archive_log": { "label": "Log Arsip", "desc": "Unduh riwayat bulanan" },
+          "help_desk": { "label": "Help Desk", "desc": "Hubungi Dukungan TI" }
+        }
+      },
+      "decisions": {
+        "title": "Log Keputusan Terbaru",
+        "action_approved": "Disetujui",
+        "action_rejected": "Ditolak",
+        "action_commented": "Diberi komentar pada",
+        "submitter": "oleh {name}",
+        "items": {
+          "tr_2201": "Laporan Pajak 2023",
+          "rq_882": "Rekuisisi 882",
+          "po_991": "Pesanan Pembelian 991"
+        }
+      }
+    },
+    "user": {
+      "overview_desc": "Kelola dokumen pribadi dan status peminjaman Anda.",
+      "stats": {
+        "my_submissions": "PENGAJUAN SAYA",
+        "pending_approvals": "MENUNGGU PERSETUJUAN",
+        "active_loans": "PINJAMAN AKTIF",
+        "search_history": "RIWAYAT CARI",
+        "action_required": "TINDAKAN\nDIPERLUKAN",
+        "today": "Hari ini"
+      },
+      "tasks": {
+        "title": "Tugas yang Memerlukan Tindakan Saya",
+        "table": {
+          "task_type": "JENIS TUGAS",
+          "doc_manifest": "MANIFEST DOKUMEN",
+          "due_date": "BATAS WAKTU",
+          "action": "AKSI"
+        },
+        "items": {
+          "print_manifest": "Cetak Manifest",
+          "doc_return": "Pengembalian Dokumen",
+          "phys_val": "Validasi Fisik",
+          "today": "Hari ini",
+          "tomorrow": "Besok",
+          "execute": "EKSEKUSI",
+          "process": "PROSES",
+          "verify": "VERIFIKASI"
+        }
+      },
+      "quick_actions": {
+        "title": "Aksi Cepat",
+        "items": {
+          "submit": "AJUKAN",
+          "loan": "PINJAM",
+          "search": "CARI",
+          "track": "LACAK"
+        }
+      },
+      "activity": {
+        "title": "Aktivitas Terbaru",
+        "items": {
+          "doc_approved": "Dokumen {id} telah disetujui Manajer.",
+          "new_submission": "Pengajuan baru {id} berhasil diterima.",
+          "loan_req_sig": "Permintaan pinjaman {id} perlu tanda tangan.",
+          "ten_mins": "10 menit lalu",
+          "one_hour": "1 jam lalu",
+          "three_hours": "3 jam lalu",
+          "details": "DETAIL",
+          "view": "LIHAT",
+          "sign_now": "TTD SEKARANG"
+        }
+      },
+      "system_update": {
+        "title": "Pembaruan Sistem",
+        "desc": "Versi 4.2.0 sekarang tersedia. Fitur baru termasuk pencarian bertenaga AI dan alur persetujuan yang lebih cepat.",
+        "btn_notes": "CATATAN RILIS"
+      },
+      "loan_history": {
+        "title": "Riwayat Pinjaman Dokumen",
+        "btn_export": "Ekspor",
+        "btn_filter": "Filter",
+        "table": {
+          "loan_id": "ID PINJAM",
+          "doc_title": "JUDUL DOKUMEN",
+          "loan_date": "TGL PINJAM",
+          "expected_return": "EST. KEMBALI",
+          "status": "STATUS",
+          "action": "AKSI"
+        }
+      }
+    },
+    "tools": {
+      "label_printing": "Cetak Label",
+      "quick_scan": "Scan Cepat",
+      "audit_logs": "Log Audit",
+      "inventory_map": "Peta Inventori",
+      "user_access": "Akses Pengguna",
+      "it_support": "Dukungan IT"
+    },
+    "footer_stats": {
+      "throughput": "THROUGHPUT",
+      "turnaround": "TURNAROUND",
+      "ocr_accuracy": "AKURASI OCR",
+      "sla_satisfaction": "KEPUASAN SLA"
+    }
+  }
+}

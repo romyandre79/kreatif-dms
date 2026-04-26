@@ -1,0 +1,68 @@
+{
+  "documents": {
+    "title": "Document Management",
+    "explorer": {
+      "title": "Document Explorer",
+      "search_placeholder": "Filter folders...",
+      "stats_total": "Total {count} documents"
+    },
+    "search": {
+      "results_for": "Search results for \"{query}\" ({count})",
+      "stats_desc": "Found about {total} results in {time} seconds",
+      "within_placeholder": "Search within this folder...",
+      "no_found": "No Results Found",
+      "no_found_desc": "Sorry, we couldn't find any documents matching your search criteria. Try more general keywords.",
+      "did_you_mean": "Did you mean:"
+    },
+    "filters": {
+      "search_within": "Search within this folder...",
+      "doc_type": "Doc Type:",
+      "year": "Year:",
+      "status": "Status:",
+      "all": "All",
+      "available": "Available",
+      "on_loan": "On Loan",
+      "sort": "Sort"
+    },
+    "table": {
+      "name": "DOCUMENT NAME",
+      "type": "DOC TYPE",
+      "date": "DATE",
+      "dept": "DEPT",
+      "status": "STATUS",
+      "actions": "ACTIONS"
+    },
+    "cart": {
+      "items_in_cart": "{count} items in cart",
+      "ready_desc": "Ready for loan request",
+      "btn_view": "View Cart"
+    },
+    "mock": {
+      "root_folder": "PT AKIRADATA PRATAMA",
+      "accounting": "Accounting",
+      "finance": "Finance",
+      "hr": "HR",
+      "it": "IT",
+      "legal": "Legal",
+      "tax": "Tax",
+      "january": "January",
+      "february": "February",
+      "docs": {
+        "vendor_contract": "Vendor Contract",
+        "rent_invoice": "Rent Invoice",
+        "tax_report": "Tax Report",
+        "type_contract": "Contract",
+        "type_invoice": "Invoice",
+        "type_report": "Report"
+      },
+      "search": {
+        "result_1_name": "Cleaning Service Contract 2024",
+        "result_1_snippet": "This document contains details of the cleaning service cooperation agreement between PT Akiradata and a third party for the 2024 period...",
+        "result_2_name": "Maintenance Contract Addendum",
+        "result_2_snippet": "Amendment to article 4 regarding the maintenance costs of IT equipment for 2025 approved by the Board of Directors...",
+        "result_3_name": "Office Cleanliness SOP",
+        "result_3_snippet": "Standard operating procedure regarding cleanliness management and maintenance of the head office building..."
+      }
+    }
+  }
+}

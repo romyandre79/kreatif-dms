@@ -1,0 +1,22 @@
+{
+  "login": {
+    "title": "Selamat Datang Kembali",
+    "subtitle": "Masuk untuk mengakses dashboard dokumen aman Anda",
+    "left_panel": {
+      "title": "Kecerdasan Dokumen Generasi Berikutnya",
+      "desc": "Platform manajemen arsip perusahaan yang aman, terukur, dan didukung AI."
+    },
+    "form": {
+      "email": "Alamat Email",
+      "password": "Kata Sandi",
+      "remember_me": "Ingat saya",
+      "forgot_password": "Lupa kata sandi?",
+      "sign_in": "Masuk",
+      "signing_in": "Memproses...",
+      "no_account": "Belum punya akun?",
+      "contact_admin": "Hubungi Admin",
+      "error_invalid": "Email atau kata sandi salah.",
+      "error_server": "Kesalahan server. Silakan coba lagi nanti."
+    }
+  }
+}

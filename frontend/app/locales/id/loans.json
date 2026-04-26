@@ -1,0 +1,126 @@
+{
+  "loans": {
+    "my": {
+      "title": "Loan Tracking",
+      "subtitle": "Kelola dan pantau dokumen fisik yang sedang Anda pinjam saat ini.",
+      "success_banner": "Permintaan perpanjangan berhasil dikirim. Menunggu persetujuan tim Legal.",
+      "btn_request_ext": "AJUKAN PERPANJANGAN",
+      "tabs": {
+        "all": "Semua",
+        "due_soon": "Segera Berakhir",
+        "overdue": "Terlambat"
+      },
+      "table": {
+        "req_no": "REQUEST NO",
+        "total_docs": "TOTAL DOCS",
+        "checkout_date": "CHECKOUT DATE",
+        "due_date": "DUE DATE",
+        "remaining_days": "REMAINING DAYS",
+        "status": "STATUS",
+        "docs_count": "{count} Dokumen"
+      },
+      "detail": {
+        "title": "Request Details",
+        "time_remaining": "TIME REMAINING",
+        "expires_hint": "Berakhir pada {date} pukul 17:00",
+        "tracking_progress": "TRACKING PROGRESS",
+        "steps": {
+          "approved": "Approved",
+          "ready": "Ready",
+          "on_loan": "On Loan",
+          "current_status": "Status saat ini",
+          "ext_requested": "Perpanjangan Diminta",
+          "waiting_legal": "Menunggu Review Legal"
+        },
+        "policy": {
+          "notif_hint": "Reminder: Notifikasi otomatis akan dikirimkan 24 jam sebelum batas waktu.",
+          "penalty_title": "Penalty Policy",
+          "penalty_desc": "Denda keterlambatan: IDR 50.000 / Dokumen / Hari"
+        },
+        "ext_pending": {
+          "title": "Perpanjangan Diproses",
+          "desc": "Permintaan perpanjangan Anda sedang ditinjau. Batas waktu asli masih berlaku hingga disetujui."
+        },
+        "ext_promo": {
+          "title": "Butuh waktu lebih?",
+          "desc": "Anda dapat mengajukan perpanjangan hingga 2 kali untuk setiap permohonan peminjaman dokumen.",
+          "btn": "RE-SCHEDULE RETURN"
+        }
+      },
+      "modal": {
+        "title": "Request Perpanjangan",
+        "doc_label": "Dokumen No: {no}",
+        "days_label": "DURASI PERPANJANGAN (HARI)",
+        "days_suffix": "HARI",
+        "days_hint": "Maksimum perpanjangan adalah 14 hari.",
+        "reason_label": "ALASAN PERPANJANGAN",
+        "reason_placeholder": "Jelaskan mengapa Anda masih membutuhkan dokumen ini...",
+        "info_box": "Permintaan perpanjangan memerlukan persetujuan dari Manajer Departemen dan tim Manajemen Arsip.",
+        "btn_cancel": "BATALKAN",
+        "btn_submit": "KIRIM REQUEST"
+      }
+    },
+    "tracking": {
+      "success_banner": "Dokumen Anda siap untuk diambil di pusat kearsipan.",
+      "rejection_banner": {
+        "title": "Permintaan Ditolak oleh Legal",
+        "example": "\"Alasan: Dokumen yang diminta memerlukan surat kuasa tambahan dari Direksi untuk akses tingkat 2.\""
+      },
+      "header": {
+        "request_id": "Pelacakan {id}",
+        "submitted_at": "Diajukan pada {date} • {time}",
+        "btn_resubmit": "Ajukan Ulang",
+        "btn_refresh": "Segarkan"
+      },
+      "meta": {
+        "method": "METODE TTD",
+        "digital_sign": "Digital Signature",
+        "purpose": "TUJUAN PINJAM",
+        "next_step": "LANGKAH SELANJUTNYA",
+        "last_status": "STATUS TERAKHIR",
+        "eta": "ESTIMASI SELESAI",
+        "waiting_pickup": "Menunggu Pengambilan",
+        "rejected_by": "Ditolak oleh {name}",
+        "eta_value": "Dalam 2-3 Jam"
+      },
+      "status": {
+        "waiting_l1": "MENUNGGU PERSETUJUAN L1",
+        "waiting_l2": "MENUNGGU PERSETUJUAN L2",
+        "approved": "DISETUJUI",
+        "rejected": "DITOLAK"
+      },
+      "progress": {
+        "title": "Progres Pelacakan",
+        "steps": {
+          "step1": {
+            "title": "Diajukan oleh User",
+            "desc": "Permintaan berhasil dibuat dan tercatat di portal."
+          },
+          "step2": {
+            "title": "Keputusan L1 Atasan",
+            "desc": "Disetujui oleh Kepala Departemen {name}. Tidak ada catatan tambahan."
+          },
+          "step3": {
+            "title": "Keputusan L2 Head Legal",
+            "status_rejected": "DITOLAK",
+            "status_in_progress": "DALAM PROSES",
+            "card_approved": "Review Disetujui",
+            "card_rejected": "Review Ditolak",
+            "card_pending": "Menunggu Persetujuan PIN",
+            "desc_approved": "Head Legal telah memverifikasi dan menyetujui akses ke dokumen fisik tersebut.",
+            "desc_rejected": "Permintaan ditolak pada {date}. Harap tinjau alasan penolakan di atas.",
+            "desc_pending": "Head Legal sedang meninjau lampiran dokumen. Langkah ini memerlukan otorisasi PIN digital yang aman."
+          },
+          "step4": {
+            "title": "Persiapan Pengambilan Admin",
+            "status_in_progress": "DIPROSES",
+            "desc_approved": "Petugas arsip sedang mencari dan menyiapkan dokumen fisik di rak penyimpanan.",
+            "desc_rejected": "Proses dibatalkan karena permintaan ditolak.",
+            "desc_pending": "Akan dijadwalkan setelah persetujuan L2 selesai."
+          }
+        }
+      },
+      "empty_history": "Belum ada riwayat penolakan untuk request ini"
+    }
+  }
+}
