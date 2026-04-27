@@ -26,7 +26,7 @@ A premium, microservice-based Document Management System with AI-powered search,
 - **Node.js 20+**
 - **Git Bash / Terminal**
 
-### 2. Jalankan Infrastruktur (Docker)
+### 2a. Jalankan Infrastruktur (Docker)
 Gunakan perintah ini untuk menjalankan database tanpa membebani RAM dengan build aplikasi:
 ```bash
 docker-compose up -d
@@ -36,6 +36,22 @@ Service yang berjalan:
 - **Redis**: `localhost:6379`
 - **MinIO**: `localhost:9000` (Console: `localhost:9001`)
 - **Elasticsearch**: `localhost:9200`
+
+### 2b. Download dan Jalankan Terpisah Infrastruktur
+
+Download MinIO:
+https://min.io/download?os=windows&arch=amd64
+
+Download PostgreSQL:
+https://www.postgresql.org/download/
+
+Download Redis:
+https://redis.io/download/
+
+
+Download ElasticSearch:
+https://www.elastic.co/downloads/
+
 
 ### 3. Setup Backend
 ```bash

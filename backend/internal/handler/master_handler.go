@@ -23,6 +23,64 @@ func (h *MasterHandler) ListCompanies(c fiber.Ctx) error {
 	return response.Success(c, fiber.StatusOK, "Companies listed", companies)
 }
 
+func (h *MasterHandler) CreateCompany(c fiber.Ctx) error {
+	type request struct {
+		Name       string `json:"name"`
+		EntityID   string `json:"entity_id"`
+		NpwpStatus string `json:"npwp_status"`
+		Location   string `json:"location"`
+		Status     string `json:"status"`
+		Address    string `json:"address"`
+	}
+	req := new(request)
+	if err := c.Bind().JSON(req); err != nil {
+		return response.Error(c, fiber.StatusBadRequest, "Invalid request body", err.Error())
+	}
+
+	company, err := h.svc.CreateCompany(c.Context(), req.Name, req.EntityID, req.NpwpStatus, req.Location, req.Status, req.Address)
+	if err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to create company", err.Error())
+	}
+	return response.Success(c, fiber.StatusCreated, "Company created", company)
+}
+
+func (h *MasterHandler) UpdateCompany(c fiber.Ctx) error {
+	type request struct {
+		Name       string `json:"name"`
+		EntityID   string `json:"entity_id"`
+		NpwpStatus string `json:"npwp_status"`
+		Location   string `json:"location"`
+		Status     string `json:"status"`
+		Address    string `json:"address"`
+	}
+	id, err := uuid.Parse(c.Params("id"))
+	if err != nil {
+		return response.Error(c, fiber.StatusBadRequest, "Invalid company ID", err.Error())
+	}
+	req := new(request)
+	if err := c.Bind().JSON(req); err != nil {
+		return response.Error(c, fiber.StatusBadRequest, "Invalid request body", err.Error())
+	}
+
+	company, err := h.svc.UpdateCompany(c.Context(), id, req.Name, req.EntityID, req.NpwpStatus, req.Location, req.Status, req.Address)
+	if err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to update company", err.Error())
+	}
+	return response.Success(c, fiber.StatusOK, "Company updated", company)
+}
+
+func (h *MasterHandler) DeleteCompany(c fiber.Ctx) error {
+	id, err := uuid.Parse(c.Params("id"))
+	if err != nil {
+		return response.Error(c, fiber.StatusBadRequest, "Invalid company ID", err.Error())
+	}
+
+	if err := h.svc.DeleteCompany(c.Context(), id); err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to delete company", err.Error())
+	}
+	return response.Success(c, fiber.StatusOK, "Company deleted", nil)
+}
+
 func (h *MasterHandler) GetTopology(c fiber.Ctx) error {
 	topology, err := h.svc.GetTopology(c.Context())
 	if err != nil {

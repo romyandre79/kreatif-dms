@@ -20,11 +20,31 @@ func (s *MasterService) ListCompanies(ctx context.Context) ([]repository.Company
 	return s.repo.ListCompanies(ctx)
 }
 
-func (s *MasterService) CreateCompany(ctx context.Context, name string, address string) (repository.Company, error) {
+func (s *MasterService) CreateCompany(ctx context.Context, name, entityID, npwpStatus, location, status, address string) (repository.Company, error) {
 	return s.repo.CreateCompany(ctx, repository.CreateCompanyParams{
-		Name:    name,
-		Address: pgtype.Text{String: address, Valid: address != ""},
+		Name:       name,
+		EntityID:   pgtype.Text{String: entityID, Valid: entityID != ""},
+		NpwpStatus: pgtype.Text{String: npwpStatus, Valid: npwpStatus != ""},
+		Location:   pgtype.Text{String: location, Valid: location != ""},
+		Status:     pgtype.Text{String: status, Valid: status != ""},
+		Address:    pgtype.Text{String: address, Valid: address != ""},
 	})
+}
+
+func (s *MasterService) UpdateCompany(ctx context.Context, id uuid.UUID, name, entityID, npwpStatus, location, status, address string) (repository.Company, error) {
+	return s.repo.UpdateCompany(ctx, repository.UpdateCompanyParams{
+		ID:         id,
+		Name:       name,
+		EntityID:   pgtype.Text{String: entityID, Valid: entityID != ""},
+		NpwpStatus: pgtype.Text{String: npwpStatus, Valid: npwpStatus != ""},
+		Location:   pgtype.Text{String: location, Valid: location != ""},
+		Status:     pgtype.Text{String: status, Valid: status != ""},
+		Address:    pgtype.Text{String: address, Valid: address != ""},
+	})
+}
+
+func (s *MasterService) DeleteCompany(ctx context.Context, id uuid.UUID) error {
+	return s.repo.DeleteCompany(ctx, id)
 }
 
 // Branch

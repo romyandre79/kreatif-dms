@@ -2,21 +2,52 @@
   "login": {
     "title": "Welcome Back",
     "subtitle": "Sign in to access your secure document dashboard",
+    "sso_tab": "SSO / LDAP Login",
+    "local_tab": "Local Login",
+    "username_label": "Username",
+    "username_placeholder": "Enter your username",
+    "email_label": "Email Address",
+    "email_placeholder": "name{'@'}company.com",
+    "password_label": "Password",
+    "password_placeholder": "••••••••",
+    "forgot_password": "Forgot password?",
+    "sign_in_button": "Sign In Now",
+    "no_account": "Don't have an account?",
+    "register_now": "Register now",
+    "trouble_signing_in": "Trouble signing in?",
+    "contact_support": "Contact Support",
     "left_panel": {
       "title": "Next Generation Document Intelligence",
-      "desc": "A secure, scalable, and AI-powered enterprise archive management platform."
+      "edition": "Enterprise Edition",
+      "subtitle": "A secure, scalable, and AI-powered enterprise archive management platform."
     },
-    "form": {
-      "email": "Email Address",
-      "password": "Password",
-      "remember_me": "Remember me",
-      "forgot_password": "Forgot password?",
-      "sign_in": "Sign In",
-      "signing_in": "Processing...",
-      "no_account": "Don't have an account?",
-      "contact_admin": "Contact Admin",
-      "error_invalid": "Invalid email or password.",
-      "error_server": "Server error. Please try again later."
+    "errors": {
+      "invalid_credentials": "Invalid username/email or password."
     }
+  },
+  "register": {
+    "title": "Create New Account",
+    "subtitle": "Start managing your documents intelligently",
+    "name_label": "Full Name",
+    "name_placeholder": "Enter your full name",
+    "confirm_password_label": "Confirm Password",
+    "confirm_password_placeholder": "••••••••",
+    "submit_button": "Register Now",
+    "already_have_account": "Already have an account?",
+    "login_now": "Sign in now",
+    "success_message": "Account created successfully! Please log in.",
+    "errors": {
+      "password_mismatch": "Passwords do not match.",
+      "failed": "Failed to create account. Please try again."
+    }
+  },
+  "reset": {
+    "title": "Reset Password",
+    "info": "Enter your email and we'll send you a link to reset your password.",
+    "email_label": "Email Address",
+    "email_placeholder": "name{'@'}company.com",
+    "cancel_button": "Cancel",
+    "submit_button": "Send Link",
+    "success_message": "Reset link has been sent to your email."
   }
 }

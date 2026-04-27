@@ -1200,8 +1200,8 @@ BP-07
 ---
 
 ### 64. No Code Master Data Console / Manajemen PT 
-- **Status**: ✅ Frontend ada, ❌ Backend belum ada
-- **Vue File**: `frontend/app/pages/admin/master-data/console.vue` (New)
+- **Status**: ✅ Frontend ada, ✅ Backend ada (Full CRUD)
+- **Vue File**: `frontend/app/pages/config/company.vue` (New)
 - **Deskripsi UI**: Konsol administrasi master data dengan pendekatan low-code/no-code. Menampilkan:
   - **Entity Sidebar**: Navigasi antar entitas master (PT, Departemen, Tipe Dokumen, Lokasi, Retensi).
   - **Inline Editing Table**: Tabel manajemen entitas (PT) dengan dukungan penambahan baris langsung di tabel, status verifikasi NPWP, dan aksi CRUD.

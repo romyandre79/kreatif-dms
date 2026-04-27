@@ -1,6 +1,11 @@
 <!-- HMR Test -->
 <template>
-  <div class="min-h-screen flex flex-col md:flex-row bg-white dark:bg-slate-950">
+  <div class="min-h-screen flex flex-col md:flex-row bg-white dark:bg-slate-950 relative">
+    <!-- Language Switcher (Fixed) -->
+    <div class="absolute top-6 right-6 z-50">
+      <LanguageSwitcher />
+    </div>
+
     <!-- Left Side: Branding & Info -->
     <div class="md:w-5/12 bg-[#2D5A8E] p-12 flex flex-col justify-between text-white relative overflow-hidden">
       <!-- Background Decor -->

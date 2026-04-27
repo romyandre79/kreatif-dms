@@ -6,12 +6,18 @@ SELECT * FROM companies ORDER BY name;
 SELECT * FROM companies WHERE id = $1;
 
 -- name: CreateCompany :one
-INSERT INTO companies (name, address)
-VALUES ($1, $2)
+INSERT INTO companies (name, entity_id, npwp_status, location, status, address)
+VALUES ($1, $2, $3, $4, $5, $6)
 RETURNING *;
 
 -- name: UpdateCompany :one
-UPDATE companies SET name = $2, address = $3
+UPDATE companies SET 
+    name = $2, 
+    entity_id = $3, 
+    npwp_status = $4, 
+    location = $5, 
+    status = $6, 
+    address = $7
 WHERE id = $1
 RETURNING *;
 

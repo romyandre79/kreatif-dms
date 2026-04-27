@@ -69,7 +69,7 @@ func (q *Queries) GetRoleIDByName(ctx context.Context, name string) (int32, erro
 }
 
 const getUserByEmail = `-- name: GetUserByEmail :one
-SELECT u.id, u.email, u.password_hash, u.full_name, u.role_id, u.department_id, u.is_active, u.created_at, u.updated_at, u.status, u.avatar_url, u.signature_url, r.name as role_name 
+SELECT u.id, u.email, u.password_hash, u.full_name, u.role_id, u.department_id, u.is_active, u.created_at, u.updated_at, u.status, u.avatar_url, u.signature_url, u.pin, r.name as role_name 
 FROM users u
 LEFT JOIN roles r ON u.role_id = r.id
 WHERE u.email = $1 LIMIT 1
@@ -88,6 +88,7 @@ type GetUserByEmailRow struct {
 	Status       string             `json:"status"`
 	AvatarUrl    pgtype.Text        `json:"avatar_url"`
 	SignatureUrl pgtype.Text        `json:"signature_url"`
+	Pin          pgtype.Text        `json:"pin"`
 	RoleName     pgtype.Text        `json:"role_name"`
 }
 
@@ -107,6 +108,7 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email string) (GetUserByEm
 		&i.Status,
 		&i.AvatarUrl,
 		&i.SignatureUrl,
+		&i.Pin,
 		&i.RoleName,
 	)
 	return i, err

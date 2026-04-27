@@ -39,9 +39,9 @@
                   : 'text-slate-500 dark:text-slate-400 hover:text-[#2D9B7B] dark:hover:text-[#2D9B7B] hover:bg-slate-100/10'
               ]"
             >
-              <div class="flex items-center gap-3">
+              <div class="flex items-center gap-3 text-left">
                 <component :is="item.icon" class="w-5 h-5" />
-                <span class="font-medium text-sm">{{ $t(item.key) }}</span>
+                <span class="font-medium text-sm leading-tight">{{ $t(item.key) }}</span>
               </div>
               <span v-if="item.badge" class="bg-red-500 text-white text-[10px] font-black px-1.5 py-0.5 rounded-full">{{ item.badge }}</span>
             </NuxtLink>
@@ -49,18 +49,18 @@
             <!-- Collapsible Menu -->
             <div v-else class="mb-1">
               <button
-                @click="toggleSubmenu(item.name)"
+                @click="toggleSubmenu(item.key)"
                 class="w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all duration-200 group text-slate-500 dark:text-slate-400 hover:text-[#2D9B7B] dark:hover:text-[#2D9B7B] hover:bg-slate-100/10"
               >
-                <div class="flex items-center gap-3">
+                <div class="flex items-center gap-3 text-left">
                   <component :is="item.icon" class="w-5 h-5" />
-                  <span class="font-medium text-sm">{{ $t(item.key) }}</span>
+                  <span class="font-medium text-sm leading-tight">{{ $t(item.key) }}</span>
                 </div>
                 <div class="flex items-center gap-2">
                   <span v-if="item.badge" class="bg-red-500 text-white text-[10px] font-black px-1.5 py-0.5 rounded-full">{{ item.badge }}</span>
                   <LucideChevronDown 
                     class="w-4 h-4 transition-transform duration-200" 
-                    :class="{ 'rotate-180': openSubmenus.includes(item.name) }" 
+                    :class="{ 'rotate-180': openSubmenus.includes(item.key) }" 
                   />
                 </div>
               </button>
@@ -70,7 +70,7 @@
                 enter-from-class="transform scale-95 opacity-0 -translate-y-2"
                 enter-to-class="transform scale-100 opacity-100 translate-y-0"
               >
-                <div v-if="openSubmenus.includes(item.name)" class="mt-1 ml-4 pl-4 border-l border-slate-700/50 space-y-1">
+                <div v-if="openSubmenus.includes(item.key)" class="mt-1 ml-4 pl-4 border-l border-slate-700/50 space-y-1">
                   <NuxtLink
                     v-for="sub in item.children"
                     :key="sub.path"
@@ -78,7 +78,7 @@
                     @click="isSidebarOpen = false"
                     class="flex items-center justify-between px-4 py-2 text-xs font-medium text-slate-500 dark:text-slate-400 hover:text-[#2D9B7B] dark:hover:text-[#2D9B7B] transition-colors"
                   >
-                    <span>{{ $t(sub.key) }}</span>
+                    <span class="text-left leading-tight">{{ $t(sub.key) }}</span>
                     <span v-if="sub.count" class="text-[10px] text-slate-500 font-bold">{{ sub.count }}</span>
                   </NuxtLink>
                 </div>
@@ -94,7 +94,7 @@
             </div>
             <div class="flex-1 min-w-0">
               <p class="text-sm font-semibold truncate text-slate-700 dark:text-slate-200">{{ auth.user?.full_name || 'Administrator' }}</p>
-              <p class="text-xs text-slate-500 dark:text-slate-400 truncate">{{ auth.user?.email || 'admin@kreatif.com' }}</p>
+              <p class="text-xs text-slate-500 dark:text-slate-400 truncate">{{ auth.user?.email || 'admin@kreatif.com' }} • {{ auth.user?.role }}</p>
             </div>
           </div>
         </div>
@@ -130,6 +130,8 @@
             </div>
             
             <div class="flex items-center gap-2">
+              <LanguageSwitcher />
+              
               <Dropdown v-model="showNotifications">
                 <template #trigger>
                   <button class="p-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 relative text-slate-500 transition-colors">
@@ -183,7 +185,7 @@
                 </div>
                 <div class="flex-1 min-w-0">
                   <p class="text-sm font-bold text-slate-900 dark:text-white truncate">{{ auth.user?.full_name || 'Administrator' }}</p>
-                  <p class="text-xs text-slate-400 truncate">{{ auth.user?.email || 'admin@kreatif.id' }}</p>
+                  <p class="text-xs text-slate-400 truncate">{{ auth.user?.email || 'admin@kreatif.id' }} • {{ auth.user?.role }}</p>
                 </div>
               </div>
 
@@ -241,7 +243,8 @@ import {
   LucideBox,
   LucideHome,
   LucideRepeat,
-  LucideTrash2
+  LucideTrash2,
+  LucideBuilding2
 } from 'lucide-vue-next'
 import { useAuthStore } from '~/stores/auth'
 import Dropdown from '~/components/Dropdown.vue'
@@ -287,7 +290,7 @@ onMounted(() => {
 })
 
 const allMenuItems = {
-  admin: [
+  superadmin: [
     { key: 'layout.menu.dashboard', path: '/dashboard', icon: LucideLayoutDashboard },
     { 
       key: 'layout.menu.doc_reg', 
@@ -352,10 +355,20 @@ const allMenuItems = {
       icon: LucideSettings,
       children: [
         { key: 'layout.menu.company', path: '/config/company' },
-        { key: 'layout.menu.dept', path: '/config/department' },
+        { key: 'layout.menu.dept', path: '/config/company?entity=dept' },
+        { key: 'layout.menu.type', path: '/config/company?entity=type' },
+        { key: 'layout.menu.location', path: '/config/company?entity=location' },
+        { key: 'layout.menu.retention_code', path: '/config/company?entity=retention' },
         { key: 'layout.menu.params', path: '/config/params' },
       ]
     },
+  ],
+  manajer: [
+    { key: 'layout.menu.dashboard', path: '/dashboard', icon: LucideLayoutDashboard },
+    { key: 'layout.menu.search', path: '/documents', icon: LucideSearch },
+    { key: 'layout.menu.submit', path: '/documents/upload', icon: LucideUploadCloud },
+    { key: 'layout.menu.loans', path: '/loans', icon: LucideFileText },
+    { key: 'layout.menu.tracking', path: '/tracking', icon: LucideBarChart3 },
   ],
   user: [
     { key: 'layout.menu.dashboard', path: '/dashboard', icon: LucideLayoutDashboard },
@@ -364,41 +377,7 @@ const allMenuItems = {
     { key: 'layout.menu.loans', path: '/loans', icon: LucideFileText },
     { key: 'layout.menu.tracking', path: '/tracking', icon: LucideBarChart3 },
   ],
-  manager: [
-    { key: 'layout.menu.dashboard', path: '/dashboard', icon: LucideLayoutDashboard },
-    { 
-      key: 'layout.menu.approvals', 
-      icon: LucideShieldCheck, 
-      badge: 5,
-      children: [
-        { key: 'layout.menu.submissions', path: '/approvals/submissions', count: 2 },
-        { key: 'layout.menu.loans', path: '/approvals/loans', count: 2 },
-        { key: 'layout.menu.extensions', path: '/approvals/extensions', count: 1 },
-      ]
-    },
-    { key: 'layout.menu.search', path: '/documents', icon: LucideSearch },
-    { 
-      key: 'layout.menu.loans', 
-      icon: LucideBookOpen,
-      children: [
-        { key: 'layout.menu.fast_track', path: '/loans/fast-track' },
-        { key: 'layout.menu.request_loan', path: '/loans/request' },
-        { key: 'layout.menu.my_loans', path: '/loans/my' },
-        { key: 'layout.menu.softcopy', path: '/loans/softcopy' },
-        { key: 'layout.menu.loan_history', path: '/loans/history' },
-      ]
-    },
-    { 
-      key: 'layout.menu.submissions', 
-      icon: LucideFileStack,
-      children: [
-        { key: 'layout.menu.submit', path: '/documents/upload' },
-        { key: 'layout.menu.submission_status', path: '/documents/status' },
-      ]
-    },
-    { key: 'layout.menu.notifications', path: '/notifications', icon: LucideBell, badge: 8 },
-  ],
-  doc_controller: [
+  'admin doc controller': [
     { key: 'layout.menu.dashboard', path: '/dashboard', icon: LucideLayoutDashboard },
     { 
       key: 'layout.menu.approvals', 
@@ -440,7 +419,7 @@ const allMenuItems = {
     },
     { key: 'layout.menu.notifications', path: '/notifications', icon: LucideBell, badge: 8 },
   ],
-  manager_doc_controller: [
+  'kepala doc controller': [
     { key: 'layout.menu.dashboard', path: '/dashboard', icon: LucideLayoutDashboard },
     { 
       key: 'layout.menu.doc_reg', 
@@ -505,7 +484,10 @@ const allMenuItems = {
       icon: LucideSettings,
       children: [
         { key: 'layout.menu.company', path: '/config/company' },
-        { key: 'layout.menu.dept', path: '/config/department' },
+        { key: 'layout.menu.dept', path: '/config/company?entity=dept' },
+        { key: 'layout.menu.type', path: '/config/company?entity=type' },
+        { key: 'layout.menu.location', path: '/config/company?entity=location' },
+        { key: 'layout.menu.retention_code', path: '/config/company?entity=retention' },
         { key: 'layout.menu.params', path: '/config/params' },
       ]
     },
@@ -513,11 +495,13 @@ const allMenuItems = {
 }
 
 const menuItems = computed(() => {
-  const role = auth.user?.role || 'user'
+  const role = (auth.user?.role || 'user').toLowerCase().trim()
   return allMenuItems[role] || allMenuItems.user
 })
 
 const currentPageTitleKey = computed(() => {
+  if (!menuItems.value) return 'layout.menu.dashboard'
+  
   const current = menuItems.value.find(m => m.path === route.path)
   if (current) return current.key
   
