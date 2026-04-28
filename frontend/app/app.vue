@@ -1,5 +1,10 @@
 <script setup lang="ts">
-// Frontend entry point
+const { t } = useI18n()
+const config = useRuntimeConfig()
+
+useHead({
+  titleTemplate: (title) => title ? `${title} - ${config.public.appName}` : config.public.appName,
+})
 </script>
 
 <template>

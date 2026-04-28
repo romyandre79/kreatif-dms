@@ -58,6 +58,7 @@
       "location": "Master Lokasi Arsip",
       "retention_code": "Master Kode Retensi",
       "params": "Parameter Sistem",
+      "integration": "Monitor Status Integrasi",
       "submit": "Ajukan Dokumen",
       "loans": "Pinjaman Saya",
       "tracking": "Pelacakan Dokumen",

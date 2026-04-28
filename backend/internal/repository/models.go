@@ -391,15 +391,22 @@ type IntakeSession struct {
 	UpdatedAt             pgtype.Timestamptz `json:"updated_at"`
 }
 
-type IntegrationMonitor struct {
+type IntegrationNode struct {
 	ID             uuid.UUID          `json:"id"`
-	ServiceName    string             `json:"service_name"`
-	Endpoint       pgtype.Text        `json:"endpoint"`
-	Status         string             `json:"status"`
-	ResponseTimeMs pgtype.Int4        `json:"response_time_ms"`
+	Name           string             `json:"name"`
+	ServiceType    string             `json:"service_type"`
+	Driver         pgtype.Text        `json:"driver"`
+	Endpoint       string             `json:"endpoint"`
+	IsActive       pgtype.Bool        `json:"is_active"`
+	IsCritical     pgtype.Bool        `json:"is_critical"`
+	ConfigJson     []byte             `json:"config_json"`
+	Status         pgtype.Text        `json:"status"`
+	LastLatency    pgtype.Int4        `json:"last_latency"`
+	LatencyHistory []int32            `json:"latency_history"`
 	LastCheckAt    pgtype.Timestamptz `json:"last_check_at"`
-	ErrorMessage   pgtype.Text        `json:"error_message"`
-	Metadata       []byte             `json:"metadata"`
+	LastError      pgtype.Text        `json:"last_error"`
+	CreatedAt      pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt      pgtype.Timestamptz `json:"updated_at"`
 }
 
 type LoanCartItem struct {
@@ -598,6 +605,7 @@ type Role struct {
 	ID          int32       `json:"id"`
 	Name        string      `json:"name"`
 	Description pgtype.Text `json:"description"`
+	LdapGroup   pgtype.Text `json:"ldap_group"`
 }
 
 type RoutingSlipRecipient struct {

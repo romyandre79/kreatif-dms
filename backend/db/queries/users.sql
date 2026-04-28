@@ -5,7 +5,10 @@ LEFT JOIN roles r ON u.role_id = r.id
 WHERE u.email = $1 LIMIT 1;
 
 -- name: GetUserByID :one
-SELECT * FROM users WHERE id = $1 LIMIT 1;
+SELECT u.*, r.name as role_name 
+FROM users u
+LEFT JOIN roles r ON u.role_id = r.id
+WHERE u.id = $1 LIMIT 1;
 
 -- name: CreateUser :one
 INSERT INTO users (

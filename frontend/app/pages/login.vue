@@ -37,7 +37,7 @@
 
     <!-- Right Side: Login Form -->
     <div class="flex-1 flex flex-col justify-center items-center p-8 py-12 lg:p-12 bg-white dark:bg-slate-950 md:w-7/12">
-      <div class="max-w-lg w-full">
+      <div class="w-full">
         <h2 class="text-3xl md:text-5xl font-extrabold text-slate-900 dark:text-white mb-2 md:mb-4">
           {{ mode === 'login' ? $t('login.title') : $t('register.title') }}
         </h2>
@@ -253,6 +253,11 @@ definePageMeta({
 })
 
 const { t } = useI18n()
+
+useHead({
+  title: t('login.title')
+})
+
 const authType = ref('sso')
 const mode = ref('login')
 const showPassword = ref(false)

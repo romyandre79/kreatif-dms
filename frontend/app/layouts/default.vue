@@ -2,8 +2,8 @@
   <div class="min-h-screen bg-slate-50 dark:bg-slate-950 font-sans text-slate-900 dark:text-slate-50">
     <!-- Sidebar Overlay (Mobile only) -->
     <div 
+      v-if="isSidebarOpen"
       class="fixed inset-0 z-30 bg-slate-950/60 backdrop-blur-sm lg:hidden transition-all duration-300"
-      :class="[isSidebarOpen ? 'opacity-100 visible' : 'opacity-0 invisible pointer-events-none']"
       @click="isSidebarOpen = false"
     ></div>
 
@@ -16,7 +16,7 @@
         <div class="flex items-center justify-between mb-10 px-2">
           <div class="flex items-center gap-3">
             <div class="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center shadow-lg backdrop-blur-sm border border-white/20 overflow-hidden p-2">
-              <img src="/logo.png" alt="Logo" class="w-full h-full object-contain" />
+              <img src="/logo.png" alt="Logo" class="w-full h-full object-contain">
             </div>
             <span class="text-xl font-bold tracking-tight text-slate-900 dark:text-white">{{ config.public.appName }}</span>
           </div>
@@ -25,7 +25,7 @@
           </button>
         </div>
 
-        <nav class="flex-1 space-y-1">
+        <nav class="flex-1 overflow-y-auto pr-2 space-y-1 custom-scrollbar">
           <div v-for="item in menuItems" :key="item.name">
             <!-- Simple Link -->
             <NuxtLink
@@ -130,29 +130,48 @@
             </div>
             
             <div class="flex items-center gap-2">
-              <LanguageSwitcher />
+              <LanguageSwitcher></LanguageSwitcher>
               
               <Dropdown v-model="showNotifications">
                 <template #trigger>
                   <button class="p-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 relative text-slate-500 transition-colors">
                     <LucideBell class="w-5 h-5" />
-                    <span v-if="notifications.length > 0" class="absolute top-2.5 right-2.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-slate-900"></span>
+                    <span v-if="notifStore.unreadCount > 0" class="absolute top-2.5 right-2.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-slate-900"></span>
                   </button>
                 </template>
                 <div class="px-4 py-3 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-900/50">
                   <span class="text-xs font-black uppercase tracking-widest text-slate-400">{{ $t('layout.navbar.notifications') }}</span>
-                  <span class="text-[10px] font-bold text-primary-500 hover:underline cursor-pointer">{{ $t('layout.navbar.mark_all_read') }}</span>
+                  <span 
+                    v-if="notifStore.unreadCount > 0"
+                    @click="handleMarkAllRead" 
+                    class="text-[10px] font-bold text-primary-500 hover:underline cursor-pointer"
+                  >
+                    {{ $t('layout.navbar.mark_all_read') }}
+                  </span>
                 </div>
                 <div class="max-h-80 overflow-y-auto">
-                  <div v-for="notif in notifications" :key="notif.id" class="px-4 py-4 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors border-b border-slate-100 dark:border-slate-800 last:border-0 cursor-pointer group">
+                  <div v-if="notifStore.notifications.length === 0" class="px-8 py-12 text-center">
+                    <LucideBell class="w-8 h-8 text-slate-200 mx-auto mb-3" />
+                    <p class="text-xs font-medium text-slate-400">{{ $t('notifications.empty_desc', 'No notifications yet') }}</p>
+                  </div>
+                  <div 
+                    v-for="notif in notifStore.notifications" 
+                    :key="notif.id" 
+                    @click="handleNotifClick(notif)"
+                    class="px-4 py-4 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors border-b border-slate-100 dark:border-slate-800 last:border-0 cursor-pointer group relative"
+                    :class="{ 'bg-primary-50/20 dark:bg-primary-900/5': !notif.is_read }"
+                  >
                     <div class="flex gap-3">
-                      <div :class="`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${notif.bg}`">
-                        <component :is="notif.icon" :class="`w-4 h-4 ${notif.color}`" />
+                      <div :class="`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${getNotifUI(notif.type).bg}`">
+                        <component :is="getNotifUI(notif.type).icon" :class="`w-4 h-4 ${getNotifUI(notif.type).color}`" />
                       </div>
                       <div class="flex-1">
-                        <p class="text-sm font-bold text-slate-700 dark:text-slate-200 group-hover:text-primary-500 transition-colors">{{ notif.title }}</p>
-                        <p class="text-xs text-slate-400 mt-0.5 line-clamp-2">{{ notif.message }}</p>
-                        <p class="text-[10px] text-slate-300 dark:text-slate-500 font-bold mt-1.5 uppercase tracking-tighter">{{ notif.time }}</p>
+                        <div class="flex items-start justify-between gap-2">
+                          <p class="text-sm font-bold text-slate-700 dark:text-slate-200 group-hover:text-primary-500 transition-colors">{{ notif.title }}</p>
+                          <div v-if="!notif.is_read" class="w-1.5 h-1.5 bg-primary-500 rounded-full mt-1.5"></div>
+                        </div>
+                        <p class="text-xs text-slate-400 mt-0.5 line-clamp-2">{{ notif.body }}</p>
+                        <p class="text-[10px] text-slate-300 dark:text-slate-500 font-bold mt-1.5 uppercase tracking-tighter">{{ formatNotifTime(notif.created_at) }}</p>
                       </div>
                     </div>
                   </div>
@@ -173,9 +192,9 @@
               <template #trigger>
                 <button class="flex items-center gap-3 p-1 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-all">
                   <span class="text-sm font-bold hidden xl:block text-slate-700 dark:text-slate-300">{{ auth.user?.full_name?.split(' ')[0] || 'Admin' }}</span>
-                  <div class="w-9 h-9 rounded-full bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center text-primary-600 dark:text-primary-400 font-black text-xs">
+                  <span class="w-9 h-9 rounded-full bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center text-primary-600 dark:text-primary-400 font-black text-xs">
                     {{ auth.user?.full_name?.substring(0, 2).toUpperCase() || 'AD' }}
-                  </div>
+                  </span>
                 </button>
               </template>
               
@@ -210,7 +229,7 @@
 
       <!-- Page Content -->
       <main class="flex-1 p-4 lg:p-8 overflow-x-hidden">
-        <slot />
+        <slot></slot>
       </main>
     </div>
   </div>
@@ -229,6 +248,7 @@ import {
   LucideX,
   LucideSearch, 
   LucideBell,
+  LucideActivity,
   LucideShieldCheck,
   LucideChevronRight,
   LucideLogOut,
@@ -247,14 +267,17 @@ import {
   LucideBuilding2
 } from 'lucide-vue-next'
 import { useAuthStore } from '~/stores/auth'
+import { useNotificationStore } from '~/stores/notification'
 import Dropdown from '~/components/Dropdown.vue'
 
+const { t } = useI18n()
 const auth = useAuthStore()
 const config = useRuntimeConfig()
 const route = useRoute()
+const notifStore = useNotificationStore()
+
 const isSidebarOpen = ref(false)
 const searchQuery = ref('')
-
 const showNotifications = ref(false)
 const showUserMenu = ref(false)
 
@@ -264,11 +287,48 @@ const handleHeaderSearch = () => {
   }
 }
 
-const notifications = [
-  { id: 1, title: 'Document Approved', message: 'Your request for "Q4 Financial Report" has been approved.', time: '2 mins ago', icon: LucideCheckCircle2, color: 'text-green-500', bg: 'bg-green-50 dark:bg-green-900/20' },
-  { id: 2, title: 'Signature Required', message: 'You have a new loan request that requires your signature.', time: '1 hour ago', icon: LucideAlertCircle, color: 'text-orange-500', bg: 'bg-orange-50 dark:bg-orange-900/20' },
-  { id: 3, title: 'System Maintenance', message: 'DMS will be unavailable this Sunday for scheduled updates.', time: '3 hours ago', icon: LucideInfo, color: 'text-blue-500', bg: 'bg-blue-50 dark:bg-blue-900/20' },
-]
+// Mapping for notification types
+const getNotifUI = (type) => {
+  switch (type) {
+    case 'success':
+      return { icon: LucideCheckCircle2, color: 'text-green-500', bg: 'bg-green-50 dark:bg-green-900/20' }
+    case 'warning':
+      return { icon: LucideAlertCircle, color: 'text-orange-500', bg: 'bg-orange-50 dark:bg-orange-900/20' }
+    default:
+      return { icon: LucideInfo, color: 'text-blue-500', bg: 'bg-blue-50 dark:bg-blue-900/20' }
+  }
+}
+
+// Format time (simple helper for now)
+const formatNotifTime = (dateStr) => {
+  if (!dateStr) return ''
+  const date = new Date(dateStr)
+  return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+}
+
+const handleMarkAllRead = async () => {
+  await notifStore.markAllAsRead()
+}
+
+const handleNotifClick = async (notif) => {
+  if (!notif.is_read) {
+    await notifStore.markAsRead(notif.id)
+  }
+}
+
+onMounted(() => {
+  isSidebarOpen.value = false
+  
+  // Initial fetch
+  if (auth.token) {
+    notifStore.fetchNotifications()
+    
+    // Simple polling every 30 seconds
+    setInterval(() => {
+      notifStore.fetchNotifications()
+    }, 30000)
+  }
+})
 
 const openSubmenus = ref([])
 
@@ -286,6 +346,7 @@ const handleLogout = () => {
 }
 
 onMounted(() => {
+  // Ensure sidebar is closed on mount
   isSidebarOpen.value = false
 })
 
@@ -360,6 +421,7 @@ const allMenuItems = {
         { key: 'layout.menu.location', path: '/config/company?entity=location' },
         { key: 'layout.menu.retention_code', path: '/config/company?entity=retention' },
         { key: 'layout.menu.params', path: '/config/params' },
+        { key: 'layout.menu.integration', path: '/config/integration', icon: LucideActivity },
       ]
     },
   ],
@@ -516,6 +578,13 @@ const currentPageTitleKey = computed(() => {
   return 'layout.menu.dashboard'
 })
 
+// Update browser tab title
+watch(currentPageTitleKey, (key) => {
+  useHead({
+    title: t(key)
+  })
+}, { immediate: true })
+
 // Auto-close sidebar on desktop resize
 if (import.meta.client) {
   window.addEventListener('resize', () => {
@@ -525,3 +594,19 @@ if (import.meta.client) {
   })
 }
 </script>
+
+<style scoped>
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.2);
+  border-radius: 10px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.4);
+}
+</style>

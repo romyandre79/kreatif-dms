@@ -252,7 +252,11 @@ import {
   LucideCheck
 } from 'lucide-vue-next'
 
-const { locale, locales, setLocale } = useI18n()
+const { locale, locales, setLocale, t } = useI18n()
+
+useHead({
+  title: t('landing.hero.badge') + ' - Enterprise Document Management'
+})
 
 definePageMeta({
   layout: false

@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia'
+import { useLocalStorage } from '@vueuse/core'
 
 interface User {
   id: string
@@ -10,16 +11,19 @@ interface User {
 }
 
 export const useAuthStore = defineStore('auth', () => {
-  const user = ref<User | null>(null)
-  const accessToken = ref<string | null>(null)
-  const refreshToken = ref<string | null>(null)
+  const user = useLocalStorage<User | null>('auth_user', null)
+  const accessToken = useLocalStorage<string | null>('auth_token', null)
+  const refreshToken = useLocalStorage<string | null>('refresh_token', null)
 
   const isAuthenticated = computed(() => !!accessToken.value)
 
   function setTokens(access: string, refresh: string) {
     accessToken.value = access
     refreshToken.value = refresh
-    // In a real app, you'd save these to cookies or localStorage
+    // Also set legacy 'token' for pages still using it directly
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('token', access)
+    }
   }
 
   function setUser(userData: User) {
@@ -37,6 +41,9 @@ export const useAuthStore = defineStore('auth', () => {
     user.value = null
     accessToken.value = null
     refreshToken.value = null
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('token')
+    }
     navigateTo('/login')
   }
 

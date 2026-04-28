@@ -10,7 +10,7 @@ documan detail.
 - **Deskripsi**: Antarmuka login premium dengan fitur:
   - **Multi-Auth**: SSO (LDAP/AD) dan Akun Lokal.
   - **Security**: Password recovery, MFA ready, dan animasi glassmorphism.
-- **Backend API**: ✅ `POST /api/v1/auth/login`
+- **Backend API**: ✅ `POST /api/v1/auth/login` (Status: ✅ Resolved LDAP Protocol Error & Role Mapping)
 
 ---
 
@@ -72,12 +72,13 @@ BP-07
 
 ---
 
-### 1. Pengaturan Single Sign On
+### 1. Pengaturan Single Sign On (LDAP/AD)
 - **Status**: ✅ Selesai (Frontend ✅, Backend ✅)
 - **Vue File**: `frontend/app/pages/settings/sso.vue`
 - **Backend API**: ✅ `GET/POST /api/v1/master/settings/sso`
+- **Dynamic Config**: ✅ Konfigurasi sekarang disimpan di tabel `integration_nodes` (ServiceType: LDAP).
 - **Handler**: `master_handler.go`
-- **Simulation**: ✅ LDAP Simulation Mode Aktif
+- **Implementation**: Menggunakan `LDAPService` dinamis yang mendukung `LLDAP` dan `Active Directory`.
 
 ---
 
@@ -120,7 +121,23 @@ BP-07
 
 ---
 
-### 7. User / Document Detail (Legacy Bridge)
+### 7. Integration Status Monitor
+- **Status**: ✅ Selesai (Frontend ✅, Backend ✅)
+- **Vue File**: `frontend/app/pages/config/integration.vue`
+- **Backend API**: ✅ `GET /api/v1/master/integration/status` — Live Telemetry
+- **Deskripsi**: Dashboard pemantauan kesehatan layanan pihak ketiga dan hardware secara real-time.
+- **Backend Worker**: `IntegrationMonitorService` melakukan health-check setiap 30 detik.
+- **Database Driven**: Semua konfigurasi dipindah dari `.env` ke tabel `integration_nodes`.
+- **Integrasi API Eksternal**:
+  - **AD/LDAP**: Integrasi LLDAP/Active Directory untuk autentikasi SSO (Status: ✅ Stable with StartTLS & Fresh Connection Support).
+  - **S3 Storage (MinIO)**: Konfigurasi dinamis untuk penyimpanan dokumen terenkripsi.
+  - **SMTP Relay**: Menggunakan Mailpit (dev) atau SMTP relay lainnya via database.
+  - **Hardware Gateway**: Monitoring status koneksi Network Scanner, Printer ZPL, dan RFID Encoder.
+- **Features**: Live Latency Trend (Database History), Alert Feed (Dynamic Status), & Health Score Telemetry.
+
+---
+
+### 8. User / Document Detail (Legacy Bridge)
 - **Status**: ✅ Frontend ada, ⚠️ Backend parsial
 - **Vue Files**:
   - `frontend/app/pages/admin/users/index.vue` — user management
@@ -145,7 +162,7 @@ BP-07
 
 ---
 
-### 6. Split Screen Input Workspace
+### 9. Split Screen Input Workspace
 - **Status**: ✅ Frontend ada, ❌ Backend belum ada
 - **Vue File**: `frontend/app/pages/registration/migration.vue` (37KB — halaman terbesar)
 - **Backend API**: ❌ Belum ada endpoint — perlu:
@@ -167,7 +184,7 @@ BP-07
 
 ---
 
-### 7. OCR & AI Review
+### 10. OCR & AI Review
 - **Status**: ✅ Frontend ada, ⚠️ Backend parsial (OCR worker ada)
 - **Vue Files**:
   - `frontend/app/pages/intake/ocr-processing.vue` — proses OCR sedang berjalan
@@ -193,7 +210,7 @@ BP-07
 
 ---
 
-### 8. Duplicate Detection Resolution
+### 11. Duplicate Detection Resolution
 - **Status**: ✅ Frontend ada, ❌ Backend belum ada
 - **Vue File**: `frontend/app/pages/intake/duplicate-check.vue`
 - **Backend API**: ❌ Belum ada endpoint — perlu:
@@ -212,7 +229,7 @@ BP-07
 
 ---
 
-### 9. Identity & Foldering Finalization
+### 12. Identity & Foldering Finalization
 - **Status**: ✅ Frontend ada, ❌ Backend belum ada
 - **Vue Files**:
   - `frontend/app/pages/intake/path-review.vue` — review path/lokasi penyimpanan
@@ -235,7 +252,7 @@ BP-07
 
 ---
 
-### 10. Bulk Import Workbench
+### 13. Bulk Import Workbench
 - **Status**: ✅ Frontend ada, ❌ Backend belum ada
 - **Vue File**: `frontend/app/pages/admin/import/excel.vue`
 - **Backend API**: ❌ Belum ada endpoint — perlu:
@@ -257,7 +274,7 @@ BP-07
 
 ---
 
-### 11. Digital Mailroom Registration
+### 14. Digital Mailroom Registration
 - **Status**: ✅ Frontend ada, ❌ Backend belum ada
 - **Vue Files**:
   - `frontend/app/pages/intake/external-registration.vue` — registrasi surat masuk
@@ -282,7 +299,7 @@ BP-07
 
 ---
 
-### 12. Manajemen Override Status Rak
+### 15. Manajemen Override Status Rak
 - **Status**: ✅ Frontend ada, ❌ Backend belum ada
 - **Vue File**: `frontend/app/pages/admin/warehouse/rack-override.vue`
 - **Backend API**: ❌ Belum ada endpoint — perlu:
@@ -300,7 +317,7 @@ BP-07
 
 ---
 
-### 13. Departemen Zoning Control Center
+### 16. Departemen Zoning Control Center
 - **Status**: ✅ Frontend ada, ❌ Backend belum ada
 - **Vue File**: `frontend/app/pages/admin/warehouse/departments.vue`
 - **Backend API**: ❌ Belum ada — perlu:
@@ -318,7 +335,7 @@ BP-07
 
 ---
 
-### 14. RFID / QR Label Generation
+### 17. RFID / QR Label Generation
 - **Status**: ✅ Selesai (Frontend ✅, Backend ✅)
 - **Vue Files**:
   - `frontend/app/pages/admin/warehouse/label-generation.vue` — generate label QR/barcode
@@ -329,7 +346,7 @@ BP-07
 
 ---
 
-### 15. Label Printing Console
+### 18. Label Printing Console
 - **Status**: ✅ Frontend ada, ❌ Backend belum ada
 - **Vue File**: `frontend/app/pages/admin/warehouse/label-printing.vue`
 - **Backend API**: ❌ Belum ada — perlu:
@@ -347,7 +364,7 @@ BP-07
 
 ---
 
-### 16. Capacity Monitoring & Recommendation / Monitoring Kapasitas & Rekomendasi
+### 19. Capacity Monitoring & Recommendation / Monitoring Kapasitas & Rekomendasi
 - **Status**: ✅ Frontend ada, ❌ Backend belum ada
 - **Vue File**: `frontend/app/pages/admin/warehouse/monitoring.vue`
 - **Backend API**: ❌ Belum ada — perlu:
@@ -367,7 +384,7 @@ BP-07
 
 ---
 
-### 17. Warehouse Topology Explorer
+### 20. Warehouse Topology Explorer
 - **Status**: ✅ Selesai (Frontend ✅, Backend ✅)
 - **Vue Files**:
   - `frontend/app/pages/admin/warehouse/topology.vue`
@@ -377,7 +394,7 @@ BP-07
 
 ---
 
-### 18. Parent-Child RFID Label Model (F-16)
+### 21. Parent-Child RFID Label Model (F-16)
 - **Status**: ✅ Frontend ada, ❌ Backend belum ada
 - **Vue File**: `frontend/app/pages/admin/rfid/model-f16.vue` (197 baris)
 - **Deskripsi UI**: Layout 3 kolom — kiri: Container Preview (parent box + QR/RFID status), tengah: Child Items (drag-sortable list dokumen dalam box), kanan: Summary (capacity, hierarchy, LDAP network status).
@@ -399,7 +416,7 @@ BP-07
 
 ---
 
-### 19. Location Detail & Slot Config
+### 22. Location Detail & Slot Config
 - **Status**: ✅ Frontend ada, ❌ Backend belum ada
 - **Vue File**: `frontend/app/pages/admin/warehouse/location-detail.vue` (202 baris)
 - **Deskripsi UI**: Layout 3 kolom — kiri: Location Info (ID, zone, media type, capacity limits soft/hard, utilization bar), tengah: Slot Table (kode slot, box assignment, status: filled/available/overflow/locked), kanan: AI Recommendations (relocation suggestion, retention alerts) + Incoming Items queue.
@@ -423,7 +440,7 @@ BP-07
 
 ---
 
-### 20. Input Entry Hub & Mode Selection / Manajemen Input Dokumen
+### 23. Input Entry Hub & Mode Selection / Manajemen Input Dokumen
 - **Status**: ✅ Frontend ada, ❌ Backend belum ada
 - **Vue File**: `frontend/app/pages/intake/management.vue` (173 baris)
 - **Deskripsi UI**: 3 mode cards (Single Input, Bulk Import, Digital Mailroom) + Recent Jobs table (ID, type, time, status: running/success/draft/failed) + Stats bar (processed today, OCR capacity utilization) + Quick Start guide.

@@ -1,9 +1,11 @@
 package main
 
 import (
+	"context"
 	"log"
 	"os"
 	"runtime"
+	"strconv"
 	"time"
 
 	"github.com/elastic/go-elasticsearch/v8"
@@ -57,7 +59,13 @@ func main() {
 			if len(os.Args) > 2 {
 				cmd = os.Args[2]
 			}
-			database.RunMigrations(cfg.DatabaseURL, "db/migrations", cmd)
+			
+			if (cmd == "force" || cmd == "goto") && len(os.Args) > 3 {
+				version, _ := strconv.Atoi(os.Args[3])
+				database.RunMigrationsWithVersion(cfg.DatabaseURL, "db/migrations", cmd, version)
+			} else {
+				database.RunMigrations(cfg.DatabaseURL, "db/migrations", cmd)
+			}
 			return
 		}
 	}
@@ -96,18 +104,25 @@ func main() {
 	repo := repository.New(dbPool)
 
 	// Services
-	storageSvc := infra.NewStorageService(minioClient, cfg.MinIOBucket)
-	ldapSvc := infra.NewLDAPService(cfg)
-	emailSvc := infra.NewEmailService(cfg)
+	storageSvc := infra.NewStorageService(cfg, repo, minioClient, cfg.MinIOBucket)
+	ldapSvc := infra.NewLDAPService(cfg, repo)
+	emailSvc := infra.NewEmailService(cfg, repo)
+	waSvc := infra.NewWhatsAppService(repo)
 	authSvc := service.NewAuthService(repo, cfg, ldapSvc, emailSvc)
 	docSvc := service.NewDocumentService(repo, storageSvc, asynqClient)
 	searchSvc := infra.NewSearchService(es)
 	_ = service.NewCacheService(rdb) // Initialized for performance later
 	masterSvc := service.NewMasterService(repo)
 	hardwareSvc := service.NewHardwareService(repo)
+	notifSvc := service.NewNotificationService(repo, waSvc)
+	integrationMonitorSvc := service.NewIntegrationMonitorService(repo)
+	
+	// Start Background Workers
+	integrationMonitorSvc.StartMonitoring(context.Background())
 
 	// Handlers
 	authHandler := handler.NewAuthHandler(authSvc)
+	notifHandler := handler.NewNotificationHandler(notifSvc)
 	userHandler := handler.NewUserHandler(repo)
 	docHandler := handler.NewDocumentHandler(docSvc, searchSvc)
 	batchHandler := handler.NewBatchHandler(docSvc)
@@ -146,6 +161,7 @@ func main() {
 	authGroup := api.Group("/auth")
 	authGroup.Post("/login", authHandler.Login)
 	authGroup.Post("/register", authHandler.Register)
+	authGroup.Post("/refresh", authHandler.Refresh)
 	authGroup.Post("/forgot-password", authHandler.ForgotPassword)
 	
 	// Protected Auth Routes
@@ -186,6 +202,8 @@ func main() {
 	masterGroup.Get("/retention", masterHandler.ListRetentionPolicies)
 	masterGroup.Get("/settings/:category", masterHandler.GetSettings)
 	masterGroup.Post("/settings/:category", masterHandler.UpdateSetting)
+	masterGroup.Get("/integration/status", middleware.RoleMiddleware("admin", "superadmin"), masterHandler.GetIntegrationStatus)
+	masterGroup.Put("/integration/nodes/:id", middleware.RoleMiddleware("admin", "superadmin"), masterHandler.UpdateIntegrationNode)
 
 	// Hardware Master Routes
 	hardwareGroup := api.Group("/hardware")
@@ -193,6 +211,13 @@ func main() {
 	hardwareGroup.Post("/rfid/assign", hardwareHandler.AssignRFID)
 	hardwareGroup.Get("/rfid", hardwareHandler.ListRFID)
 	hardwareGroup.Get("/labels/generate", hardwareHandler.GenerateLabel)
+
+	// Notification Routes
+	notifGroup := api.Group("/notifications")
+	notifGroup.Use(middleware.AuthMiddleware(cfg.JWTSecret))
+	notifGroup.Get("/", notifHandler.GetNotifications)
+	notifGroup.Post("/:id/read", notifHandler.MarkAsRead)
+	notifGroup.Post("/read-all", notifHandler.MarkAllAsRead)
 
 	// Health check
 	app.Get("/health", func(c fiber.Ctx) error {

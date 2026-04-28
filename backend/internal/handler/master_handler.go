@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"encoding/json"
 	"github.com/gofiber/fiber/v3"
 	"github.com/google/uuid"
 	"github.com/kreatif/dms-backend/internal/service"
@@ -145,4 +146,37 @@ func (h *MasterHandler) UpdateSetting(c fiber.Ctx) error {
 		return response.Error(c, fiber.StatusInternalServerError, "Failed to update setting", err.Error())
 	}
 	return response.Success(c, fiber.StatusOK, "Setting updated", setting)
+}
+
+func (h *MasterHandler) GetIntegrationStatus(c fiber.Ctx) error {
+	nodes, err := h.svc.GetIntegrationStatus(c.Context())
+	if err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to get integration status", err.Error())
+	}
+	return response.Success(c, fiber.StatusOK, "Integration status retrieved", nodes)
+}
+
+func (h *MasterHandler) UpdateIntegrationNode(c fiber.Ctx) error {
+	id, err := uuid.Parse(c.Params("id"))
+	if err != nil {
+		return response.Error(c, fiber.StatusBadRequest, "Invalid node ID", err.Error())
+	}
+
+	type request struct {
+		Name       string          `json:"name"`
+		Endpoint   string          `json:"endpoint"`
+		IsActive   bool            `json:"is_active"`
+		IsCritical bool            `json:"is_critical"`
+		Config     json.RawMessage `json:"config_json"`
+	}
+	req := new(request)
+	if err := c.Bind().JSON(req); err != nil {
+		return response.Error(c, fiber.StatusBadRequest, "Invalid request body", err.Error())
+	}
+
+	node, err := h.svc.UpdateIntegrationNode(c.Context(), id, req.Name, req.Endpoint, req.IsActive, req.IsCritical, req.Config)
+	if err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to update integration node", err.Error())
+	}
+	return response.Success(c, fiber.StatusOK, "Integration node updated", node)
 }

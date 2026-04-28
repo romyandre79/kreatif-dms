@@ -161,3 +161,20 @@ func (h *AuthHandler) VerifyPIN(c fiber.Ctx) error {
 
 	return response.Success(c, fiber.StatusOK, "PIN verified", nil)
 }
+
+func (h *AuthHandler) Refresh(c fiber.Ctx) error {
+	type request struct {
+		RefreshToken string `json:"refresh_token" validate:"required"`
+	}
+	req := new(request)
+	if err := c.Bind().JSON(req); err != nil {
+		return response.Error(c, fiber.StatusBadRequest, "Invalid request body", err.Error())
+	}
+
+	res, err := h.svc.RefreshToken(c.Context(), req.RefreshToken)
+	if err != nil {
+		return response.Error(c, fiber.StatusUnauthorized, "Token refresh failed", err.Error())
+	}
+
+	return response.Success(c, fiber.StatusOK, "Token refreshed", res)
+}

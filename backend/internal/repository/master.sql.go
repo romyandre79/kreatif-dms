@@ -242,7 +242,7 @@ func (q *Queries) CreateRfidTag(ctx context.Context, arg CreateRfidTagParams) (R
 const createRole = `-- name: CreateRole :one
 INSERT INTO roles (name, description)
 VALUES ($1, $2)
-RETURNING id, name, description
+RETURNING id, name, description, ldap_group
 `
 
 type CreateRoleParams struct {
@@ -253,7 +253,12 @@ type CreateRoleParams struct {
 func (q *Queries) CreateRole(ctx context.Context, arg CreateRoleParams) (Role, error) {
 	row := q.db.QueryRow(ctx, createRole, arg.Name, arg.Description)
 	var i Role
-	err := row.Scan(&i.ID, &i.Name, &i.Description)
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Description,
+		&i.LdapGroup,
+	)
 	return i, err
 }
 
@@ -450,13 +455,18 @@ func (q *Queries) GetRfidTag(ctx context.Context, tagID string) (RfidTag, error)
 }
 
 const getRole = `-- name: GetRole :one
-SELECT id, name, description FROM roles WHERE id = $1
+SELECT id, name, description, ldap_group FROM roles WHERE id = $1
 `
 
 func (q *Queries) GetRole(ctx context.Context, id int32) (Role, error) {
 	row := q.db.QueryRow(ctx, getRole, id)
 	var i Role
-	err := row.Scan(&i.ID, &i.Name, &i.Description)
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Description,
+		&i.LdapGroup,
+	)
 	return i, err
 }
 
@@ -831,7 +841,7 @@ func (q *Queries) ListRfidTags(ctx context.Context) ([]RfidTag, error) {
 }
 
 const listRoles = `-- name: ListRoles :many
-SELECT id, name, description FROM roles ORDER BY name
+SELECT id, name, description, ldap_group FROM roles ORDER BY name
 `
 
 // Roles
@@ -844,7 +854,12 @@ func (q *Queries) ListRoles(ctx context.Context) ([]Role, error) {
 	var items []Role
 	for rows.Next() {
 		var i Role
-		if err := rows.Scan(&i.ID, &i.Name, &i.Description); err != nil {
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.Description,
+			&i.LdapGroup,
+		); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
@@ -1094,7 +1109,7 @@ func (q *Queries) UpdateRfidTagStatus(ctx context.Context, arg UpdateRfidTagStat
 const updateRole = `-- name: UpdateRole :one
 UPDATE roles SET name = $2, description = $3
 WHERE id = $1
-RETURNING id, name, description
+RETURNING id, name, description, ldap_group
 `
 
 type UpdateRoleParams struct {
@@ -1106,7 +1121,12 @@ type UpdateRoleParams struct {
 func (q *Queries) UpdateRole(ctx context.Context, arg UpdateRoleParams) (Role, error) {
 	row := q.db.QueryRow(ctx, updateRole, arg.ID, arg.Name, arg.Description)
 	var i Role
-	err := row.Scan(&i.ID, &i.Name, &i.Description)
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Description,
+		&i.LdapGroup,
+	)
 	return i, err
 }
 

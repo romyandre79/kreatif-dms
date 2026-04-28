@@ -1,19 +1,20 @@
 <template>
   <div class="space-y-8 pb-10">
     <!-- Action Header -->
-    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4" v-motion-fade>
-      <div>
-        <h1 class="text-3xl font-bold text-slate-900 dark:text-white">{{ $t('dashboard.greetings.morning', { name: user?.full_name?.split(' ')[0] || 'User' }) }}</h1>
-        <p class="text-slate-500 dark:text-slate-400 mt-1">{{ $t('dashboard.user.overview_desc') }}</p>
-      </div>
-      <button 
-        @click="navigateTo('/documents/upload')"
-        class="flex items-center gap-2 px-6 py-3 bg-[#1E3A5F] hover:bg-[#152943] text-white font-bold rounded-xl shadow-lg shadow-blue-900/20 transition-all"
-      >
-        <LucidePlus class="w-5 h-5" />
-        {{ $t('dashboard.header.btn_submit_new') }}
-      </button>
-    </div>
+    <PageHeader 
+      :title="$t('dashboard.greetings.morning', { name: user?.full_name?.split(' ')[0] || 'User' })"
+      :subtitle="$t('dashboard.user.overview_desc')"
+    >
+      <template #actions>
+        <button 
+          @click="navigateTo('/documents/upload')"
+          class="flex items-center gap-2 px-6 py-3 bg-[#1E3A5F] hover:bg-[#152943] text-white font-bold rounded-xl shadow-lg shadow-blue-900/20 transition-all"
+        >
+          <LucidePlus class="w-5 h-5" />
+          {{ $t('dashboard.header.btn_submit_new') }}
+        </button>
+      </template>
+    </PageHeader>
 
     <!-- Stats Grid -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -225,6 +226,7 @@ import {
   LucideBookOpen
 } from 'lucide-vue-next'
 import { useAuthStore } from '~/stores/auth'
+import PageHeader from '~/components/PageHeader.vue'
 
 const auth = useAuthStore()
 const user = computed(() => auth.user)

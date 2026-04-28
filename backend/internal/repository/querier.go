@@ -18,6 +18,8 @@ type Querier interface {
 	CreateCompany(ctx context.Context, arg CreateCompanyParams) (Company, error)
 	CreateDepartment(ctx context.Context, arg CreateDepartmentParams) (Department, error)
 	CreateDocument(ctx context.Context, arg CreateDocumentParams) (Document, error)
+	CreateIntegrationNode(ctx context.Context, arg CreateIntegrationNodeParams) (IntegrationNode, error)
+	CreateNotification(ctx context.Context, arg CreateNotificationParams) (Notification, error)
 	CreateOrdner(ctx context.Context, arg CreateOrdnerParams) (Ordner, error)
 	CreateRack(ctx context.Context, arg CreateRackParams) (Rack, error)
 	CreateRetentionPolicy(ctx context.Context, arg CreateRetentionPolicyParams) (RetentionPolicy, error)
@@ -28,6 +30,7 @@ type Querier interface {
 	DeleteBranch(ctx context.Context, id uuid.UUID) error
 	DeleteCompany(ctx context.Context, id uuid.UUID) error
 	DeleteDepartment(ctx context.Context, id uuid.UUID) error
+	DeleteIntegrationNode(ctx context.Context, id uuid.UUID) error
 	DeleteOrdner(ctx context.Context, id uuid.UUID) error
 	DeleteRack(ctx context.Context, id uuid.UUID) error
 	DeleteRetentionPolicy(ctx context.Context, id uuid.UUID) error
@@ -39,6 +42,8 @@ type Querier interface {
 	GetDepartment(ctx context.Context, id uuid.UUID) (Department, error)
 	GetDocument(ctx context.Context, id uuid.UUID) (Document, error)
 	GetDocumentsByBatch(ctx context.Context, batchID pgtype.UUID) ([]Document, error)
+	GetIntegrationNode(ctx context.Context, id uuid.UUID) (IntegrationNode, error)
+	GetIntegrationNodeByType(ctx context.Context, serviceType string) (IntegrationNode, error)
 	GetOrdner(ctx context.Context, id uuid.UUID) (Ordner, error)
 	GetRack(ctx context.Context, id uuid.UUID) (Rack, error)
 	GetRfidTag(ctx context.Context, tagID string) (RfidTag, error)
@@ -47,8 +52,9 @@ type Querier interface {
 	GetSystemSetting(ctx context.Context, arg GetSystemSettingParams) (SystemSetting, error)
 	// System Settings
 	GetSystemSettingsByCategory(ctx context.Context, category string) ([]SystemSetting, error)
+	GetUnreadCount(ctx context.Context, userID uuid.UUID) (int64, error)
 	GetUserByEmail(ctx context.Context, email string) (GetUserByEmailRow, error)
-	GetUserByID(ctx context.Context, id uuid.UUID) (User, error)
+	GetUserByID(ctx context.Context, id uuid.UUID) (GetUserByIDRow, error)
 	// Topology
 	GetWarehouseTopology(ctx context.Context) ([]GetWarehouseTopologyRow, error)
 	// Boxes
@@ -60,6 +66,8 @@ type Querier interface {
 	// Departments
 	ListDepartments(ctx context.Context, branchID uuid.UUID) ([]Department, error)
 	ListDocumentsByDepartment(ctx context.Context, departmentID uuid.UUID) ([]Document, error)
+	ListIntegrationNodes(ctx context.Context) ([]IntegrationNode, error)
+	ListNotifications(ctx context.Context, arg ListNotificationsParams) ([]Notification, error)
 	// Ordners
 	ListOrdners(ctx context.Context, boxID uuid.UUID) ([]Ordner, error)
 	ListPendingUsers(ctx context.Context) ([]User, error)
@@ -72,6 +80,8 @@ type Querier interface {
 	// Roles
 	ListRoles(ctx context.Context) ([]Role, error)
 	ListUsers(ctx context.Context) ([]User, error)
+	MarkAllAsRead(ctx context.Context, userID uuid.UUID) error
+	MarkAsRead(ctx context.Context, arg MarkAsReadParams) error
 	UpdateBatchProgress(ctx context.Context, id uuid.UUID) error
 	UpdateBox(ctx context.Context, arg UpdateBoxParams) (Box, error)
 	UpdateBranch(ctx context.Context, arg UpdateBranchParams) (Branch, error)
@@ -79,6 +89,8 @@ type Querier interface {
 	UpdateDepartment(ctx context.Context, arg UpdateDepartmentParams) (Department, error)
 	UpdateDocumentMetadata(ctx context.Context, arg UpdateDocumentMetadataParams) error
 	UpdateDocumentOCR(ctx context.Context, arg UpdateDocumentOCRParams) error
+	UpdateIntegrationNodeConfig(ctx context.Context, arg UpdateIntegrationNodeConfigParams) (IntegrationNode, error)
+	UpdateIntegrationNodeStatus(ctx context.Context, arg UpdateIntegrationNodeStatusParams) (IntegrationNode, error)
 	UpdateOrdner(ctx context.Context, arg UpdateOrdnerParams) (Ordner, error)
 	UpdateRack(ctx context.Context, arg UpdateRackParams) (Rack, error)
 	UpdateRetentionPolicy(ctx context.Context, arg UpdateRetentionPolicyParams) (RetentionPolicy, error)

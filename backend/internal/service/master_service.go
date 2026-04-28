@@ -120,3 +120,18 @@ func (s *MasterService) buildTopologyTree(rows []repository.GetWarehouseTopology
 	}
 	return tree
 }
+
+func (s *MasterService) GetIntegrationStatus(ctx context.Context) ([]repository.IntegrationNode, error) {
+	return s.repo.ListIntegrationNodes(ctx)
+}
+
+func (s *MasterService) UpdateIntegrationNode(ctx context.Context, id uuid.UUID, name, endpoint string, isActive, isCritical bool, config []byte) (repository.IntegrationNode, error) {
+	return s.repo.UpdateIntegrationNodeConfig(ctx, repository.UpdateIntegrationNodeConfigParams{
+		ID:         id,
+		Name:       name,
+		Endpoint:   endpoint,
+		IsActive:   pgtype.Bool{Bool: isActive, Valid: true},
+		IsCritical: pgtype.Bool{Bool: isCritical, Valid: true},
+		ConfigJson: config,
+	})
+}
