@@ -9,6 +9,9 @@ import (
 )
 
 func InitMinIO(endpoint, accessKey, secretKey string, useSSL bool, bucketName string) (*minio.Client, error) {
+	if endpoint == "" {
+		return nil, nil
+	}
 	minioClient, err := minio.New(endpoint, &minio.Options{
 		Creds:  credentials.NewStaticV4(accessKey, secretKey, ""),
 		Secure: useSSL,

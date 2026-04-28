@@ -224,7 +224,7 @@ UPDATE integration_nodes
 SET 
     status = $2,
     last_latency = $3,
-    latency_history = array_append(latency_history, $3::int),
+    latency_history = (latency_history || $3::int)[GREATEST(1, array_upper(latency_history || $3::int, 1) - 19) : array_upper(latency_history || $3::int, 1)],
     last_check_at = CURRENT_TIMESTAMP,
     last_error = $4
 WHERE id = $1

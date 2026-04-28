@@ -89,7 +89,7 @@ func main() {
 	}
 
 	minioClient, err := config.InitMinIO(cfg.MinIOEndpoint, cfg.MinIOAccessKey, cfg.MinIOSecretKey, cfg.MinIOUseSSL, cfg.MinIOBucket)
-	if err != nil {
+	if err != nil && cfg.MinIOEndpoint != "" {
 		log.Printf("WARNING: Application starting without MinIO: %v\n", err)
 	}
 

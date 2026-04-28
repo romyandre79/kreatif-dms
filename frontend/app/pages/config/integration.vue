@@ -146,14 +146,13 @@
           </div>
         </div>
 
-        <!-- Latency Trend (60M) -->
         <div class="bg-white/80 dark:bg-slate-900/50 backdrop-blur-xl border border-slate-200 dark:border-slate-800 rounded-3xl p-6">
-          <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-6">Latency Trend (60M)</h3>
+          <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-6">Latency Trend (Recent Checks)</h3>
           <div class="h-40 flex items-end justify-between gap-1 px-2">
-            <div v-for="(v, i) in trendData" :key="i" 
+            <div v-for="(v, i) in globalTrend" :key="i" 
               class="flex-1 rounded-t-sm transition-all duration-700 hover:opacity-80" 
-              :class="[v > 70 ? 'bg-red-500/40 border-t-2 border-red-500' : i === 4 ? 'bg-primary-500 shadow-[0_0_15px_rgba(59,130,246,0.5)]' : 'bg-slate-700/40']"
-              :style="`height: ${v}%`"
+              :class="[v > 70 ? 'bg-red-500/40 border-t-2 border-red-500' : i === globalTrend.length - 1 ? 'bg-primary-500 shadow-[0_0_15px_rgba(59,130,246,0.5)]' : 'bg-slate-700/40']"
+              :style="`height: ${Math.min(v, 100)}%`"
             ></div>
           </div>
         </div>
@@ -290,7 +289,31 @@ const alerts = computed(() => {
   return result
 })
 
-const trendData = [40, 45, 42, 48, 80, 46, 45, 42, 45, 44, 50, 48, 46, 42, 40]
+const globalTrend = computed(() => {
+  if (!nodes.value.length) return Array(15).fill(0)
+  
+  // Find the max length of history (up to 20)
+  const maxLength = Math.max(...nodes.value.map(n => (n.latency_history || []).length), 0)
+  if (maxLength === 0) return Array(15).fill(0)
+
+  const trend = []
+  for (let i = 0; i < maxLength; i++) {
+    let sum = 0
+    let count = 0
+    nodes.value.forEach(node => {
+      const history = node.latency_history || []
+      // Align to the end of the array
+      const offset = history.length - maxLength + i
+      if (offset >= 0 && offset < history.length) {
+        sum += history[offset]
+        count++
+      }
+    })
+    // Scale for percentage display (assuming 500ms is 100%)
+    trend.push(count > 0 ? (sum / count) / 5 : 0)
+  }
+  return trend
+})
 
 const refreshAll = () => {
   fetchNodes()

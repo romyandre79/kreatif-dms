@@ -11,14 +11,16 @@ import (
 	"log"
 
 	"github.com/kreatif/dms-backend/internal/config"
+	"github.com/kreatif/dms-backend/internal/repository"
 )
 
 type AIService struct {
-	cfg config.Config
+	repo repository.Querier
+	cfg  config.Config
 }
 
-func NewAIService(cfg config.Config) *AIService {
-	return &AIService{cfg: cfg}
+func NewAIService(repo repository.Querier, cfg config.Config) *AIService {
+	return &AIService{repo: repo, cfg: cfg}
 }
 
 type OCRResponse struct {
@@ -168,8 +170,50 @@ func (s *AIService) cleanJSONString(s_input string) string {
 	return s_input
 }
 
+func (s *AIService) getGeminiConfig(ctx context.Context) (string, string, error) {
+	node, err := s.repo.GetIntegrationNodeByType(ctx, "AI")
+	if err != nil {
+		return "", "", fmt.Errorf("AI integration node not found: %v", err)
+	}
+
+	if !node.IsActive.Bool {
+		return "", "", fmt.Errorf("AI integration is disabled")
+	}
+
+	var nodeCfg struct {
+		Token string `json:"token"`
+		Model string `json:"model"`
+	}
+	if err := json.Unmarshal(node.ConfigJson, &nodeCfg); err != nil {
+		return "", "", fmt.Errorf("failed to parse AI config: %v", err)
+	}
+
+	apiKey := nodeCfg.Token
+	model := nodeCfg.Model
+
+	if apiKey == "" {
+		apiKey = s.cfg.GeminiAPIKey
+	}
+	if model == "" {
+		model = "gemini-1.5-flash"
+	}
+
+	return apiKey, model, nil
+}
+
 func (s *AIService) callGemini(ctx context.Context, prompt string) (string, error) {
-	url := fmt.Sprintf("https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=%s", s.cfg.GeminiAPIKey)
+	apiKey, model, err := s.getGeminiConfig(ctx)
+	if err != nil {
+		// Fallback to legacy config if node not found
+		if s.cfg.GeminiAPIKey != "" {
+			apiKey = s.cfg.GeminiAPIKey
+			model = "gemini-1.5-flash"
+		} else {
+			return "", err
+		}
+	}
+
+	url := fmt.Sprintf("https://generativelanguage.googleapis.com/v1beta/models/%s:generateContent?key=%s", model, apiKey)
 
 	payload := map[string]interface{}{
 		"contents": []map[string]interface{}{
