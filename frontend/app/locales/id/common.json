@@ -6,7 +6,9 @@
       "pending": "TERTUNDA",
       "critical": "KRITIS",
       "returned": "DIKEMBALIKAN"
-    }
+    },
+    "loading": "Memuat data...",
+    "no_data": "Data tidak ditemukan"
   },
   "error": {
     "page_not_found": "Halaman tidak ditemukan",

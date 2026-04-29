@@ -56,9 +56,142 @@ func (s *MasterService) ListBranches(ctx context.Context, companyID uuid.UUID) (
 	return s.repo.ListBranches(ctx, companyID)
 }
 
+func (s *MasterService) ListAllBranchesGlobal(ctx context.Context) ([]repository.ListAllBranchesGlobalRow, error) {
+	return s.repo.ListAllBranchesGlobal(ctx)
+}
+
+func (s *MasterService) CreateBranch(ctx context.Context, companyID uuid.UUID, name string, location string, headID *uuid.UUID) (repository.Branch, error) {
+	params := repository.CreateBranchParams{
+		CompanyID: companyID,
+		Name:      name,
+		Location:  pgtype.Text{String: location, Valid: location != ""},
+	}
+	if headID != nil {
+		params.HeadID = pgtype.UUID{Bytes: *headID, Valid: true}
+	}
+	return s.repo.CreateBranch(ctx, params)
+}
+
+func (s *MasterService) UpdateBranch(ctx context.Context, id uuid.UUID, name string, location string, headID *uuid.UUID) (repository.Branch, error) {
+	params := repository.UpdateBranchParams{
+		ID:       id,
+		Name:     name,
+		Location: pgtype.Text{String: location, Valid: location != ""},
+	}
+	if headID != nil {
+		params.HeadID = pgtype.UUID{Bytes: *headID, Valid: true}
+	}
+	return s.repo.UpdateBranch(ctx, params)
+}
+
+func (s *MasterService) DeleteBranch(ctx context.Context, id uuid.UUID) error {
+	return s.repo.DeleteBranch(ctx, id)
+}
+
 // Department
 func (s *MasterService) ListDepartments(ctx context.Context, branchID uuid.UUID) ([]repository.Department, error) {
 	return s.repo.ListDepartments(ctx, branchID)
+}
+
+func (s *MasterService) ListAllDepartments(ctx context.Context) ([]repository.ListAllDepartmentsRow, error) {
+	return s.repo.ListAllDepartments(ctx)
+}
+
+func (s *MasterService) CreateDepartment(ctx context.Context, branchID uuid.UUID, name string, headID *uuid.UUID) (repository.Department, error) {
+	params := repository.CreateDepartmentParams{
+		BranchID: branchID,
+		Name:     name,
+	}
+	if headID != nil {
+		params.HeadID = pgtype.UUID{Bytes: *headID, Valid: true}
+	}
+	return s.repo.CreateDepartment(ctx, params)
+}
+
+func (s *MasterService) UpdateDepartment(ctx context.Context, id uuid.UUID, name string, headID *uuid.UUID) (repository.Department, error) {
+	params := repository.UpdateDepartmentParams{
+		ID:   id,
+		Name: name,
+	}
+	if headID != nil {
+		params.HeadID = pgtype.UUID{Bytes: *headID, Valid: true}
+	}
+	return s.repo.UpdateDepartment(ctx, params)
+}
+
+func (s *MasterService) DeleteDepartment(ctx context.Context, id uuid.UUID) error {
+	return s.repo.DeleteDepartment(ctx, id)
+}
+
+// Racks
+func (s *MasterService) ListAllRacksGlobal(ctx context.Context) ([]repository.ListAllRacksGlobalRow, error) {
+	return s.repo.ListAllRacksGlobal(ctx)
+}
+
+func (s *MasterService) CreateRack(ctx context.Context, deptID uuid.UUID, name string, locationDetail string) (repository.Rack, error) {
+	return s.repo.CreateRack(ctx, repository.CreateRackParams{
+		DepartmentID:   deptID,
+		Name:           name,
+		LocationDetail: pgtype.Text{String: locationDetail, Valid: locationDetail != ""},
+	})
+}
+
+func (s *MasterService) UpdateRack(ctx context.Context, id uuid.UUID, name string, locationDetail string) (repository.Rack, error) {
+	return s.repo.UpdateRack(ctx, repository.UpdateRackParams{
+		ID:             id,
+		Name:           name,
+		LocationDetail: pgtype.Text{String: locationDetail, Valid: locationDetail != ""},
+	})
+}
+
+func (s *MasterService) DeleteRack(ctx context.Context, id uuid.UUID) error {
+	return s.repo.DeleteRack(ctx, id)
+}
+
+// Boxes
+func (s *MasterService) ListAllBoxesGlobal(ctx context.Context) ([]repository.ListAllBoxesGlobalRow, error) {
+	return s.repo.ListAllBoxesGlobal(ctx)
+}
+
+func (s *MasterService) CreateBox(ctx context.Context, rackID uuid.UUID, name string) (repository.Box, error) {
+	return s.repo.CreateBox(ctx, repository.CreateBoxParams{
+		RackID: rackID,
+		Name:   name,
+	})
+}
+
+func (s *MasterService) UpdateBox(ctx context.Context, id uuid.UUID, name string) (repository.Box, error) {
+	return s.repo.UpdateBox(ctx, repository.UpdateBoxParams{
+		ID:   id,
+		Name: name,
+	})
+}
+
+func (s *MasterService) DeleteBox(ctx context.Context, id uuid.UUID) error {
+	return s.repo.DeleteBox(ctx, id)
+}
+
+// Ordners
+func (s *MasterService) ListAllOrdnersGlobal(ctx context.Context) ([]repository.ListAllOrdnersGlobalRow, error) {
+	return s.repo.ListAllOrdnersGlobal(ctx)
+}
+
+func (s *MasterService) CreateOrdner(ctx context.Context, boxID uuid.UUID, name string) (repository.Ordner, error) {
+	return s.repo.CreateOrdner(ctx, repository.CreateOrdnerParams{
+		BoxID: boxID,
+		Name:  name,
+	})
+}
+
+func (s *MasterService) UpdateOrdner(ctx context.Context, id uuid.UUID, name string) (repository.Ordner, error) {
+	return s.repo.UpdateOrdner(ctx, repository.UpdateOrdnerParams{
+		ID:   id,
+		Name: name,
+	})
+}
+
+func (s *MasterService) DeleteOrdner(ctx context.Context, id uuid.UUID) error {
+	return s.repo.DeleteOrdner(ctx, id)
 }
 
 // Roles

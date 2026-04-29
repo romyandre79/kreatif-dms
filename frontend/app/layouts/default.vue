@@ -26,7 +26,7 @@
         </div>
 
         <nav class="flex-1 overflow-y-auto pr-2 space-y-1 custom-scrollbar">
-          <div v-for="item in menuItems" :key="item.name">
+          <div v-for="item in menuItems" :key="item.key">
             <!-- Simple Link -->
             <NuxtLink
               v-if="!item.children"
@@ -236,7 +236,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch, watchEffect } from 'vue'
 import { useRoute } from 'vue-router'
 import { 
   LucideFileStack, 
@@ -270,86 +270,7 @@ import { useAuthStore } from '~/stores/auth'
 import { useNotificationStore } from '~/stores/notification'
 import Dropdown from '~/components/Dropdown.vue'
 
-const { t } = useI18n()
-const auth = useAuthStore()
-const config = useRuntimeConfig()
-const route = useRoute()
-const notifStore = useNotificationStore()
-
-const isSidebarOpen = ref(false)
-const searchQuery = ref('')
-const showNotifications = ref(false)
-const showUserMenu = ref(false)
-
-const handleHeaderSearch = () => {
-  if (searchQuery.value.trim()) {
-    navigateTo(`/documents?q=${encodeURIComponent(searchQuery.value)}`)
-  }
-}
-
-// Mapping for notification types
-const getNotifUI = (type) => {
-  switch (type) {
-    case 'success':
-      return { icon: LucideCheckCircle2, color: 'text-green-500', bg: 'bg-green-50 dark:bg-green-900/20' }
-    case 'warning':
-      return { icon: LucideAlertCircle, color: 'text-orange-500', bg: 'bg-orange-50 dark:bg-orange-900/20' }
-    default:
-      return { icon: LucideInfo, color: 'text-blue-500', bg: 'bg-blue-50 dark:bg-blue-900/20' }
-  }
-}
-
-// Format time (simple helper for now)
-const formatNotifTime = (dateStr) => {
-  if (!dateStr) return ''
-  const date = new Date(dateStr)
-  return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-}
-
-const handleMarkAllRead = async () => {
-  await notifStore.markAllAsRead()
-}
-
-const handleNotifClick = async (notif) => {
-  if (!notif.is_read) {
-    await notifStore.markAsRead(notif.id)
-  }
-}
-
-onMounted(() => {
-  isSidebarOpen.value = false
-  
-  // Initial fetch
-  if (auth.token) {
-    notifStore.fetchNotifications()
-    
-    // Simple polling every 30 seconds
-    setInterval(() => {
-      notifStore.fetchNotifications()
-    }, 30000)
-  }
-})
-
-const openSubmenus = ref([])
-
-const toggleSubmenu = (key) => {
-  if (openSubmenus.value.includes(key)) {
-    openSubmenus.value = openSubmenus.value.filter(n => n !== key)
-  } else {
-    openSubmenus.value.push(key)
-  }
-}
-
-const handleLogout = () => {
-  showUserMenu.value = false
-  auth.logout()
-}
-
-onMounted(() => {
-  // Ensure sidebar is closed on mount
-  isSidebarOpen.value = false
-})
-
+// Move allMenuItems to the top to ensure availability
 const allMenuItems = {
   superadmin: [
     { key: 'layout.menu.dashboard', path: '/dashboard', icon: LucideLayoutDashboard },
@@ -416,7 +337,11 @@ const allMenuItems = {
       icon: LucideSettings,
       children: [
         { key: 'layout.menu.company', path: '/config/company' },
-        { key: 'layout.menu.dept', path: '/config/company?entity=dept' },
+        { key: 'layout.menu.branch', path: '/config/branch' },
+        { key: 'layout.menu.dept', path: '/config/department' },
+        { key: 'layout.menu.rack', path: '/config/rack' },
+        { key: 'layout.menu.box', path: '/config/box' },
+        { key: 'layout.menu.ordner', path: '/config/ordner' },
         { key: 'layout.menu.type', path: '/config/company?entity=type' },
         { key: 'layout.menu.location', path: '/config/company?entity=location' },
         { key: 'layout.menu.retention_code', path: '/config/company?entity=retention' },
@@ -556,8 +481,126 @@ const allMenuItems = {
   ]
 }
 
+const { t } = useI18n()
+const auth = useAuthStore()
+const config = useRuntimeConfig()
+const route = useRoute()
+const notifStore = useNotificationStore()
+
+const isSidebarOpen = ref(false)
+const searchQuery = ref('')
+const showNotifications = ref(false)
+const showUserMenu = ref(false)
+
+const handleHeaderSearch = () => {
+  if (searchQuery.value.trim()) {
+    navigateTo(`/documents?q=${encodeURIComponent(searchQuery.value)}`)
+  }
+}
+
+// Mapping for notification types
+const getNotifUI = (type) => {
+  switch (type) {
+    case 'success':
+      return { icon: LucideCheckCircle2, color: 'text-green-500', bg: 'bg-green-50 dark:bg-green-900/20' }
+    case 'warning':
+      return { icon: LucideAlertCircle, color: 'text-orange-500', bg: 'bg-orange-50 dark:bg-orange-900/20' }
+    default:
+      return { icon: LucideInfo, color: 'text-blue-500', bg: 'bg-blue-50 dark:bg-blue-900/20' }
+  }
+}
+
+// Format time (simple helper for now)
+const formatNotifTime = (dateStr) => {
+  if (!dateStr) return ''
+  const date = new Date(dateStr)
+  return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+}
+
+const handleMarkAllRead = async () => {
+  await notifStore.markAllAsRead()
+}
+
+const handleNotifClick = async (notif) => {
+  if (!notif.is_read) {
+    await notifStore.markAsRead(notif.id)
+  }
+}
+
+onMounted(() => {
+  isSidebarOpen.value = false
+  
+  // Initial fetch
+  if (auth.accessToken) {
+    notifStore.fetchNotifications()
+    
+    // Simple polling every 30 seconds
+    setInterval(() => {
+      notifStore.fetchNotifications()
+    }, 30000)
+  }
+})
+
+const openSubmenus = ref([])
+
+const toggleSubmenu = (key) => {
+  if (openSubmenus.value.includes(key)) {
+    openSubmenus.value = openSubmenus.value.filter(n => n !== key)
+  } else {
+    openSubmenus.value.push(key)
+  }
+}
+
+const handleLogout = () => {
+  showUserMenu.value = false
+  auth.logout()
+}
+
+onMounted(() => {
+  // Ensure sidebar is closed on mount
+  isSidebarOpen.value = false
+})
+
+
+const currentMappedRole = computed(() => {
+  let user = auth.user
+  if (!user && typeof window !== 'undefined') {
+    try {
+      const saved = localStorage.getItem('kreatif_user')
+      if (saved) user = JSON.parse(saved)
+    } catch (e) {}
+  }
+
+  const rawRole = String(user?.role || 'user').toLowerCase().trim()
+  
+  // 1. Exact & Alias Mapping
+  const roleMap = {
+    'admin': 'superadmin',
+    'superadmin': 'superadmin',
+    'administrator': 'superadmin',
+    'manajer': 'manajer',
+    'manager': 'manajer',
+    'admindoccontroller': 'admin doc controller',
+    'kepaladoccontroller': 'kepala doc controller'
+  }
+  
+  const normalized = rawRole.replace(/[\s_-]+/g, '')
+  if (roleMap[normalized]) return roleMap[normalized]
+
+  // 2. Fuzzy Matching (Failsafe)
+  if (rawRole.includes('admin') && !rawRole.includes('controller')) return 'superadmin'
+  if (rawRole.includes('manajer') || rawRole.includes('manager')) return 'manajer'
+  if (rawRole.includes('controller')) {
+    if (rawRole.includes('admin')) return 'admin doc controller'
+    if (rawRole.includes('kepala')) return 'kepala doc controller'
+    return 'admin doc controller'
+  }
+
+  return 'user'
+})
+
 const menuItems = computed(() => {
-  const role = (auth.user?.role || 'user').toLowerCase().trim()
+  const role = currentMappedRole.value
   return allMenuItems[role] || allMenuItems.user
 })
 

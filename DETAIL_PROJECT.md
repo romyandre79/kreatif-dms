@@ -101,27 +101,59 @@ BP-07
 
 ### 4. Pengaturan Departemen / Departemen Management
 - **Status**: ✅ Selesai (Frontend ✅, Backend ✅)
-- **Vue File**: `frontend/app/pages/admin/warehouse/departments.vue`
-- **Backend API**: ✅ CRUD `/api/v1/master/departments` (via `organization_handler`)
-- **Handler**: `master_handler.go` & `organization_handler.go`
+- **Vue File**: `frontend/app/pages/config/department.vue`
+- **Backend API**: ✅ CRUD `/api/v1/master/departments`
+- **Handler**: `master_handler.go`
 
 ---
 
-### 5. Kebijakan Retensi / Retention Policies
+### 5. Pengaturan Cabang / Branch Management
+- **Status**: ✅ Selesai (Frontend ✅, Backend ✅)
+- **Vue File**: `frontend/app/pages/config/branch.vue`
+- **Backend API**: ✅ CRUD `/api/v1/master/branches`
+- **Handler**: `master_handler.go`
+
+---
+
+### 6. Pengaturan Rak / Rack Management
+- **Status**: ✅ Selesai (Frontend ✅, Backend ✅)
+- **Vue File**: `frontend/app/pages/config/rack.vue`
+- **Backend API**: ✅ CRUD `/api/v1/master/racks`
+- **Handler**: `master_handler.go`
+
+---
+
+### 7. Pengaturan Box / Box Management
+- **Status**: ✅ Selesai (Frontend ✅, Backend ✅)
+- **Vue File**: `frontend/app/pages/config/box.vue`
+- **Backend API**: ✅ CRUD `/api/v1/master/boxes`
+- **Handler**: `master_handler.go`
+
+---
+
+### 8. Pengaturan Ordner / Ordner Management
+- **Status**: ✅ Selesai (Frontend ✅, Backend ✅)
+- **Vue File**: `frontend/app/pages/config/ordner.vue`
+- **Backend API**: ✅ CRUD `/api/v1/master/ordners`
+- **Handler**: `master_handler.go`
+
+---
+
+### 9. Kebijakan Retensi / Retention Policies
 - **Status**: ✅ Selesai (Frontend ✅, Backend ✅)
 - **Backend API**: ✅ `GET /api/v1/master/retention`
 - **Handler**: `master_handler.go`
 
 ---
 
-### 6. Manajemen Hardware (RFID & Labeling)
+### 10. Manajemen Hardware (RFID & Labeling)
 - **Status**: ✅ Selesai (Frontend ✅, Backend ✅)
 - **Backend API**: ✅ `POST /api/v1/hardware/rfid/assign`, `GET /api/v1/hardware/labels/generate`
 - **Handler**: `hardware_handler.go`
 
 ---
 
-### 7. Integration Status Monitor
+### 11. Integration Status Monitor
 - **Status**: ✅ Selesai (Frontend ✅, Backend ✅)
 - **Vue File**: `frontend/app/pages/config/integration.vue`
 - **Backend API**: ✅ `GET /api/v1/master/integration/status` — Live Telemetry
@@ -137,7 +169,7 @@ BP-07
 
 ---
 
-### 8. User / Document Detail (Legacy Bridge)
+### 12. User / Document Detail (Legacy Bridge)
 - **Status**: ✅ Frontend ada, ⚠️ Backend parsial
 - **Vue Files**:
   - `frontend/app/pages/admin/users/index.vue` — user management

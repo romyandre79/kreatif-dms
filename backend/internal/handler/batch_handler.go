@@ -3,6 +3,7 @@ package handler
 import (
 	"github.com/gofiber/fiber/v3"
 	"github.com/google/uuid"
+	_ "github.com/kreatif/dms-backend/internal/repository"
 	"github.com/kreatif/dms-backend/internal/service"
 )
 

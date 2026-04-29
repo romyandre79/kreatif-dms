@@ -587,6 +587,228 @@ func (q *Queries) GetWarehouseTopology(ctx context.Context) ([]GetWarehouseTopol
 	return items, nil
 }
 
+const listAllBoxesGlobal = `-- name: ListAllBoxesGlobal :many
+SELECT bx.id, bx.rack_id, bx.name, bx.created_at, r.name as rack_name, d.name as department_name
+FROM boxes bx
+JOIN racks r ON bx.rack_id = r.id
+JOIN departments d ON r.department_id = d.id
+ORDER BY bx.name
+`
+
+type ListAllBoxesGlobalRow struct {
+	ID             uuid.UUID          `json:"id"`
+	RackID         uuid.UUID          `json:"rack_id"`
+	Name           string             `json:"name"`
+	CreatedAt      pgtype.Timestamptz `json:"created_at"`
+	RackName       string             `json:"rack_name"`
+	DepartmentName string             `json:"department_name"`
+}
+
+func (q *Queries) ListAllBoxesGlobal(ctx context.Context) ([]ListAllBoxesGlobalRow, error) {
+	rows, err := q.db.Query(ctx, listAllBoxesGlobal)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListAllBoxesGlobalRow
+	for rows.Next() {
+		var i ListAllBoxesGlobalRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.RackID,
+			&i.Name,
+			&i.CreatedAt,
+			&i.RackName,
+			&i.DepartmentName,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listAllBranchesGlobal = `-- name: ListAllBranchesGlobal :many
+SELECT b.id, b.company_id, b.name, b.location, b.head_id, b.created_at, c.name as company_name 
+FROM branches b
+JOIN companies c ON b.company_id = c.id
+ORDER BY b.name
+`
+
+type ListAllBranchesGlobalRow struct {
+	ID          uuid.UUID          `json:"id"`
+	CompanyID   uuid.UUID          `json:"company_id"`
+	Name        string             `json:"name"`
+	Location    pgtype.Text        `json:"location"`
+	HeadID      pgtype.UUID        `json:"head_id"`
+	CreatedAt   pgtype.Timestamptz `json:"created_at"`
+	CompanyName string             `json:"company_name"`
+}
+
+func (q *Queries) ListAllBranchesGlobal(ctx context.Context) ([]ListAllBranchesGlobalRow, error) {
+	rows, err := q.db.Query(ctx, listAllBranchesGlobal)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListAllBranchesGlobalRow
+	for rows.Next() {
+		var i ListAllBranchesGlobalRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.CompanyID,
+			&i.Name,
+			&i.Location,
+			&i.HeadID,
+			&i.CreatedAt,
+			&i.CompanyName,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listAllDepartments = `-- name: ListAllDepartments :many
+SELECT d.id, d.branch_id, d.name, d.head_id, d.created_at, b.name as branch_name 
+FROM departments d
+JOIN branches b ON d.branch_id = b.id
+ORDER BY d.name
+`
+
+type ListAllDepartmentsRow struct {
+	ID         uuid.UUID          `json:"id"`
+	BranchID   uuid.UUID          `json:"branch_id"`
+	Name       string             `json:"name"`
+	HeadID     pgtype.UUID        `json:"head_id"`
+	CreatedAt  pgtype.Timestamptz `json:"created_at"`
+	BranchName string             `json:"branch_name"`
+}
+
+func (q *Queries) ListAllDepartments(ctx context.Context) ([]ListAllDepartmentsRow, error) {
+	rows, err := q.db.Query(ctx, listAllDepartments)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListAllDepartmentsRow
+	for rows.Next() {
+		var i ListAllDepartmentsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.BranchID,
+			&i.Name,
+			&i.HeadID,
+			&i.CreatedAt,
+			&i.BranchName,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listAllOrdnersGlobal = `-- name: ListAllOrdnersGlobal :many
+SELECT o.id, o.box_id, o.name, o.created_at, bx.name as box_name, r.name as rack_name
+FROM ordners o
+JOIN boxes bx ON o.box_id = bx.id
+JOIN racks r ON bx.rack_id = r.id
+ORDER BY o.name
+`
+
+type ListAllOrdnersGlobalRow struct {
+	ID        uuid.UUID          `json:"id"`
+	BoxID     uuid.UUID          `json:"box_id"`
+	Name      string             `json:"name"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
+	BoxName   string             `json:"box_name"`
+	RackName  string             `json:"rack_name"`
+}
+
+func (q *Queries) ListAllOrdnersGlobal(ctx context.Context) ([]ListAllOrdnersGlobalRow, error) {
+	rows, err := q.db.Query(ctx, listAllOrdnersGlobal)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListAllOrdnersGlobalRow
+	for rows.Next() {
+		var i ListAllOrdnersGlobalRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.BoxID,
+			&i.Name,
+			&i.CreatedAt,
+			&i.BoxName,
+			&i.RackName,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listAllRacksGlobal = `-- name: ListAllRacksGlobal :many
+SELECT r.id, r.department_id, r.name, r.location_detail, r.created_at, d.name as department_name, b.name as branch_name
+FROM racks r
+JOIN departments d ON r.department_id = d.id
+JOIN branches b ON d.branch_id = b.id
+ORDER BY r.name
+`
+
+type ListAllRacksGlobalRow struct {
+	ID             uuid.UUID          `json:"id"`
+	DepartmentID   uuid.UUID          `json:"department_id"`
+	Name           string             `json:"name"`
+	LocationDetail pgtype.Text        `json:"location_detail"`
+	CreatedAt      pgtype.Timestamptz `json:"created_at"`
+	DepartmentName string             `json:"department_name"`
+	BranchName     string             `json:"branch_name"`
+}
+
+func (q *Queries) ListAllRacksGlobal(ctx context.Context) ([]ListAllRacksGlobalRow, error) {
+	rows, err := q.db.Query(ctx, listAllRacksGlobal)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListAllRacksGlobalRow
+	for rows.Next() {
+		var i ListAllRacksGlobalRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.DepartmentID,
+			&i.Name,
+			&i.LocationDetail,
+			&i.CreatedAt,
+			&i.DepartmentName,
+			&i.BranchName,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listBoxes = `-- name: ListBoxes :many
 SELECT id, rack_id, name, created_at FROM boxes WHERE rack_id = $1 ORDER BY name
 `

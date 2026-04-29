@@ -57,6 +57,11 @@ type Querier interface {
 	GetUserByID(ctx context.Context, id uuid.UUID) (GetUserByIDRow, error)
 	// Topology
 	GetWarehouseTopology(ctx context.Context) ([]GetWarehouseTopologyRow, error)
+	ListAllBoxesGlobal(ctx context.Context) ([]ListAllBoxesGlobalRow, error)
+	ListAllBranchesGlobal(ctx context.Context) ([]ListAllBranchesGlobalRow, error)
+	ListAllDepartments(ctx context.Context) ([]ListAllDepartmentsRow, error)
+	ListAllOrdnersGlobal(ctx context.Context) ([]ListAllOrdnersGlobalRow, error)
+	ListAllRacksGlobal(ctx context.Context) ([]ListAllRacksGlobalRow, error)
 	// Boxes
 	ListBoxes(ctx context.Context, rackID uuid.UUID) ([]Box, error)
 	// Branches

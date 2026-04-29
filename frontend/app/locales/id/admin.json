@@ -8,6 +8,7 @@
       "data_type": "TIPE DATA",
       "required": "WAJIB",
       "searchable": "DAPAT DICARI",
+      "created_at": "DIBUAT PADA",
       "actions": "AKSI"
     }
   },
@@ -234,6 +235,116 @@
       "digital_usage": "Penggunaan Digital",
       "available_racks": "Rak Tersedia",
       "forecast": "Estimasi Penuh"
+    }
+  },
+  "config": {
+    "branch": {
+      "title": "Master Cabang",
+      "subtitle": "Pengaturan struktur cabang dan lokasi fisik perusahaan.",
+      "add_btn": "Tambah Cabang",
+      "filter_placeholder": "Filter cabang...",
+      "table": {
+        "name": "Nama Cabang",
+        "company": "Perusahaan",
+        "location": "Lokasi",
+        "head": "Kepala Cabang"
+      },
+      "select_company": "Pilih Perusahaan",
+      "select_head": "Pilih Penanggung Jawab",
+      "displaying": "Menampilkan {start}-{end} dari {total} cabang",
+      "rows": "Baris",
+      "not_set": "Belum ditentukan",
+      "user_not_found": "User tidak ditemukan",
+      "error_name": "Nama cabang wajib diisi",
+      "error_company": "Perusahaan wajib dipilih",
+      "error_save": "Gagal menyimpan data",
+      "error_delete": "Gagal menghapus data",
+      "error_fetch": "Gagal mengambil data",
+      "confirm_delete": "Hapus cabang ini?"
+    },
+    "dept": {
+      "title": "Master Departemen",
+      "subtitle": "Pengaturan struktur departemen dan penanggung jawab.",
+      "add_btn": "Tambah Departemen",
+      "filter_placeholder": "Filter departemen...",
+      "table": {
+        "name": "Nama Departemen",
+        "branch": "Cabang",
+        "head": "Kepala Departemen"
+      },
+      "select_branch": "Pilih Cabang",
+      "select_head": "Pilih Penanggung Jawab",
+      "displaying": "Menampilkan {start}-{end} dari {total} departemen",
+      "rows": "Baris",
+      "not_set": "Belum ditentukan",
+      "user_not_found": "User tidak ditemukan",
+      "error_name": "Nama departemen wajib diisi",
+      "error_branch": "Cabang wajib dipilih",
+      "error_save": "Gagal menyimpan data",
+      "error_delete": "Gagal menghapus data",
+      "error_fetch": "Gagal mengambil data",
+      "confirm_delete": "Hapus departemen ini?"
+    },
+    "rack": {
+      "title": "Master Rak",
+      "subtitle": "Pengaturan rak penyimpanan di setiap departemen.",
+      "add_btn": "Tambah Rak",
+      "filter_placeholder": "Filter rak...",
+      "table": {
+        "name": "Nama Rak",
+        "dept": "Departemen",
+        "branch": "Cabang",
+        "location": "Detail Lokasi"
+      },
+      "select_dept": "Pilih Departemen",
+      "displaying": "Menampilkan {start}-{end} dari {total} rak",
+      "rows": "Baris",
+      "error_name": "Nama rak wajib diisi",
+      "error_dept": "Departemen wajib dipilih",
+      "error_save": "Gagal menyimpan data",
+      "error_delete": "Gagal menghapus data",
+      "error_fetch": "Gagal mengambil data",
+      "confirm_delete": "Hapus rak ini?"
+    },
+    "box": {
+      "title": "Master Box",
+      "subtitle": "Pengaturan box penyimpanan dalam rak.",
+      "add_btn": "Tambah Box",
+      "filter_placeholder": "Filter box...",
+      "table": {
+        "name": "Nama Box",
+        "rack": "Rak",
+        "dept": "Departemen"
+      },
+      "select_rack": "Pilih Rak",
+      "displaying": "Menampilkan {start}-{end} dari {total} box",
+      "rows": "Baris",
+      "error_name": "Nama box wajib diisi",
+      "error_rack": "Rak wajib dipilih",
+      "error_save": "Gagal menyimpan data",
+      "error_delete": "Gagal menghapus data",
+      "error_fetch": "Gagal mengambil data",
+      "confirm_delete": "Hapus box ini?"
+    },
+    "ordner": {
+      "title": "Master Ordner",
+      "subtitle": "Pengaturan ordner dokumen dalam box.",
+      "add_btn": "Tambah Ordner",
+      "filter_placeholder": "Filter ordner...",
+      "table": {
+        "name": "Nama Ordner",
+        "box": "Box",
+        "rack": "Rak"
+      },
+      "select_box": "Pilih Box",
+      "displaying": "Menampilkan {start}-{end} dari {total} ordner",
+      "rows": "Baris",
+      "error_name": "Nama ordner wajib diisi",
+      "error_box": "Box wajib dipilih",
+      "error_save": "Gagal menyimpan data",
+      "error_delete": "Gagal menghapus data",
+      "error_fetch": "Gagal mengambil data",
+      "confirm_delete": "Hapus ordner ini?"
     }
   }
 }

@@ -8,6 +8,7 @@
       "data_type": "DATA TYPE",
       "required": "REQUIRED",
       "searchable": "SEARCHABLE",
+      "created_at": "CREATED AT",
       "actions": "ACTIONS"
     }
   },
@@ -234,6 +235,116 @@
       "digital_usage": "Digital Usage",
       "available_racks": "Available Racks",
       "forecast": "Estimated Full"
+    }
+  },
+  "config": {
+    "branch": {
+      "title": "Branch Master",
+      "subtitle": "Configure branch structure and physical locations.",
+      "add_btn": "Add Branch",
+      "filter_placeholder": "Filter branches...",
+      "table": {
+        "name": "Branch Name",
+        "company": "Company",
+        "location": "Location",
+        "head": "Branch Head"
+      },
+      "select_company": "Select Company",
+      "select_head": "Select Branch Head",
+      "displaying": "Showing {start}-{end} of {total} branches",
+      "rows": "Rows",
+      "not_set": "Not set",
+      "user_not_found": "User not found",
+      "error_name": "Branch name is required",
+      "error_company": "Company is required",
+      "error_save": "Failed to save data",
+      "error_delete": "Failed to delete data",
+      "error_fetch": "Failed to fetch data",
+      "confirm_delete": "Delete this branch?"
+    },
+    "dept": {
+      "title": "Department Master",
+      "subtitle": "Configure department structure and person in charge.",
+      "add_btn": "Add Department",
+      "filter_placeholder": "Filter departments...",
+      "table": {
+        "name": "Department Name",
+        "branch": "Branch",
+        "head": "Department Head"
+      },
+      "select_branch": "Select Branch",
+      "select_head": "Select Department Head",
+      "displaying": "Showing {start}-{end} of {total} departments",
+      "rows": "Rows",
+      "not_set": "Not set",
+      "user_not_found": "User not found",
+      "error_name": "Department name is required",
+      "error_branch": "Branch is required",
+      "error_save": "Failed to save data",
+      "error_delete": "Failed to delete data",
+      "error_fetch": "Failed to fetch data",
+      "confirm_delete": "Delete this department?"
+    },
+    "rack": {
+      "title": "Rack Master",
+      "subtitle": "Configure storage racks in each department.",
+      "add_btn": "Add Rack",
+      "filter_placeholder": "Filter racks...",
+      "table": {
+        "name": "Rack Name",
+        "dept": "Department",
+        "branch": "Branch",
+        "location": "Location Detail"
+      },
+      "select_dept": "Select Department",
+      "displaying": "Showing {start}-{end} of {total} racks",
+      "rows": "Rows",
+      "error_name": "Rack name is required",
+      "error_dept": "Department is required",
+      "error_save": "Failed to save data",
+      "error_delete": "Failed to delete data",
+      "error_fetch": "Failed to fetch data",
+      "confirm_delete": "Delete this rack?"
+    },
+    "box": {
+      "title": "Box Master",
+      "subtitle": "Configure storage boxes within racks.",
+      "add_btn": "Add Box",
+      "filter_placeholder": "Filter boxes...",
+      "table": {
+        "name": "Box Name",
+        "rack": "Rack",
+        "dept": "Department"
+      },
+      "select_rack": "Select Rack",
+      "displaying": "Showing {start}-{end} of {total} boxes",
+      "rows": "Rows",
+      "error_name": "Box name is required",
+      "error_rack": "Rack is required",
+      "error_save": "Failed to save data",
+      "error_delete": "Failed to delete data",
+      "error_fetch": "Failed to fetch data",
+      "confirm_delete": "Delete this box?"
+    },
+    "ordner": {
+      "title": "Ordner Master",
+      "subtitle": "Configure document ordners within boxes.",
+      "add_btn": "Add Ordner",
+      "filter_placeholder": "Filter ordners...",
+      "table": {
+        "name": "Ordner Name",
+        "box": "Box",
+        "rack": "Rack"
+      },
+      "select_box": "Select Box",
+      "displaying": "Showing {start}-{end} of {total} ordners",
+      "rows": "Rows",
+      "error_name": "Ordner name is required",
+      "error_box": "Box is required",
+      "error_save": "Failed to save data",
+      "error_delete": "Failed to delete data",
+      "error_fetch": "Failed to fetch data",
+      "confirm_delete": "Delete this ordner?"
     }
   }
 }

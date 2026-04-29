@@ -172,9 +172,9 @@ func main() {
 	// User Routes
 	userGroup := api.Group("/users")
 	userGroup.Use(middleware.AuthMiddleware(cfg.JWTSecret))
-	userGroup.Get("/", middleware.RoleMiddleware("admin"), userHandler.List)
-	userGroup.Get("/pending", middleware.RoleMiddleware("admin"), authHandler.ListPendingUsers)
-	userGroup.Post("/:id/approve", middleware.RoleMiddleware("admin"), authHandler.ApproveUser)
+	userGroup.Get("/", middleware.RoleMiddleware("admin", "superadmin"), userHandler.List)
+	userGroup.Get("/pending", middleware.RoleMiddleware("admin", "superadmin"), authHandler.ListPendingUsers)
+	userGroup.Post("/:id/approve", middleware.RoleMiddleware("admin", "superadmin"), authHandler.ApproveUser)
 
 	// Document Routes
 	docGroup := api.Group("/documents")
@@ -192,11 +192,38 @@ func main() {
 	// Master Data Routes
 	masterGroup := api.Group("/master")
 	masterGroup.Use(middleware.AuthMiddleware(cfg.JWTSecret))
+	masterGroup.Use(middleware.RoleMiddleware("admin", "superadmin"))
 	masterGroup.Get("/companies", masterHandler.ListCompanies)
 	masterGroup.Post("/companies", masterHandler.CreateCompany)
 	masterGroup.Put("/companies/:id", masterHandler.UpdateCompany)
 	masterGroup.Delete("/companies/:id", masterHandler.DeleteCompany)
+	
 	masterGroup.Get("/branches", masterHandler.ListBranches)
+	masterGroup.Post("/branches", masterHandler.CreateBranch)
+	masterGroup.Put("/branches/:id", masterHandler.UpdateBranch)
+	masterGroup.Delete("/branches/:id", masterHandler.DeleteBranch)
+	masterGroup.Get("/branches-all", masterHandler.ListAllBranchesGlobal)
+	
+	masterGroup.Get("/departments", masterHandler.ListAllDepartments)
+	masterGroup.Post("/departments", masterHandler.CreateDepartment)
+	masterGroup.Put("/departments/:id", masterHandler.UpdateDepartment)
+	masterGroup.Delete("/departments/:id", masterHandler.DeleteDepartment)
+
+	masterGroup.Get("/racks", masterHandler.ListAllRacks)
+	masterGroup.Post("/racks", masterHandler.CreateRack)
+	masterGroup.Put("/racks/:id", masterHandler.UpdateRack)
+	masterGroup.Delete("/racks/:id", masterHandler.DeleteRack)
+
+	masterGroup.Get("/boxes", masterHandler.ListAllBoxes)
+	masterGroup.Post("/boxes", masterHandler.CreateBox)
+	masterGroup.Put("/boxes/:id", masterHandler.UpdateBox)
+	masterGroup.Delete("/boxes/:id", masterHandler.DeleteBox)
+
+	masterGroup.Get("/ordners", masterHandler.ListAllOrdners)
+	masterGroup.Post("/ordners", masterHandler.CreateOrdner)
+	masterGroup.Put("/ordners/:id", masterHandler.UpdateOrdner)
+	masterGroup.Delete("/ordners/:id", masterHandler.DeleteOrdner)
+
 	masterGroup.Get("/topology", masterHandler.GetTopology)
 	masterGroup.Get("/roles", masterHandler.ListRoles)
 	masterGroup.Get("/retention", masterHandler.ListRetentionPolicies)

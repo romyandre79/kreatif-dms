@@ -11,18 +11,50 @@ interface User {
 }
 
 export const useAuthStore = defineStore('auth', () => {
-  const user = useLocalStorage<User | null>('auth_user', null)
-  const accessToken = useLocalStorage<string | null>('auth_token', null)
-  const refreshToken = useLocalStorage<string | null>('refresh_token', null)
+  const user = ref<User | null>(null)
+  const accessToken = ref<string | null>(null)
+  const refreshToken = ref<string | null>(null)
+
+  // Initialize from localStorage (Client-side only)
+  if (typeof window !== 'undefined') {
+    try {
+      const savedUser = localStorage.getItem('kreatif_user')
+      const savedAccess = localStorage.getItem('kreatif_access_token')
+      const savedRefresh = localStorage.getItem('kreatif_refresh_token')
+
+      if (savedUser) user.value = JSON.parse(savedUser)
+      if (savedAccess) accessToken.value = savedAccess
+      if (savedRefresh) refreshToken.value = savedRefresh
+    } catch (e) {
+      console.error('Auth store initialization failed', e)
+    }
+  }
+
+  // Watch for changes and persist (Client-side only)
+  if (typeof window !== 'undefined') {
+    watch(user, (val) => {
+      if (val) localStorage.setItem('kreatif_user', JSON.stringify(val))
+      else localStorage.removeItem('kreatif_user')
+    }, { deep: true })
+
+    watch(accessToken, (val) => {
+      if (val) localStorage.setItem('kreatif_access_token', val)
+      else localStorage.removeItem('kreatif_access_token')
+    })
+
+    watch(refreshToken, (val) => {
+      if (val) localStorage.setItem('kreatif_refresh_token', val)
+      else localStorage.removeItem('kreatif_refresh_token')
+    })
+  }
 
   const isAuthenticated = computed(() => !!accessToken.value)
 
   function setTokens(access: string, refresh: string) {
     accessToken.value = access
     refreshToken.value = refresh
-    // Also set legacy 'token' for pages still using it directly
     if (typeof window !== 'undefined') {
-      localStorage.setItem('token', access)
+      localStorage.setItem('token', access) // legacy support
     }
   }
 
@@ -43,14 +75,20 @@ export const useAuthStore = defineStore('auth', () => {
     refreshToken.value = null
     if (typeof window !== 'undefined') {
       localStorage.removeItem('token')
+      localStorage.removeItem('kreatif_user')
+      localStorage.removeItem('kreatif_access_token')
+      localStorage.removeItem('kreatif_refresh_token')
     }
     navigateTo('/login')
   }
+
+  const token = computed(() => accessToken.value)
 
   return {
     user,
     accessToken,
     refreshToken,
+    token,
     isAuthenticated,
     setTokens,
     setUser,

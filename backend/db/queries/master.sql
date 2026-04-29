@@ -28,6 +28,12 @@ DELETE FROM companies WHERE id = $1;
 -- name: ListBranches :many
 SELECT * FROM branches WHERE company_id = $1 ORDER BY name;
 
+-- name: ListAllBranchesGlobal :many
+SELECT b.*, c.name as company_name 
+FROM branches b
+JOIN companies c ON b.company_id = c.id
+ORDER BY b.name;
+
 -- name: GetBranch :one
 SELECT * FROM branches WHERE id = $1;
 
@@ -47,6 +53,12 @@ DELETE FROM branches WHERE id = $1;
 -- Departments
 -- name: ListDepartments :many
 SELECT * FROM departments WHERE branch_id = $1 ORDER BY name;
+
+-- name: ListAllDepartments :many
+SELECT d.*, b.name as branch_name 
+FROM departments d
+JOIN branches b ON d.branch_id = b.id
+ORDER BY d.name;
 
 -- name: GetDepartment :one
 SELECT * FROM departments WHERE id = $1;
@@ -68,6 +80,13 @@ DELETE FROM departments WHERE id = $1;
 -- name: ListRacks :many
 SELECT * FROM racks WHERE department_id = $1 ORDER BY name;
 
+-- name: ListAllRacksGlobal :many
+SELECT r.*, d.name as department_name, b.name as branch_name
+FROM racks r
+JOIN departments d ON r.department_id = d.id
+JOIN branches b ON d.branch_id = b.id
+ORDER BY r.name;
+
 -- name: GetRack :one
 SELECT * FROM racks WHERE id = $1;
 
@@ -88,6 +107,13 @@ DELETE FROM racks WHERE id = $1;
 -- name: ListBoxes :many
 SELECT * FROM boxes WHERE rack_id = $1 ORDER BY name;
 
+-- name: ListAllBoxesGlobal :many
+SELECT bx.*, r.name as rack_name, d.name as department_name
+FROM boxes bx
+JOIN racks r ON bx.rack_id = r.id
+JOIN departments d ON r.department_id = d.id
+ORDER BY bx.name;
+
 -- name: GetBox :one
 SELECT * FROM boxes WHERE id = $1;
 
@@ -107,6 +133,13 @@ DELETE FROM boxes WHERE id = $1;
 -- Ordners
 -- name: ListOrdners :many
 SELECT * FROM ordners WHERE box_id = $1 ORDER BY name;
+
+-- name: ListAllOrdnersGlobal :many
+SELECT o.*, bx.name as box_name, r.name as rack_name
+FROM ordners o
+JOIN boxes bx ON o.box_id = bx.id
+JOIN racks r ON bx.rack_id = r.id
+ORDER BY o.name;
 -- Roles
 -- name: ListRoles :many
 SELECT * FROM roles ORDER BY name;
