@@ -203,6 +203,7 @@ func main() {
 	masterGroup.Get("/settings/:category", masterHandler.GetSettings)
 	masterGroup.Post("/settings/:category", masterHandler.UpdateSetting)
 	masterGroup.Get("/integration/status", middleware.RoleMiddleware("admin", "superadmin"), masterHandler.GetIntegrationStatus)
+	masterGroup.Get("/integration/report", middleware.RoleMiddleware("admin", "superadmin"), masterHandler.DownloadIntegrationReport)
 	masterGroup.Put("/integration/nodes/:id", middleware.RoleMiddleware("admin", "superadmin"), masterHandler.UpdateIntegrationNode)
 
 	// Hardware Master Routes

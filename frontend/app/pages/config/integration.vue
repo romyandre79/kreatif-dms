@@ -6,7 +6,7 @@
     >
       <template #actions>
         <div class="flex items-center gap-3">
-          <button class="flex items-center gap-2 px-4 py-2.5 bg-white/5 hover:bg-white/10 text-slate-300 rounded-xl border border-white/10 transition-all font-bold text-sm">
+          <button @click="downloadReport" class="flex items-center gap-2 px-4 py-2.5 bg-white/5 hover:bg-white/10 text-slate-300 rounded-xl border border-white/10 transition-all font-bold text-sm">
             <LucideDownload class="w-4 h-4" />
             Download Integration Report
           </button>
@@ -314,6 +314,25 @@ const globalTrend = computed(() => {
   }
   return trend
 })
+
+const downloadReport = async () => {
+  try {
+    const res = await $api(`${config.public.apiBase}/master/integration/report`, {
+      responseType: 'blob'
+    })
+    
+    // Create a link to download the blob
+    const url = window.URL.createObjectURL(new Blob([res]))
+    const link = document.createElement('a')
+    link.href = url
+    link.setAttribute('download', `integration_report_${new Date().getTime()}.csv`)
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+  } catch (err) {
+    console.error('Failed to download report:', err)
+  }
+}
 
 const refreshAll = () => {
   fetchNodes()

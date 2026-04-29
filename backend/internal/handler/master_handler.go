@@ -2,6 +2,7 @@ package handler
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/gofiber/fiber/v3"
 	"github.com/google/uuid"
 	"github.com/kreatif/dms-backend/internal/service"
@@ -179,4 +180,15 @@ func (h *MasterHandler) UpdateIntegrationNode(c fiber.Ctx) error {
 		return response.Error(c, fiber.StatusInternalServerError, "Failed to update integration node", err.Error())
 	}
 	return response.Success(c, fiber.StatusOK, "Integration node updated", node)
+}
+
+func (h *MasterHandler) DownloadIntegrationReport(c fiber.Ctx) error {
+	data, fileName, err := h.svc.ExportIntegrationReport(c.Context())
+	if err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to generate report", err.Error())
+	}
+
+	c.Set("Content-Type", "text/csv")
+	c.Set("Content-Disposition", fmt.Sprintf("attachment; filename=%s", fileName))
+	return c.Send(data)
 }

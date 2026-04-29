@@ -2,6 +2,10 @@ package service
 
 import (
 	"context"
+	"encoding/csv"
+	"fmt"
+	"time"
+	"bytes"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/kreatif/dms-backend/internal/repository"
@@ -134,4 +138,39 @@ func (s *MasterService) UpdateIntegrationNode(ctx context.Context, id uuid.UUID,
 		IsCritical: pgtype.Bool{Bool: isCritical, Valid: true},
 		ConfigJson: config,
 	})
+}
+
+func (s *MasterService) ExportIntegrationReport(ctx context.Context) ([]byte, string, error) {
+	nodes, err := s.repo.ListIntegrationNodes(ctx)
+	if err != nil {
+		return nil, "", err
+	}
+
+	buf := new(bytes.Buffer)
+	writer := csv.NewWriter(buf)
+
+	// Header
+	writer.Write([]string{"Service Name", "Type", "Endpoint", "Status", "Last Latency (ms)", "Last Check", "Critical"})
+
+	for _, node := range nodes {
+		lastCheck := "Never"
+		if node.LastCheckAt.Valid {
+			lastCheck = node.LastCheckAt.Time.Format("2006-01-02 15:04:05")
+		}
+
+		writer.Write([]string{
+			node.Name,
+			node.ServiceType,
+			node.Endpoint,
+			node.Status.String,
+			fmt.Sprintf("%d", node.LastLatency.Int32),
+			lastCheck,
+			fmt.Sprintf("%t", node.IsCritical.Bool),
+		})
+	}
+
+	writer.Flush()
+	
+	fileName := fmt.Sprintf("integration_report_%s.csv", time.Now().Format("20060102_150405"))
+	return buf.Bytes(), fileName, nil
 }
