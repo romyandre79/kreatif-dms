@@ -1,8 +1,11 @@
 <template>
   <div class="flex flex-col h-full bg-[#F8FAFC] dark:bg-slate-950 overflow-hidden" v-motion-fade>
+    <!-- Hidden File Input for Import -->
+    <input type="file" ref="fileInput" class="hidden" accept=".csv" @change="handleImport" />
+
     <div class="flex flex-1 overflow-hidden">
       <!-- Main Content Area -->
-      <main class="flex-grow flex flex-col overflow-hidden">
+      <main class="flex-grow flex flex-col" :class="hasEditingRow ? 'overflow-visible' : 'overflow-hidden'">
         <!-- Header -->
         <header class="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-10 py-8 flex items-center justify-between shadow-sm relative z-10">
           <div class="space-y-1">
@@ -12,6 +15,10 @@
             <p class="text-sm font-bold text-slate-500 uppercase tracking-tighter">{{ $t('admin.config.dept.subtitle') }}</p>
           </div>
           <div class="flex items-center gap-4">
+            <button @click="triggerImport" class="px-6 py-4 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-slate-50 transition-all flex items-center gap-2 shadow-sm cursor-pointer">
+              <LucideUpload class="w-4 h-4" />
+              Import CSV
+            </button>
             <button @click="addRow" class="px-8 py-3 bg-[#1E3A5F] text-white rounded-2xl text-xs font-black uppercase tracking-widest shadow-xl shadow-blue-900/20 hover:bg-[#152943] transition-all flex items-center gap-3 active:scale-95 cursor-pointer">
               <LucidePlus class="w-4 h-4" />
               {{ $t('admin.config.dept.add_btn') }}
@@ -20,8 +27,8 @@
         </header>
 
         <!-- Table Section -->
-        <div class="flex-grow p-2.5 overflow-auto custom-scrollbar">
-          <div class="bg-white dark:bg-slate-900 rounded-[1.5rem] shadow-sm border border-slate-100 dark:border-slate-800 overflow-hidden">
+        <div class="flex-grow p-2.5 custom-scrollbar" :class="hasEditingRow ? 'overflow-visible' : 'overflow-auto'">
+          <div class="bg-white dark:bg-slate-900 rounded-[1.5rem] shadow-sm border border-slate-100 dark:border-slate-800">
             <!-- Filter Bar -->
             <div class="px-8 py-6 border-b border-slate-50 dark:border-slate-800 flex items-center justify-between bg-slate-50/30 dark:bg-slate-900/30">
               <div class="relative w-96 group">
@@ -35,6 +42,7 @@
               </div>
               <div class="flex items-center gap-4">
                 <button @click="fetchData" class="p-3 text-slate-400 hover:text-blue-500 transition-colors cursor-pointer" title="Refresh"><LucideRefreshCw class="w-5 h-5" /></button>
+                <button @click="exportCSV" class="p-3 text-slate-400 hover:text-blue-500 transition-colors cursor-pointer" title="Export CSV"><LucideDownload class="w-5 h-5" /></button>
               </div>
             </div>
 
@@ -45,7 +53,7 @@
             </div>
 
             <!-- Table -->
-            <div v-else class="overflow-x-auto">
+            <div v-else class="overflow-x-auto" :class="{ 'overflow-visible relative z-50': hasEditingRow }">
               <table class="w-full text-left border-collapse">
                 <thead>
                   <tr class="bg-slate-50/50 dark:bg-slate-900/50 text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] border-b border-slate-50 dark:border-slate-800">
@@ -67,7 +75,10 @@
                   </tr>
                   <tr v-else v-for="row in paginatedDepartments" :key="row.id" 
                     class="group transition-all"
-                    :class="row.isNew ? 'bg-blue-50/50 dark:bg-blue-900/10' : 'hover:bg-slate-50/50 dark:hover:bg-slate-800/30'"
+                    :class="[
+                      row.isNew ? 'bg-blue-50/50 dark:bg-blue-900/10' : 'hover:bg-slate-50/50 dark:hover:bg-slate-800/30',
+                      row.editing ? 'relative z-20' : ''
+                    ]"
                   >
                     <td class="p-4 pl-8">
                       <div v-if="row.editing" class="max-w-md">
@@ -81,24 +92,22 @@
                       <p v-else class="text-sm font-black text-[#1E3A5F] dark:text-white uppercase tracking-tight">{{ row.name }}</p>
                     </td>
                     <td class="p-4">
-                      <div v-if="row.editing && row.isNew" class="max-w-xs">
-                        <select v-model="row.branch_id" class="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2 text-xs font-bold outline-none focus:ring-2 focus:ring-blue-500/20">
-                          <option value="" disabled>{{ $t('admin.config.dept.select_branch') }}</option>
-                          <option v-for="branch in branches" :key="branch.id" :value="branch.id">
-                            {{ branch.name }} ({{ branch.company_name }})
-                          </option>
-                        </select>
+                      <div v-if="row.editing" class="max-w-xs">
+                        <SearchableSelect 
+                          v-model="row.branch_id" 
+                          :options="branchOptions"
+                          :placeholder="$t('admin.config.dept.select_branch')"
+                        />
                       </div>
                       <span v-else class="text-sm font-bold text-blue-500 bg-blue-50 dark:bg-blue-900/20 px-3 py-1 rounded-lg">{{ row.branch_name }}</span>
                     </td>
                     <td class="p-4">
                       <div v-if="row.editing" class="max-w-xs">
-                        <select v-model="row.head_id" class="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2 text-xs font-bold outline-none focus:ring-2 focus:ring-blue-500/20">
-                          <option :value="null">{{ $t('admin.config.dept.select_head') }}</option>
-                          <option v-for="user in users" :key="user.id" :value="user.id">
-                            {{ user.full_name }}
-                          </option>
-                        </select>
+                        <SearchableSelect 
+                          v-model="row.head_id" 
+                          :options="userOptions"
+                          :placeholder="$t('admin.config.dept.select_head')"
+                        />
                       </div>
                       <div v-else class="flex items-center gap-2">
                         <LucideUser class="w-3.5 h-3.5 text-slate-400" />
@@ -124,7 +133,7 @@
             </div>
 
             <!-- Pagination -->
-            <div class="px-10 py-2.5 bg-slate-50/50 dark:bg-slate-900/50 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+            <div class="px-10 py-2.5 bg-slate-50/50 dark:bg-slate-900/50 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between relative z-0">
               <div class="flex items-center gap-4">
                 <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
                   {{ $t('admin.config.dept.displaying', { start: filteredDepartments.length > 0 ? startIndex + 1 : 0, end: endIndex, total: filteredDepartments.length }) }}
@@ -213,7 +222,7 @@ import {
   LucidePlus, LucideSearch, LucideRefreshCw, LucideArchive,
   LucideUser, LucidePencil, LucideTrash2, LucideSave, LucideX,
   LucideChevronLeft, LucideChevronRight, LucideClipboardCheck,
-  LucideBan
+  LucideBan, LucideUpload, LucideDownload
 } from 'lucide-vue-next'
 
 const { t } = useI18n()
@@ -223,12 +232,14 @@ const error = ref('')
 const departments = ref([])
 const branches = ref([])
 const users = ref([])
+const fileInput = ref(null)
 
 // Pagination state
 const currentPage = ref(1)
 const itemsPerPage = ref(10)
 
 const config = useRuntimeConfig()
+const { $api } = useApi()
 const auth = useAuthStore()
 
 const fetchData = async () => {
@@ -236,15 +247,9 @@ const fetchData = async () => {
   try {
     // Parallel fetch for better performance
     const [deptsRes, branchesRes, usersRes] = await Promise.all([
-      $fetch(`${config.public.apiBase}/master/departments`, {
-        headers: { Authorization: `Bearer ${auth.accessToken}` }
-      }),
-      $fetch(`${config.public.apiBase}/master/branches-all`, {
-        headers: { Authorization: `Bearer ${auth.accessToken}` }
-      }),
-      $fetch(`${config.public.apiBase}/users`, {
-        headers: { Authorization: `Bearer ${auth.accessToken}` }
-      })
+      $api(`${config.public.apiBase}/master/departments`),
+      $api(`${config.public.apiBase}/master/branches-all`),
+      $api(`${config.public.apiBase}/users`)
     ])
 
     departments.value = (deptsRes.data || []).map(d => ({
@@ -260,6 +265,22 @@ const fetchData = async () => {
     loading.value = false
   }
 }
+
+const branchOptions = computed(() => {
+  return branches.value.map(b => ({
+    id: b.id,
+    name: b.name,
+    subtext: b.company_name
+  }))
+})
+
+const userOptions = computed(() => {
+  return users.value.map(u => ({
+    id: u.id,
+    name: u.full_name,
+    subtext: u.username
+  }))
+})
 
 const getHeadName = (headId) => {
   if (!headId) return t('admin.config.dept.not_set')
@@ -317,9 +338,8 @@ const saveRow = async (row) => {
       ? `${config.public.apiBase}/master/departments` 
       : `${config.public.apiBase}/master/departments/${row.id}`
 
-    await $fetch(url, {
+    await $api(url, {
       method,
-      headers: { Authorization: `Bearer ${auth.accessToken}` },
       body: {
         name: row.name,
         branch_id: row.branch_id,
@@ -339,15 +359,60 @@ const deleteRow = async (id) => {
   if (!confirm(t('admin.config.dept.confirm_delete'))) return
 
   try {
-    await $fetch(`${config.public.apiBase}/master/departments/${id}`, {
-      method: 'DELETE',
-      headers: { Authorization: `Bearer ${auth.accessToken}` }
+    await $api(`${config.public.apiBase}/master/departments/${id}`, {
+      method: 'DELETE'
     })
     fetchData()
   } catch (err) {
     error.value = t('admin.config.dept.error_delete')
   }
 }
+
+const triggerImport = () => {
+  fileInput.value.click()
+}
+
+const handleImport = async (event) => {
+  const file = event.target.files[0]
+  if (!file) return
+
+  const formData = new FormData()
+  formData.append('file', file)
+
+  loading.value = true
+  try {
+    await $api(`${config.public.apiBase}/master/departments/import`, {
+      method: 'POST',
+      body: formData
+    })
+    fetchData()
+    event.target.value = ''
+  } catch (err) {
+    error.value = err.data?.message || "Failed to import CSV"
+  } finally {
+    loading.value = false
+  }
+}
+
+const exportCSV = async () => {
+  try {
+    const res = await fetch(`${config.public.apiBase}/master/departments/export`, {
+      headers: { Authorization: `Bearer ${auth.accessToken}` }
+    })
+    const blob = await res.blob()
+    const url = window.URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `departments_${new Date().getTime()}.csv`
+    document.body.appendChild(a)
+    a.click()
+    window.URL.revokeObjectURL(url)
+  } catch (err) {
+    error.value = "Failed to download CSV"
+  }
+}
+
+const hasEditingRow = computed(() => departments.value.some(d => d.editing))
 
 const filteredDepartments = computed(() => {
   if (!searchQuery.value) return departments.value

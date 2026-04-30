@@ -74,7 +74,7 @@
       "circulation_report": "Circulation Report",
       "overdue_monitoring": "Overdue Monitoring",
       "notifications": "Notifications",
-      "tracking": "Tracking"
+      "audit_logs": "System Audit Logs"
     }
   }
 }

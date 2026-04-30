@@ -51,6 +51,10 @@ type Config struct {
 	LDAPBindPass string `mapstructure:"LDAP_BIND_PASS"`
 	LDAPUserFilter string `mapstructure:"LDAP_USER_FILTER"`
 	LDAPSimulation bool   `mapstructure:"LDAP_SIMULATION"`
+
+	HTTPSEnabled  bool   `mapstructure:"HTTPS_ENABLED"`
+	HTTPSCertFile string `mapstructure:"HTTPS_CERT_FILE"`
+	HTTPSKeyFile  string `mapstructure:"HTTPS_KEY_FILE"`
 }
 
 func LoadConfig(path string) (config Config, err error) {

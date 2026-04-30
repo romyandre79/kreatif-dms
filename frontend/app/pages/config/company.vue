@@ -336,89 +336,54 @@ const triggerImport = () => {
   fileInput.value.click()
 }
 
-const handleFileImport = (event) => {
+const handleFileImport = async (event) => {
   const file = event.target.files[0]
   if (!file) return
 
-  const reader = new FileReader()
-  reader.onload = async (e) => {
-    const content = e.target.result
-    const rows = content.split('\n').map(row => row.split(','))
+  const formData = new FormData()
+  formData.append('file', file)
+
+  loading.value = true
+  try {
+    const config = useRuntimeConfig()
+    const auth = useAuthStore()
     
-    if (rows.length < 2) return
-
-    loading.value = true
-    let successCount = 0
+    await $fetch(`${config.public.apiBase}/master/companies/import`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${auth.accessToken}` },
+      body: formData
+    })
     
-    for (let i = 1; i < rows.length; i++) {
-      const rowData = rows[i]
-      if (rowData.length < 2) continue
-
-      const entity_id = (rowData[0] || '').trim().replace(/"/g, '')
-      const name = (rowData[1] || '').trim().replace(/"/g, '')
-      const npwp_status = (rowData[2] || 'PENDING').trim().replace(/"/g, '')
-      const location = (rowData[3] || '').trim().replace(/"/g, '')
-      const status = (rowData[4] || 'Aktif').trim().replace(/"/g, '')
-
-      if (!name || !entity_id) continue
-
-      const existing = companies.value.find(c => c.entity_id === entity_id)
-
-      try {
-        const config = useRuntimeConfig()
-        const auth = useAuthStore()
-        
-        const method = existing ? 'PUT' : 'POST'
-        const url = existing 
-          ? `${config.public.apiBase}/master/companies/${existing.id}`
-          : `${config.public.apiBase}/master/companies`
-
-        await $fetch(url, {
-          method,
-          headers: { Authorization: `Bearer ${auth.accessToken}` },
-          body: {
-            entity_id, name, npwp_status, location, status,
-            address: ''
-          }
-        })
-        successCount++
-      } catch (err) {
-        console.error('Failed to import row:', rows[i], err)
-      }
-    }
-
-    error.value = `Berhasil mengimpor ${successCount} data.`
     fetchCompanies()
     event.target.value = ''
+    error.value = 'Berhasil mengimpor data.'
+  } catch (err) {
+    error.value = err.data?.message || 'Gagal mengimpor data'
+  } finally {
+    loading.value = false
   }
-  reader.readAsText(file)
 }
 
 // --- Export Logic ---
-const exportCSV = () => {
-  if (companies.value.length === 0) {
-    error.value = 'Tidak ada data untuk diunduh'
-    return
+const exportCSV = async () => {
+  try {
+    const config = useRuntimeConfig()
+    const auth = useAuthStore()
+    
+    const res = await fetch(`${config.public.apiBase}/master/companies/export`, {
+      headers: { Authorization: `Bearer ${auth.accessToken}` }
+    })
+    const blob = await res.blob()
+    const url = window.URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `companies_${new Date().getTime()}.csv`
+    document.body.appendChild(a)
+    a.click()
+    window.URL.revokeObjectURL(url)
+  } catch (err) {
+    error.value = "Gagal mengunduh CSV"
   }
-
-  const headers = ['Entity ID', 'Nama / Deskripsi', 'NPWP Status', 'Lokasi / Detail', 'Status']
-  const csvContent = [
-    headers.join(','),
-    ...companies.value.map(c => [
-      c.entity_id,
-      `"${c.name}"`,
-      c.npwp_status,
-      `"${c.location}"`,
-      c.status
-    ].join(','))
-  ].join('\n')
-
-  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
-  const url = URL.createObjectURL(blob)
-  const link = document.createElement('a')
-  link.setAttribute('href', url)
-  link.setAttribute('download', `${activeEntity.value}_export_${new Date().toISOString().split('T')[0]}.csv`)
-  link.click()
 }
 
 const addRow = () => {

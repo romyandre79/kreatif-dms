@@ -78,7 +78,7 @@
       "circulation_report": "Laporan Sirkulasi",
       "overdue_monitoring": "Monitoring Terlambat",
       "notifications": "Notifikasi",
-      "tracking": "Pelacakan"
+      "audit_logs": "Log Audit Sistem"
     }
   }
 }

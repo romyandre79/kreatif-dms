@@ -1,5 +1,8 @@
 <template>
   <div class="flex flex-col h-full bg-[#F8FAFC] dark:bg-slate-950 overflow-hidden" v-motion-fade>
+    <!-- Hidden File Input for Import -->
+    <input type="file" ref="fileInput" class="hidden" accept=".csv" @change="handleImport" />
+
     <div class="flex flex-1 overflow-hidden">
       <!-- Main Content Area -->
       <main class="flex-grow flex flex-col overflow-hidden">
@@ -12,6 +15,10 @@
             <p class="text-sm font-bold text-slate-500 uppercase tracking-tighter">{{ $t('admin.config.box.subtitle') }}</p>
           </div>
           <div class="flex items-center gap-4">
+            <button @click="triggerImport" class="px-6 py-4 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-slate-50 transition-all flex items-center gap-2 shadow-sm cursor-pointer">
+              <LucideUpload class="w-4 h-4" />
+              Import CSV
+            </button>
             <button @click="addRow" class="px-8 py-3 bg-[#1E3A5F] text-white rounded-2xl text-xs font-black uppercase tracking-widest shadow-xl shadow-blue-900/20 hover:bg-[#152943] transition-all flex items-center gap-3 active:scale-95 cursor-pointer">
               <LucidePlus class="w-4 h-4" />
               {{ $t('admin.config.box.add_btn') }}
@@ -21,7 +28,7 @@
 
         <!-- Table Section -->
         <div class="flex-grow p-2.5 overflow-auto custom-scrollbar">
-          <div class="bg-white dark:bg-slate-900 rounded-[1.5rem] shadow-sm border border-slate-100 dark:border-slate-800 overflow-hidden">
+          <div class="bg-white dark:bg-slate-900 rounded-[1.5rem] shadow-sm border border-slate-100 dark:border-slate-800">
             <!-- Filter Bar -->
             <div class="px-8 py-6 border-b border-slate-50 dark:border-slate-800 flex items-center justify-between bg-slate-50/30 dark:bg-slate-900/30">
               <div class="relative w-96 group">
@@ -35,6 +42,7 @@
               </div>
               <div class="flex items-center gap-4">
                 <button @click="fetchData" class="p-3 text-slate-400 hover:text-blue-500 transition-colors cursor-pointer" title="Refresh"><LucideRefreshCw class="w-5 h-5" /></button>
+                <button @click="exportCSV" class="p-3 text-slate-400 hover:text-blue-500 transition-colors cursor-pointer" title="Export CSV"><LucideDownload class="w-5 h-5" /></button>
               </div>
             </div>
 
@@ -45,7 +53,7 @@
             </div>
 
             <!-- Table -->
-            <div v-else class="overflow-x-auto">
+            <div v-else class="overflow-x-auto" :class="{ 'overflow-visible relative z-50': hasEditingRow }">
               <table class="w-full text-left border-collapse">
                 <thead>
                   <tr class="bg-slate-50/50 dark:bg-slate-900/50 text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] border-b border-slate-50 dark:border-slate-800">
@@ -67,7 +75,10 @@
                   </tr>
                   <tr v-else v-for="row in paginatedBoxes" :key="row.id" 
                     class="group transition-all"
-                    :class="row.isNew ? 'bg-blue-50/50 dark:bg-blue-900/10' : 'hover:bg-slate-50/50 dark:hover:bg-slate-800/30'"
+                    :class="[
+                      row.isNew ? 'bg-blue-50/50 dark:bg-blue-900/10' : 'hover:bg-slate-50/50 dark:hover:bg-slate-800/30',
+                      row.editing ? 'relative z-20' : ''
+                    ]"
                   >
                     <td class="p-4 pl-8">
                       <div v-if="row.editing" class="max-w-md">
@@ -81,13 +92,12 @@
                       <p v-else class="text-sm font-black text-[#1E3A5F] dark:text-white uppercase tracking-tight">{{ row.name }}</p>
                     </td>
                     <td class="p-4">
-                      <div v-if="row.editing && row.isNew" class="max-w-xs">
-                        <select v-model="row.rack_id" class="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2 text-xs font-bold outline-none focus:ring-2 focus:ring-blue-500/20">
-                          <option value="" disabled>{{ $t('admin.config.box.select_rack') }}</option>
-                          <option v-for="rack in racks" :key="rack.id" :value="rack.id">
-                            {{ rack.name }} ({{ rack.department_name }})
-                          </option>
-                        </select>
+                      <div v-if="row.editing" class="max-w-xs">
+                        <SearchableSelect 
+                          v-model="row.rack_id" 
+                          :options="rackOptions"
+                          :placeholder="$t('admin.config.box.select_rack')"
+                        />
                       </div>
                       <span v-else class="text-sm font-bold text-blue-500 bg-blue-50 dark:bg-blue-900/20 px-3 py-1 rounded-lg">{{ row.rack_name }}</span>
                     </td>
@@ -113,7 +123,7 @@
             </div>
 
             <!-- Pagination -->
-            <div class="px-10 py-2.5 bg-slate-50/50 dark:bg-slate-900/50 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+            <div class="px-10 py-2.5 bg-slate-50/50 dark:bg-slate-900/50 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between relative z-0">
               <div class="flex items-center gap-4">
                 <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
                   {{ $t('admin.config.box.displaying', { start: filteredBoxes.length > 0 ? startIndex + 1 : 0, end: endIndex, total: filteredBoxes.length }) }}
@@ -164,21 +174,54 @@
 
       <!-- Right Sidebar: Rules -->
       <aside class="w-80 bg-white dark:bg-slate-900 border-l border-slate-200 dark:border-slate-800 flex flex-col p-8 overflow-y-auto custom-scrollbar">
-        <section class="space-y-8">
+        <section class="space-y-8 mb-12">
           <h3 class="text-xs font-black text-[#1E3A5F] dark:text-white uppercase tracking-[0.2em] flex items-center gap-3">
             <LucideClipboardCheck class="w-5 h-5 text-blue-500" />
-            BOX RULES
+            VALIDATION RULES
           </h3>
           <div class="space-y-6">
-            <div class="p-6 rounded-2xl border-l-4 border-blue-500 bg-blue-50/50 dark:bg-blue-900/10 space-y-3 shadow-sm">
+            <div class="p-6 rounded-2xl border-l-4 border-blue-500 bg-blue-50/50 dark:bg-blue-900/10 space-y-3 shadow-sm relative group">
+              <LucideInfo class="absolute top-4 right-4 w-3.5 h-3.5 text-slate-300" />
               <h4 class="text-[11px] font-black text-[#1E3A5F] dark:text-white uppercase tracking-tight">Capacity</h4>
               <p class="text-[10px] font-bold text-slate-500 leading-relaxed">Satu box dapat berisi beberapa ordner dengan kategori yang sama.</p>
+              <div class="h-1 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
+                <div class="h-full bg-blue-500 w-[100%]"></div>
+              </div>
+              <div class="flex justify-between items-center text-[8px] font-black uppercase tracking-widest text-blue-500">
+                <span>Standard</span>
+                <span>Active</span>
+              </div>
             </div>
-            <div class="p-6 rounded-2xl border-l-4 border-green-500 bg-green-50/50 dark:bg-green-900/10 space-y-3 shadow-sm">
-              <h4 class="text-[11px] font-black text-[#1E3A5F] dark:text-white uppercase tracking-tight">Labeling</h4>
+            <div class="p-6 rounded-2xl border-l-4 border-green-500 bg-green-50/50 dark:bg-green-900/10 space-y-4 shadow-sm relative group">
+              <div class="flex justify-between items-start">
+                <h4 class="text-[11px] font-black text-[#1E3A5F] dark:text-white uppercase tracking-tight">Labeling</h4>
+                <LucideInfo class="w-3.5 h-3.5 text-slate-300" />
+              </div>
               <p class="text-[10px] font-bold text-slate-500 leading-relaxed">Box harus memiliki label QR code yang jelas untuk memudahkan tracking RFID.</p>
+              <div class="flex gap-2">
+                <span class="px-2 py-1 bg-green-100 dark:bg-green-800 text-[8px] font-black text-green-600 dark:text-green-300 rounded uppercase tracking-widest shadow-sm">RFID Ready</span>
+                <span class="px-2 py-1 bg-green-100 dark:bg-green-800 text-[8px] font-black text-green-600 dark:text-green-300 rounded uppercase tracking-widest shadow-sm">Compliance</span>
+              </div>
             </div>
           </div>
+        </section>
+
+        <!-- Pending Changes -->
+        <section class="space-y-8 mt-auto pt-8 border-t border-slate-100 dark:border-slate-800">
+          <h3 class="text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Pending Changes</h3>
+          <div class="flex items-start gap-4 p-2 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl transition-colors cursor-default">
+            <div class="w-9 h-9 rounded-xl flex items-center justify-center shadow-sm bg-blue-50 text-blue-500 border border-blue-100">
+              <LucidePencil class="w-4 h-4" />
+            </div>
+            <div class="flex-1 min-w-0">
+              <p class="text-[11px] font-black text-[#1E3A5F] dark:text-white uppercase tracking-tight truncate">Sync Service</p>
+              <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest truncate">Live connection ready</p>
+            </div>
+          </div>
+          <button @click="fetchData" class="w-full py-4 bg-[#1E3A5F] hover:bg-[#152943] text-white rounded-2xl text-xs font-black uppercase tracking-widest shadow-xl shadow-blue-900/30 flex items-center justify-center gap-3 transition-all active:scale-95 group cursor-pointer">
+            <LucideRefreshCw class="w-4 h-4 group-hover:rotate-180 transition-transform duration-500" />
+            Publish Changes
+          </button>
         </section>
       </aside>
     </div>
@@ -202,7 +245,7 @@ import {
   LucidePlus, LucideSearch, LucideRefreshCw, LucideArchive,
   LucidePencil, LucideTrash2, LucideSave, LucideX,
   LucideChevronLeft, LucideChevronRight, LucideClipboardCheck,
-  LucideBan
+  LucideBan, LucideUpload, LucideDownload, LucideInfo
 } from 'lucide-vue-next'
 
 const { t } = useI18n()
@@ -211,24 +254,22 @@ const loading = ref(false)
 const error = ref('')
 const boxes = ref([])
 const racks = ref([])
+const fileInput = ref(null)
 
 // Pagination state
 const currentPage = ref(1)
 const itemsPerPage = ref(10)
 
 const config = useRuntimeConfig()
+const { $api } = useApi()
 const auth = useAuthStore()
 
 const fetchData = async () => {
   loading.value = true
   try {
     const [boxesRes, racksRes] = await Promise.all([
-      $fetch(`${config.public.apiBase}/master/boxes`, {
-        headers: { Authorization: `Bearer ${auth.accessToken}` }
-      }),
-      $fetch(`${config.public.apiBase}/master/racks`, {
-        headers: { Authorization: `Bearer ${auth.accessToken}` }
-      })
+      $api(`${config.public.apiBase}/master/boxes`),
+      $api(`${config.public.apiBase}/master/racks`)
     ])
 
     boxes.value = (boxesRes.data || []).map(b => ({
@@ -243,6 +284,14 @@ const fetchData = async () => {
     loading.value = false
   }
 }
+
+const rackOptions = computed(() => {
+  return racks.value.map(r => ({
+    id: r.id,
+    name: r.name,
+    subtext: r.department_name
+  }))
+})
 
 const formatDate = (dateStr) => {
   if (!dateStr) return '-'
@@ -293,9 +342,8 @@ const saveRow = async (row) => {
       ? `${config.public.apiBase}/master/boxes` 
       : `${config.public.apiBase}/master/boxes/${row.id}`
 
-    await $fetch(url, {
+    await $api(url, {
       method,
-      headers: { Authorization: `Bearer ${auth.accessToken}` },
       body: {
         name: row.name,
         rack_id: row.rack_id
@@ -314,15 +362,60 @@ const deleteRow = async (id) => {
   if (!confirm(t('admin.config.box.confirm_delete'))) return
 
   try {
-    await $fetch(`${config.public.apiBase}/master/boxes/${id}`, {
-      method: 'DELETE',
-      headers: { Authorization: `Bearer ${auth.accessToken}` }
+    await $api(`${config.public.apiBase}/master/boxes/${id}`, {
+      method: 'DELETE'
     })
     fetchData()
   } catch (err) {
     error.value = t('admin.config.box.error_delete')
   }
 }
+
+const exportCSV = async () => {
+  try {
+    const res = await fetch(`${config.public.apiBase}/master/boxes/export`, {
+      headers: { Authorization: `Bearer ${auth.accessToken}` }
+    })
+    const blob = await res.blob()
+    const url = window.URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `boxes_${new Date().getTime()}.csv`
+    document.body.appendChild(a)
+    a.click()
+    window.URL.revokeObjectURL(url)
+  } catch (err) {
+    error.value = "Failed to download CSV"
+  }
+}
+
+const triggerImport = () => {
+  fileInput.value.click()
+}
+
+const handleImport = async (event) => {
+  const file = event.target.files[0]
+  if (!file) return
+
+  const formData = new FormData()
+  formData.append('file', file)
+
+  loading.value = true
+  try {
+    await $api(`${config.public.apiBase}/master/boxes/import`, {
+      method: 'POST',
+      body: formData
+    })
+    fetchData()
+    event.target.value = ''
+  } catch (err) {
+    error.value = err.data?.message || "Failed to import CSV"
+  } finally {
+    loading.value = false
+  }
+}
+
+const hasEditingRow = computed(() => boxes.value.some(b => b.editing))
 
 const filteredBoxes = computed(() => {
   if (!searchQuery.value) return boxes.value

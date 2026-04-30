@@ -10,9 +10,9 @@
         <header class="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-10 py-8 flex items-center justify-between shadow-sm relative z-10">
           <div class="space-y-1">
             <h1 class="text-3xl font-black text-[#1E3A5F] dark:text-white tracking-tight uppercase">
-              {{ $t('admin.config.ordner.title') }}
+              {{ $t('admin.config.document_type.title') }}
             </h1>
-            <p class="text-sm font-bold text-slate-500 uppercase tracking-tighter">{{ $t('admin.config.ordner.subtitle') }}</p>
+            <p class="text-sm font-bold text-slate-500 uppercase tracking-tighter">{{ $t('admin.config.document_type.subtitle') }}</p>
           </div>
           <div class="flex items-center gap-4">
             <button @click="triggerImport" class="px-6 py-4 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-slate-50 transition-all flex items-center gap-2 shadow-sm cursor-pointer">
@@ -21,7 +21,7 @@
             </button>
             <button @click="addRow" class="px-8 py-3 bg-[#1E3A5F] text-white rounded-2xl text-xs font-black uppercase tracking-widest shadow-xl shadow-blue-900/20 hover:bg-[#152943] transition-all flex items-center gap-3 active:scale-95 cursor-pointer">
               <LucidePlus class="w-4 h-4" />
-              {{ $t('admin.config.ordner.add_btn') }}
+              {{ $t('admin.config.document_type.add_btn') }}
             </button>
           </div>
         </header>
@@ -36,7 +36,7 @@
                 <input 
                   type="text" 
                   v-model="searchQuery"
-                  :placeholder="$t('admin.config.ordner.filter_placeholder')" 
+                  :placeholder="$t('admin.config.document_type.filter_placeholder')" 
                   class="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl pl-12 pr-6 py-3 text-xs font-bold outline-none focus:ring-2 focus:ring-blue-500/20 transition-all" 
                 />
               </div>
@@ -53,19 +53,19 @@
             </div>
 
             <!-- Table -->
-            <div v-else class="overflow-x-auto" :class="{ 'overflow-visible relative z-50': hasEditingRow }">
+            <div v-else class="overflow-x-auto">
               <table class="w-full text-left border-collapse">
                 <thead>
                   <tr class="bg-slate-50/50 dark:bg-slate-900/50 text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] border-b border-slate-50 dark:border-slate-800">
-                    <th class="p-4 pl-8">{{ $t('admin.config.ordner.table.name') }}</th>
-                    <th class="p-4">{{ $t('admin.config.ordner.table.box') }}</th>
-                    <th class="p-4">{{ $t('admin.config.ordner.table.rack') }}</th>
+                    <th class="p-4 pl-8">{{ $t('admin.config.document_type.table.code') }}</th>
+                    <th class="p-4">{{ $t('admin.config.document_type.table.name') }}</th>
+                    <th class="p-4">{{ $t('admin.config.document_type.table.description') }}</th>
                     <th class="p-4">{{ $t('admin.metadata.table.created_at') }}</th>
                     <th class="p-4 pr-10 text-right">{{ $t('admin.metadata.table.actions') }}</th>
                   </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-50 dark:divide-slate-800">
-                  <tr v-if="filteredOrdners.length === 0" class="hover:bg-transparent">
+                  <tr v-if="filteredTypes.length === 0" class="hover:bg-transparent">
                      <td colspan="5" class="p-20 text-center">
                         <div class="flex flex-col items-center justify-center space-y-3 opacity-30">
                            <LucideArchive class="w-12 h-12 text-slate-300" />
@@ -73,36 +73,42 @@
                         </div>
                      </td>
                   </tr>
-                  <tr v-else v-for="row in paginatedOrdners" :key="row.id" 
+                  <tr v-else v-for="row in paginatedTypes" :key="row.id" 
                     class="group transition-all"
-                    :class="[
-                      row.isNew ? 'bg-blue-50/50 dark:bg-blue-900/10' : 'hover:bg-slate-50/50 dark:hover:bg-slate-800/30',
-                      row.editing ? 'relative z-20' : ''
-                    ]"
+                    :class="row.isNew ? 'bg-blue-50/50 dark:bg-blue-900/10' : 'hover:bg-slate-50/50 dark:hover:bg-slate-800/30'"
                   >
                     <td class="p-4 pl-8">
+                      <div v-if="row.editing" class="max-w-[150px]">
+                        <input 
+                          type="text" 
+                          v-model="row.code" 
+                          class="w-full bg-white dark:bg-slate-800 border-2 border-blue-500 rounded-xl px-4 py-2 text-xs font-black text-blue-500 font-mono outline-none shadow-md" 
+                          :placeholder="$t('admin.config.document_type.table.code')"
+                        />
+                      </div>
+                      <span v-else class="text-sm font-black text-blue-500 font-mono tracking-tighter">{{ row.code }}</span>
+                    </td>
+                    <td class="p-4">
                       <div v-if="row.editing" class="max-w-md">
                         <input 
                           type="text" 
                           v-model="row.name" 
                           class="w-full bg-white dark:bg-slate-800 border-2 border-blue-500 rounded-xl px-4 py-3 text-sm font-black text-[#1E3A5F] dark:text-white uppercase outline-none shadow-lg shadow-blue-900/10" 
-                          :placeholder="$t('admin.config.ordner.table.name')"
+                          :placeholder="$t('admin.config.document_type.table.name')"
                         />
                       </div>
                       <p v-else class="text-sm font-black text-[#1E3A5F] dark:text-white uppercase tracking-tight">{{ row.name }}</p>
                     </td>
                     <td class="p-4">
-                      <div v-if="row.editing" class="max-w-xs">
-                        <SearchableSelect 
-                          v-model="row.box_id" 
-                          :options="boxOptions"
-                          :placeholder="$t('admin.config.ordner.select_box')"
+                      <div v-if="row.editing">
+                        <input 
+                          type="text" 
+                          v-model="row.description" 
+                          class="w-full bg-white dark:bg-slate-800 border border-slate-200 rounded-xl px-4 py-2 text-xs font-bold" 
+                          :placeholder="$t('admin.config.document_type.table.description')"
                         />
                       </div>
-                      <span v-else class="text-sm font-bold text-blue-500 bg-blue-50 dark:bg-blue-900/20 px-3 py-1 rounded-lg">{{ row.box_name }}</span>
-                    </td>
-                    <td class="p-4">
-                      <span class="text-sm font-bold text-slate-500 uppercase tracking-tight">{{ row.rack_name }}</span>
+                      <p v-else class="text-sm font-bold text-slate-500 uppercase tracking-tight">{{ row.description || '-' }}</p>
                     </td>
                     <td class="p-4">
                       <span class="text-xs font-bold text-slate-400 tracking-tighter">{{ formatDate(row.created_at) }}</span>
@@ -123,13 +129,13 @@
             </div>
 
             <!-- Pagination -->
-            <div class="px-10 py-2.5 bg-slate-50/50 dark:bg-slate-900/50 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between relative z-0">
+            <div class="px-10 py-2.5 bg-slate-50/50 dark:bg-slate-900/50 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
               <div class="flex items-center gap-4">
                 <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
-                  {{ $t('admin.config.ordner.displaying', { start: filteredOrdners.length > 0 ? startIndex + 1 : 0, end: endIndex, total: filteredOrdners.length }) }}
+                  {{ $t('admin.config.document_type.displaying', { start: filteredTypes.length > 0 ? startIndex + 1 : 0, end: endIndex, total: filteredTypes.length }) }}
                 </p>
                 <div class="flex items-center gap-2 ml-4">
-                  <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest">{{ $t('admin.config.ordner.rows') }}:</span>
+                  <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest">{{ $t('admin.config.document_type.rows') }}:</span>
                   <select v-model="itemsPerPage" class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-2 py-1 text-[10px] font-black outline-none focus:ring-1 focus:ring-blue-500/30 transition-all cursor-pointer">
                     <option :value="10">10</option>
                     <option :value="20">20</option>
@@ -182,25 +188,25 @@
           <div class="space-y-6">
             <div class="p-6 rounded-2xl border-l-4 border-blue-500 bg-blue-50/50 dark:bg-blue-900/10 space-y-3 shadow-sm relative group">
               <LucideInfo class="absolute top-4 right-4 w-3.5 h-3.5 text-slate-300" />
-              <h4 class="text-[11px] font-black text-[#1E3A5F] dark:text-white uppercase tracking-tight">Leaf Node</h4>
-              <p class="text-[10px] font-bold text-slate-500 leading-relaxed">Ordner adalah tingkatan terkecil dalam hierarki penyimpanan fisik sebelum dokumen.</p>
+              <h4 class="text-[11px] font-black text-[#1E3A5F] dark:text-white uppercase tracking-tight">Code Format</h4>
+              <p class="text-[10px] font-bold text-slate-500 leading-relaxed">Gunakan kode singkat yang unik (maks 50 karakter) untuk identifikasi sistem.</p>
               <div class="h-1 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
                 <div class="h-full bg-blue-500 w-[100%]"></div>
               </div>
               <div class="flex justify-between items-center text-[8px] font-black uppercase tracking-widest text-blue-500">
-                <span>Final State</span>
+                <span>Unique</span>
                 <span>Active</span>
               </div>
             </div>
-            <div class="p-6 rounded-2xl border-l-4 border-red-500 bg-red-50/50 dark:bg-red-900/10 space-y-4 shadow-sm relative group">
+            <div class="p-6 rounded-2xl border-l-4 border-green-500 bg-green-50/50 dark:bg-green-900/10 space-y-4 shadow-sm relative group">
               <div class="flex justify-between items-start">
-                <h4 class="text-[11px] font-black text-[#1E3A5F] dark:text-white uppercase tracking-tight">Access Control</h4>
+                <h4 class="text-[11px] font-black text-[#1E3A5F] dark:text-white uppercase tracking-tight">Naming</h4>
                 <LucideInfo class="w-3.5 h-3.5 text-slate-300" />
               </div>
-              <p class="text-[10px] font-bold text-slate-500 leading-relaxed">Peminjaman dokumen seringkali dilakukan dalam skala satu ordner penuh untuk keperluan audit.</p>
+              <p class="text-[10px] font-bold text-slate-500 leading-relaxed">Nama tipe dokumen akan muncul di pilihan registrasi dan pencarian.</p>
               <div class="flex gap-2">
-                <span class="px-2 py-1 bg-red-100 dark:bg-red-800 text-[8px] font-black text-red-600 dark:text-red-300 rounded uppercase tracking-widest shadow-sm">Audit Trail</span>
-                <span class="px-2 py-1 bg-red-100 dark:bg-red-800 text-[8px] font-black text-red-600 dark:text-red-300 rounded uppercase tracking-widest shadow-sm">Restricted</span>
+                <span class="px-2 py-1 bg-green-100 dark:bg-green-800 text-[8px] font-black text-green-600 dark:text-green-300 rounded uppercase tracking-widest shadow-sm">Standard</span>
+                <span class="px-2 py-1 bg-green-100 dark:bg-green-800 text-[8px] font-black text-green-600 dark:text-green-300 rounded uppercase tracking-widest shadow-sm">Visible</span>
               </div>
             </div>
           </div>
@@ -252,8 +258,7 @@ const { t } = useI18n()
 const searchQuery = ref('')
 const loading = ref(false)
 const error = ref('')
-const ordners = ref([])
-const boxes = ref([])
+const docTypes = ref([])
 const fileInput = ref(null)
 
 // Pagination state
@@ -267,31 +272,18 @@ const auth = useAuthStore()
 const fetchData = async () => {
   loading.value = true
   try {
-    const [ordnersRes, boxesRes] = await Promise.all([
-      $api(`${config.public.apiBase}/master/ordners`),
-      $api(`${config.public.apiBase}/master/boxes`)
-    ])
-
-    ordners.value = (ordnersRes.data || []).map(o => ({
-      ...o,
+    const res = await $api(`${config.public.apiBase}/master/document-types`)
+    docTypes.value = (res.data || []).map(t => ({
+      ...t,
       editing: false,
       isNew: false
     }))
-    boxes.value = boxesRes.data || []
   } catch (err) {
-    error.value = err.data?.message || t('admin.config.ordner.error_fetch')
+    error.value = err.data?.message || t('admin.config.document_type.error_fetch')
   } finally {
     loading.value = false
   }
 }
-
-const boxOptions = computed(() => {
-  return boxes.value.map(b => ({
-    id: b.id,
-    name: b.name,
-    subtext: b.rack_name
-  }))
-})
 
 const formatDate = (dateStr) => {
   if (!dateStr) return '-'
@@ -303,10 +295,11 @@ const formatDate = (dateStr) => {
 }
 
 const addRow = () => {
-  ordners.value.unshift({
+  docTypes.value.unshift({
     id: '', 
-    box_id: boxes.value.length > 0 ? boxes.value[0].id : '',
+    code: '',
     name: '',
+    description: '',
     editing: true,
     isNew: true
   })
@@ -319,7 +312,7 @@ const editRow = (row) => {
 
 const cancelEdit = (row) => {
   if (row.isNew) {
-    ordners.value = ordners.value.filter(o => o !== row)
+    docTypes.value = docTypes.value.filter(t => t !== row)
   } else {
     row.editing = false
     fetchData()
@@ -327,26 +320,27 @@ const cancelEdit = (row) => {
 }
 
 const saveRow = async (row) => {
-  if (!row.name.trim()) {
-    error.value = t('admin.config.ordner.error_name')
+  if (!row.code.trim()) {
+    error.value = t('admin.config.document_type.error_code')
     return
   }
-  if (!row.box_id) {
-    error.value = t('admin.config.ordner.error_box')
+  if (!row.name.trim()) {
+    error.value = t('admin.config.document_type.error_name')
     return
   }
 
   try {
     const method = row.isNew ? 'POST' : 'PUT'
     const url = row.isNew 
-      ? `${config.public.apiBase}/master/ordners` 
-      : `${config.public.apiBase}/master/ordners/${row.id}`
+      ? `${config.public.apiBase}/master/document-types` 
+      : `${config.public.apiBase}/master/document-types/${row.id}`
 
     await $api(url, {
       method,
       body: {
+        code: row.code,
         name: row.name,
-        box_id: row.box_id
+        description: row.description
       }
     })
 
@@ -354,33 +348,33 @@ const saveRow = async (row) => {
     row.isNew = false
     fetchData()
   } catch (err) {
-    error.value = err.data?.message || t('admin.config.ordner.error_save')
+    error.value = err.data?.message || t('admin.config.document_type.error_save')
   }
 }
 
 const deleteRow = async (id) => {
-  if (!confirm(t('admin.config.ordner.confirm_delete'))) return
+  if (!confirm(t('admin.config.document_type.confirm_delete'))) return
 
   try {
-    await $api(`${config.public.apiBase}/master/ordners/${id}`, {
+    await $api(`${config.public.apiBase}/master/document-types/${id}`, {
       method: 'DELETE'
     })
     fetchData()
   } catch (err) {
-    error.value = t('admin.config.ordner.error_delete')
+    error.value = t('admin.config.document_type.error_delete')
   }
 }
 
 const exportCSV = async () => {
   try {
-    const res = await fetch(`${config.public.apiBase}/master/ordners/export`, {
+    const res = await fetch(`${config.public.apiBase}/master/document-types/export`, {
       headers: { Authorization: `Bearer ${auth.accessToken}` }
     })
     const blob = await res.blob()
     const url = window.URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = `ordners_${new Date().getTime()}.csv`
+    a.download = `document_types_${new Date().getTime()}.csv`
     document.body.appendChild(a)
     a.click()
     window.URL.revokeObjectURL(url)
@@ -402,7 +396,7 @@ const handleImport = async (event) => {
 
   loading.value = true
   try {
-    await $api(`${config.public.apiBase}/master/ordners/import`, {
+    await $api(`${config.public.apiBase}/master/document-types/import`, {
       method: 'POST',
       body: formData
     })
@@ -415,22 +409,20 @@ const handleImport = async (event) => {
   }
 }
 
-const hasEditingRow = computed(() => ordners.value.some(o => o.editing))
-
-const filteredOrdners = computed(() => {
-  if (!searchQuery.value) return ordners.value
+const filteredTypes = computed(() => {
+  if (!searchQuery.value) return docTypes.value
   const q = searchQuery.value.toLowerCase()
-  return ordners.value.filter(o => 
-    (o.name || '').toLowerCase().includes(q) || 
-    (o.box_name || '').toLowerCase().includes(q) ||
-    (o.rack_name || '').toLowerCase().includes(q)
+  return docTypes.value.filter(t => 
+    (t.code || '').toLowerCase().includes(q) || 
+    (t.name || '').toLowerCase().includes(q) ||
+    (t.description || '').toLowerCase().includes(q)
   )
 })
 
-const totalPages = computed(() => Math.ceil(filteredOrdners.value.length / itemsPerPage.value) || 1)
+const totalPages = computed(() => Math.ceil(filteredTypes.value.length / itemsPerPage.value) || 1)
 const startIndex = computed(() => (currentPage.value - 1) * itemsPerPage.value)
-const endIndex = computed(() => Math.min(startIndex.value + itemsPerPage.value, filteredOrdners.value.length))
-const paginatedOrdners = computed(() => filteredOrdners.value.slice(startIndex.value, endIndex.value))
+const endIndex = computed(() => Math.min(startIndex.value + itemsPerPage.value, filteredTypes.value.length))
+const paginatedTypes = computed(() => filteredTypes.value.slice(startIndex.value, endIndex.value))
 
 watch([searchQuery, itemsPerPage], () => {
   currentPage.value = 1

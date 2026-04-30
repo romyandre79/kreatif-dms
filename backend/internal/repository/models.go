@@ -300,6 +300,15 @@ type DocumentTrackingEvent struct {
 	CreatedAt    pgtype.Timestamptz `json:"created_at"`
 }
 
+type DocumentType struct {
+	ID          uuid.UUID          `json:"id"`
+	Code        string             `json:"code"`
+	Name        string             `json:"name"`
+	Description pgtype.Text        `json:"description"`
+	CreatedAt   pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt   pgtype.Timestamptz `json:"updated_at"`
+}
+
 type DocumentVersion struct {
 	ID         uuid.UUID          `json:"id"`
 	DocumentID uuid.UUID          `json:"document_id"`

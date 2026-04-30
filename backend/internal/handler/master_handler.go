@@ -55,6 +55,11 @@ func (h *MasterHandler) CreateCompany(c fiber.Ctx) error {
 	if err != nil {
 		return response.Error(c, fiber.StatusInternalServerError, "Failed to create company", err.Error())
 	}
+
+	// Log Activity
+	userID := c.Locals("user_id").(uuid.UUID)
+	h.svc.LogActivity(c.Context(), userID, "CREATE", "company", &company.ID, req, c.IP())
+
 	return response.Success(c, fiber.StatusCreated, "Company created", company)
 }
 
@@ -80,6 +85,11 @@ func (h *MasterHandler) UpdateCompany(c fiber.Ctx) error {
 	if err != nil {
 		return response.Error(c, fiber.StatusInternalServerError, "Failed to update company", err.Error())
 	}
+
+	// Log Activity
+	userID := c.Locals("user_id").(uuid.UUID)
+	h.svc.LogActivity(c.Context(), userID, "UPDATE", "company", &id, req, c.IP())
+
 	return response.Success(c, fiber.StatusOK, "Company updated", company)
 }
 
@@ -92,7 +102,43 @@ func (h *MasterHandler) DeleteCompany(c fiber.Ctx) error {
 	if err := h.svc.DeleteCompany(c.Context(), id); err != nil {
 		return response.Error(c, fiber.StatusInternalServerError, "Failed to delete company", err.Error())
 	}
+
+	// Log Activity
+	userID := c.Locals("user_id").(uuid.UUID)
+	h.svc.LogActivity(c.Context(), userID, "DELETE", "company", &id, nil, c.IP())
+
 	return response.Success(c, fiber.StatusOK, "Company deleted", nil)
+}
+
+func (h *MasterHandler) ExportCompanies(c fiber.Ctx) error {
+	data, fileName, err := h.svc.ExportCompanies(c.Context())
+	if err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to export companies", err.Error())
+	}
+
+	c.Set("Content-Type", "text/csv")
+	c.Set("Content-Disposition", fmt.Sprintf("attachment; filename=%s", fileName))
+	return c.Send(data)
+}
+
+func (h *MasterHandler) ImportCompanies(c fiber.Ctx) error {
+	file, err := c.FormFile("file")
+	if err != nil {
+		return response.Error(c, fiber.StatusBadRequest, "Failed to get file from request", err.Error())
+	}
+
+	f, err := file.Open()
+	if err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to open file", err.Error())
+	}
+	defer f.Close()
+
+	count, err := h.svc.ImportCompanies(c.Context(), f)
+	if err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to import companies", err.Error())
+	}
+
+	return response.Success(c, fiber.StatusOK, fmt.Sprintf("Successfully imported %d companies", count), nil)
 }
 
 // Racks
@@ -136,6 +182,11 @@ func (h *MasterHandler) CreateRack(c fiber.Ctx) error {
 	if err != nil {
 		return response.Error(c, fiber.StatusInternalServerError, "Failed to create rack", err.Error())
 	}
+
+	// Log Activity
+	userID := c.Locals("user_id").(uuid.UUID)
+	h.svc.LogActivity(c.Context(), userID, "CREATE", "rack", &rack.ID, req, c.IP())
+
 	return response.Success(c, fiber.StatusCreated, "Rack created", rack)
 }
 
@@ -151,10 +202,6 @@ func (h *MasterHandler) CreateRack(c fiber.Ctx) error {
 // @Router /master/racks/{id} [put]
 // @Security BearerAuth
 func (h *MasterHandler) UpdateRack(c fiber.Ctx) error {
-	type request struct {
-		Name           string `json:"name"`
-		LocationDetail string `json:"location_detail"`
-	}
 	id, err := uuid.Parse(c.Params("id"))
 	if err != nil {
 		return response.Error(c, fiber.StatusBadRequest, "Invalid rack ID", err.Error())
@@ -163,10 +210,19 @@ func (h *MasterHandler) UpdateRack(c fiber.Ctx) error {
 	if err := c.Bind().JSON(req); err != nil {
 		return response.Error(c, fiber.StatusBadRequest, "Invalid request body", err.Error())
 	}
-	rack, err := h.svc.UpdateRack(c.Context(), id, req.Name, req.LocationDetail)
+	deptID, err := uuid.Parse(req.DepartmentID)
+	if err != nil {
+		return response.Error(c, fiber.StatusBadRequest, "Invalid department ID", err.Error())
+	}
+	rack, err := h.svc.UpdateRack(c.Context(), id, deptID, req.Name, req.LocationDetail)
 	if err != nil {
 		return response.Error(c, fiber.StatusInternalServerError, "Failed to update rack", err.Error())
 	}
+
+	// Log Activity
+	userID := c.Locals("user_id").(uuid.UUID)
+	h.svc.LogActivity(c.Context(), userID, "UPDATE", "rack", &id, req, c.IP())
+
 	return response.Success(c, fiber.StatusOK, "Rack updated", rack)
 }
 
@@ -188,7 +244,43 @@ func (h *MasterHandler) DeleteRack(c fiber.Ctx) error {
 	if err := h.svc.DeleteRack(c.Context(), id); err != nil {
 		return response.Error(c, fiber.StatusInternalServerError, "Failed to delete rack", err.Error())
 	}
+
+	// Log Activity
+	userID := c.Locals("user_id").(uuid.UUID)
+	h.svc.LogActivity(c.Context(), userID, "DELETE", "rack", &id, nil, c.IP())
+
 	return response.Success(c, fiber.StatusOK, "Rack deleted", nil)
+}
+
+func (h *MasterHandler) ExportRacks(c fiber.Ctx) error {
+	data, fileName, err := h.svc.ExportRacks(c.Context())
+	if err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to export racks", err.Error())
+	}
+
+	c.Set("Content-Type", "text/csv")
+	c.Set("Content-Disposition", fmt.Sprintf("attachment; filename=%s", fileName))
+	return c.Send(data)
+}
+
+func (h *MasterHandler) ImportRacks(c fiber.Ctx) error {
+	file, err := c.FormFile("file")
+	if err != nil {
+		return response.Error(c, fiber.StatusBadRequest, "Failed to get file from request", err.Error())
+	}
+
+	f, err := file.Open()
+	if err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to open file", err.Error())
+	}
+	defer f.Close()
+
+	count, err := h.svc.ImportRacks(c.Context(), f)
+	if err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to import racks", err.Error())
+	}
+
+	return response.Success(c, fiber.StatusOK, fmt.Sprintf("Successfully imported %d racks", count), nil)
 }
 
 // Boxes
@@ -232,6 +324,11 @@ func (h *MasterHandler) CreateBox(c fiber.Ctx) error {
 	if err != nil {
 		return response.Error(c, fiber.StatusInternalServerError, "Failed to create box", err.Error())
 	}
+
+	// Log Activity
+	userID := c.Locals("user_id").(uuid.UUID)
+	h.svc.LogActivity(c.Context(), userID, "CREATE", "box", &box.ID, req, c.IP())
+
 	return response.Success(c, fiber.StatusCreated, "Box created", box)
 }
 
@@ -255,10 +352,19 @@ func (h *MasterHandler) UpdateBox(c fiber.Ctx) error {
 	if err := c.Bind().JSON(req); err != nil {
 		return response.Error(c, fiber.StatusBadRequest, "Invalid request body", err.Error())
 	}
-	box, err := h.svc.UpdateBox(c.Context(), id, req.Name)
+	rackID, err := uuid.Parse(req.RackID)
+	if err != nil {
+		return response.Error(c, fiber.StatusBadRequest, "Invalid rack ID", err.Error())
+	}
+	box, err := h.svc.UpdateBox(c.Context(), id, rackID, req.Name)
 	if err != nil {
 		return response.Error(c, fiber.StatusInternalServerError, "Failed to update box", err.Error())
 	}
+
+	// Log Activity
+	userID := c.Locals("user_id").(uuid.UUID)
+	h.svc.LogActivity(c.Context(), userID, "UPDATE", "box", &id, req, c.IP())
+
 	return response.Success(c, fiber.StatusOK, "Box updated", box)
 }
 
@@ -280,7 +386,43 @@ func (h *MasterHandler) DeleteBox(c fiber.Ctx) error {
 	if err := h.svc.DeleteBox(c.Context(), id); err != nil {
 		return response.Error(c, fiber.StatusInternalServerError, "Failed to delete box", err.Error())
 	}
+
+	// Log Activity
+	userID := c.Locals("user_id").(uuid.UUID)
+	h.svc.LogActivity(c.Context(), userID, "DELETE", "box", &id, nil, c.IP())
+
 	return response.Success(c, fiber.StatusOK, "Box deleted", nil)
+}
+
+func (h *MasterHandler) ExportBoxes(c fiber.Ctx) error {
+	data, fileName, err := h.svc.ExportBoxes(c.Context())
+	if err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to export boxes", err.Error())
+	}
+
+	c.Set("Content-Type", "text/csv")
+	c.Set("Content-Disposition", fmt.Sprintf("attachment; filename=%s", fileName))
+	return c.Send(data)
+}
+
+func (h *MasterHandler) ImportBoxes(c fiber.Ctx) error {
+	file, err := c.FormFile("file")
+	if err != nil {
+		return response.Error(c, fiber.StatusBadRequest, "Failed to get file from request", err.Error())
+	}
+
+	f, err := file.Open()
+	if err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to open file", err.Error())
+	}
+	defer f.Close()
+
+	count, err := h.svc.ImportBoxes(c.Context(), f)
+	if err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to import boxes", err.Error())
+	}
+
+	return response.Success(c, fiber.StatusOK, fmt.Sprintf("Successfully imported %d boxes", count), nil)
 }
 
 // Ordners
@@ -324,6 +466,11 @@ func (h *MasterHandler) CreateOrdner(c fiber.Ctx) error {
 	if err != nil {
 		return response.Error(c, fiber.StatusInternalServerError, "Failed to create ordner", err.Error())
 	}
+
+	// Log Activity
+	userID := c.Locals("user_id").(uuid.UUID)
+	h.svc.LogActivity(c.Context(), userID, "CREATE", "ordner", &ordner.ID, req, c.IP())
+
 	return response.Success(c, fiber.StatusCreated, "Ordner created", ordner)
 }
 
@@ -347,10 +494,19 @@ func (h *MasterHandler) UpdateOrdner(c fiber.Ctx) error {
 	if err := c.Bind().JSON(req); err != nil {
 		return response.Error(c, fiber.StatusBadRequest, "Invalid request body", err.Error())
 	}
-	ordner, err := h.svc.UpdateOrdner(c.Context(), id, req.Name)
+	boxID, err := uuid.Parse(req.BoxID)
+	if err != nil {
+		return response.Error(c, fiber.StatusBadRequest, "Invalid box ID", err.Error())
+	}
+	ordner, err := h.svc.UpdateOrdner(c.Context(), id, boxID, req.Name)
 	if err != nil {
 		return response.Error(c, fiber.StatusInternalServerError, "Failed to update ordner", err.Error())
 	}
+
+	// Log Activity
+	userID := c.Locals("user_id").(uuid.UUID)
+	h.svc.LogActivity(c.Context(), userID, "UPDATE", "ordner", &id, req, c.IP())
+
 	return response.Success(c, fiber.StatusOK, "Ordner updated", ordner)
 }
 
@@ -372,7 +528,43 @@ func (h *MasterHandler) DeleteOrdner(c fiber.Ctx) error {
 	if err := h.svc.DeleteOrdner(c.Context(), id); err != nil {
 		return response.Error(c, fiber.StatusInternalServerError, "Failed to delete ordner", err.Error())
 	}
+
+	// Log Activity
+	userID := c.Locals("user_id").(uuid.UUID)
+	h.svc.LogActivity(c.Context(), userID, "DELETE", "ordner", &id, nil, c.IP())
+
 	return response.Success(c, fiber.StatusOK, "Ordner deleted", nil)
+}
+
+func (h *MasterHandler) ExportOrdners(c fiber.Ctx) error {
+	data, fileName, err := h.svc.ExportOrdners(c.Context())
+	if err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to export ordners", err.Error())
+	}
+
+	c.Set("Content-Type", "text/csv")
+	c.Set("Content-Disposition", fmt.Sprintf("attachment; filename=%s", fileName))
+	return c.Send(data)
+}
+
+func (h *MasterHandler) ImportOrdners(c fiber.Ctx) error {
+	file, err := c.FormFile("file")
+	if err != nil {
+		return response.Error(c, fiber.StatusBadRequest, "Failed to get file from request", err.Error())
+	}
+
+	f, err := file.Open()
+	if err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to open file", err.Error())
+	}
+	defer f.Close()
+
+	count, err := h.svc.ImportOrdners(c.Context(), f)
+	if err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to import ordners", err.Error())
+	}
+
+	return response.Success(c, fiber.StatusOK, fmt.Sprintf("Successfully imported %d ordners", count), nil)
 }
 
 func (h *MasterHandler) GetTopology(c fiber.Ctx) error {
@@ -463,6 +655,11 @@ func (h *MasterHandler) CreateBranch(c fiber.Ctx) error {
 	if err != nil {
 		return response.Error(c, fiber.StatusInternalServerError, "Failed to create branch", err.Error())
 	}
+
+	// Log Activity
+	userID := c.Locals("user_id").(uuid.UUID)
+	h.svc.LogActivity(c.Context(), userID, "CREATE", "branch", &branch.ID, req, c.IP())
+
 	return response.Success(c, fiber.StatusCreated, "Branch created", branch)
 }
 
@@ -487,16 +684,26 @@ func (h *MasterHandler) UpdateBranch(c fiber.Ctx) error {
 		return response.Error(c, fiber.StatusBadRequest, "Invalid request body", err.Error())
 	}
 
+	companyID, err := uuid.Parse(req.CompanyID)
+	if err != nil {
+		return response.Error(c, fiber.StatusBadRequest, "Invalid company ID", err.Error())
+	}
+
 	var headID *uuid.UUID
 	if req.HeadID != nil && *req.HeadID != "" {
 		uid, _ := uuid.Parse(*req.HeadID)
 		headID = &uid
 	}
 
-	branch, err := h.svc.UpdateBranch(c.Context(), id, req.Name, req.Location, headID)
+	branch, err := h.svc.UpdateBranch(c.Context(), id, companyID, req.Name, req.Location, headID)
 	if err != nil {
 		return response.Error(c, fiber.StatusInternalServerError, "Failed to update branch", err.Error())
 	}
+
+	// Log Activity
+	userID := c.Locals("user_id").(uuid.UUID)
+	h.svc.LogActivity(c.Context(), userID, "UPDATE", "branch", &id, req, c.IP())
+
 	return response.Success(c, fiber.StatusOK, "Branch updated", branch)
 }
 
@@ -519,7 +726,43 @@ func (h *MasterHandler) DeleteBranch(c fiber.Ctx) error {
 	if err := h.svc.DeleteBranch(c.Context(), id); err != nil {
 		return response.Error(c, fiber.StatusInternalServerError, "Failed to delete branch", err.Error())
 	}
+
+	// Log Activity
+	userID := c.Locals("user_id").(uuid.UUID)
+	h.svc.LogActivity(c.Context(), userID, "DELETE", "branch", &id, nil, c.IP())
+
 	return response.Success(c, fiber.StatusOK, "Branch deleted", nil)
+}
+
+func (h *MasterHandler) ExportBranches(c fiber.Ctx) error {
+	data, fileName, err := h.svc.ExportBranches(c.Context())
+	if err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to export branches", err.Error())
+	}
+
+	c.Set("Content-Type", "text/csv")
+	c.Set("Content-Disposition", fmt.Sprintf("attachment; filename=%s", fileName))
+	return c.Send(data)
+}
+
+func (h *MasterHandler) ImportBranches(c fiber.Ctx) error {
+	file, err := c.FormFile("file")
+	if err != nil {
+		return response.Error(c, fiber.StatusBadRequest, "Failed to get file from request", err.Error())
+	}
+
+	f, err := file.Open()
+	if err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to open file", err.Error())
+	}
+	defer f.Close()
+
+	count, err := h.svc.ImportBranches(c.Context(), f)
+	if err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to import branches", err.Error())
+	}
+
+	return response.Success(c, fiber.StatusOK, fmt.Sprintf("Successfully imported %d branches", count), nil)
 }
 
 // Departments
@@ -571,6 +814,11 @@ func (h *MasterHandler) CreateDepartment(c fiber.Ctx) error {
 	if err != nil {
 		return response.Error(c, fiber.StatusInternalServerError, "Failed to create department", err.Error())
 	}
+
+	// Log Activity
+	userID := c.Locals("user_id").(uuid.UUID)
+	h.svc.LogActivity(c.Context(), userID, "CREATE", "department", &dept.ID, req, c.IP())
+
 	return response.Success(c, fiber.StatusCreated, "Department created", dept)
 }
 
@@ -595,16 +843,26 @@ func (h *MasterHandler) UpdateDepartment(c fiber.Ctx) error {
 		return response.Error(c, fiber.StatusBadRequest, "Invalid request body", err.Error())
 	}
 
+	branchID, err := uuid.Parse(req.BranchID)
+	if err != nil {
+		return response.Error(c, fiber.StatusBadRequest, "Invalid branch ID", err.Error())
+	}
+
 	var headID *uuid.UUID
 	if req.HeadID != nil && *req.HeadID != "" {
 		uid, _ := uuid.Parse(*req.HeadID)
 		headID = &uid
 	}
 
-	dept, err := h.svc.UpdateDepartment(c.Context(), id, req.Name, headID)
+	dept, err := h.svc.UpdateDepartment(c.Context(), id, branchID, req.Name, headID)
 	if err != nil {
 		return response.Error(c, fiber.StatusInternalServerError, "Failed to update department", err.Error())
 	}
+
+	// Log Activity
+	userID := c.Locals("user_id").(uuid.UUID)
+	h.svc.LogActivity(c.Context(), userID, "UPDATE", "department", &id, req, c.IP())
+
 	return response.Success(c, fiber.StatusOK, "Department updated", dept)
 }
 
@@ -627,7 +885,43 @@ func (h *MasterHandler) DeleteDepartment(c fiber.Ctx) error {
 	if err := h.svc.DeleteDepartment(c.Context(), id); err != nil {
 		return response.Error(c, fiber.StatusInternalServerError, "Failed to delete department", err.Error())
 	}
+
+	// Log Activity
+	userID := c.Locals("user_id").(uuid.UUID)
+	h.svc.LogActivity(c.Context(), userID, "DELETE", "department", &id, nil, c.IP())
+
 	return response.Success(c, fiber.StatusOK, "Department deleted", nil)
+}
+
+func (h *MasterHandler) ExportDepartments(c fiber.Ctx) error {
+	data, fileName, err := h.svc.ExportDepartments(c.Context())
+	if err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to export departments", err.Error())
+	}
+
+	c.Set("Content-Type", "text/csv")
+	c.Set("Content-Disposition", fmt.Sprintf("attachment; filename=%s", fileName))
+	return c.Send(data)
+}
+
+func (h *MasterHandler) ImportDepartments(c fiber.Ctx) error {
+	file, err := c.FormFile("file")
+	if err != nil {
+		return response.Error(c, fiber.StatusBadRequest, "Failed to get file from request", err.Error())
+	}
+
+	f, err := file.Open()
+	if err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to open file", err.Error())
+	}
+	defer f.Close()
+
+	count, err := h.svc.ImportDepartments(c.Context(), f)
+	if err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to import departments", err.Error())
+	}
+
+	return response.Success(c, fiber.StatusOK, fmt.Sprintf("Successfully imported %d departments", count), nil)
 }
 
 func (h *MasterHandler) ListRoles(c fiber.Ctx) error {
@@ -722,9 +1016,10 @@ type CreateBranchRequest struct {
 }
 
 type UpdateBranchRequest struct {
-	Name     string  `json:"name"`
-	Location string  `json:"location"`
-	HeadID   *string `json:"head_id"`
+	CompanyID string  `json:"company_id"`
+	Name      string  `json:"name"`
+	Location  string  `json:"location"`
+	HeadID    *string `json:"head_id"`
 }
 
 type CreateDepartmentRequest struct {
@@ -734,8 +1029,9 @@ type CreateDepartmentRequest struct {
 }
 
 type UpdateDepartmentRequest struct {
-	Name   string  `json:"name"`
-	HeadID *string `json:"head_id"`
+	BranchID string  `json:"branch_id"`
+	Name     string  `json:"name"`
+	HeadID   *string `json:"head_id"`
 }
 
 type CreateRackRequest struct {
@@ -745,6 +1041,7 @@ type CreateRackRequest struct {
 }
 
 type UpdateRackRequest struct {
+	DepartmentID   string `json:"department_id"`
 	Name           string `json:"name"`
 	LocationDetail string `json:"location_detail"`
 }
@@ -755,7 +1052,8 @@ type CreateBoxRequest struct {
 }
 
 type UpdateBoxRequest struct {
-	Name string `json:"name"`
+	RackID string `json:"rack_id"`
+	Name   string `json:"name"`
 }
 
 type CreateOrdnerRequest struct {
@@ -764,7 +1062,8 @@ type CreateOrdnerRequest struct {
 }
 
 type UpdateOrdnerRequest struct {
-	Name string `json:"name"`
+	BoxID string `json:"box_id"`
+	Name  string `json:"name"`
 }
 
 type UpdateSettingRequest struct {
@@ -782,6 +1081,103 @@ type UpdateIntegrationNodeRequest struct {
 	Config     json.RawMessage `json:"config_json"`
 }
 
+// Document Types
+func (h *MasterHandler) ListDocumentTypes(c fiber.Ctx) error {
+	types, err := h.svc.ListDocumentTypes(c.Context())
+	if err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to list document types", err.Error())
+	}
+	return response.Success(c, fiber.StatusOK, "Document types listed", types)
+}
+
+func (h *MasterHandler) CreateDocumentType(c fiber.Ctx) error {
+	req := new(CreateDocumentTypeRequest)
+	if err := c.Bind().JSON(req); err != nil {
+		return response.Error(c, fiber.StatusBadRequest, "Invalid request body", err.Error())
+	}
+
+	docType, err := h.svc.CreateDocumentType(c.Context(), req.Code, req.Name, req.Description)
+	if err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to create document type", err.Error())
+	}
+
+	// Log Activity
+	userID := c.Locals("user_id").(uuid.UUID)
+	h.svc.LogActivity(c.Context(), userID, "CREATE", "document_type", &docType.ID, req, c.IP())
+
+	return response.Success(c, fiber.StatusCreated, "Document type created", docType)
+}
+
+func (h *MasterHandler) UpdateDocumentType(c fiber.Ctx) error {
+	id, err := uuid.Parse(c.Params("id"))
+	if err != nil {
+		return response.Error(c, fiber.StatusBadRequest, "Invalid document type ID", err.Error())
+	}
+	req := new(UpdateDocumentTypeRequest)
+	if err := c.Bind().JSON(req); err != nil {
+		return response.Error(c, fiber.StatusBadRequest, "Invalid request body", err.Error())
+	}
+
+	docType, err := h.svc.UpdateDocumentType(c.Context(), id, req.Code, req.Name, req.Description)
+	if err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to update document type", err.Error())
+	}
+
+	// Log Activity
+	userID := c.Locals("user_id").(uuid.UUID)
+	h.svc.LogActivity(c.Context(), userID, "UPDATE", "document_type", &id, req, c.IP())
+
+	return response.Success(c, fiber.StatusOK, "Document type updated", docType)
+}
+
+func (h *MasterHandler) DeleteDocumentType(c fiber.Ctx) error {
+	id, err := uuid.Parse(c.Params("id"))
+	if err != nil {
+		return response.Error(c, fiber.StatusBadRequest, "Invalid document type ID", err.Error())
+	}
+
+	if err := h.svc.DeleteDocumentType(c.Context(), id); err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to delete document type", err.Error())
+	}
+
+	// Log Activity
+	userID := c.Locals("user_id").(uuid.UUID)
+	h.svc.LogActivity(c.Context(), userID, "DELETE", "document_type", &id, nil, c.IP())
+
+	return response.Success(c, fiber.StatusOK, "Document type deleted", nil)
+}
+
+func (h *MasterHandler) ExportDocumentTypes(c fiber.Ctx) error {
+	data, fileName, err := h.svc.ExportDocumentTypes(c.Context())
+	if err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to export document types", err.Error())
+	}
+
+	c.Set("Content-Type", "text/csv")
+	c.Set("Content-Disposition", fmt.Sprintf("attachment; filename=%s", fileName))
+	return c.Send(data)
+}
+
+func (h *MasterHandler) ImportDocumentTypes(c fiber.Ctx) error {
+	file, err := c.FormFile("file")
+	if err != nil {
+		return response.Error(c, fiber.StatusBadRequest, "Failed to get file from request", err.Error())
+	}
+
+	f, err := file.Open()
+	if err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to open file", err.Error())
+	}
+	defer f.Close()
+
+	count, err := h.svc.ImportDocumentTypes(c.Context(), f)
+	if err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to import document types", err.Error())
+	}
+
+	return response.Success(c, fiber.StatusOK, fmt.Sprintf("Successfully imported %d document types", count), nil)
+}
+
 func (h *MasterHandler) DownloadIntegrationReport(c fiber.Ctx) error {
 	data, fileName, err := h.svc.ExportIntegrationReport(c.Context())
 	if err != nil {
@@ -791,4 +1187,29 @@ func (h *MasterHandler) DownloadIntegrationReport(c fiber.Ctx) error {
 	c.Set("Content-Type", "text/csv")
 	c.Set("Content-Disposition", fmt.Sprintf("attachment; filename=%s", fileName))
 	return c.Send(data)
+}
+
+func (h *MasterHandler) ListActivityLogs(c fiber.Ctx) error {
+	limit := int32(50)
+	offset := int32(0)
+	
+	// Optional: Parse limit/offset from query params
+	
+	logs, err := h.svc.ListActivityLogs(c.Context(), limit, offset)
+	if err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to list activity logs", err.Error())
+	}
+	return response.Success(c, fiber.StatusOK, "Activity logs listed", logs)
+}
+
+type CreateDocumentTypeRequest struct {
+	Code        string `json:"code"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
+}
+
+type UpdateDocumentTypeRequest struct {
+	Code        string `json:"code"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
 }

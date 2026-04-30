@@ -136,13 +136,16 @@ func main() {
 		WriteTimeout: 20 * time.Second,
 		IdleTimeout:  60 * time.Second,
 		BodyLimit:    100 * 1024 * 1024, // 100MB Limit
+		StrictRouting: false,
 	})
 
 	// Middlewares
 	app.Use(logger.New())
 	app.Use(cors.New(cors.Config{
-		AllowOrigins: []string{"*"}, // Adjust this to your frontend URL in production
-		AllowHeaders: []string{"Origin", "Content-Type", "Accept", "Authorization"},
+		AllowOrigins:     []string{"http://localhost:3000", "http://127.0.0.1:3000"}, 
+		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization", "X-Requested-With"},
+		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"},
+		AllowCredentials: true,
 	}))
 	app.Use(helmet.New())
 	app.Use(compress.New(compress.Config{
@@ -197,32 +200,51 @@ func main() {
 	masterGroup.Post("/companies", masterHandler.CreateCompany)
 	masterGroup.Put("/companies/:id", masterHandler.UpdateCompany)
 	masterGroup.Delete("/companies/:id", masterHandler.DeleteCompany)
+	masterGroup.Get("/companies/export", masterHandler.ExportCompanies)
+	masterGroup.Post("/companies/import", masterHandler.ImportCompanies)
 	
 	masterGroup.Get("/branches", masterHandler.ListBranches)
 	masterGroup.Post("/branches", masterHandler.CreateBranch)
 	masterGroup.Put("/branches/:id", masterHandler.UpdateBranch)
 	masterGroup.Delete("/branches/:id", masterHandler.DeleteBranch)
 	masterGroup.Get("/branches-all", masterHandler.ListAllBranchesGlobal)
+	masterGroup.Get("/branches/export", masterHandler.ExportBranches)
+	masterGroup.Post("/branches/import", masterHandler.ImportBranches)
 	
 	masterGroup.Get("/departments", masterHandler.ListAllDepartments)
 	masterGroup.Post("/departments", masterHandler.CreateDepartment)
 	masterGroup.Put("/departments/:id", masterHandler.UpdateDepartment)
 	masterGroup.Delete("/departments/:id", masterHandler.DeleteDepartment)
+	masterGroup.Get("/departments/export", masterHandler.ExportDepartments)
+	masterGroup.Post("/departments/import", masterHandler.ImportDepartments)
 
 	masterGroup.Get("/racks", masterHandler.ListAllRacks)
 	masterGroup.Post("/racks", masterHandler.CreateRack)
 	masterGroup.Put("/racks/:id", masterHandler.UpdateRack)
 	masterGroup.Delete("/racks/:id", masterHandler.DeleteRack)
+	masterGroup.Get("/racks/export", masterHandler.ExportRacks)
+	masterGroup.Post("/racks/import", masterHandler.ImportRacks)
 
 	masterGroup.Get("/boxes", masterHandler.ListAllBoxes)
 	masterGroup.Post("/boxes", masterHandler.CreateBox)
 	masterGroup.Put("/boxes/:id", masterHandler.UpdateBox)
 	masterGroup.Delete("/boxes/:id", masterHandler.DeleteBox)
+	masterGroup.Get("/boxes/export", masterHandler.ExportBoxes)
+	masterGroup.Post("/boxes/import", masterHandler.ImportBoxes)
 
 	masterGroup.Get("/ordners", masterHandler.ListAllOrdners)
 	masterGroup.Post("/ordners", masterHandler.CreateOrdner)
 	masterGroup.Put("/ordners/:id", masterHandler.UpdateOrdner)
 	masterGroup.Delete("/ordners/:id", masterHandler.DeleteOrdner)
+	masterGroup.Get("/ordners/export", masterHandler.ExportOrdners)
+	masterGroup.Post("/ordners/import", masterHandler.ImportOrdners)
+
+	masterGroup.Get("/document-types", masterHandler.ListDocumentTypes)
+	masterGroup.Post("/document-types", masterHandler.CreateDocumentType)
+	masterGroup.Put("/document-types/:id", masterHandler.UpdateDocumentType)
+	masterGroup.Delete("/document-types/:id", masterHandler.DeleteDocumentType)
+	masterGroup.Get("/document-types/export", masterHandler.ExportDocumentTypes)
+	masterGroup.Post("/document-types/import", masterHandler.ImportDocumentTypes)
 
 	masterGroup.Get("/topology", masterHandler.GetTopology)
 	masterGroup.Get("/roles", masterHandler.ListRoles)
@@ -232,6 +254,7 @@ func main() {
 	masterGroup.Get("/integration/status", middleware.RoleMiddleware("admin", "superadmin"), masterHandler.GetIntegrationStatus)
 	masterGroup.Get("/integration/report", middleware.RoleMiddleware("admin", "superadmin"), masterHandler.DownloadIntegrationReport)
 	masterGroup.Put("/integration/nodes/:id", middleware.RoleMiddleware("admin", "superadmin"), masterHandler.UpdateIntegrationNode)
+	masterGroup.Get("/audit-logs", middleware.RoleMiddleware("superadmin"), masterHandler.ListActivityLogs)
 
 	// Hardware Master Routes
 	hardwareGroup := api.Group("/hardware")
@@ -387,7 +410,15 @@ func main() {
 		enablePrefork = false
 	}
 
-	log.Fatal(app.Listen(":"+cfg.AppPort, fiber.ListenConfig{
+	listenConfig := fiber.ListenConfig{
 		EnablePrefork: enablePrefork,
-	}))
+	}
+
+	if cfg.HTTPSEnabled {
+		log.Println("HTTPS is enabled")
+		listenConfig.CertFile = cfg.HTTPSCertFile
+		listenConfig.CertKeyFile = cfg.HTTPSKeyFile
+	}
+
+	log.Fatal(app.Listen(":"+cfg.AppPort, listenConfig))
 }

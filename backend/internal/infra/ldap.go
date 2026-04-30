@@ -40,36 +40,33 @@ type ldapNodeConfig struct {
 }
 
 func (s *LDAPService) getLDAPConfig(ctx context.Context) (string, ldapNodeConfig, error) {
+	nodeCfg := ldapNodeConfig{
+		BaseDN:     s.cfg.LDAPBaseDN,
+		BindDN:     s.cfg.LDAPBindDN,
+		BindPass:   s.cfg.LDAPBindPass,
+		UserFilter: s.cfg.LDAPUserFilter,
+		UseTLS:     false,
+	}
+	url := s.cfg.LDAPURL
+
 	node, err := s.repo.GetIntegrationNodeByType(ctx, "LDAP")
-	if err != nil {
-		return "", ldapNodeConfig{}, fmt.Errorf("LDAP node not found in database: %v", err)
-	}
-
-	if !node.IsActive.Bool {
-		return "", ldapNodeConfig{}, fmt.Errorf("LDAP integration is disabled in database")
-	}
-
-	nodeCfg := ldapNodeConfig{UseTLS: false} // Default to false, especially for local LLDAP/Docker setups
-	if err := json.Unmarshal(node.ConfigJson, &nodeCfg); err != nil {
-		return "", ldapNodeConfig{}, fmt.Errorf("failed to parse LDAP config JSON: %v", err)
-	}
-
-	// Use environment variables as fallback if JSON fields are empty
-	if nodeCfg.BaseDN == "" {
-		nodeCfg.BaseDN = s.cfg.LDAPBaseDN
-	}
-	if nodeCfg.BindDN == "" {
-		nodeCfg.BindDN = s.cfg.LDAPBindDN
-	}
-	if nodeCfg.BindPass == "" {
-		nodeCfg.BindPass = s.cfg.LDAPBindPass
-	}
-	if nodeCfg.UserFilter == "" {
-		nodeCfg.UserFilter = s.cfg.LDAPUserFilter
+	if err == nil && node.IsActive.Bool {
+		log.Printf("[LDAPService] Using database configuration for LDAP")
+		if err := json.Unmarshal(node.ConfigJson, &nodeCfg); err == nil {
+			// Override with DB values if present
+			if node.Endpoint != "" {
+				url = node.Endpoint
+			}
+		}
+	} else {
+		log.Printf("[LDAPService] LDAP node not found in DB or inactive, falling back to .env settings")
 	}
 
 	// Format URL from endpoint
-	url := node.Endpoint
+	if url == "" {
+		return "", nodeCfg, fmt.Errorf("LDAP URL/Endpoint is not configured in DB or .env")
+	}
+
 	if !strings.HasPrefix(url, "ldap://") && !strings.HasPrefix(url, "ldaps://") {
 		url = "ldap://" + url
 	}

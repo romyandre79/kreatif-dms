@@ -29,9 +29,13 @@ DELETE FROM companies WHERE id = $1;
 SELECT * FROM branches WHERE company_id = $1 ORDER BY name;
 
 -- name: ListAllBranchesGlobal :many
-SELECT b.*, c.name as company_name 
+SELECT 
+    b.*, 
+    c.name as company_name,
+    u.full_name as head_name
 FROM branches b
 JOIN companies c ON b.company_id = c.id
+LEFT JOIN users u ON b.head_id = u.id
 ORDER BY b.name;
 
 -- name: GetBranch :one
@@ -43,7 +47,7 @@ VALUES ($1, $2, $3, $4)
 RETURNING *;
 
 -- name: UpdateBranch :one
-UPDATE branches SET name = $2, location = $3, head_id = $4
+UPDATE branches SET name = $2, location = $3, head_id = $4, company_id = $5
 WHERE id = $1
 RETURNING *;
 
@@ -55,9 +59,13 @@ DELETE FROM branches WHERE id = $1;
 SELECT * FROM departments WHERE branch_id = $1 ORDER BY name;
 
 -- name: ListAllDepartments :many
-SELECT d.*, b.name as branch_name 
+SELECT 
+    d.*, 
+    b.name as branch_name,
+    u.full_name as head_name
 FROM departments d
 JOIN branches b ON d.branch_id = b.id
+LEFT JOIN users u ON d.head_id = u.id
 ORDER BY d.name;
 
 -- name: GetDepartment :one
@@ -69,7 +77,7 @@ VALUES ($1, $2, $3)
 RETURNING *;
 
 -- name: UpdateDepartment :one
-UPDATE departments SET name = $2, head_id = $3
+UPDATE departments SET name = $2, head_id = $3, branch_id = $4
 WHERE id = $1
 RETURNING *;
 
@@ -96,7 +104,7 @@ VALUES ($1, $2, $3)
 RETURNING *;
 
 -- name: UpdateRack :one
-UPDATE racks SET name = $2, location_detail = $3
+UPDATE racks SET name = $2, location_detail = $3, department_id = $4
 WHERE id = $1
 RETURNING *;
 
@@ -123,7 +131,7 @@ VALUES ($1, $2)
 RETURNING *;
 
 -- name: UpdateBox :one
-UPDATE boxes SET name = $2
+UPDATE boxes SET name = $2, rack_id = $3
 WHERE id = $1
 RETURNING *;
 
@@ -186,7 +194,7 @@ VALUES ($1, $2)
 RETURNING *;
 
 -- name: UpdateOrdner :one
-UPDATE ordners SET name = $2
+UPDATE ordners SET name = $2, box_id = $3
 WHERE id = $1
 RETURNING *;
 
@@ -238,3 +246,23 @@ VALUES ($1, $2, $3, $4, $5, $6)
 ON CONFLICT (category, key) DO UPDATE
 SET value = EXCLUDED.value, value_type = EXCLUDED.value_type, description = EXCLUDED.description, updated_by = EXCLUDED.updated_by, updated_at = NOW()
 RETURNING *;
+
+-- Document Types
+-- name: ListDocumentTypes :many
+SELECT * FROM document_types ORDER BY name;
+
+-- name: GetDocumentType :one
+SELECT * FROM document_types WHERE id = $1;
+
+-- name: CreateDocumentType :one
+INSERT INTO document_types (code, name, description)
+VALUES ($1, $2, $3)
+RETURNING *;
+
+-- name: UpdateDocumentType :one
+UPDATE document_types SET code = $2, name = $3, description = $4, updated_at = NOW()
+WHERE id = $1
+RETURNING *;
+
+-- name: DeleteDocumentType :exec
+DELETE FROM document_types WHERE id = $1;

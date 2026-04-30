@@ -1,350 +1,371 @@
 {
-  "metadata": {
-    "title": "Manajemen Metadata",
-    "subtitle": "Konfigurasi field dan skema dokumen",
-    "btn_add_field": "Tambah Field",
-    "table": {
-      "field_name": "NAMA FIELD",
-      "data_type": "TIPE DATA",
-      "required": "WAJIB",
-      "searchable": "DAPAT DICARI",
-      "created_at": "DIBUAT PADA",
-      "actions": "AKSI"
-    }
-  },
-  "search": {
-    "title": "Pencarian Dokumen Lanjut",
-    "placeholder": "Cari berdasarkan judul, manifest, atau isi dokumen...",
-    "filters": {
-      "title": "Filter",
-      "date_range": "Rentang Tanggal",
-      "doc_type": "Jenis Dokumen",
-      "department": "Departemen",
-      "status": "Status",
-      "clear_all": "Hapus Semua"
-    },
-    "results": {
-      "found": "Ditemukan {count} dokumen",
-      "no_results": "Tidak ada dokumen yang ditemukan",
+  "admin": {
+    "metadata": {
+      "title": "Manajemen Metadata",
+      "subtitle": "Konfigurasi field dan skema dokumen",
+      "btn_add_field": "Tambah Field",
       "table": {
-        "id": "ID",
-        "title": "JUDUL",
-        "date": "TANGGAL",
-        "dept": "DEPT",
+        "field_name": "NAMA FIELD",
+        "data_type": "TIPE DATA",
+        "required": "WAJIB",
+        "searchable": "DAPAT DICARI",
+        "created_at": "DIBUAT PADA",
+        "actions": "AKSI"
+      }
+    },
+    "search": {
+      "title": "Pencarian Dokumen Lanjut",
+      "placeholder": "Cari berdasarkan judul, manifest, atau isi dokumen...",
+      "filters": {
+        "title": "Filter",
+        "date_range": "Rentang Tanggal",
+        "doc_type": "Jenis Dokumen",
+        "department": "Departemen",
+        "status": "Status",
+        "clear_all": "Hapus Semua"
+      },
+      "results": {
+        "found": "Ditemukan {count} dokumen",
+        "no_results": "Tidak ada dokumen yang ditemukan",
+        "table": {
+          "id": "ID",
+          "title": "JUDUL",
+          "date": "TANGGAL",
+          "dept": "DEPT",
+          "status": "STATUS"
+        }
+      }
+    },
+    "settings": {
+      "title": "Pengaturan Sistem",
+      "general": {
+        "title": "Umum",
+        "app_name": "Nama Aplikasi",
+        "timezone": "Zona Waktu",
+        "language": "Bahasa Default"
+      },
+      "security": {
+        "title": "Keamanan",
+        "password_policy": "Kebijakan Kata Sandi",
+        "two_factor": "Autentikasi 2 Faktor",
+        "session_timeout": "Batas Waktu Sesi"
+      },
+      "notifications": {
+        "title": "Notifikasi",
+        "email_alerts": "Peringatan Email",
+        "system_alerts": "Peringatan Sistem",
+        "push_notifications": "Notifikasi Push"
+      }
+    },
+    "retention": {
+      "title": "Kebijakan Retensi",
+      "table": {
+        "policy_name": "Nama Kebijakan",
+        "duration": "Durasi (Tahun)",
+        "action": "Tindakan Akhir",
+        "status": "Status",
+        "action_destroy": "Hancurkan",
+        "action_archive": "Arsip Permanen"
+      }
+    },
+    "audit": {
+      "title": "Log Audit Sistem",
+      "table": {
+        "timestamp": "WAKTU",
+        "user": "PENGGUNA",
+        "action": "AKSI",
+        "module": "MODUL",
+        "ip_address": "ALAMAT IP"
+      }
+    },
+    "metadata_management": {
+      "title": "Manajemen Metadata",
+      "subtitle": "Konfigurasi skema pengindeksan dokumen",
+      "field_groups": {
+        "general": "Informasi Umum",
+        "legal": "Informasi Hukum",
+        "finance": "Informasi Keuangan",
+        "hr": "Sumber Daya Manusia"
+      },
+      "actions": {
+        "new_field": "Field Baru",
+        "import_schema": "Impor Skema",
+        "export_schema": "Ekspor Skema"
+      },
+      "table": {
+        "field_label": "LABEL FIELD",
+        "key": "KUNCI",
+        "type": "TIPE",
+        "validation": "VALIDASI",
+        "required": "WAJIB"
+      }
+    },
+    "reports_analytics": {
+      "title": "Laporan & Analitik",
+      "subtitle": "Wawasan operasional dan performa sistem",
+      "charts": {
+        "doc_growth": "Pertumbuhan Dokumen",
+        "scan_throughput": "Throughput Pemindaian",
+        "user_activity": "Aktivitas Pengguna",
+        "storage_forecast": "Prediksi Penyimpanan"
+      },
+      "metrics": {
+        "avg_processing_time": "Rata-rata Waktu Proses",
+        "ocr_accuracy": "Akurasi OCR",
+        "error_rate": "Tingkat Kesalahan",
+        "system_uptime": "Waktu Aktif Sistem"
+      }
+    },
+    "loan_management": {
+      "title": "Manajemen Pinjaman Dokumen",
+      "subtitle": "Lacak permintaan dan pengembalian fisik",
+      "tabs": {
+        "pending": "Menunggu Persetujuan",
+        "active": "Pinjaman Aktif",
+        "overdue": "Terlambat",
+        "history": "Riwayat Lengkap"
+      },
+      "table": {
+        "request_id": "ID PERMINTAAN",
+        "borrower": "PEMINJAM",
+        "document": "DOKUMEN",
+        "due_date": "BATAS WAKTU",
         "status": "STATUS"
       }
-    }
-  },
-  "settings": {
-    "title": "Pengaturan Sistem",
-    "general": {
-      "title": "Umum",
-      "app_name": "Nama Aplikasi",
-      "timezone": "Zona Waktu",
-      "language": "Bahasa Default"
     },
-    "security": {
-      "title": "Keamanan",
-      "password_policy": "Kebijakan Kata Sandi",
-      "two_factor": "Autentikasi 2 Faktor",
-      "session_timeout": "Batas Waktu Sesi"
+    "system_administration": {
+      "title": "Administrasi Sistem",
+      "subtitle": "Konfigurasi tingkat lanjut dan manajemen sistem",
+      "sections": {
+        "user_roles": "Role & Izin Pengguna",
+        "api_keys": "Manajemen API Key",
+        "storage_config": "Konfigurasi Penyimpanan",
+        "backup_restore": "Cadangan & Pemulihan"
+      }
     },
-    "notifications": {
-      "title": "Notifikasi",
-      "email_alerts": "Peringatan Email",
-      "system_alerts": "Peringatan Sistem",
-      "push_notifications": "Notifikasi Push"
-    }
-  },
-  "retention": {
-    "title": "Kebijakan Retensi",
-    "table": {
-      "policy_name": "Nama Kebijakan",
-      "duration": "Durasi (Tahun)",
-      "action": "Tindakan Akhir",
-      "status": "Status",
-      "action_destroy": "Hancurkan",
-      "action_archive": "Arsip Permanen"
-    }
-  },
-  "audit": {
-    "title": "Log Audit Sistem",
-    "table": {
-      "timestamp": "WAKTU",
-      "user": "PENGGUNA",
-      "action": "AKSI",
-      "module": "MODUL",
-      "ip_address": "ALAMAT IP"
-    }
-  },
-  "metadata_management": {
-    "title": "Manajemen Metadata",
-    "subtitle": "Konfigurasi skema pengindeksan dokumen",
-    "field_groups": {
-      "general": "Informasi Umum",
-      "legal": "Informasi Hukum",
-      "finance": "Informasi Keuangan",
-      "hr": "Sumber Daya Manusia"
-    },
-    "actions": {
-      "new_field": "Field Baru",
-      "import_schema": "Impor Skema",
-      "export_schema": "Ekspor Skema"
-    },
-    "table": {
-      "field_label": "LABEL FIELD",
-      "key": "KUNCI",
-      "type": "TIPE",
-      "validation": "VALIDASI",
-      "required": "WAJIB"
-    }
-  },
-  "reports_analytics": {
-    "title": "Laporan & Analitik",
-    "subtitle": "Wawasan operasional dan performa sistem",
-    "charts": {
-      "doc_growth": "Pertumbuhan Dokumen",
-      "scan_throughput": "Throughput Pemindaian",
-      "user_activity": "Aktivitas Pengguna",
-      "storage_forecast": "Prediksi Penyimpanan"
-    },
-    "metrics": {
-      "avg_processing_time": "Rata-rata Waktu Proses",
-      "ocr_accuracy": "Akurasi OCR",
-      "error_rate": "Tingkat Kesalahan",
-      "system_uptime": "Waktu Aktif Sistem"
-    }
-  },
-  "loan_management": {
-    "title": "Manajemen Pinjaman Dokumen",
-    "subtitle": "Lacak permintaan dan pengembalian fisik",
-    "tabs": {
-      "pending": "Menunggu Persetujuan",
-      "active": "Pinjaman Aktif",
-      "overdue": "Terlambat",
-      "history": "Riwayat Lengkap"
-    },
-    "table": {
-      "request_id": "ID PERMINTAAN",
-      "borrower": "PEMINJAM",
-      "document": "DOKUMEN",
-      "due_date": "BATAS WAKTU",
-      "status": "STATUS"
-    }
-  },
-  "system_administration": {
-    "title": "Administrasi Sistem",
-    "subtitle": "Konfigurasi tingkat lanjut dan manajemen sistem",
-    "sections": {
-      "user_roles": "Role & Izin Pengguna",
-      "api_keys": "Manajemen API Key",
-      "storage_config": "Konfigurasi Penyimpanan",
-      "backup_restore": "Cadangan & Pemulihan"
-    }
-  },
-  "retention_disposition": {
-    "title": "Retensi & Disposisi",
-    "subtitle": "Kelola siklus hidup dokumen dan pemusnahan",
-    "actions": {
-      "disposal_report": "Laporan Pemusnahan",
-      "extend_retention": "Perpanjang Retensi",
-      "approve_destruction": "Setujui Pemusnahan"
-    },
-    "table": {
-      "policy_id": "ID KEBIJAKAN",
-      "doc_count": "JUMLAH DOK",
-      "expiration": "KADALUWARSA",
-      "action": "TINDAKAN"
-    }
-  },
-  "archive_search": {
-    "title": "Pencarian Arsip",
-    "subtitle": "Cari di jutaan rekaman dengan filter cerdas",
-    "advanced_filters": {
-      "date_range": "Rentang Tanggal",
-      "location": "Lokasi Fisik",
-      "classification": "Klasifikasi",
-      "owner": "Pemilik Dokumen"
-    }
-  },
-  "document_staging": {
-    "title": "Staging Area",
-    "subtitle": "Validasi dokumen sebelum masuk arsip utama",
-    "actions": {
-      "approve_selected": "Setujui Terpilih",
-      "reject_selected": "Tolak Terpilih",
-      "edit_metadata": "Edit Metadata"
-    },
-    "table": {
-      "temp_id": "ID SEMENTARA",
-      "source": "SUMBER",
-      "scan_quality": "KUALITAS SCAN",
-      "status": "STATUS"
-    }
-  },
-  "legacy_migration": {
-    "title": "Migrasi Data Legacy",
-    "subtitle": "Impor data dari sistem lama atau file massal",
-    "steps": {
-      "upload": "Unggah File",
-      "mapping": "Pemetaan Kolom",
-      "validation": "Validasi Data",
-      "import": "Proses Impor"
-    }
-  },
-  "user_management": {
-    "title": "Manajemen Pengguna",
-    "subtitle": "Kelola akses dan hak istimewa pengguna",
-    "actions": {
-      "new_user": "Tambah Pengguna",
-      "export_users": "Ekspor Daftar",
-      "bulk_invite": "Undang Massal"
-    },
-    "table": {
-      "full_name": "NAMA LENGKAP",
-      "email": "EMAIL",
-      "role": "ROLE",
-      "last_login": "LOGIN TERAKHIR",
-      "status": "STATUS"
-    }
-  },
-  "role_permissions": {
-    "title": "Role & Izin",
-    "subtitle": "Konfigurasi kontrol akses berbasis peran (RBAC)",
-    "table": {
-      "role_name": "NAMA ROLE",
-      "description": "DESKRIPSI",
-      "user_count": "JUMLAH USER",
-      "actions": "AKSI"
-    }
-  },
-  "system_logs": {
-    "title": "Audit Log Sistem",
-    "subtitle": "Lacak setiap tindakan di dalam platform",
-    "filters": {
-      "all_modules": "Semua Modul",
-      "all_users": "Semua Pengguna",
-      "severity": "Tingkat Keparahan"
-    }
-  },
-  "capacity_management": {
-    "title": "Manajemen Kapasitas",
-    "subtitle": "Monitor ruang penyimpanan fisik dan digital",
-    "stats": {
-      "physical_usage": "Penggunaan Fisik",
-      "digital_usage": "Penggunaan Digital",
-      "available_racks": "Rak Tersedia",
-      "forecast": "Estimasi Penuh"
-    }
-  },
-  "config": {
-    "branch": {
-      "title": "Master Cabang",
-      "subtitle": "Pengaturan struktur cabang dan lokasi fisik perusahaan.",
-      "add_btn": "Tambah Cabang",
-      "filter_placeholder": "Filter cabang...",
-      "table": {
-        "name": "Nama Cabang",
-        "company": "Perusahaan",
-        "location": "Lokasi",
-        "head": "Kepala Cabang"
+    "retention_disposition": {
+      "title": "Retensi & Disposisi",
+      "subtitle": "Kelola siklus hidup dokumen dan pemusnahan",
+      "actions": {
+        "disposal_report": "Laporan Pemusnahan",
+        "extend_retention": "Perpanjang Retensi",
+        "approve_destruction": "Setujui Pemusnahan"
       },
-      "select_company": "Pilih Perusahaan",
-      "select_head": "Pilih Penanggung Jawab",
-      "displaying": "Menampilkan {start}-{end} dari {total} cabang",
-      "rows": "Baris",
-      "not_set": "Belum ditentukan",
-      "user_not_found": "User tidak ditemukan",
-      "error_name": "Nama cabang wajib diisi",
-      "error_company": "Perusahaan wajib dipilih",
-      "error_save": "Gagal menyimpan data",
-      "error_delete": "Gagal menghapus data",
-      "error_fetch": "Gagal mengambil data",
-      "confirm_delete": "Hapus cabang ini?"
-    },
-    "dept": {
-      "title": "Master Departemen",
-      "subtitle": "Pengaturan struktur departemen dan penanggung jawab.",
-      "add_btn": "Tambah Departemen",
-      "filter_placeholder": "Filter departemen...",
       "table": {
-        "name": "Nama Departemen",
-        "branch": "Cabang",
-        "head": "Kepala Departemen"
-      },
-      "select_branch": "Pilih Cabang",
-      "select_head": "Pilih Penanggung Jawab",
-      "displaying": "Menampilkan {start}-{end} dari {total} departemen",
-      "rows": "Baris",
-      "not_set": "Belum ditentukan",
-      "user_not_found": "User tidak ditemukan",
-      "error_name": "Nama departemen wajib diisi",
-      "error_branch": "Cabang wajib dipilih",
-      "error_save": "Gagal menyimpan data",
-      "error_delete": "Gagal menghapus data",
-      "error_fetch": "Gagal mengambil data",
-      "confirm_delete": "Hapus departemen ini?"
+        "policy_id": "ID KEBIJAKAN",
+        "doc_count": "JUMLAH DOK",
+        "expiration": "KADALUWARSA",
+        "action": "TINDAKAN"
+      }
     },
-    "rack": {
-      "title": "Master Rak",
-      "subtitle": "Pengaturan rak penyimpanan di setiap departemen.",
-      "add_btn": "Tambah Rak",
-      "filter_placeholder": "Filter rak...",
-      "table": {
-        "name": "Nama Rak",
-        "dept": "Departemen",
-        "branch": "Cabang",
-        "location": "Detail Lokasi"
-      },
-      "select_dept": "Pilih Departemen",
-      "displaying": "Menampilkan {start}-{end} dari {total} rak",
-      "rows": "Baris",
-      "error_name": "Nama rak wajib diisi",
-      "error_dept": "Departemen wajib dipilih",
-      "error_save": "Gagal menyimpan data",
-      "error_delete": "Gagal menghapus data",
-      "error_fetch": "Gagal mengambil data",
-      "confirm_delete": "Hapus rak ini?"
+    "archive_search": {
+      "title": "Pencarian Arsip",
+      "subtitle": "Cari di jutaan rekaman dengan filter cerdas",
+      "advanced_filters": {
+        "date_range": "Rentang Tanggal",
+        "location": "Lokasi Fisik",
+        "classification": "Klasifikasi",
+        "owner": "Pemilik Dokumen"
+      }
     },
-    "box": {
-      "title": "Master Box",
-      "subtitle": "Pengaturan box penyimpanan dalam rak.",
-      "add_btn": "Tambah Box",
-      "filter_placeholder": "Filter box...",
-      "table": {
-        "name": "Nama Box",
-        "rack": "Rak",
-        "dept": "Departemen"
+    "document_staging": {
+      "title": "Staging Area",
+      "subtitle": "Validasi dokumen sebelum masuk arsip utama",
+      "actions": {
+        "approve_selected": "Setujui Terpilih",
+        "reject_selected": "Tolak Terpilih",
+        "edit_metadata": "Edit Metadata"
       },
-      "select_rack": "Pilih Rak",
-      "displaying": "Menampilkan {start}-{end} dari {total} box",
-      "rows": "Baris",
-      "error_name": "Nama box wajib diisi",
-      "error_rack": "Rak wajib dipilih",
-      "error_save": "Gagal menyimpan data",
-      "error_delete": "Gagal menghapus data",
-      "error_fetch": "Gagal mengambil data",
-      "confirm_delete": "Hapus box ini?"
+      "table": {
+        "temp_id": "ID SEMENTARA",
+        "source": "SUMBER",
+        "scan_quality": "KUALITAS SCAN",
+        "status": "STATUS"
+      }
     },
-    "ordner": {
-      "title": "Master Ordner",
-      "subtitle": "Pengaturan ordner dokumen dalam box.",
-      "add_btn": "Tambah Ordner",
-      "filter_placeholder": "Filter ordner...",
-      "table": {
-        "name": "Nama Ordner",
-        "box": "Box",
-        "rack": "Rak"
+    "legacy_migration": {
+      "title": "Migrasi Data Legacy",
+      "subtitle": "Impor data dari sistem lama atau file massal",
+      "steps": {
+        "upload": "Unggah File",
+        "mapping": "Pemetaan Kolom",
+        "validation": "Validasi Data",
+        "import": "Proses Impor"
+      }
+    },
+    "user_management": {
+      "title": "Manajemen Pengguna",
+      "subtitle": "Kelola akses dan hak istimewa pengguna",
+      "actions": {
+        "new_user": "Tambah Pengguna",
+        "export_users": "Ekspor Daftar",
+        "bulk_invite": "Undang Massal"
       },
-      "select_box": "Pilih Box",
-      "displaying": "Menampilkan {start}-{end} dari {total} ordner",
-      "rows": "Baris",
-      "error_name": "Nama ordner wajib diisi",
-      "error_box": "Box wajib dipilih",
-      "error_save": "Gagal menyimpan data",
-      "error_delete": "Gagal menghapus data",
-      "error_fetch": "Gagal mengambil data",
-      "confirm_delete": "Hapus ordner ini?"
+      "table": {
+        "full_name": "NAMA LENGKAP",
+        "email": "EMAIL",
+        "role": "ROLE",
+        "last_login": "LOGIN TERAKHIR",
+        "status": "STATUS"
+      }
+    },
+    "role_permissions": {
+      "title": "Role & Izin",
+      "subtitle": "Konfigurasi kontrol akses berbasis peran (RBAC)",
+      "table": {
+        "role_name": "NAMA ROLE",
+        "description": "DESKRIPSI",
+        "user_count": "JUMLAH USER",
+        "actions": "AKSI"
+      }
+    },
+    "system_logs": {
+      "title": "Audit Log Sistem",
+      "subtitle": "Lacak setiap tindakan di dalam platform",
+      "filters": {
+        "all_modules": "Semua Modul",
+        "all_users": "Semua Pengguna",
+        "severity": "Tingkat Keparahan"
+      }
+    },
+    "capacity_management": {
+      "title": "Manajemen Kapasitas",
+      "subtitle": "Monitor ruang penyimpanan fisik dan digital",
+      "stats": {
+        "physical_usage": "Penggunaan Fisik",
+        "digital_usage": "Penggunaan Digital",
+        "available_racks": "Rak Tersedia",
+        "forecast": "Estimasi Penuh"
+      }
+    },
+    "config": {
+      "branch": {
+        "title": "Master Cabang",
+        "subtitle": "Pengaturan struktur cabang dan lokasi fisik perusahaan.",
+        "add_btn": "Tambah Cabang",
+        "filter_placeholder": "Filter cabang...",
+        "table": {
+          "name": "Nama Cabang",
+          "company": "Perusahaan",
+          "location": "Lokasi",
+          "head": "Kepala Cabang"
+        },
+        "select_company": "Pilih Perusahaan",
+        "select_head": "Pilih Penanggung Jawab",
+        "displaying": "Menampilkan {start}-{end} dari {total} cabang",
+        "rows": "Baris",
+        "not_set": "Belum ditentukan",
+        "user_not_found": "User tidak ditemukan",
+        "error_name": "Nama cabang wajib diisi",
+        "error_company": "Perusahaan wajib dipilih",
+        "error_save": "Gagal menyimpan data",
+        "error_delete": "Gagal menghapus data",
+        "error_fetch": "Gagal mengambil data",
+        "confirm_delete": "Hapus cabang ini?"
+      },
+      "dept": {
+        "title": "Master Departemen",
+        "subtitle": "Pengaturan struktur departemen dan penanggung jawab.",
+        "add_btn": "Tambah Departemen",
+        "filter_placeholder": "Filter departemen...",
+        "table": {
+          "name": "Nama Departemen",
+          "branch": "Cabang",
+          "head": "Kepala Departemen"
+        },
+        "select_branch": "Pilih Cabang",
+        "select_head": "Pilih Penanggung Jawab",
+        "displaying": "Menampilkan {start}-{end} dari {total} departemen",
+        "rows": "Baris",
+        "not_set": "Belum ditentukan",
+        "user_not_found": "User tidak ditemukan",
+        "error_name": "Nama departemen wajib diisi",
+        "error_branch": "Cabang wajib dipilih",
+        "error_save": "Gagal menyimpan data",
+        "error_delete": "Gagal menghapus data",
+        "error_fetch": "Gagal mengambil data",
+        "confirm_delete": "Hapus departemen ini?"
+      },
+      "rack": {
+        "title": "Master Rak",
+        "subtitle": "Pengaturan rak penyimpanan di setiap departemen.",
+        "add_btn": "Tambah Rak",
+        "filter_placeholder": "Filter rak...",
+        "table": {
+          "name": "Nama Rak",
+          "dept": "Departemen",
+          "branch": "Cabang",
+          "location": "Detail Lokasi"
+        },
+        "select_dept": "Pilih Departemen",
+        "displaying": "Menampilkan {start}-{end} dari {total} rak",
+        "rows": "Baris",
+        "error_name": "Nama rak wajib diisi",
+        "error_dept": "Departemen wajib dipilih",
+        "error_save": "Gagal menyimpan data",
+        "error_delete": "Gagal menghapus data",
+        "error_fetch": "Gagal mengambil data",
+        "confirm_delete": "Hapus rak ini?"
+      },
+      "box": {
+        "title": "Master Box",
+        "subtitle": "Pengaturan box penyimpanan dalam rak.",
+        "add_btn": "Tambah Box",
+        "filter_placeholder": "Filter box...",
+        "table": {
+          "name": "Nama Box",
+          "rack": "Rak",
+          "dept": "Departemen"
+        },
+        "select_rack": "Pilih Rak",
+        "displaying": "Menampilkan {start}-{end} dari {total} box",
+        "rows": "Baris",
+        "error_name": "Nama box wajib diisi",
+        "error_rack": "Rak wajib dipilih",
+        "error_save": "Gagal menyimpan data",
+        "error_delete": "Gagal menghapus data",
+        "error_fetch": "Gagal mengambil data",
+        "confirm_delete": "Hapus box ini?"
+      },
+      "ordner": {
+        "title": "Master Ordner",
+        "subtitle": "Pengaturan ordner dokumen dalam box.",
+        "add_btn": "Tambah Ordner",
+        "filter_placeholder": "Filter ordner...",
+        "table": {
+          "name": "Nama Ordner",
+          "box": "Box",
+          "rack": "Rak"
+        },
+        "select_box": "Pilih Box",
+        "displaying": "Menampilkan {start}-{end} dari {total} ordner",
+        "rows": "Baris",
+        "error_name": "Nama ordner wajib diisi",
+        "error_box": "Box wajib dipilih",
+        "error_save": "Gagal menyimpan data",
+        "error_delete": "Gagal menghapus data",
+        "error_fetch": "Gagal mengambil data",
+        "confirm_delete": "Hapus ordner ini?"
+      },
+      "document_type": {
+        "title": "Master Tipe Dokumen",
+        "subtitle": "Pengaturan kategori dan tipe dokumen dalam sistem.",
+        "add_btn": "Tambah Tipe Dokumen",
+        "filter_placeholder": "Filter tipe dokumen...",
+        "table": {
+          "code": "Kode",
+          "name": "Nama Tipe",
+          "description": "Deskripsi"
+        },
+        "displaying": "Menampilkan {start}-{end} dari {total} tipe",
+        "rows": "Baris",
+        "error_code": "Kode wajib diisi",
+        "error_name": "Nama wajib diisi",
+        "error_save": "Gagal menyimpan data",
+        "error_delete": "Gagal menghapus data",
+        "error_fetch": "Gagal mengambil data",
+        "confirm_delete": "Hapus tipe dokumen ini?"
+      }
     }
   }
 }

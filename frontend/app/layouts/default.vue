@@ -264,7 +264,8 @@ import {
   LucideHome,
   LucideRepeat,
   LucideTrash2,
-  LucideBuilding2
+  LucideBuilding2,
+  LucideHistory
 } from 'lucide-vue-next'
 import { useAuthStore } from '~/stores/auth'
 import { useNotificationStore } from '~/stores/notification'
@@ -342,11 +343,12 @@ const allMenuItems = {
         { key: 'layout.menu.rack', path: '/config/rack' },
         { key: 'layout.menu.box', path: '/config/box' },
         { key: 'layout.menu.ordner', path: '/config/ordner' },
-        { key: 'layout.menu.type', path: '/config/company?entity=type' },
+        { key: 'layout.menu.type', path: '/config/document-type' },
         { key: 'layout.menu.location', path: '/config/company?entity=location' },
         { key: 'layout.menu.retention_code', path: '/config/company?entity=retention' },
         { key: 'layout.menu.params', path: '/config/params' },
         { key: 'layout.menu.integration', path: '/config/integration', icon: LucideActivity },
+        { key: 'layout.menu.audit_logs', path: '/admin/logs/audit-logs', icon: LucideHistory },
       ]
     },
   ],
@@ -472,7 +474,7 @@ const allMenuItems = {
       children: [
         { key: 'layout.menu.company', path: '/config/company' },
         { key: 'layout.menu.dept', path: '/config/company?entity=dept' },
-        { key: 'layout.menu.type', path: '/config/company?entity=type' },
+        { key: 'layout.menu.type', path: '/config/document-type' },
         { key: 'layout.menu.location', path: '/config/company?entity=location' },
         { key: 'layout.menu.retention_code', path: '/config/company?entity=retention' },
         { key: 'layout.menu.params', path: '/config/params' },
