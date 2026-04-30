@@ -106,3 +106,19 @@ func (s *EmailService) SendPasswordResetEmail(ctx context.Context, email, resetL
 	`, resetLink)
 	return s.SendEmail(ctx, email, subject, body)
 }
+func (s *EmailService) TestConnection(ctx context.Context, addr, host, user, pass string, useAuth bool) error {
+	c, err := smtp.Dial(addr)
+	if err != nil {
+		return fmt.Errorf("failed to connect to SMTP server: %v", err)
+	}
+	defer c.Close()
+
+	if useAuth {
+		auth := smtp.PlainAuth("", user, pass, host)
+		if err := c.Auth(auth); err != nil {
+			return fmt.Errorf("SMTP authentication failed: %v", err)
+		}
+	}
+
+	return nil
+}

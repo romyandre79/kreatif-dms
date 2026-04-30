@@ -9,17 +9,24 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/kreatif/dms-backend/internal/repository"
+	"github.com/kreatif/dms-backend/internal/infra"
 	"io"
 	"encoding/json"
 	"net/netip"
 )
 
 type MasterService struct {
-	repo *repository.Queries
+	repo       *repository.Queries
+	ldapSvc    *infra.LDAPService
+	aiSvc      *infra.AIService
+	searchSvc  *infra.SearchService
+	storageSvc *infra.StorageService
+	waSvc      *infra.WhatsAppService
+	emailSvc   *infra.EmailService
 }
 
-func NewMasterService(repo *repository.Queries) *MasterService {
-	return &MasterService{repo: repo}
+func NewMasterService(repo *repository.Queries, ldapSvc *infra.LDAPService, aiSvc *infra.AIService, searchSvc *infra.SearchService, storageSvc *infra.StorageService, waSvc *infra.WhatsAppService, emailSvc *infra.EmailService) *MasterService {
+	return &MasterService{repo: repo, ldapSvc: ldapSvc, aiSvc: aiSvc, searchSvc: searchSvc, storageSvc: storageSvc, waSvc: waSvc, emailSvc: emailSvc}
 }
 
 func (s *MasterService) LogActivity(ctx context.Context, userID uuid.UUID, action, entityType string, entityID *uuid.UUID, details interface{}, ipAddress string) error {
@@ -750,6 +757,17 @@ func (s *MasterService) GetIntegrationStatus(ctx context.Context) ([]repository.
 	return s.repo.ListIntegrationNodes(ctx)
 }
 
+func (s *MasterService) CreateIntegrationNode(ctx context.Context, name, serviceType, driver, endpoint string, isCritical bool, config []byte) (repository.IntegrationNode, error) {
+	return s.repo.CreateIntegrationNode(ctx, repository.CreateIntegrationNodeParams{
+		Name:        name,
+		ServiceType: serviceType,
+		Driver:      pgtype.Text{String: driver, Valid: driver != ""},
+		Endpoint:    endpoint,
+		IsCritical:  pgtype.Bool{Bool: isCritical, Valid: true},
+		ConfigJson:  config,
+	})
+}
+
 func (s *MasterService) UpdateIntegrationNode(ctx context.Context, id uuid.UUID, name, endpoint string, isActive, isCritical bool, config []byte) (repository.IntegrationNode, error) {
 	return s.repo.UpdateIntegrationNodeConfig(ctx, repository.UpdateIntegrationNodeConfigParams{
 		ID:         id,
@@ -759,6 +777,88 @@ func (s *MasterService) UpdateIntegrationNode(ctx context.Context, id uuid.UUID,
 		IsCritical: pgtype.Bool{Bool: isCritical, Valid: true},
 		ConfigJson: config,
 	})
+}
+
+func (s *MasterService) DeleteIntegrationNode(ctx context.Context, id uuid.UUID) error {
+	return s.repo.DeleteIntegrationNode(ctx, id)
+}
+
+type LDAPTestResult struct {
+	Success bool   `json:"success"`
+	Message string `json:"message"`
+	Users   int    `json:"users"`
+	Groups  int    `json:"groups"`
+}
+
+func (s *MasterService) TestLDAPConnection(ctx context.Context, endpoint string, config []byte) (*LDAPTestResult, error) {
+	var cfg struct {
+		BaseDN       string `json:"base_dn"`
+		BindDN       string `json:"bind_dn"`
+		BindPass     string `json:"bind_pass"`
+		BindPassword string `json:"bind_password"`
+		UserFilter   string `json:"user_filter"`
+	}
+	if err := json.Unmarshal(config, &cfg); err != nil {
+		return nil, err
+	}
+
+	// Fallback for password field names
+	finalPassword := cfg.BindPass
+	if finalPassword == "" {
+		finalPassword = cfg.BindPassword
+	}
+
+	// Implementation: Use ldapSvc to perform real connection test
+	users, groups, err := s.ldapSvc.TestConnection(ctx, endpoint, cfg.BaseDN, cfg.BindDN, finalPassword)
+	if err != nil {
+		// Log Failure to sso_sync_logs
+		lastLog, _ := s.repo.CreateSsoSyncLog(ctx, repository.CreateSsoSyncLogParams{
+			Provider:  "LDAP",
+			Status:    "failed",
+			StartedAt: pgtype.Timestamptz{Time: time.Now(), Valid: true},
+		})
+		
+		errorDetails, _ := json.Marshal(map[string]string{"error": err.Error()})
+		_, _ = s.repo.UpdateSsoSyncLog(ctx, repository.UpdateSsoSyncLogParams{
+			ID:           lastLog.ID,
+			Status:       "failed",
+			ErrorDetails: errorDetails,
+			Errors:       pgtype.Int4{Int32: 1, Valid: true},
+			CompletedAt:  pgtype.Timestamptz{Time: time.Now(), Valid: true},
+		})
+
+		return &LDAPTestResult{
+			Success: false,
+			Message: err.Error(),
+			Users:   0,
+			Groups:  0,
+		}, err
+	}
+
+	res := &LDAPTestResult{
+		Success: true,
+		Message: "Connection established successfully",
+		Users:   users,
+		Groups:  groups,
+	}
+
+	// Log Success to sso_sync_logs
+	lastLog, _ := s.repo.CreateSsoSyncLog(ctx, repository.CreateSsoSyncLogParams{
+		Provider:  "LDAP",
+		Status:    "success",
+		StartedAt: pgtype.Timestamptz{Time: time.Now(), Valid: true},
+	})
+	
+	_, _ = s.repo.UpdateSsoSyncLog(ctx, repository.UpdateSsoSyncLogParams{
+		ID:           lastLog.ID,
+		Status:       "success",
+		UsersSynced:  pgtype.Int4{Int32: int32(users), Valid: true},
+		GroupsSynced: pgtype.Int4{Int32: int32(groups), Valid: true},
+		Errors:       pgtype.Int4{Int32: 0, Valid: true},
+		CompletedAt:  pgtype.Timestamptz{Time: time.Now(), Valid: true},
+	})
+
+	return res, nil
 }
 
 func (s *MasterService) ExportIntegrationReport(ctx context.Context) ([]byte, string, error) {
@@ -887,4 +987,77 @@ func (s *MasterService) ListActivityLogs(ctx context.Context, limit, offset int3
 		Limit:  limit,
 		Offset: offset,
 	})
+}
+
+func (s *MasterService) ListSsoSyncLogs(ctx context.Context, limit, offset int32) ([]repository.SsoSyncLog, error) {
+	return s.repo.ListSsoSyncLogs(ctx, repository.ListSsoSyncLogsParams{
+		Limit:  limit,
+		Offset: offset,
+	})
+}
+
+func (s *MasterService) FetchAIModels(ctx context.Context, driver string, apiKey string) ([]map[string]string, error) {
+	if driver == "gemini" {
+		return s.aiSvc.FetchGeminiModels(ctx, apiKey)
+	} else if driver == "openai" {
+		return s.aiSvc.FetchOpenAIModels(ctx, apiKey)
+	}
+	return nil, fmt.Errorf("unsupported AI driver: %s", driver)
+}
+
+func (s *MasterService) GetSyncLogsCount(ctx context.Context) (int64, error) {
+	return s.repo.CountSsoSyncLogs(ctx)
+}
+
+func (s *MasterService) TestSearchConnection(ctx context.Context, endpoint string, config []byte) (map[string]interface{}, error) {
+	var cfg struct {
+		Username string `json:"username"`
+		Password string `json:"password"`
+		APIKey   string `json:"api_key"`
+	}
+	if err := json.Unmarshal(config, &cfg); err != nil {
+		return nil, err
+	}
+
+	addresses := []string{endpoint}
+	return s.searchSvc.TestConnection(ctx, addresses, cfg.Username, cfg.Password, cfg.APIKey)
+}
+
+func (s *MasterService) TestStorageConnection(ctx context.Context, endpoint string, config []byte) error {
+	var cfg struct {
+		AccessKey string `json:"access_key"`
+		SecretKey string `json:"secret_key"`
+		Bucket    string `json:"bucket"`
+		UseSSL    bool   `json:"use_ssl"`
+	}
+	if err := json.Unmarshal(config, &cfg); err != nil {
+		return err
+	}
+
+	return s.storageSvc.TestConnection(ctx, endpoint, cfg.AccessKey, cfg.SecretKey, cfg.Bucket, cfg.UseSSL)
+}
+
+func (s *MasterService) TestWhatsAppConnection(ctx context.Context, endpoint string, config []byte) (map[string]interface{}, error) {
+	var cfg struct {
+		Token string `json:"token"`
+	}
+	if err := json.Unmarshal(config, &cfg); err != nil {
+		return nil, err
+	}
+
+	return s.waSvc.TestConnection(ctx, endpoint, cfg.Token)
+}
+
+func (s *MasterService) TestSMTPConnection(ctx context.Context, endpoint string, config []byte) error {
+	var cfg struct {
+		Auth bool   `json:"auth"`
+		User string `json:"user"`
+		Pass string `json:"pass"`
+	}
+	if err := json.Unmarshal(config, &cfg); err != nil {
+		return err
+	}
+
+	host := strings.Split(endpoint, ":")[0]
+	return s.emailSvc.TestConnection(ctx, endpoint, host, cfg.User, cfg.Pass, cfg.Auth)
 }
