@@ -24,7 +24,7 @@ func main() {
 	defer dbPool.Close()
 
 	minioClient, err := config.InitMinIO(cfg.MinIOEndpoint, cfg.MinIOAccessKey, cfg.MinIOSecretKey, cfg.MinIOUseSSL, cfg.MinIOBucket)
-	if err != nil {
+	if err != nil && cfg.MinIOEndpoint != "" {
 		log.Printf("WARNING: Worker starting without MinIO: %v", err)
 	}
 	
@@ -37,8 +37,8 @@ func main() {
 
 	// Repositories & Services
 	repo := repository.New(dbPool)
-	storageSvc := infra.NewStorageService(minioClient, cfg.MinIOBucket)
-	aiSvc := infra.NewAIService(cfg)
+	storageSvc := infra.NewStorageService(cfg, repo, minioClient, cfg.MinIOBucket)
+	aiSvc := infra.NewAIService(repo, cfg)
 	searchSvc := infra.NewSearchService(es)
 
 	// Processor

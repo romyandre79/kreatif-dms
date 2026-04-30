@@ -68,24 +68,39 @@ func (q *Queries) CreateBranch(ctx context.Context, arg CreateBranchParams) (Bra
 }
 
 const createCompany = `-- name: CreateCompany :one
-INSERT INTO companies (name, address)
-VALUES ($1, $2)
-RETURNING id, name, address, created_at
+INSERT INTO companies (name, entity_id, npwp_status, location, status, address)
+VALUES ($1, $2, $3, $4, $5, $6)
+RETURNING id, name, address, created_at, entity_id, npwp_status, location, status
 `
 
 type CreateCompanyParams struct {
-	Name    string      `json:"name"`
-	Address pgtype.Text `json:"address"`
+	Name       string      `json:"name"`
+	EntityID   pgtype.Text `json:"entity_id"`
+	NpwpStatus pgtype.Text `json:"npwp_status"`
+	Location   pgtype.Text `json:"location"`
+	Status     pgtype.Text `json:"status"`
+	Address    pgtype.Text `json:"address"`
 }
 
 func (q *Queries) CreateCompany(ctx context.Context, arg CreateCompanyParams) (Company, error) {
-	row := q.db.QueryRow(ctx, createCompany, arg.Name, arg.Address)
+	row := q.db.QueryRow(ctx, createCompany,
+		arg.Name,
+		arg.EntityID,
+		arg.NpwpStatus,
+		arg.Location,
+		arg.Status,
+		arg.Address,
+	)
 	var i Company
 	err := row.Scan(
 		&i.ID,
 		&i.Name,
 		&i.Address,
 		&i.CreatedAt,
+		&i.EntityID,
+		&i.NpwpStatus,
+		&i.Location,
+		&i.Status,
 	)
 	return i, err
 }
@@ -111,6 +126,32 @@ func (q *Queries) CreateDepartment(ctx context.Context, arg CreateDepartmentPara
 		&i.Name,
 		&i.HeadID,
 		&i.CreatedAt,
+	)
+	return i, err
+}
+
+const createDocumentType = `-- name: CreateDocumentType :one
+INSERT INTO document_types (code, name, description)
+VALUES ($1, $2, $3)
+RETURNING id, code, name, description, created_at, updated_at
+`
+
+type CreateDocumentTypeParams struct {
+	Code        string      `json:"code"`
+	Name        string      `json:"name"`
+	Description pgtype.Text `json:"description"`
+}
+
+func (q *Queries) CreateDocumentType(ctx context.Context, arg CreateDocumentTypeParams) (DocumentType, error) {
+	row := q.db.QueryRow(ctx, createDocumentType, arg.Code, arg.Name, arg.Description)
+	var i DocumentType
+	err := row.Scan(
+		&i.ID,
+		&i.Code,
+		&i.Name,
+		&i.Description,
+		&i.CreatedAt,
+		&i.UpdatedAt,
 	)
 	return i, err
 }
@@ -227,7 +268,7 @@ func (q *Queries) CreateRfidTag(ctx context.Context, arg CreateRfidTagParams) (R
 const createRole = `-- name: CreateRole :one
 INSERT INTO roles (name, description)
 VALUES ($1, $2)
-RETURNING id, name, description
+RETURNING id, name, description, ldap_group
 `
 
 type CreateRoleParams struct {
@@ -238,7 +279,12 @@ type CreateRoleParams struct {
 func (q *Queries) CreateRole(ctx context.Context, arg CreateRoleParams) (Role, error) {
 	row := q.db.QueryRow(ctx, createRole, arg.Name, arg.Description)
 	var i Role
-	err := row.Scan(&i.ID, &i.Name, &i.Description)
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Description,
+		&i.LdapGroup,
+	)
 	return i, err
 }
 
@@ -275,6 +321,15 @@ DELETE FROM departments WHERE id = $1
 
 func (q *Queries) DeleteDepartment(ctx context.Context, id uuid.UUID) error {
 	_, err := q.db.Exec(ctx, deleteDepartment, id)
+	return err
+}
+
+const deleteDocumentType = `-- name: DeleteDocumentType :exec
+DELETE FROM document_types WHERE id = $1
+`
+
+func (q *Queries) DeleteDocumentType(ctx context.Context, id uuid.UUID) error {
+	_, err := q.db.Exec(ctx, deleteDocumentType, id)
 	return err
 }
 
@@ -349,7 +404,7 @@ func (q *Queries) GetBranch(ctx context.Context, id uuid.UUID) (Branch, error) {
 }
 
 const getCompany = `-- name: GetCompany :one
-SELECT id, name, address, created_at FROM companies WHERE id = $1
+SELECT id, name, address, created_at, entity_id, npwp_status, location, status FROM companies WHERE id = $1
 `
 
 func (q *Queries) GetCompany(ctx context.Context, id uuid.UUID) (Company, error) {
@@ -360,6 +415,10 @@ func (q *Queries) GetCompany(ctx context.Context, id uuid.UUID) (Company, error)
 		&i.Name,
 		&i.Address,
 		&i.CreatedAt,
+		&i.EntityID,
+		&i.NpwpStatus,
+		&i.Location,
+		&i.Status,
 	)
 	return i, err
 }
@@ -377,6 +436,24 @@ func (q *Queries) GetDepartment(ctx context.Context, id uuid.UUID) (Department, 
 		&i.Name,
 		&i.HeadID,
 		&i.CreatedAt,
+	)
+	return i, err
+}
+
+const getDocumentType = `-- name: GetDocumentType :one
+SELECT id, code, name, description, created_at, updated_at FROM document_types WHERE id = $1
+`
+
+func (q *Queries) GetDocumentType(ctx context.Context, id uuid.UUID) (DocumentType, error) {
+	row := q.db.QueryRow(ctx, getDocumentType, id)
+	var i DocumentType
+	err := row.Scan(
+		&i.ID,
+		&i.Code,
+		&i.Name,
+		&i.Description,
+		&i.CreatedAt,
+		&i.UpdatedAt,
 	)
 	return i, err
 }
@@ -431,13 +508,18 @@ func (q *Queries) GetRfidTag(ctx context.Context, tagID string) (RfidTag, error)
 }
 
 const getRole = `-- name: GetRole :one
-SELECT id, name, description FROM roles WHERE id = $1
+SELECT id, name, description, ldap_group FROM roles WHERE id = $1
 `
 
 func (q *Queries) GetRole(ctx context.Context, id int32) (Role, error) {
 	row := q.db.QueryRow(ctx, getRole, id)
 	var i Role
-	err := row.Scan(&i.ID, &i.Name, &i.Description)
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Description,
+		&i.LdapGroup,
+	)
 	return i, err
 }
 
@@ -558,6 +640,240 @@ func (q *Queries) GetWarehouseTopology(ctx context.Context) ([]GetWarehouseTopol
 	return items, nil
 }
 
+const listAllBoxesGlobal = `-- name: ListAllBoxesGlobal :many
+SELECT bx.id, bx.rack_id, bx.name, bx.created_at, r.name as rack_name, d.name as department_name
+FROM boxes bx
+JOIN racks r ON bx.rack_id = r.id
+JOIN departments d ON r.department_id = d.id
+ORDER BY bx.name
+`
+
+type ListAllBoxesGlobalRow struct {
+	ID             uuid.UUID          `json:"id"`
+	RackID         uuid.UUID          `json:"rack_id"`
+	Name           string             `json:"name"`
+	CreatedAt      pgtype.Timestamptz `json:"created_at"`
+	RackName       string             `json:"rack_name"`
+	DepartmentName string             `json:"department_name"`
+}
+
+func (q *Queries) ListAllBoxesGlobal(ctx context.Context) ([]ListAllBoxesGlobalRow, error) {
+	rows, err := q.db.Query(ctx, listAllBoxesGlobal)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListAllBoxesGlobalRow
+	for rows.Next() {
+		var i ListAllBoxesGlobalRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.RackID,
+			&i.Name,
+			&i.CreatedAt,
+			&i.RackName,
+			&i.DepartmentName,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listAllBranchesGlobal = `-- name: ListAllBranchesGlobal :many
+SELECT 
+    b.id, b.company_id, b.name, b.location, b.head_id, b.created_at, 
+    c.name as company_name,
+    u.full_name as head_name
+FROM branches b
+JOIN companies c ON b.company_id = c.id
+LEFT JOIN users u ON b.head_id = u.id
+ORDER BY b.name
+`
+
+type ListAllBranchesGlobalRow struct {
+	ID          uuid.UUID          `json:"id"`
+	CompanyID   uuid.UUID          `json:"company_id"`
+	Name        string             `json:"name"`
+	Location    pgtype.Text        `json:"location"`
+	HeadID      pgtype.UUID        `json:"head_id"`
+	CreatedAt   pgtype.Timestamptz `json:"created_at"`
+	CompanyName string             `json:"company_name"`
+	HeadName    pgtype.Text        `json:"head_name"`
+}
+
+func (q *Queries) ListAllBranchesGlobal(ctx context.Context) ([]ListAllBranchesGlobalRow, error) {
+	rows, err := q.db.Query(ctx, listAllBranchesGlobal)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListAllBranchesGlobalRow
+	for rows.Next() {
+		var i ListAllBranchesGlobalRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.CompanyID,
+			&i.Name,
+			&i.Location,
+			&i.HeadID,
+			&i.CreatedAt,
+			&i.CompanyName,
+			&i.HeadName,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listAllDepartments = `-- name: ListAllDepartments :many
+SELECT 
+    d.id, d.branch_id, d.name, d.head_id, d.created_at, 
+    b.name as branch_name,
+    u.full_name as head_name
+FROM departments d
+JOIN branches b ON d.branch_id = b.id
+LEFT JOIN users u ON d.head_id = u.id
+ORDER BY d.name
+`
+
+type ListAllDepartmentsRow struct {
+	ID         uuid.UUID          `json:"id"`
+	BranchID   uuid.UUID          `json:"branch_id"`
+	Name       string             `json:"name"`
+	HeadID     pgtype.UUID        `json:"head_id"`
+	CreatedAt  pgtype.Timestamptz `json:"created_at"`
+	BranchName string             `json:"branch_name"`
+	HeadName   pgtype.Text        `json:"head_name"`
+}
+
+func (q *Queries) ListAllDepartments(ctx context.Context) ([]ListAllDepartmentsRow, error) {
+	rows, err := q.db.Query(ctx, listAllDepartments)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListAllDepartmentsRow
+	for rows.Next() {
+		var i ListAllDepartmentsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.BranchID,
+			&i.Name,
+			&i.HeadID,
+			&i.CreatedAt,
+			&i.BranchName,
+			&i.HeadName,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listAllOrdnersGlobal = `-- name: ListAllOrdnersGlobal :many
+SELECT o.id, o.box_id, o.name, o.created_at, bx.name as box_name, r.name as rack_name
+FROM ordners o
+JOIN boxes bx ON o.box_id = bx.id
+JOIN racks r ON bx.rack_id = r.id
+ORDER BY o.name
+`
+
+type ListAllOrdnersGlobalRow struct {
+	ID        uuid.UUID          `json:"id"`
+	BoxID     uuid.UUID          `json:"box_id"`
+	Name      string             `json:"name"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
+	BoxName   string             `json:"box_name"`
+	RackName  string             `json:"rack_name"`
+}
+
+func (q *Queries) ListAllOrdnersGlobal(ctx context.Context) ([]ListAllOrdnersGlobalRow, error) {
+	rows, err := q.db.Query(ctx, listAllOrdnersGlobal)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListAllOrdnersGlobalRow
+	for rows.Next() {
+		var i ListAllOrdnersGlobalRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.BoxID,
+			&i.Name,
+			&i.CreatedAt,
+			&i.BoxName,
+			&i.RackName,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listAllRacksGlobal = `-- name: ListAllRacksGlobal :many
+SELECT r.id, r.department_id, r.name, r.location_detail, r.created_at, d.name as department_name, b.name as branch_name
+FROM racks r
+JOIN departments d ON r.department_id = d.id
+JOIN branches b ON d.branch_id = b.id
+ORDER BY r.name
+`
+
+type ListAllRacksGlobalRow struct {
+	ID             uuid.UUID          `json:"id"`
+	DepartmentID   uuid.UUID          `json:"department_id"`
+	Name           string             `json:"name"`
+	LocationDetail pgtype.Text        `json:"location_detail"`
+	CreatedAt      pgtype.Timestamptz `json:"created_at"`
+	DepartmentName string             `json:"department_name"`
+	BranchName     string             `json:"branch_name"`
+}
+
+func (q *Queries) ListAllRacksGlobal(ctx context.Context) ([]ListAllRacksGlobalRow, error) {
+	rows, err := q.db.Query(ctx, listAllRacksGlobal)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListAllRacksGlobalRow
+	for rows.Next() {
+		var i ListAllRacksGlobalRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.DepartmentID,
+			&i.Name,
+			&i.LocationDetail,
+			&i.CreatedAt,
+			&i.DepartmentName,
+			&i.BranchName,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listBoxes = `-- name: ListBoxes :many
 SELECT id, rack_id, name, created_at FROM boxes WHERE rack_id = $1 ORDER BY name
 `
@@ -621,7 +937,7 @@ func (q *Queries) ListBranches(ctx context.Context, companyID uuid.UUID) ([]Bran
 }
 
 const listCompanies = `-- name: ListCompanies :many
-SELECT id, name, address, created_at FROM companies ORDER BY name
+SELECT id, name, address, created_at, entity_id, npwp_status, location, status FROM companies ORDER BY name
 `
 
 // Companies
@@ -639,6 +955,10 @@ func (q *Queries) ListCompanies(ctx context.Context) ([]Company, error) {
 			&i.Name,
 			&i.Address,
 			&i.CreatedAt,
+			&i.EntityID,
+			&i.NpwpStatus,
+			&i.Location,
+			&i.Status,
 		); err != nil {
 			return nil, err
 		}
@@ -670,6 +990,38 @@ func (q *Queries) ListDepartments(ctx context.Context, branchID uuid.UUID) ([]De
 			&i.Name,
 			&i.HeadID,
 			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listDocumentTypes = `-- name: ListDocumentTypes :many
+SELECT id, code, name, description, created_at, updated_at FROM document_types ORDER BY name
+`
+
+// Document Types
+func (q *Queries) ListDocumentTypes(ctx context.Context) ([]DocumentType, error) {
+	rows, err := q.db.Query(ctx, listDocumentTypes)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []DocumentType
+	for rows.Next() {
+		var i DocumentType
+		if err := rows.Scan(
+			&i.ID,
+			&i.Code,
+			&i.Name,
+			&i.Description,
+			&i.CreatedAt,
+			&i.UpdatedAt,
 		); err != nil {
 			return nil, err
 		}
@@ -808,7 +1160,7 @@ func (q *Queries) ListRfidTags(ctx context.Context) ([]RfidTag, error) {
 }
 
 const listRoles = `-- name: ListRoles :many
-SELECT id, name, description FROM roles ORDER BY name
+SELECT id, name, description, ldap_group FROM roles ORDER BY name
 `
 
 // Roles
@@ -821,7 +1173,12 @@ func (q *Queries) ListRoles(ctx context.Context) ([]Role, error) {
 	var items []Role
 	for rows.Next() {
 		var i Role
-		if err := rows.Scan(&i.ID, &i.Name, &i.Description); err != nil {
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.Description,
+			&i.LdapGroup,
+		); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
@@ -833,18 +1190,19 @@ func (q *Queries) ListRoles(ctx context.Context) ([]Role, error) {
 }
 
 const updateBox = `-- name: UpdateBox :one
-UPDATE boxes SET name = $2
+UPDATE boxes SET name = $2, rack_id = $3
 WHERE id = $1
 RETURNING id, rack_id, name, created_at
 `
 
 type UpdateBoxParams struct {
-	ID   uuid.UUID `json:"id"`
-	Name string    `json:"name"`
+	ID     uuid.UUID `json:"id"`
+	Name   string    `json:"name"`
+	RackID uuid.UUID `json:"rack_id"`
 }
 
 func (q *Queries) UpdateBox(ctx context.Context, arg UpdateBoxParams) (Box, error) {
-	row := q.db.QueryRow(ctx, updateBox, arg.ID, arg.Name)
+	row := q.db.QueryRow(ctx, updateBox, arg.ID, arg.Name, arg.RackID)
 	var i Box
 	err := row.Scan(
 		&i.ID,
@@ -856,16 +1214,17 @@ func (q *Queries) UpdateBox(ctx context.Context, arg UpdateBoxParams) (Box, erro
 }
 
 const updateBranch = `-- name: UpdateBranch :one
-UPDATE branches SET name = $2, location = $3, head_id = $4
+UPDATE branches SET name = $2, location = $3, head_id = $4, company_id = $5
 WHERE id = $1
 RETURNING id, company_id, name, location, head_id, created_at
 `
 
 type UpdateBranchParams struct {
-	ID       uuid.UUID   `json:"id"`
-	Name     string      `json:"name"`
-	Location pgtype.Text `json:"location"`
-	HeadID   pgtype.UUID `json:"head_id"`
+	ID        uuid.UUID   `json:"id"`
+	Name      string      `json:"name"`
+	Location  pgtype.Text `json:"location"`
+	HeadID    pgtype.UUID `json:"head_id"`
+	CompanyID uuid.UUID   `json:"company_id"`
 }
 
 func (q *Queries) UpdateBranch(ctx context.Context, arg UpdateBranchParams) (Branch, error) {
@@ -874,6 +1233,7 @@ func (q *Queries) UpdateBranch(ctx context.Context, arg UpdateBranchParams) (Bra
 		arg.Name,
 		arg.Location,
 		arg.HeadID,
+		arg.CompanyID,
 	)
 	var i Branch
 	err := row.Scan(
@@ -888,43 +1248,71 @@ func (q *Queries) UpdateBranch(ctx context.Context, arg UpdateBranchParams) (Bra
 }
 
 const updateCompany = `-- name: UpdateCompany :one
-UPDATE companies SET name = $2, address = $3
+UPDATE companies SET 
+    name = $2, 
+    entity_id = $3, 
+    npwp_status = $4, 
+    location = $5, 
+    status = $6, 
+    address = $7
 WHERE id = $1
-RETURNING id, name, address, created_at
+RETURNING id, name, address, created_at, entity_id, npwp_status, location, status
 `
 
 type UpdateCompanyParams struct {
-	ID      uuid.UUID   `json:"id"`
-	Name    string      `json:"name"`
-	Address pgtype.Text `json:"address"`
+	ID         uuid.UUID   `json:"id"`
+	Name       string      `json:"name"`
+	EntityID   pgtype.Text `json:"entity_id"`
+	NpwpStatus pgtype.Text `json:"npwp_status"`
+	Location   pgtype.Text `json:"location"`
+	Status     pgtype.Text `json:"status"`
+	Address    pgtype.Text `json:"address"`
 }
 
 func (q *Queries) UpdateCompany(ctx context.Context, arg UpdateCompanyParams) (Company, error) {
-	row := q.db.QueryRow(ctx, updateCompany, arg.ID, arg.Name, arg.Address)
+	row := q.db.QueryRow(ctx, updateCompany,
+		arg.ID,
+		arg.Name,
+		arg.EntityID,
+		arg.NpwpStatus,
+		arg.Location,
+		arg.Status,
+		arg.Address,
+	)
 	var i Company
 	err := row.Scan(
 		&i.ID,
 		&i.Name,
 		&i.Address,
 		&i.CreatedAt,
+		&i.EntityID,
+		&i.NpwpStatus,
+		&i.Location,
+		&i.Status,
 	)
 	return i, err
 }
 
 const updateDepartment = `-- name: UpdateDepartment :one
-UPDATE departments SET name = $2, head_id = $3
+UPDATE departments SET name = $2, head_id = $3, branch_id = $4
 WHERE id = $1
 RETURNING id, branch_id, name, head_id, created_at
 `
 
 type UpdateDepartmentParams struct {
-	ID     uuid.UUID   `json:"id"`
-	Name   string      `json:"name"`
-	HeadID pgtype.UUID `json:"head_id"`
+	ID       uuid.UUID   `json:"id"`
+	Name     string      `json:"name"`
+	HeadID   pgtype.UUID `json:"head_id"`
+	BranchID uuid.UUID   `json:"branch_id"`
 }
 
 func (q *Queries) UpdateDepartment(ctx context.Context, arg UpdateDepartmentParams) (Department, error) {
-	row := q.db.QueryRow(ctx, updateDepartment, arg.ID, arg.Name, arg.HeadID)
+	row := q.db.QueryRow(ctx, updateDepartment,
+		arg.ID,
+		arg.Name,
+		arg.HeadID,
+		arg.BranchID,
+	)
 	var i Department
 	err := row.Scan(
 		&i.ID,
@@ -936,19 +1324,52 @@ func (q *Queries) UpdateDepartment(ctx context.Context, arg UpdateDepartmentPara
 	return i, err
 }
 
+const updateDocumentType = `-- name: UpdateDocumentType :one
+UPDATE document_types SET code = $2, name = $3, description = $4, updated_at = NOW()
+WHERE id = $1
+RETURNING id, code, name, description, created_at, updated_at
+`
+
+type UpdateDocumentTypeParams struct {
+	ID          uuid.UUID   `json:"id"`
+	Code        string      `json:"code"`
+	Name        string      `json:"name"`
+	Description pgtype.Text `json:"description"`
+}
+
+func (q *Queries) UpdateDocumentType(ctx context.Context, arg UpdateDocumentTypeParams) (DocumentType, error) {
+	row := q.db.QueryRow(ctx, updateDocumentType,
+		arg.ID,
+		arg.Code,
+		arg.Name,
+		arg.Description,
+	)
+	var i DocumentType
+	err := row.Scan(
+		&i.ID,
+		&i.Code,
+		&i.Name,
+		&i.Description,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
 const updateOrdner = `-- name: UpdateOrdner :one
-UPDATE ordners SET name = $2
+UPDATE ordners SET name = $2, box_id = $3
 WHERE id = $1
 RETURNING id, box_id, name, created_at
 `
 
 type UpdateOrdnerParams struct {
-	ID   uuid.UUID `json:"id"`
-	Name string    `json:"name"`
+	ID    uuid.UUID `json:"id"`
+	Name  string    `json:"name"`
+	BoxID uuid.UUID `json:"box_id"`
 }
 
 func (q *Queries) UpdateOrdner(ctx context.Context, arg UpdateOrdnerParams) (Ordner, error) {
-	row := q.db.QueryRow(ctx, updateOrdner, arg.ID, arg.Name)
+	row := q.db.QueryRow(ctx, updateOrdner, arg.ID, arg.Name, arg.BoxID)
 	var i Ordner
 	err := row.Scan(
 		&i.ID,
@@ -960,7 +1381,7 @@ func (q *Queries) UpdateOrdner(ctx context.Context, arg UpdateOrdnerParams) (Ord
 }
 
 const updateRack = `-- name: UpdateRack :one
-UPDATE racks SET name = $2, location_detail = $3
+UPDATE racks SET name = $2, location_detail = $3, department_id = $4
 WHERE id = $1
 RETURNING id, department_id, name, location_detail, created_at
 `
@@ -969,10 +1390,16 @@ type UpdateRackParams struct {
 	ID             uuid.UUID   `json:"id"`
 	Name           string      `json:"name"`
 	LocationDetail pgtype.Text `json:"location_detail"`
+	DepartmentID   uuid.UUID   `json:"department_id"`
 }
 
 func (q *Queries) UpdateRack(ctx context.Context, arg UpdateRackParams) (Rack, error) {
-	row := q.db.QueryRow(ctx, updateRack, arg.ID, arg.Name, arg.LocationDetail)
+	row := q.db.QueryRow(ctx, updateRack,
+		arg.ID,
+		arg.Name,
+		arg.LocationDetail,
+		arg.DepartmentID,
+	)
 	var i Rack
 	err := row.Scan(
 		&i.ID,
@@ -1049,7 +1476,7 @@ func (q *Queries) UpdateRfidTagStatus(ctx context.Context, arg UpdateRfidTagStat
 const updateRole = `-- name: UpdateRole :one
 UPDATE roles SET name = $2, description = $3
 WHERE id = $1
-RETURNING id, name, description
+RETURNING id, name, description, ldap_group
 `
 
 type UpdateRoleParams struct {
@@ -1061,7 +1488,12 @@ type UpdateRoleParams struct {
 func (q *Queries) UpdateRole(ctx context.Context, arg UpdateRoleParams) (Role, error) {
 	row := q.db.QueryRow(ctx, updateRole, arg.ID, arg.Name, arg.Description)
 	var i Role
-	err := row.Scan(&i.ID, &i.Name, &i.Description)
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Description,
+		&i.LdapGroup,
+	)
 	return i, err
 }
 

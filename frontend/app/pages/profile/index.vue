@@ -1,9 +1,9 @@
 <template>
   <div class="max-w-4xl mx-auto space-y-8 pb-20">
-    <div v-motion-fade>
-      <h1 class="text-3xl font-bold text-slate-900 dark:text-white">{{ $t('profile.title') }}</h1>
-      <p class="text-slate-500 dark:text-slate-400 mt-1">{{ $t('profile.subtitle') }}</p>
-    </div>
+    <PageHeader 
+      :title="$t('profile.title')"
+      :subtitle="$t('profile.subtitle')"
+    />
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
       <!-- Left: Photo & Basics -->
@@ -107,6 +107,7 @@ import { ref, onMounted } from 'vue'
 import { LucideUser, LucideCamera, LucideShieldCheck } from 'lucide-vue-next'
 import { useAuthStore } from '~/stores/auth'
 import SignaturePad from '~/components/SignaturePad.vue'
+import PageHeader from '~/components/PageHeader.vue'
 
 const auth = useAuthStore()
 const saving = ref(false)

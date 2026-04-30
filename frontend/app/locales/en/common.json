@@ -6,7 +6,9 @@
       "pending": "PENDING",
       "critical": "CRITICAL",
       "returned": "RETURNED"
-    }
+    },
+    "loading": "Loading data...",
+    "no_data": "Data not found"
   },
   "error": {
     "page_not_found": "Page not found",

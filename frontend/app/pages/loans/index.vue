@@ -17,17 +17,20 @@
 
     <!-- Main Content: Loan Table -->
     <div class="col-span-8 space-y-10" v-motion-fade>
-      <!-- Header Section -->
-      <div class="flex items-center justify-between">
-        <div class="space-y-2">
-          <h1 class="text-3xl font-black text-[#1E3A5F] tracking-tight uppercase">{{ $t('loans.my.title') }}</h1>
-          <p class="text-slate-500 font-medium">{{ $t('loans.my.subtitle') }}</p>
-        </div>
-        <button @click="showExtensionModal = true" :disabled="selectedLoan?.status === 'EXTENSION PENDING'" class="px-8 py-4 bg-[#1E3A5F] hover:bg-[#152943] text-white rounded-2xl text-xs font-black uppercase tracking-[0.2em] shadow-xl shadow-blue-900/20 transition-all flex items-center gap-3 group disabled:opacity-50 disabled:cursor-not-allowed">
-          <LucideHistory class="w-4 h-4 group-hover:rotate-12 transition-transform" />
-          {{ $t('loans.my.btn_request_ext') }}
-        </button>
-      </div>
+    <!-- Header Section -->
+    <div class="col-span-12">
+      <PageHeader 
+        :title="$t('loans.my.title')"
+        :subtitle="$t('loans.my.subtitle')"
+      >
+        <template #actions>
+          <button @click="showExtensionModal = true" :disabled="selectedLoan?.status === 'EXTENSION PENDING'" class="px-8 py-4 bg-[#1E3A5F] hover:bg-[#152943] text-white rounded-2xl text-xs font-black uppercase tracking-[0.2em] shadow-xl shadow-blue-900/20 transition-all flex items-center gap-3 group disabled:opacity-50 disabled:cursor-not-allowed">
+            <LucideHistory class="w-4 h-4 group-hover:rotate-12 transition-transform" />
+            {{ $t('loans.my.btn_request_ext') }}
+          </button>
+        </template>
+      </PageHeader>
+    </div>
 
       <!-- Filters/Tabs -->
       <div class="flex items-center gap-12 border-b border-slate-100 pb-1">
@@ -265,6 +268,7 @@ import { ref, computed } from 'vue'
 import { 
   LucideHistory, LucideCheck, LucideInfo, LucideAlertTriangle, LucideX, LucideSend 
 } from 'lucide-vue-next'
+import PageHeader from '~/components/PageHeader.vue'
 
 const activeTab = ref('All')
 const tabs = [

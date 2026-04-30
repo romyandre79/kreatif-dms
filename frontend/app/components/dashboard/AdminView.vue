@@ -1,33 +1,34 @@
 <template>
   <div class="space-y-8 pb-10">
     <!-- Greeting & Search Header -->
-    <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6" v-motion-fade>
-      <div>
-        <h1 class="text-3xl font-bold text-[#1E3A5F] dark:text-white">{{ $t('dashboard.greetings.morning', { name: user?.full_name?.split(' ')[0] || 'User' }) }}</h1>
-        <p class="text-slate-500 font-medium mt-1">{{ $t('dashboard.header.operational_overview', { date: currentDate }) }}</p>
-      </div>
-      <div class="flex flex-wrap items-center gap-4 flex-1 lg:max-w-xl justify-end">
-        <button 
-          @click="navigateTo('/documents/upload')"
-          class="flex items-center gap-2 px-6 py-3 bg-[#1E3A5F] hover:bg-[#152943] text-white font-bold rounded-xl shadow-lg shadow-blue-900/20 transition-all"
-        >
-          <LucidePlus class="w-5 h-5" />
-          {{ $t('dashboard.header.btn_submit_new') }}
-        </button>
-        <div class="relative flex-1 min-w-[200px]">
-          <LucideSearch class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-          <input
-            type="text"
-            :placeholder="$t('dashboard.header.search_placeholder')"
-            class="w-full pl-12 pr-4 py-3 text-sm rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm focus:outline-none focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 transition-all font-medium"
-          />
+    <PageHeader 
+      :title="$t('dashboard.greetings.morning', { name: user?.full_name?.split(' ')[0] || 'User' })"
+      :subtitle="$t('dashboard.header.operational_overview', { date: currentDate })"
+    >
+      <template #actions>
+        <div class="flex flex-wrap items-center gap-4">
+          <button 
+            @click="navigateTo('/documents/upload')"
+            class="flex items-center gap-2 px-6 py-3 bg-[#1E3A5F] hover:bg-[#152943] text-white font-bold rounded-xl shadow-lg shadow-blue-900/20 transition-all"
+          >
+            <LucidePlus class="w-5 h-5" />
+            {{ $t('dashboard.header.btn_submit_new') }}
+          </button>
+          <div class="relative flex-1 min-w-[200px]">
+            <LucideSearch class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <input
+              type="text"
+              :placeholder="$t('dashboard.header.search_placeholder')"
+              class="w-full pl-12 pr-4 py-3 text-sm rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm focus:outline-none focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 transition-all font-medium"
+            />
+          </div>
+          <button class="p-3 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 text-slate-400 relative hover:text-primary-500 transition-colors shadow-sm">
+            <LucideBell class="w-5 h-5" />
+            <span class="absolute top-3 right-3 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-slate-900"></span>
+          </button>
         </div>
-        <button class="p-3 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 text-slate-400 relative hover:text-primary-500 transition-colors shadow-sm">
-          <LucideBell class="w-5 h-5" />
-          <span class="absolute top-3 right-3 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-slate-900"></span>
-        </button>
-      </div>
-    </div>
+      </template>
+    </PageHeader>
 
     <!-- Stats Grid -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
@@ -227,6 +228,7 @@ import {
   LucidePlus
 } from 'lucide-vue-next'
 import { useAuthStore } from '~/stores/auth'
+import PageHeader from '~/components/PageHeader.vue'
 
 const auth = useAuthStore()
 const { t } = useI18n()

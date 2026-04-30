@@ -1,29 +1,30 @@
 <template>
   <div class="space-y-8 pb-10">
     <!-- Header Section -->
-    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4" v-motion-fade>
-      <div>
-        <h1 class="text-3xl font-bold text-[#1E3A5F] dark:text-white">{{ $t('dashboard.welcome', { name: user?.full_name || 'User' }) }}</h1>
-        <p class="text-slate-500 font-bold text-sm mt-1">{{ $t('dashboard.header.enterprise_dashboard') }}</p>
-      </div>
-      <div class="flex items-center gap-3">
-        <button 
-          @click="navigateTo('/documents/upload')"
-          class="flex items-center gap-2 px-6 py-2.5 bg-[#1E3A5F] hover:bg-[#152943] text-white font-bold rounded-xl shadow-lg shadow-blue-900/20 transition-all mr-2"
-        >
-          <LucidePlus class="w-4 h-4" />
-          {{ $t('dashboard.header.btn_submit_new') }}
-        </button>
-        <div class="bg-slate-100 dark:bg-slate-800 px-4 py-2 rounded-xl flex items-center gap-2 border border-slate-200 dark:border-slate-700">
-          <LucideDatabase class="w-4 h-4 text-slate-500" />
-          <span class="text-xs font-black text-slate-700 dark:text-slate-300 uppercase tracking-tighter">{{ $t('dashboard.stats.storage_percent', { percent: 72 }) }}</span>
+    <PageHeader 
+      :title="$t('dashboard.welcome', { name: user?.full_name || 'User' })"
+      :subtitle="$t('dashboard.header.enterprise_dashboard')"
+    >
+      <template #actions>
+        <div class="flex items-center gap-3">
+          <button 
+            @click="navigateTo('/documents/upload')"
+            class="flex items-center gap-2 px-6 py-2.5 bg-[#1E3A5F] hover:bg-[#152943] text-white font-bold rounded-xl shadow-lg shadow-blue-900/20 transition-all mr-2"
+          >
+            <LucidePlus class="w-4 h-4" />
+            {{ $t('dashboard.header.btn_submit_new') }}
+          </button>
+          <div class="bg-slate-100 dark:bg-slate-800 px-4 py-2 rounded-xl flex items-center gap-2 border border-slate-200 dark:border-slate-700">
+            <LucideDatabase class="w-4 h-4 text-slate-500" />
+            <span class="text-xs font-black text-slate-700 dark:text-slate-300 uppercase tracking-tighter">{{ $t('dashboard.stats.storage_percent', { percent: 72 }) }}</span>
+          </div>
+          <div class="bg-orange-50 dark:bg-orange-900/20 px-4 py-2 rounded-xl flex items-center gap-2 border border-orange-100 dark:border-orange-800">
+            <LucideZap class="w-4 h-4 text-orange-500" />
+            <span class="text-xs font-black text-orange-700 dark:text-orange-400 uppercase tracking-tighter">{{ $t('dashboard.stats.active_tasks_count', { count: 31 }) }}</span>
+          </div>
         </div>
-        <div class="bg-orange-50 dark:bg-orange-900/20 px-4 py-2 rounded-xl flex items-center gap-2 border border-orange-100 dark:border-orange-800">
-          <LucideZap class="w-4 h-4 text-orange-500" />
-          <span class="text-xs font-black text-orange-700 dark:text-orange-400 uppercase tracking-tighter">{{ $t('dashboard.stats.active_tasks_count', { count: 31 }) }}</span>
-        </div>
-      </div>
-    </div>
+      </template>
+    </PageHeader>
 
     <!-- Top Stats -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -216,6 +217,7 @@ import {
   LucidePlus
 } from 'lucide-vue-next'
 import { useAuthStore } from '~/stores/auth'
+import PageHeader from '~/components/PageHeader.vue'
 
 const auth = useAuthStore()
 const { t } = useI18n()

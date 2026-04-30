@@ -40,17 +40,50 @@ type LoginResponse struct {
 func (s *AuthService) Login(ctx context.Context, identifier, password, authType string) (*LoginResponse, error) {
 	log.Printf("[AuthService] Login attempt for: %s (Type: %s)", identifier, authType)
 
-	if authType == "sso" && s.cfg.LDAPEnabled {
+	if authType == "sso" {
 		// 1. Corporate LDAP Authentication
-		log.Printf("[AuthService] Attempting Corporate LDAP login for: %s", identifier)
-		ldapUser, ldapErr := s.ldapSvc.Authenticate(identifier, password)
+		ldapUser, ldapErr := s.ldapSvc.Authenticate(ctx, identifier, password)
 		if ldapErr == nil {
-			// LDAP Success! Find or create user in our DB
+			log.Printf("[AuthService] LDAP authenticated. Groups found: %v", ldapUser.Groups)
+			// 1. Fetch all roles from DB for dynamic mapping
+			roles, _ := s.repo.ListRoles(ctx)
+			
+			targetRole := "user" // Default fallback
+			highestPriority := 0 // For priority logic: admin(3) > manager(2) > user(1)
+			
+			// Map LDAP groups to roles from DB
+			for _, r := range roles {
+				if !r.LdapGroup.Valid {
+					continue
+				}
+				
+				// Check if user has this LDAP group
+				for _, userGroup := range ldapUser.Groups {
+					if userGroup == r.LdapGroup.String {
+						// Match found! Determine priority
+						priority := 1
+						if r.Name == "admin" || r.Name == "superadmin" {
+							priority = 3
+						} else if r.Name == "manager" || r.Name == "manajer" || r.Name == "doc_controller" {
+							priority = 2
+						}
+						
+						if priority > highestPriority {
+							highestPriority = priority
+							targetRole = r.Name
+							log.Printf("[AuthService] Match: Group %s -> Role %s (Priority: %d)", userGroup, targetRole, priority)
+						}
+					}
+				}
+			}
+
+			log.Printf("[AuthService] Final mapped role for %s: %s", ldapUser.Email, targetRole)
+
 			row, err := s.repo.GetUserByEmail(ctx, ldapUser.Email)
 			if err != nil {
 				// JIT (Just-In-Time) Provisioning
-				log.Printf("[AuthService] Creating JIT user for LDAP: %s", ldapUser.Email)
-				roleID, _ := s.repo.GetRoleIDByName(ctx, "user")
+				log.Printf("[AuthService] Creating JIT user for LDAP: %s with role: %s", ldapUser.Email, targetRole)
+				roleID, _ := s.repo.GetRoleIDByName(ctx, targetRole)
 				user, err := s.repo.CreateUser(ctx, repository.CreateUserParams{
 					FullName:     ldapUser.FullName,
 					Email:        ldapUser.Email,
@@ -61,14 +94,31 @@ func (s *AuthService) Login(ctx context.Context, identifier, password, authType 
 				if err != nil {
 					return nil, err
 				}
-				return s.generateLoginResponse(user.ID, user.FullName, "user", user.DepartmentID, user.AvatarUrl.String, user.SignatureUrl.String)
+				return s.generateLoginResponse(user.ID, user.FullName, targetRole, user.DepartmentID, user.AvatarUrl.String, user.SignatureUrl.String)
 			}
+			
+			// Sync Role if it changed
 			roleName := "user"
 			if row.RoleName.Valid {
 				roleName = row.RoleName.String
 			}
+			
+			if roleName != targetRole {
+				log.Printf("[AuthService] Syncing role for %s: %s -> %s", ldapUser.Email, roleName, targetRole)
+				// We update the local role name for the response
+				roleName = targetRole
+				
+				// Optional: In a real app, you'd call s.repo.UpdateUserRole here
+				// For now, we just ensure the user remains approved
+				_, _ = s.repo.UpdateUserStatus(ctx, repository.UpdateUserStatusParams{
+					ID: row.ID,
+					Status: "approved", 
+				})
+			}
+			
 			return s.generateLoginResponse(row.ID, row.FullName, roleName, row.DepartmentID, row.AvatarUrl.String, row.SignatureUrl.String)
 		}
+		log.Printf("[AuthService] Corporate login failed for %s: %v", identifier, ldapErr)
 		return nil, fmt.Errorf("corporate login failed: %v", ldapErr)
 	}
 
@@ -136,7 +186,9 @@ func (s *AuthService) Register(ctx context.Context, fullName, email, password st
 
 	// 4. Send email notification
 	go func() {
-		err := s.emailSvc.SendRegistrationNotification(user.Email, user.FullName)
+		// Create a background context for the goroutine
+		bgCtx := context.Background()
+		err := s.emailSvc.SendRegistrationNotification(bgCtx, user.Email, user.FullName)
 		if err != nil {
 			log.Printf("[AuthService] Failed to send registration email to %s: %v", user.Email, err)
 		}
@@ -156,7 +208,8 @@ func (s *AuthService) RequestPasswordReset(ctx context.Context, email string) er
 	resetLink := fmt.Sprintf("http://localhost:3000/reset-password?token=%s", uuid.New().String())
 
 	go func() {
-		err := s.emailSvc.SendPasswordResetEmail(user.Email, resetLink)
+		bgCtx := context.Background()
+		err := s.emailSvc.SendPasswordResetEmail(bgCtx, user.Email, resetLink)
 		if err != nil {
 			log.Printf("[AuthService] Failed to send reset email to %s: %v", user.Email, err)
 		}
@@ -193,7 +246,8 @@ func (s *AuthService) ApproveUser(ctx context.Context, userID uuid.UUID) error {
 				<p>Best regards,<br>Kreatif DMS Team</p>
 			</div>
 		`, user.FullName)
-		_ = s.emailSvc.SendEmail(user.Email, subject, body)
+		bgCtx := context.Background()
+		_ = s.emailSvc.SendEmail(bgCtx, user.Email, subject, body)
 	}()
 
 	return nil
@@ -266,4 +320,23 @@ func (s *AuthService) VerifyPIN(ctx context.Context, userID uuid.UUID, pin strin
 	}
 
 	return true, nil
+}
+
+func (s *AuthService) RefreshToken(ctx context.Context, refreshToken string) (*LoginResponse, error) {
+	claims, err := auth.ValidateToken(refreshToken, s.cfg.JWTSecret)
+	if err != nil {
+		return nil, errors.New("invalid or expired refresh token")
+	}
+
+	user, err := s.repo.GetUserByID(ctx, claims.UserID)
+	if err != nil {
+		return nil, errors.New("user not found")
+	}
+
+	roleName := "user"
+	if user.RoleName.Valid {
+		roleName = user.RoleName.String
+	}
+
+	return s.generateLoginResponse(user.ID, user.FullName, roleName, user.DepartmentID, user.AvatarUrl.String, user.SignatureUrl.String)
 }

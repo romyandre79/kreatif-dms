@@ -2,21 +2,52 @@
   "login": {
     "title": "Selamat Datang Kembali",
     "subtitle": "Masuk untuk mengakses dashboard dokumen aman Anda",
+    "sso_tab": "Login SSO / LDAP",
+    "local_tab": "Login Lokal",
+    "username_label": "Username",
+    "username_placeholder": "Masukkan username Anda",
+    "email_label": "Alamat Email",
+    "email_placeholder": "nama{'@'}perusahaan.com",
+    "password_label": "Kata Sandi",
+    "password_placeholder": "••••••••",
+    "forgot_password": "Lupa kata sandi?",
+    "sign_in_button": "Masuk Sekarang",
+    "no_account": "Belum punya akun?",
+    "register_now": "Daftar sekarang",
+    "trouble_signing_in": "Kesulitan masuk?",
+    "contact_support": "Hubungi Dukungan",
     "left_panel": {
       "title": "Kecerdasan Dokumen Generasi Berikutnya",
-      "desc": "Platform manajemen arsip perusahaan yang aman, terukur, dan didukung AI."
+      "edition": "Enterprise Edition",
+      "subtitle": "Platform manajemen arsip perusahaan yang aman, terukur, dan didukung AI."
     },
-    "form": {
-      "email": "Alamat Email",
-      "password": "Kata Sandi",
-      "remember_me": "Ingat saya",
-      "forgot_password": "Lupa kata sandi?",
-      "sign_in": "Masuk",
-      "signing_in": "Memproses...",
-      "no_account": "Belum punya akun?",
-      "contact_admin": "Hubungi Admin",
-      "error_invalid": "Email atau kata sandi salah.",
-      "error_server": "Kesalahan server. Silakan coba lagi nanti."
+    "errors": {
+      "invalid_credentials": "Username/email atau kata sandi salah."
     }
+  },
+  "register": {
+    "title": "Buat Akun Baru",
+    "subtitle": "Mulai kelola dokumen Anda dengan cerdas",
+    "name_label": "Nama Lengkap",
+    "name_placeholder": "Masukkan nama lengkap Anda",
+    "confirm_password_label": "Konfirmasi Kata Sandi",
+    "confirm_password_placeholder": "••••••••",
+    "submit_button": "Daftar Sekarang",
+    "already_have_account": "Sudah punya akun?",
+    "login_now": "Masuk sekarang",
+    "success_message": "Akun berhasil dibuat! Silakan masuk.",
+    "errors": {
+      "password_mismatch": "Kata sandi tidak cocok.",
+      "failed": "Gagal membuat akun. Silakan coba lagi."
+    }
+  },
+  "reset": {
+    "title": "Atur Ulang Kata Sandi",
+    "info": "Masukkan email Anda dan kami akan mengirimkan tautan untuk mengatur ulang kata sandi Anda.",
+    "email_label": "Alamat Email",
+    "email_placeholder": "nama{'@'}perusahaan.com",
+    "cancel_button": "Batal",
+    "submit_button": "Kirim Tautan",
+    "success_message": "Tautan pengaturan ulang telah dikirim ke email Anda."
   }
 }

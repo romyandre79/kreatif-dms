@@ -12,12 +12,16 @@ import (
 )
 
 type Querier interface {
+	CreateActivityLog(ctx context.Context, arg CreateActivityLogParams) (ActivityLog, error)
 	CreateBatch(ctx context.Context, arg CreateBatchParams) (ProcessingBatch, error)
 	CreateBox(ctx context.Context, arg CreateBoxParams) (Box, error)
 	CreateBranch(ctx context.Context, arg CreateBranchParams) (Branch, error)
 	CreateCompany(ctx context.Context, arg CreateCompanyParams) (Company, error)
 	CreateDepartment(ctx context.Context, arg CreateDepartmentParams) (Department, error)
 	CreateDocument(ctx context.Context, arg CreateDocumentParams) (Document, error)
+	CreateDocumentType(ctx context.Context, arg CreateDocumentTypeParams) (DocumentType, error)
+	CreateIntegrationNode(ctx context.Context, arg CreateIntegrationNodeParams) (IntegrationNode, error)
+	CreateNotification(ctx context.Context, arg CreateNotificationParams) (Notification, error)
 	CreateOrdner(ctx context.Context, arg CreateOrdnerParams) (Ordner, error)
 	CreateRack(ctx context.Context, arg CreateRackParams) (Rack, error)
 	CreateRetentionPolicy(ctx context.Context, arg CreateRetentionPolicyParams) (RetentionPolicy, error)
@@ -28,17 +32,23 @@ type Querier interface {
 	DeleteBranch(ctx context.Context, id uuid.UUID) error
 	DeleteCompany(ctx context.Context, id uuid.UUID) error
 	DeleteDepartment(ctx context.Context, id uuid.UUID) error
+	DeleteDocumentType(ctx context.Context, id uuid.UUID) error
+	DeleteIntegrationNode(ctx context.Context, id uuid.UUID) error
 	DeleteOrdner(ctx context.Context, id uuid.UUID) error
 	DeleteRack(ctx context.Context, id uuid.UUID) error
 	DeleteRetentionPolicy(ctx context.Context, id uuid.UUID) error
 	DeleteRole(ctx context.Context, id int32) error
+	GetActivityLogsByEntity(ctx context.Context, arg GetActivityLogsByEntityParams) ([]GetActivityLogsByEntityRow, error)
 	GetBatch(ctx context.Context, id uuid.UUID) (ProcessingBatch, error)
 	GetBox(ctx context.Context, id uuid.UUID) (Box, error)
 	GetBranch(ctx context.Context, id uuid.UUID) (Branch, error)
 	GetCompany(ctx context.Context, id uuid.UUID) (Company, error)
 	GetDepartment(ctx context.Context, id uuid.UUID) (Department, error)
 	GetDocument(ctx context.Context, id uuid.UUID) (Document, error)
+	GetDocumentType(ctx context.Context, id uuid.UUID) (DocumentType, error)
 	GetDocumentsByBatch(ctx context.Context, batchID pgtype.UUID) ([]Document, error)
+	GetIntegrationNode(ctx context.Context, id uuid.UUID) (IntegrationNode, error)
+	GetIntegrationNodeByType(ctx context.Context, serviceType string) (IntegrationNode, error)
 	GetOrdner(ctx context.Context, id uuid.UUID) (Ordner, error)
 	GetRack(ctx context.Context, id uuid.UUID) (Rack, error)
 	GetRfidTag(ctx context.Context, tagID string) (RfidTag, error)
@@ -47,10 +57,17 @@ type Querier interface {
 	GetSystemSetting(ctx context.Context, arg GetSystemSettingParams) (SystemSetting, error)
 	// System Settings
 	GetSystemSettingsByCategory(ctx context.Context, category string) ([]SystemSetting, error)
+	GetUnreadCount(ctx context.Context, userID uuid.UUID) (int64, error)
 	GetUserByEmail(ctx context.Context, email string) (GetUserByEmailRow, error)
-	GetUserByID(ctx context.Context, id uuid.UUID) (User, error)
+	GetUserByID(ctx context.Context, id uuid.UUID) (GetUserByIDRow, error)
 	// Topology
 	GetWarehouseTopology(ctx context.Context) ([]GetWarehouseTopologyRow, error)
+	ListActivityLogs(ctx context.Context, arg ListActivityLogsParams) ([]ListActivityLogsRow, error)
+	ListAllBoxesGlobal(ctx context.Context) ([]ListAllBoxesGlobalRow, error)
+	ListAllBranchesGlobal(ctx context.Context) ([]ListAllBranchesGlobalRow, error)
+	ListAllDepartments(ctx context.Context) ([]ListAllDepartmentsRow, error)
+	ListAllOrdnersGlobal(ctx context.Context) ([]ListAllOrdnersGlobalRow, error)
+	ListAllRacksGlobal(ctx context.Context) ([]ListAllRacksGlobalRow, error)
 	// Boxes
 	ListBoxes(ctx context.Context, rackID uuid.UUID) ([]Box, error)
 	// Branches
@@ -59,7 +76,11 @@ type Querier interface {
 	ListCompanies(ctx context.Context) ([]Company, error)
 	// Departments
 	ListDepartments(ctx context.Context, branchID uuid.UUID) ([]Department, error)
+	// Document Types
+	ListDocumentTypes(ctx context.Context) ([]DocumentType, error)
 	ListDocumentsByDepartment(ctx context.Context, departmentID uuid.UUID) ([]Document, error)
+	ListIntegrationNodes(ctx context.Context) ([]IntegrationNode, error)
+	ListNotifications(ctx context.Context, arg ListNotificationsParams) ([]Notification, error)
 	// Ordners
 	ListOrdners(ctx context.Context, boxID uuid.UUID) ([]Ordner, error)
 	ListPendingUsers(ctx context.Context) ([]User, error)
@@ -72,6 +93,8 @@ type Querier interface {
 	// Roles
 	ListRoles(ctx context.Context) ([]Role, error)
 	ListUsers(ctx context.Context) ([]User, error)
+	MarkAllAsRead(ctx context.Context, userID uuid.UUID) error
+	MarkAsRead(ctx context.Context, arg MarkAsReadParams) error
 	UpdateBatchProgress(ctx context.Context, id uuid.UUID) error
 	UpdateBox(ctx context.Context, arg UpdateBoxParams) (Box, error)
 	UpdateBranch(ctx context.Context, arg UpdateBranchParams) (Branch, error)
@@ -79,6 +102,9 @@ type Querier interface {
 	UpdateDepartment(ctx context.Context, arg UpdateDepartmentParams) (Department, error)
 	UpdateDocumentMetadata(ctx context.Context, arg UpdateDocumentMetadataParams) error
 	UpdateDocumentOCR(ctx context.Context, arg UpdateDocumentOCRParams) error
+	UpdateDocumentType(ctx context.Context, arg UpdateDocumentTypeParams) (DocumentType, error)
+	UpdateIntegrationNodeConfig(ctx context.Context, arg UpdateIntegrationNodeConfigParams) (IntegrationNode, error)
+	UpdateIntegrationNodeStatus(ctx context.Context, arg UpdateIntegrationNodeStatusParams) (IntegrationNode, error)
 	UpdateOrdner(ctx context.Context, arg UpdateOrdnerParams) (Ordner, error)
 	UpdateRack(ctx context.Context, arg UpdateRackParams) (Rack, error)
 	UpdateRetentionPolicy(ctx context.Context, arg UpdateRetentionPolicyParams) (RetentionPolicy, error)

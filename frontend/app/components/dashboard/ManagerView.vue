@@ -1,5 +1,9 @@
 <template>
   <div class="space-y-8 pb-10">
+    <PageHeader 
+      :title="$t('dashboard.welcome', { name: user?.full_name?.split(' ')[0] || 'Manager' })"
+      :subtitle="$t('dashboard.manager.alert_desc', { count: 12 })"
+    />
     <!-- Urgent Alert Banner -->
     <div v-motion-fade class="bg-orange-50 dark:bg-orange-900/20 border-l-4 border-orange-500 p-6 rounded-r-2xl flex items-center justify-between shadow-sm">
       <div class="flex items-center gap-4">
@@ -185,6 +189,11 @@ import {
   LucideXCircle,
   LucideMessageSquare
 } from 'lucide-vue-next'
+import { useAuthStore } from '~/stores/auth'
+import PageHeader from '~/components/PageHeader.vue'
+
+const auth = useAuthStore()
+const user = computed(() => auth.user)
 
 const stats = [
   { label: t('dashboard.manager.stats.priority_pending'), value: '12', trend: '+15%', trendUp: true, progress: 65, barColor: 'bg-orange-500' },

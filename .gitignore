@@ -49,3 +49,6 @@ logs/
 
 # Docker
 .docker/
+
+# Backend
+/backend/scratch

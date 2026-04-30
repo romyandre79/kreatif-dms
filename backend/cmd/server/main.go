@@ -1,9 +1,11 @@
 package main
 
 import (
+	"context"
 	"log"
 	"os"
 	"runtime"
+	"strconv"
 	"time"
 
 	"github.com/elastic/go-elasticsearch/v8"
@@ -57,7 +59,13 @@ func main() {
 			if len(os.Args) > 2 {
 				cmd = os.Args[2]
 			}
-			database.RunMigrations(cfg.DatabaseURL, "db/migrations", cmd)
+			
+			if (cmd == "force" || cmd == "goto") && len(os.Args) > 3 {
+				version, _ := strconv.Atoi(os.Args[3])
+				database.RunMigrationsWithVersion(cfg.DatabaseURL, "db/migrations", cmd, version)
+			} else {
+				database.RunMigrations(cfg.DatabaseURL, "db/migrations", cmd)
+			}
 			return
 		}
 	}
@@ -81,7 +89,7 @@ func main() {
 	}
 
 	minioClient, err := config.InitMinIO(cfg.MinIOEndpoint, cfg.MinIOAccessKey, cfg.MinIOSecretKey, cfg.MinIOUseSSL, cfg.MinIOBucket)
-	if err != nil {
+	if err != nil && cfg.MinIOEndpoint != "" {
 		log.Printf("WARNING: Application starting without MinIO: %v\n", err)
 	}
 
@@ -96,18 +104,25 @@ func main() {
 	repo := repository.New(dbPool)
 
 	// Services
-	storageSvc := infra.NewStorageService(minioClient, cfg.MinIOBucket)
-	ldapSvc := infra.NewLDAPService(cfg)
-	emailSvc := infra.NewEmailService(cfg)
+	storageSvc := infra.NewStorageService(cfg, repo, minioClient, cfg.MinIOBucket)
+	ldapSvc := infra.NewLDAPService(cfg, repo)
+	emailSvc := infra.NewEmailService(cfg, repo)
+	waSvc := infra.NewWhatsAppService(repo)
 	authSvc := service.NewAuthService(repo, cfg, ldapSvc, emailSvc)
 	docSvc := service.NewDocumentService(repo, storageSvc, asynqClient)
 	searchSvc := infra.NewSearchService(es)
 	_ = service.NewCacheService(rdb) // Initialized for performance later
 	masterSvc := service.NewMasterService(repo)
 	hardwareSvc := service.NewHardwareService(repo)
+	notifSvc := service.NewNotificationService(repo, waSvc)
+	integrationMonitorSvc := service.NewIntegrationMonitorService(repo)
+	
+	// Start Background Workers
+	integrationMonitorSvc.StartMonitoring(context.Background())
 
 	// Handlers
 	authHandler := handler.NewAuthHandler(authSvc)
+	notifHandler := handler.NewNotificationHandler(notifSvc)
 	userHandler := handler.NewUserHandler(repo)
 	docHandler := handler.NewDocumentHandler(docSvc, searchSvc)
 	batchHandler := handler.NewBatchHandler(docSvc)
@@ -121,13 +136,16 @@ func main() {
 		WriteTimeout: 20 * time.Second,
 		IdleTimeout:  60 * time.Second,
 		BodyLimit:    100 * 1024 * 1024, // 100MB Limit
+		StrictRouting: false,
 	})
 
 	// Middlewares
 	app.Use(logger.New())
 	app.Use(cors.New(cors.Config{
-		AllowOrigins: []string{"*"}, // Adjust this to your frontend URL in production
-		AllowHeaders: []string{"Origin", "Content-Type", "Accept", "Authorization"},
+		AllowOrigins:     []string{"http://localhost:3000", "http://127.0.0.1:3000"}, 
+		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization", "X-Requested-With"},
+		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"},
+		AllowCredentials: true,
 	}))
 	app.Use(helmet.New())
 	app.Use(compress.New(compress.Config{
@@ -146,6 +164,7 @@ func main() {
 	authGroup := api.Group("/auth")
 	authGroup.Post("/login", authHandler.Login)
 	authGroup.Post("/register", authHandler.Register)
+	authGroup.Post("/refresh", authHandler.Refresh)
 	authGroup.Post("/forgot-password", authHandler.ForgotPassword)
 	
 	// Protected Auth Routes
@@ -156,9 +175,9 @@ func main() {
 	// User Routes
 	userGroup := api.Group("/users")
 	userGroup.Use(middleware.AuthMiddleware(cfg.JWTSecret))
-	userGroup.Get("/", middleware.RoleMiddleware("admin"), userHandler.List)
-	userGroup.Get("/pending", middleware.RoleMiddleware("admin"), authHandler.ListPendingUsers)
-	userGroup.Post("/:id/approve", middleware.RoleMiddleware("admin"), authHandler.ApproveUser)
+	userGroup.Get("/", middleware.RoleMiddleware("admin", "superadmin"), userHandler.List)
+	userGroup.Get("/pending", middleware.RoleMiddleware("admin", "superadmin"), authHandler.ListPendingUsers)
+	userGroup.Post("/:id/approve", middleware.RoleMiddleware("admin", "superadmin"), authHandler.ApproveUser)
 
 	// Document Routes
 	docGroup := api.Group("/documents")
@@ -176,13 +195,66 @@ func main() {
 	// Master Data Routes
 	masterGroup := api.Group("/master")
 	masterGroup.Use(middleware.AuthMiddleware(cfg.JWTSecret))
+	masterGroup.Use(middleware.RoleMiddleware("admin", "superadmin"))
 	masterGroup.Get("/companies", masterHandler.ListCompanies)
+	masterGroup.Post("/companies", masterHandler.CreateCompany)
+	masterGroup.Put("/companies/:id", masterHandler.UpdateCompany)
+	masterGroup.Delete("/companies/:id", masterHandler.DeleteCompany)
+	masterGroup.Get("/companies/export", masterHandler.ExportCompanies)
+	masterGroup.Post("/companies/import", masterHandler.ImportCompanies)
+	
 	masterGroup.Get("/branches", masterHandler.ListBranches)
+	masterGroup.Post("/branches", masterHandler.CreateBranch)
+	masterGroup.Put("/branches/:id", masterHandler.UpdateBranch)
+	masterGroup.Delete("/branches/:id", masterHandler.DeleteBranch)
+	masterGroup.Get("/branches-all", masterHandler.ListAllBranchesGlobal)
+	masterGroup.Get("/branches/export", masterHandler.ExportBranches)
+	masterGroup.Post("/branches/import", masterHandler.ImportBranches)
+	
+	masterGroup.Get("/departments", masterHandler.ListAllDepartments)
+	masterGroup.Post("/departments", masterHandler.CreateDepartment)
+	masterGroup.Put("/departments/:id", masterHandler.UpdateDepartment)
+	masterGroup.Delete("/departments/:id", masterHandler.DeleteDepartment)
+	masterGroup.Get("/departments/export", masterHandler.ExportDepartments)
+	masterGroup.Post("/departments/import", masterHandler.ImportDepartments)
+
+	masterGroup.Get("/racks", masterHandler.ListAllRacks)
+	masterGroup.Post("/racks", masterHandler.CreateRack)
+	masterGroup.Put("/racks/:id", masterHandler.UpdateRack)
+	masterGroup.Delete("/racks/:id", masterHandler.DeleteRack)
+	masterGroup.Get("/racks/export", masterHandler.ExportRacks)
+	masterGroup.Post("/racks/import", masterHandler.ImportRacks)
+
+	masterGroup.Get("/boxes", masterHandler.ListAllBoxes)
+	masterGroup.Post("/boxes", masterHandler.CreateBox)
+	masterGroup.Put("/boxes/:id", masterHandler.UpdateBox)
+	masterGroup.Delete("/boxes/:id", masterHandler.DeleteBox)
+	masterGroup.Get("/boxes/export", masterHandler.ExportBoxes)
+	masterGroup.Post("/boxes/import", masterHandler.ImportBoxes)
+
+	masterGroup.Get("/ordners", masterHandler.ListAllOrdners)
+	masterGroup.Post("/ordners", masterHandler.CreateOrdner)
+	masterGroup.Put("/ordners/:id", masterHandler.UpdateOrdner)
+	masterGroup.Delete("/ordners/:id", masterHandler.DeleteOrdner)
+	masterGroup.Get("/ordners/export", masterHandler.ExportOrdners)
+	masterGroup.Post("/ordners/import", masterHandler.ImportOrdners)
+
+	masterGroup.Get("/document-types", masterHandler.ListDocumentTypes)
+	masterGroup.Post("/document-types", masterHandler.CreateDocumentType)
+	masterGroup.Put("/document-types/:id", masterHandler.UpdateDocumentType)
+	masterGroup.Delete("/document-types/:id", masterHandler.DeleteDocumentType)
+	masterGroup.Get("/document-types/export", masterHandler.ExportDocumentTypes)
+	masterGroup.Post("/document-types/import", masterHandler.ImportDocumentTypes)
+
 	masterGroup.Get("/topology", masterHandler.GetTopology)
 	masterGroup.Get("/roles", masterHandler.ListRoles)
 	masterGroup.Get("/retention", masterHandler.ListRetentionPolicies)
 	masterGroup.Get("/settings/:category", masterHandler.GetSettings)
 	masterGroup.Post("/settings/:category", masterHandler.UpdateSetting)
+	masterGroup.Get("/integration/status", middleware.RoleMiddleware("admin", "superadmin"), masterHandler.GetIntegrationStatus)
+	masterGroup.Get("/integration/report", middleware.RoleMiddleware("admin", "superadmin"), masterHandler.DownloadIntegrationReport)
+	masterGroup.Put("/integration/nodes/:id", middleware.RoleMiddleware("admin", "superadmin"), masterHandler.UpdateIntegrationNode)
+	masterGroup.Get("/audit-logs", middleware.RoleMiddleware("superadmin"), masterHandler.ListActivityLogs)
 
 	// Hardware Master Routes
 	hardwareGroup := api.Group("/hardware")
@@ -190,6 +262,13 @@ func main() {
 	hardwareGroup.Post("/rfid/assign", hardwareHandler.AssignRFID)
 	hardwareGroup.Get("/rfid", hardwareHandler.ListRFID)
 	hardwareGroup.Get("/labels/generate", hardwareHandler.GenerateLabel)
+
+	// Notification Routes
+	notifGroup := api.Group("/notifications")
+	notifGroup.Use(middleware.AuthMiddleware(cfg.JWTSecret))
+	notifGroup.Get("/", notifHandler.GetNotifications)
+	notifGroup.Post("/:id/read", notifHandler.MarkAsRead)
+	notifGroup.Post("/read-all", notifHandler.MarkAllAsRead)
 
 	// Health check
 	app.Get("/health", func(c fiber.Ctx) error {
@@ -331,7 +410,15 @@ func main() {
 		enablePrefork = false
 	}
 
-	log.Fatal(app.Listen(":"+cfg.AppPort, fiber.ListenConfig{
+	listenConfig := fiber.ListenConfig{
 		EnablePrefork: enablePrefork,
-	}))
+	}
+
+	if cfg.HTTPSEnabled {
+		log.Println("HTTPS is enabled")
+		listenConfig.CertFile = cfg.HTTPSCertFile
+		listenConfig.CertKeyFile = cfg.HTTPSKeyFile
+	}
+
+	log.Fatal(app.Listen(":"+cfg.AppPort, listenConfig))
 }

@@ -1,239 +1,371 @@
 {
-  "metadata": {
-    "title": "Metadata Management",
-    "subtitle": "Configure document fields and schemas",
-    "btn_add_field": "Add Field",
-    "table": {
-      "field_name": "FIELD NAME",
-      "data_type": "DATA TYPE",
-      "required": "REQUIRED",
-      "searchable": "SEARCHABLE",
-      "actions": "ACTIONS"
-    }
-  },
-  "search": {
-    "title": "Advanced Document Search",
-    "placeholder": "Search by title, manifest, or document content...",
-    "filters": {
-      "title": "Filters",
-      "date_range": "Date Range",
-      "doc_type": "Document Type",
-      "department": "Department",
-      "status": "Status",
-      "clear_all": "Clear All"
-    },
-    "results": {
-      "found": "Found {count} documents",
-      "no_results": "No documents found",
+  "admin": {
+    "metadata": {
+      "title": "Metadata Management",
+      "subtitle": "Configure document fields and schemas",
+      "btn_add_field": "Add Field",
       "table": {
-        "id": "ID",
-        "title": "TITLE",
-        "date": "DATE",
-        "dept": "DEPT",
+        "field_name": "FIELD NAME",
+        "data_type": "DATA TYPE",
+        "required": "REQUIRED",
+        "searchable": "SEARCHABLE",
+        "created_at": "CREATED AT",
+        "actions": "ACTIONS"
+      }
+    },
+    "search": {
+      "title": "Advanced Document Search",
+      "placeholder": "Search by title, manifest, or document content...",
+      "filters": {
+        "title": "Filters",
+        "date_range": "Date Range",
+        "doc_type": "Document Type",
+        "department": "Department",
+        "status": "Status",
+        "clear_all": "Clear All"
+      },
+      "results": {
+        "found": "Found {count} documents",
+        "no_results": "No documents found",
+        "table": {
+          "id": "ID",
+          "title": "TITLE",
+          "date": "DATE",
+          "dept": "DEPT",
+          "status": "STATUS"
+        }
+      }
+    },
+    "settings": {
+      "title": "System Settings",
+      "general": {
+        "title": "General",
+        "app_name": "App Name",
+        "timezone": "Timezone",
+        "language": "Default Language"
+      },
+      "security": {
+        "title": "Security",
+        "password_policy": "Password Policy",
+        "two_factor": "Two-Factor Auth",
+        "session_timeout": "Session Timeout"
+      },
+      "notifications": {
+        "title": "Notifications",
+        "email_alerts": "Email Alerts",
+        "system_alerts": "System Alerts",
+        "push_notifications": "Push Notifications"
+      }
+    },
+    "retention": {
+      "title": "Retention Policy",
+      "table": {
+        "policy_name": "Policy Name",
+        "duration": "Duration (Years)",
+        "action": "Final Action",
+        "status": "Status",
+        "action_destroy": "Destroy",
+        "action_archive": "Permanent Archive"
+      }
+    },
+    "audit": {
+      "title": "System Audit Logs",
+      "table": {
+        "timestamp": "TIMESTAMP",
+        "user": "USER",
+        "action": "ACTION",
+        "module": "MODULE",
+        "ip_address": "IP ADDRESS"
+      }
+    },
+    "metadata_management": {
+      "title": "Metadata Management",
+      "subtitle": "Configure document indexing schemas",
+      "field_groups": {
+        "general": "General Information",
+        "legal": "Legal Information",
+        "finance": "Finance Information",
+        "hr": "Human Resources"
+      },
+      "actions": {
+        "new_field": "New Field",
+        "import_schema": "Import Schema",
+        "export_schema": "Export Schema"
+      },
+      "table": {
+        "field_label": "FIELD LABEL",
+        "key": "KEY",
+        "type": "TYPE",
+        "validation": "VALIDATION",
+        "required": "REQUIRED"
+      }
+    },
+    "reports_analytics": {
+      "title": "Reports & Analytics",
+      "subtitle": "Operational insights and system performance",
+      "charts": {
+        "doc_growth": "Document Growth",
+        "scan_throughput": "Scanning Throughput",
+        "user_activity": "User Activity",
+        "storage_forecast": "Storage Forecast"
+      },
+      "metrics": {
+        "avg_processing_time": "Avg Processing Time",
+        "ocr_accuracy": "OCR Accuracy",
+        "error_rate": "Error Rate",
+        "system_uptime": "System Uptime"
+      }
+    },
+    "loan_management": {
+      "title": "Document Loan Management",
+      "subtitle": "Track physical requests and returns",
+      "tabs": {
+        "pending": "Pending Approval",
+        "active": "Active Loans",
+        "overdue": "Overdue",
+        "history": "Full History"
+      },
+      "table": {
+        "request_id": "REQUEST ID",
+        "borrower": "BORROWER",
+        "document": "DOCUMENT",
+        "due_date": "DUE DATE",
         "status": "STATUS"
       }
-    }
-  },
-  "settings": {
-    "title": "System Settings",
-    "general": {
-      "title": "General",
-      "app_name": "App Name",
-      "timezone": "Timezone",
-      "language": "Default Language"
     },
-    "security": {
-      "title": "Security",
-      "password_policy": "Password Policy",
-      "two_factor": "Two-Factor Auth",
-      "session_timeout": "Session Timeout"
+    "system_administration": {
+      "title": "System Administration",
+      "subtitle": "Advanced configuration and system management",
+      "sections": {
+        "user_roles": "User Roles & Permissions",
+        "api_keys": "API Key Management",
+        "storage_config": "Storage Configuration",
+        "backup_restore": "Backup & Restore"
+      }
     },
-    "notifications": {
-      "title": "Notifications",
-      "email_alerts": "Email Alerts",
-      "system_alerts": "System Alerts",
-      "push_notifications": "Push Notifications"
-    }
-  },
-  "retention": {
-    "title": "Retention Policy",
-    "table": {
-      "policy_name": "Policy Name",
-      "duration": "Duration (Years)",
-      "action": "Final Action",
-      "status": "Status",
-      "action_destroy": "Destroy",
-      "action_archive": "Permanent Archive"
-    }
-  },
-  "audit": {
-    "title": "System Audit Logs",
-    "table": {
-      "timestamp": "TIMESTAMP",
-      "user": "USER",
-      "action": "ACTION",
-      "module": "MODULE",
-      "ip_address": "IP ADDRESS"
-    }
-  },
-  "metadata_management": {
-    "title": "Metadata Management",
-    "subtitle": "Configure document indexing schemas",
-    "field_groups": {
-      "general": "General Information",
-      "legal": "Legal Information",
-      "finance": "Finance Information",
-      "hr": "Human Resources"
+    "retention_disposition": {
+      "title": "Retention & Disposition",
+      "subtitle": "Manage document lifecycles and disposal",
+      "actions": {
+        "disposal_report": "Disposal Report",
+        "extend_retention": "Extend Retention",
+        "approve_destruction": "Approve Destruction"
+      },
+      "table": {
+        "policy_id": "POLICY ID",
+        "doc_count": "DOC COUNT",
+        "expiration": "EXPIRATION",
+        "action": "ACTION"
+      }
     },
-    "actions": {
-      "new_field": "New Field",
-      "import_schema": "Import Schema",
-      "export_schema": "Export Schema"
+    "archive_search": {
+      "title": "Archive Search",
+      "subtitle": "Search across millions of records with smart filters",
+      "advanced_filters": {
+        "date_range": "Date Range",
+        "location": "Physical Location",
+        "classification": "Classification",
+        "owner": "Document Owner"
+      }
     },
-    "table": {
-      "field_label": "FIELD LABEL",
-      "key": "KEY",
-      "type": "TYPE",
-      "validation": "VALIDATION",
-      "required": "REQUIRED"
-    }
-  },
-  "reports_analytics": {
-    "title": "Reports & Analytics",
-    "subtitle": "Operational insights and system performance",
-    "charts": {
-      "doc_growth": "Document Growth",
-      "scan_throughput": "Scanning Throughput",
-      "user_activity": "User Activity",
-      "storage_forecast": "Storage Forecast"
+    "document_staging": {
+      "title": "Staging Area",
+      "subtitle": "Validate documents before main archive entry",
+      "actions": {
+        "approve_selected": "Approve Selected",
+        "reject_selected": "Reject Selected",
+        "edit_metadata": "Edit Metadata"
+      },
+      "table": {
+        "temp_id": "TEMP ID",
+        "source": "SOURCE",
+        "scan_quality": "SCAN QUALITY",
+        "status": "STATUS"
+      }
     },
-    "metrics": {
-      "avg_processing_time": "Avg Processing Time",
-      "ocr_accuracy": "OCR Accuracy",
-      "error_rate": "Error Rate",
-      "system_uptime": "System Uptime"
-    }
-  },
-  "loan_management": {
-    "title": "Document Loan Management",
-    "subtitle": "Track physical requests and returns",
-    "tabs": {
-      "pending": "Pending Approval",
-      "active": "Active Loans",
-      "overdue": "Overdue",
-      "history": "Full History"
+    "legacy_migration": {
+      "title": "Legacy Data Migration",
+      "subtitle": "Import data from old systems or bulk files",
+      "steps": {
+        "upload": "Upload Files",
+        "mapping": "Column Mapping",
+        "validation": "Data Validation",
+        "import": "Process Import"
+      }
     },
-    "table": {
-      "request_id": "REQUEST ID",
-      "borrower": "BORROWER",
-      "document": "DOCUMENT",
-      "due_date": "DUE DATE",
-      "status": "STATUS"
-    }
-  },
-  "system_administration": {
-    "title": "System Administration",
-    "subtitle": "Advanced configuration and system management",
-    "sections": {
-      "user_roles": "User Roles & Permissions",
-      "api_keys": "API Key Management",
-      "storage_config": "Storage Configuration",
-      "backup_restore": "Backup & Restore"
-    }
-  },
-  "retention_disposition": {
-    "title": "Retention & Disposition",
-    "subtitle": "Manage document lifecycles and disposal",
-    "actions": {
-      "disposal_report": "Disposal Report",
-      "extend_retention": "Extend Retention",
-      "approve_destruction": "Approve Destruction"
+    "user_management": {
+      "title": "User Management",
+      "subtitle": "Manage user access and privileges",
+      "actions": {
+        "new_user": "New User",
+        "export_users": "Export List",
+        "bulk_invite": "Bulk Invite"
+      },
+      "table": {
+        "full_name": "FULL NAME",
+        "email": "EMAIL",
+        "role": "ROLE",
+        "last_login": "LAST LOGIN",
+        "status": "STATUS"
+      }
     },
-    "table": {
-      "policy_id": "POLICY ID",
-      "doc_count": "DOC COUNT",
-      "expiration": "EXPIRATION",
-      "action": "ACTION"
-    }
-  },
-  "archive_search": {
-    "title": "Archive Search",
-    "subtitle": "Search across millions of records with smart filters",
-    "advanced_filters": {
-      "date_range": "Date Range",
-      "location": "Physical Location",
-      "classification": "Classification",
-      "owner": "Document Owner"
-    }
-  },
-  "document_staging": {
-    "title": "Staging Area",
-    "subtitle": "Validate documents before main archive entry",
-    "actions": {
-      "approve_selected": "Approve Selected",
-      "reject_selected": "Reject Selected",
-      "edit_metadata": "Edit Metadata"
+    "role_permissions": {
+      "title": "Roles & Permissions",
+      "subtitle": "Configure Role-Based Access Control (RBAC)",
+      "table": {
+        "role_name": "ROLE NAME",
+        "description": "DESCRIPTION",
+        "user_count": "USER COUNT",
+        "actions": "ACTIONS"
+      }
     },
-    "table": {
-      "temp_id": "TEMP ID",
-      "source": "SOURCE",
-      "scan_quality": "SCAN QUALITY",
-      "status": "STATUS"
-    }
-  },
-  "legacy_migration": {
-    "title": "Legacy Data Migration",
-    "subtitle": "Import data from old systems or bulk files",
-    "steps": {
-      "upload": "Upload Files",
-      "mapping": "Column Mapping",
-      "validation": "Data Validation",
-      "import": "Process Import"
-    }
-  },
-  "user_management": {
-    "title": "User Management",
-    "subtitle": "Manage user access and privileges",
-    "actions": {
-      "new_user": "New User",
-      "export_users": "Export List",
-      "bulk_invite": "Bulk Invite"
+    "system_logs": {
+      "title": "System Audit Logs",
+      "subtitle": "Track every action within the platform",
+      "filters": {
+        "all_modules": "All Modules",
+        "all_users": "All Users",
+        "severity": "Severity"
+      }
     },
-    "table": {
-      "full_name": "FULL NAME",
-      "email": "EMAIL",
-      "role": "ROLE",
-      "last_login": "LAST LOGIN",
-      "status": "STATUS"
-    }
-  },
-  "role_permissions": {
-    "title": "Roles & Permissions",
-    "subtitle": "Configure Role-Based Access Control (RBAC)",
-    "table": {
-      "role_name": "ROLE NAME",
-      "description": "DESCRIPTION",
-      "user_count": "USER COUNT",
-      "actions": "ACTIONS"
-    }
-  },
-  "system_logs": {
-    "title": "System Audit Logs",
-    "subtitle": "Track every action within the platform",
-    "filters": {
-      "all_modules": "All Modules",
-      "all_users": "All Users",
-      "severity": "Severity"
-    }
-  },
-  "capacity_management": {
-    "title": "Capacity Management",
-    "subtitle": "Monitor physical and digital storage space",
-    "stats": {
-      "physical_usage": "Physical Usage",
-      "digital_usage": "Digital Usage",
-      "available_racks": "Available Racks",
-      "forecast": "Estimated Full"
+    "capacity_management": {
+      "title": "Capacity Management",
+      "subtitle": "Monitor physical and digital storage space",
+      "stats": {
+        "physical_usage": "Physical Usage",
+        "digital_usage": "Digital Usage",
+        "available_racks": "Available Racks",
+        "forecast": "Estimated Full"
+      }
+    },
+    "config": {
+      "branch": {
+        "title": "Branch Master",
+        "subtitle": "Configure branch structure and physical locations.",
+        "add_btn": "Add Branch",
+        "filter_placeholder": "Filter branches...",
+        "table": {
+          "name": "Branch Name",
+          "company": "Company",
+          "location": "Location",
+          "head": "Branch Head"
+        },
+        "select_company": "Select Company",
+        "select_head": "Select Branch Head",
+        "displaying": "Showing {start}-{end} of {total} branches",
+        "rows": "Rows",
+        "not_set": "Not set",
+        "user_not_found": "User not found",
+        "error_name": "Branch name is required",
+        "error_company": "Company is required",
+        "error_save": "Failed to save data",
+        "error_delete": "Failed to delete data",
+        "error_fetch": "Failed to fetch data",
+        "confirm_delete": "Delete this branch?"
+      },
+      "dept": {
+        "title": "Department Master",
+        "subtitle": "Configure department structure and person in charge.",
+        "add_btn": "Add Department",
+        "filter_placeholder": "Filter departments...",
+        "table": {
+          "name": "Department Name",
+          "branch": "Branch",
+          "head": "Department Head"
+        },
+        "select_branch": "Select Branch",
+        "select_head": "Select Department Head",
+        "displaying": "Showing {start}-{end} of {total} departments",
+        "rows": "Rows",
+        "not_set": "Not set",
+        "user_not_found": "User not found",
+        "error_name": "Department name is required",
+        "error_branch": "Branch is required",
+        "error_save": "Failed to save data",
+        "error_delete": "Failed to delete data",
+        "error_fetch": "Failed to fetch data",
+        "confirm_delete": "Delete this department?"
+      },
+      "rack": {
+        "title": "Rack Master",
+        "subtitle": "Configure storage racks in each department.",
+        "add_btn": "Add Rack",
+        "filter_placeholder": "Filter racks...",
+        "table": {
+          "name": "Rack Name",
+          "dept": "Department",
+          "branch": "Branch",
+          "location": "Location Detail"
+        },
+        "select_dept": "Select Department",
+        "displaying": "Showing {start}-{end} of {total} racks",
+        "rows": "Rows",
+        "error_name": "Rack name is required",
+        "error_dept": "Department is required",
+        "error_save": "Failed to save data",
+        "error_delete": "Failed to delete data",
+        "error_fetch": "Failed to fetch data",
+        "confirm_delete": "Delete this rack?"
+      },
+      "box": {
+        "title": "Box Master",
+        "subtitle": "Configure storage boxes within racks.",
+        "add_btn": "Add Box",
+        "filter_placeholder": "Filter boxes...",
+        "table": {
+          "name": "Box Name",
+          "rack": "Rack",
+          "dept": "Department"
+        },
+        "select_rack": "Select Rack",
+        "displaying": "Showing {start}-{end} of {total} boxes",
+        "rows": "Rows",
+        "error_name": "Box name is required",
+        "error_rack": "Rack is required",
+        "error_save": "Failed to save data",
+        "error_delete": "Failed to delete data",
+        "error_fetch": "Failed to fetch data",
+        "confirm_delete": "Delete this box?"
+      },
+      "ordner": {
+        "title": "Ordner Master",
+        "subtitle": "Configure document ordners within boxes.",
+        "add_btn": "Add Ordner",
+        "filter_placeholder": "Filter ordners...",
+        "table": {
+          "name": "Ordner Name",
+          "box": "Box",
+          "rack": "Rack"
+        },
+        "select_box": "Select Box",
+        "displaying": "Showing {start}-{end} of {total} ordners",
+        "rows": "Rows",
+        "error_name": "Ordner name is required",
+        "error_box": "Box is required",
+        "error_save": "Failed to save data",
+        "error_delete": "Failed to delete data",
+        "error_fetch": "Failed to fetch data",
+        "confirm_delete": "Delete this ordner?"
+      },
+      "document_type": {
+        "title": "Document Type Master",
+        "subtitle": "Configure categories and types of documents.",
+        "add_btn": "Add Document Type",
+        "filter_placeholder": "Filter document types...",
+        "table": {
+          "code": "Code",
+          "name": "Type Name",
+          "description": "Description"
+        },
+        "displaying": "Showing {start}-{end} of {total} types",
+        "rows": "Rows",
+        "error_code": "Code is required",
+        "error_name": "Name is required",
+        "error_save": "Failed to save data",
+        "error_delete": "Failed to delete data",
+        "error_fetch": "Failed to fetch data",
+        "confirm_delete": "Delete this document type?"
+      }
     }
   }
 }
