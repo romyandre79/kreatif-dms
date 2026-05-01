@@ -100,6 +100,47 @@
         "required": "WAJIB"
       }
     },
+    "user_management": {
+      "title": "User Management",
+      "subtitle": "Manage system user identities, access, and security.",
+      "add_btn": "Add New User",
+      "search_placeholder": "Search user (name, email...)",
+      "filter_role": "All Roles",
+      "filter_status": "All Statuses",
+      "total_label": "Total Users",
+      "status": {
+        "active": "Active",
+        "inactive": "Inactive",
+        "pending": "Pending",
+        "approved": "Approved"
+      },
+      "table": {
+        "name_identity": "Name & Identity",
+        "email_role": "Email & Role",
+        "status": "Status",
+        "last_login": "Last Login",
+        "actions": "Actions"
+      },
+      "modal": {
+        "title_add": "Add New User",
+        "title_edit": "Edit User",
+        "section_account": "Account Information",
+        "section_access": "Access & Security",
+        "section_prefs": "System Preferences",
+        "label_name": "Full Name",
+        "label_username": "Username",
+        "label_email": "Email Address",
+        "label_role": "Role / Position",
+        "label_status": "Account Status",
+        "label_password": "Password",
+        "label_password_edit": "Change Password (Leave empty if unchanged)",
+        "label_mfa": "Two-Factor Authentication",
+        "label_mfa_desc": "Require OTP verification during login.",
+        "btn_cancel": "Cancel",
+        "btn_save": "Save User",
+        "saving": "Saving..."
+      }
+    },
     "reports_analytics": {
       "title": "Laporan & Analitik",
       "subtitle": "Wawasan operasional dan performa sistem",
@@ -195,18 +236,43 @@
     },
     "user_management": {
       "title": "Manajemen Pengguna",
-      "subtitle": "Kelola akses dan hak istimewa pengguna",
-      "actions": {
-        "new_user": "Tambah Pengguna",
-        "export_users": "Ekspor Daftar",
-        "bulk_invite": "Undang Massal"
+      "subtitle": "Kelola identitas, akses, dan keamanan pengguna sistem.",
+      "add_btn": "Tambah User Baru",
+      "search_placeholder": "Cari user (nama, email...)",
+      "filter_role": "Semua Role",
+      "filter_status": "Semua Status",
+      "total_label": "Total Users",
+      "status": {
+        "active": "Aktif",
+        "inactive": "Non-Aktif",
+        "pending": "Menunggu",
+        "approved": "Disetujui"
       },
       "table": {
-        "full_name": "NAMA LENGKAP",
-        "email": "EMAIL",
-        "role": "ROLE",
-        "last_login": "LOGIN TERAKHIR",
-        "status": "STATUS"
+        "name_identity": "Nama & Identitas",
+        "email_role": "Email & Role",
+        "status": "Status",
+        "last_login": "Login Terakhir",
+        "actions": "Aksi"
+      },
+      "modal": {
+        "title_add": "Tambah User Baru",
+        "title_edit": "Edit User",
+        "section_account": "Informasi Akun",
+        "section_access": "Akses & Keamanan",
+        "section_prefs": "Preferensi Sistem",
+        "label_name": "Nama Lengkap",
+        "label_username": "Username",
+        "label_email": "Alamat Email",
+        "label_role": "Role / Jabatan",
+        "label_status": "Status Akun",
+        "label_password": "Password",
+        "label_password_edit": "Ganti Password (Kosongkan jika tidak diubah)",
+        "label_mfa": "Two-Factor Authentication",
+        "label_mfa_desc": "Wajibkan verifikasi OTP saat login.",
+        "btn_cancel": "Batal",
+        "btn_save": "Simpan User",
+        "saving": "Menyimpan..."
       }
     },
     "modules": {

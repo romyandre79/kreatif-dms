@@ -1323,24 +1323,34 @@ func (q *Queries) ListRfidTags(ctx context.Context) ([]RfidTag, error) {
 }
 
 const listRoles = `-- name: ListRoles :many
-SELECT id, name, description, ldap_group FROM roles ORDER BY name
+SELECT r.id, r.name, r.description, r.ldap_group, (SELECT COUNT(*) FROM users u WHERE u.role_id = r.id) as user_count
+FROM roles r ORDER BY r.name
 `
 
+type ListRolesRow struct {
+	ID          int32       `json:"id"`
+	Name        string      `json:"name"`
+	Description pgtype.Text `json:"description"`
+	LdapGroup   pgtype.Text `json:"ldap_group"`
+	UserCount   int64       `json:"user_count"`
+}
+
 // Roles
-func (q *Queries) ListRoles(ctx context.Context) ([]Role, error) {
+func (q *Queries) ListRoles(ctx context.Context) ([]ListRolesRow, error) {
 	rows, err := q.db.Query(ctx, listRoles)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []Role
+	var items []ListRolesRow
 	for rows.Next() {
-		var i Role
+		var i ListRolesRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.Name,
 			&i.Description,
 			&i.LdapGroup,
+			&i.UserCount,
 		); err != nil {
 			return nil, err
 		}

@@ -179,6 +179,9 @@ func main() {
 	userGroup := api.Group("/users")
 	userGroup.Use(middleware.AuthMiddleware(cfg.JWTSecret))
 	userGroup.Get("/", middleware.RoleMiddleware("admin", "superadmin"), userHandler.List)
+	userGroup.Post("/", middleware.RoleMiddleware("admin", "superadmin"), userHandler.Register)
+	userGroup.Put("/:id", middleware.RoleMiddleware("admin", "superadmin"), userHandler.Update)
+	userGroup.Delete("/:id", middleware.RoleMiddleware("admin", "superadmin"), userHandler.Delete)
 	userGroup.Get("/pending", middleware.RoleMiddleware("admin", "superadmin"), authHandler.ListPendingUsers)
 	userGroup.Post("/:id/approve", middleware.RoleMiddleware("admin", "superadmin"), authHandler.ApproveUser)
 

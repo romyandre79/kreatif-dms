@@ -126,7 +126,7 @@
       </main>
 
       <!-- Right Panel: Info -->
-      <aside class="w-[400px] bg-slate-50/50 dark:bg-slate-900/50 border-l border-slate-200 dark:border-slate-800 flex flex-col p-10 overflow-y-auto custom-scrollbar gap-10">
+      <aside class="w-[400px] bg-slate-50/50 dark:bg-slate-900/50 border-l border-slate-200 dark:border-slate-800 flex flex-col p-4 overflow-y-auto custom-scrollbar gap-10">
         <!-- Role Header -->
         <div class="flex items-start gap-6">
           <div class="w-16 h-16 rounded-[1.5rem] bg-white dark:bg-slate-800 shadow-xl border border-slate-100 dark:border-slate-700 flex items-center justify-center text-primary-500">
@@ -146,40 +146,14 @@
           </p>
         </div>
 
-        <!-- Risk Indicator -->
-        <div class="p-8 bg-white dark:bg-slate-800/50 rounded-[2.5rem] shadow-sm border border-slate-100 dark:border-slate-700 space-y-6">
-          <div class="flex items-center justify-between">
-            <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Indikator Resiko</span>
-            <span :class="riskColor" class="text-[10px] font-black uppercase tracking-widest">{{ riskText }}</span>
-          </div>
-          <div class="h-2 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden flex gap-1">
-            <div v-for="i in 5" :key="i" class="flex-1 rounded-full transition-all duration-1000" :class="i <= riskLevel ? riskBg : 'bg-slate-200 dark:bg-slate-800'"></div>
-          </div>
-          <p class="text-[10px] font-bold text-slate-400 uppercase leading-tight italic text-left">Perubahan peran ini berdampak pada integritas sistem.</p>
-        </div>
-
         <!-- Stats Grid -->
         <div class="grid grid-cols-2 gap-6">
           <div class="p-6 bg-white dark:bg-slate-800/50 rounded-[2.5rem] shadow-sm border border-slate-100 dark:border-slate-700 space-y-2 text-left">
-            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Izin Aktif</p>
-            <p class="text-3xl font-black text-[#1E3A5F] dark:text-white tracking-tighter">{{ activePermissionsCount }}</p>
-          </div>
-          <div class="p-6 bg-white dark:bg-slate-800/50 rounded-[2.5rem] shadow-sm border border-slate-100 dark:border-slate-700 space-y-2 text-left">
             <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">User Aktif</p>
-            <p class="text-3xl font-black text-[#1E3A5F] dark:text-white tracking-tighter">--</p>
+            <p class="text-3xl font-black text-[#1E3A5F] dark:text-white tracking-tighter">{{ selectedRole?.user_count || 0 }}</p>
           </div>
         </div>
 
-        <!-- Restricted Actions -->
-        <div class="space-y-6 text-left">
-          <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Aksi Terbatas</h4>
-          <div class="space-y-3">
-            <div v-for="action in restrictedActions" :key="action" class="flex items-center gap-3 text-red-500 opacity-60">
-              <LucideXCircle class="w-4 h-4" />
-              <span class="text-[10px] font-black uppercase tracking-tight">{{ action }}</span>
-            </div>
-          </div>
-        </div>
       </aside>
     </div>
   </div>
@@ -254,7 +228,7 @@ const fetchRoles = async () => {
 
 const fetchModules = async () => {
   try {
-    const res = await $api(`${config.public.apiBase}/master/permissions/modules`)
+    const res = await $api(`${config.public.apiBase}/master/modules`)
     if (res && res.data) {
       systemModules.value = res.data
     }
@@ -284,6 +258,14 @@ const fetchRolePermissions = async (roleId) => {
 
 const selectRole = (role) => {
   selectedRole.value = role
+  
+  // Auto set Full Access for superadmin
+  if (role.name.toLowerCase() === 'superadmin') {
+    isFullAccess.value = true
+  } else {
+    isFullAccess.value = false
+  }
+
   if (!rolePermissions.value[role.id]) {
     fetchRolePermissions(role.id)
   } else {

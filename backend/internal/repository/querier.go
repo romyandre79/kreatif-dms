@@ -44,6 +44,7 @@ type Querier interface {
 	DeleteRetentionPolicy(ctx context.Context, id uuid.UUID) error
 	DeleteRole(ctx context.Context, id int32) error
 	DeleteSystemModule(ctx context.Context, id string) error
+	DeleteUser(ctx context.Context, id uuid.UUID) error
 	GetActivityLogsByEntity(ctx context.Context, arg GetActivityLogsByEntityParams) ([]GetActivityLogsByEntityRow, error)
 	GetBatch(ctx context.Context, id uuid.UUID) (ProcessingBatch, error)
 	GetBox(ctx context.Context, id uuid.UUID) (Box, error)
@@ -101,7 +102,7 @@ type Querier interface {
 	// RFID Tags
 	ListRfidTags(ctx context.Context) ([]RfidTag, error)
 	// Roles
-	ListRoles(ctx context.Context) ([]Role, error)
+	ListRoles(ctx context.Context) ([]ListRolesRow, error)
 	ListSsoSyncLogs(ctx context.Context, arg ListSsoSyncLogsParams) ([]SsoSyncLog, error)
 	// System Modules & Permissions
 	ListSystemModules(ctx context.Context) ([]SystemModule, error)
@@ -125,6 +126,7 @@ type Querier interface {
 	UpdateRole(ctx context.Context, arg UpdateRoleParams) (Role, error)
 	UpdateSsoSyncLog(ctx context.Context, arg UpdateSsoSyncLogParams) (SsoSyncLog, error)
 	UpdateSystemModule(ctx context.Context, arg UpdateSystemModuleParams) (SystemModule, error)
+	UpdateUser(ctx context.Context, arg UpdateUserParams) (User, error)
 	UpdateUserPIN(ctx context.Context, arg UpdateUserPINParams) error
 	UpdateUserStatus(ctx context.Context, arg UpdateUserStatusParams) (User, error)
 	UpsertSystemSetting(ctx context.Context, arg UpsertSystemSettingParams) (SystemSetting, error)

@@ -691,7 +691,7 @@ func (s *MasterService) ImportOrdners(ctx context.Context, r io.Reader) (int, er
 }
 
 // Roles
-func (s *MasterService) ListRoles(ctx context.Context) ([]repository.Role, error) {
+func (s *MasterService) ListRoles(ctx context.Context) ([]repository.ListRolesRow, error) {
 	return s.repo.ListRoles(ctx)
 }
 

@@ -150,7 +150,8 @@ JOIN racks r ON bx.rack_id = r.id
 ORDER BY o.name;
 -- Roles
 -- name: ListRoles :many
-SELECT * FROM roles ORDER BY name;
+SELECT r.*, (SELECT COUNT(*) FROM users u WHERE u.role_id = r.id) as user_count
+FROM roles r ORDER BY r.name;
 
 -- name: GetRole :one
 SELECT * FROM roles WHERE id = $1;

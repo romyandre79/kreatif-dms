@@ -189,7 +189,7 @@
       </header>
 
       <!-- Page Content -->
-      <main class="flex-1 p-8">
+      <main class="flex-1 p-2">
         <slot />
       </main>
     </div>

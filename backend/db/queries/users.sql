@@ -34,3 +34,12 @@ SELECT id FROM roles WHERE name = $1 LIMIT 1;
 
 -- name: UpdateUserPIN :exec
 UPDATE users SET pin = $2 WHERE id = $1;
+
+-- name: UpdateUser :one
+UPDATE users
+SET email = $2, full_name = $3, role_id = $4, department_id = $5, status = $6, updated_at = NOW()
+WHERE id = $1
+RETURNING *;
+
+-- name: DeleteUser :exec
+DELETE FROM users WHERE id = $1;
