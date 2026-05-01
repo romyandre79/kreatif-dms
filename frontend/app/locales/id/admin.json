@@ -209,6 +209,38 @@
         "status": "STATUS"
       }
     },
+    "modules": {
+      "title": "Modul Sistem",
+      "subtitle": "Kelola modul sistem, navigasi, dan skema izin akses.",
+      "add_btn": "Tambah Modul Baru",
+      "search_placeholder": "Cari modul (id, nama, kategori...)",
+      "total_label": "Total Modul",
+      "table": {
+        "module_id": "Modul & ID",
+        "parent_path": "Parent & Path",
+        "permissions": "Izin Tersedia",
+        "sort_order": "Urutan",
+        "actions": "Aksi"
+      },
+      "modal": {
+        "title_add": "Tambah Modul Baru",
+        "title_edit": "Edit Modul",
+        "subtitle": "Konfigurasi parameter modul dan izin akses.",
+        "section_core": "Informasi Utama",
+        "section_nav": "Navigasi & Visual",
+        "section_perms": "Skema Izin (Allowed Actions)",
+        "label_id": "ID Modul (Unique)",
+        "label_name": "Nama Tampilan",
+        "label_parent": "Parent Menu (Opsional)",
+        "label_sort": "Urutan Tampilan",
+        "label_path": "Relative Path (URL)",
+        "label_icon": "Ikon (Lucide Name)",
+        "no_parent": "-- No Parent (Root Menu) --",
+        "btn_cancel": "Batal",
+        "btn_save": "Simpan Konfigurasi",
+        "saving": "Menyimpan..."
+      }
+    },
     "role_permissions": {
       "title": "Role & Izin",
       "subtitle": "Konfigurasi kontrol akses berbasis peran (RBAC)",

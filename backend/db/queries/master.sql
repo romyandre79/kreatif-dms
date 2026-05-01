@@ -168,6 +168,48 @@ RETURNING *;
 -- name: DeleteRole :exec
 DELETE FROM roles WHERE id = $1;
 
+-- System Modules & Permissions
+-- name: ListSystemModules :many
+SELECT * FROM system_modules ORDER BY COALESCE(parent_id, ''), sort_order, name;
+
+-- name: GetSystemModule :one
+SELECT * FROM system_modules WHERE id = $1;
+
+-- name: CreateSystemModule :one
+INSERT INTO system_modules (id, name, category, path, icon, allowed_actions, sort_order, parent_id)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+RETURNING *;
+
+-- name: UpdateSystemModule :one
+UPDATE system_modules SET 
+    name = $2, 
+    category = $3, 
+    path = $4, 
+    icon = $5, 
+    allowed_actions = $6, 
+    sort_order = $7,
+    parent_id = $8
+WHERE id = $1
+RETURNING *;
+
+-- name: DeleteSystemModule :exec
+DELETE FROM system_modules WHERE id = $1;
+
+-- name: GetRolePermissions :many
+SELECT module_id, action FROM role_permissions WHERE role_id = $1;
+
+-- name: ClearRolePermissions :exec
+DELETE FROM role_permissions WHERE role_id = $1;
+
+-- name: AddRolePermission :exec
+INSERT INTO role_permissions (role_id, module_id, action) VALUES ($1, $2, $3);
+
+-- name: ListPermissionsByRole :many
+SELECT m.id as module_id, m.name as module_name, m.category, rp.action
+FROM role_permissions rp
+JOIN system_modules m ON rp.module_id = m.id
+WHERE rp.role_id = $1;
+
 -- RFID Tags
 -- name: ListRfidTags :many
 SELECT * FROM rfid_tags ORDER BY assigned_at DESC;

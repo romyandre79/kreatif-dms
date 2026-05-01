@@ -12,6 +12,30 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const addRolePermission = `-- name: AddRolePermission :exec
+INSERT INTO role_permissions (role_id, module_id, action) VALUES ($1, $2, $3)
+`
+
+type AddRolePermissionParams struct {
+	RoleID   int32  `json:"role_id"`
+	ModuleID string `json:"module_id"`
+	Action   string `json:"action"`
+}
+
+func (q *Queries) AddRolePermission(ctx context.Context, arg AddRolePermissionParams) error {
+	_, err := q.db.Exec(ctx, addRolePermission, arg.RoleID, arg.ModuleID, arg.Action)
+	return err
+}
+
+const clearRolePermissions = `-- name: ClearRolePermissions :exec
+DELETE FROM role_permissions WHERE role_id = $1
+`
+
+func (q *Queries) ClearRolePermissions(ctx context.Context, roleID int32) error {
+	_, err := q.db.Exec(ctx, clearRolePermissions, roleID)
+	return err
+}
+
 const createBox = `-- name: CreateBox :one
 INSERT INTO boxes (rack_id, name)
 VALUES ($1, $2)
@@ -288,6 +312,48 @@ func (q *Queries) CreateRole(ctx context.Context, arg CreateRoleParams) (Role, e
 	return i, err
 }
 
+const createSystemModule = `-- name: CreateSystemModule :one
+INSERT INTO system_modules (id, name, category, path, icon, allowed_actions, sort_order, parent_id)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+RETURNING id, name, category, path, icon, allowed_actions, sort_order, parent_id
+`
+
+type CreateSystemModuleParams struct {
+	ID             string      `json:"id"`
+	Name           string      `json:"name"`
+	Category       string      `json:"category"`
+	Path           pgtype.Text `json:"path"`
+	Icon           pgtype.Text `json:"icon"`
+	AllowedActions []string    `json:"allowed_actions"`
+	SortOrder      pgtype.Int4 `json:"sort_order"`
+	ParentID       pgtype.Text `json:"parent_id"`
+}
+
+func (q *Queries) CreateSystemModule(ctx context.Context, arg CreateSystemModuleParams) (SystemModule, error) {
+	row := q.db.QueryRow(ctx, createSystemModule,
+		arg.ID,
+		arg.Name,
+		arg.Category,
+		arg.Path,
+		arg.Icon,
+		arg.AllowedActions,
+		arg.SortOrder,
+		arg.ParentID,
+	)
+	var i SystemModule
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Category,
+		&i.Path,
+		&i.Icon,
+		&i.AllowedActions,
+		&i.SortOrder,
+		&i.ParentID,
+	)
+	return i, err
+}
+
 const deleteBox = `-- name: DeleteBox :exec
 DELETE FROM boxes WHERE id = $1
 `
@@ -366,6 +432,15 @@ DELETE FROM roles WHERE id = $1
 
 func (q *Queries) DeleteRole(ctx context.Context, id int32) error {
 	_, err := q.db.Exec(ctx, deleteRole, id)
+	return err
+}
+
+const deleteSystemModule = `-- name: DeleteSystemModule :exec
+DELETE FROM system_modules WHERE id = $1
+`
+
+func (q *Queries) DeleteSystemModule(ctx context.Context, id string) error {
+	_, err := q.db.Exec(ctx, deleteSystemModule, id)
 	return err
 }
 
@@ -519,6 +594,55 @@ func (q *Queries) GetRole(ctx context.Context, id int32) (Role, error) {
 		&i.Name,
 		&i.Description,
 		&i.LdapGroup,
+	)
+	return i, err
+}
+
+const getRolePermissions = `-- name: GetRolePermissions :many
+SELECT module_id, action FROM role_permissions WHERE role_id = $1
+`
+
+type GetRolePermissionsRow struct {
+	ModuleID string `json:"module_id"`
+	Action   string `json:"action"`
+}
+
+func (q *Queries) GetRolePermissions(ctx context.Context, roleID int32) ([]GetRolePermissionsRow, error) {
+	rows, err := q.db.Query(ctx, getRolePermissions, roleID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetRolePermissionsRow
+	for rows.Next() {
+		var i GetRolePermissionsRow
+		if err := rows.Scan(&i.ModuleID, &i.Action); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getSystemModule = `-- name: GetSystemModule :one
+SELECT id, name, category, path, icon, allowed_actions, sort_order, parent_id FROM system_modules WHERE id = $1
+`
+
+func (q *Queries) GetSystemModule(ctx context.Context, id string) (SystemModule, error) {
+	row := q.db.QueryRow(ctx, getSystemModule, id)
+	var i SystemModule
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Category,
+		&i.Path,
+		&i.Icon,
+		&i.AllowedActions,
+		&i.SortOrder,
+		&i.ParentID,
 	)
 	return i, err
 }
@@ -1063,6 +1187,45 @@ func (q *Queries) ListOrdners(ctx context.Context, boxID uuid.UUID) ([]Ordner, e
 	return items, nil
 }
 
+const listPermissionsByRole = `-- name: ListPermissionsByRole :many
+SELECT m.id as module_id, m.name as module_name, m.category, rp.action
+FROM role_permissions rp
+JOIN system_modules m ON rp.module_id = m.id
+WHERE rp.role_id = $1
+`
+
+type ListPermissionsByRoleRow struct {
+	ModuleID   string `json:"module_id"`
+	ModuleName string `json:"module_name"`
+	Category   string `json:"category"`
+	Action     string `json:"action"`
+}
+
+func (q *Queries) ListPermissionsByRole(ctx context.Context, roleID int32) ([]ListPermissionsByRoleRow, error) {
+	rows, err := q.db.Query(ctx, listPermissionsByRole, roleID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListPermissionsByRoleRow
+	for rows.Next() {
+		var i ListPermissionsByRoleRow
+		if err := rows.Scan(
+			&i.ModuleID,
+			&i.ModuleName,
+			&i.Category,
+			&i.Action,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listRacks = `-- name: ListRacks :many
 SELECT id, department_id, name, location_detail, created_at FROM racks WHERE department_id = $1 ORDER BY name
 `
@@ -1178,6 +1341,40 @@ func (q *Queries) ListRoles(ctx context.Context) ([]Role, error) {
 			&i.Name,
 			&i.Description,
 			&i.LdapGroup,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listSystemModules = `-- name: ListSystemModules :many
+SELECT id, name, category, path, icon, allowed_actions, sort_order, parent_id FROM system_modules ORDER BY COALESCE(parent_id, ''), sort_order, name
+`
+
+// System Modules & Permissions
+func (q *Queries) ListSystemModules(ctx context.Context) ([]SystemModule, error) {
+	rows, err := q.db.Query(ctx, listSystemModules)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []SystemModule
+	for rows.Next() {
+		var i SystemModule
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.Category,
+			&i.Path,
+			&i.Icon,
+			&i.AllowedActions,
+			&i.SortOrder,
+			&i.ParentID,
 		); err != nil {
 			return nil, err
 		}
@@ -1493,6 +1690,55 @@ func (q *Queries) UpdateRole(ctx context.Context, arg UpdateRoleParams) (Role, e
 		&i.Name,
 		&i.Description,
 		&i.LdapGroup,
+	)
+	return i, err
+}
+
+const updateSystemModule = `-- name: UpdateSystemModule :one
+UPDATE system_modules SET 
+    name = $2, 
+    category = $3, 
+    path = $4, 
+    icon = $5, 
+    allowed_actions = $6, 
+    sort_order = $7,
+    parent_id = $8
+WHERE id = $1
+RETURNING id, name, category, path, icon, allowed_actions, sort_order, parent_id
+`
+
+type UpdateSystemModuleParams struct {
+	ID             string      `json:"id"`
+	Name           string      `json:"name"`
+	Category       string      `json:"category"`
+	Path           pgtype.Text `json:"path"`
+	Icon           pgtype.Text `json:"icon"`
+	AllowedActions []string    `json:"allowed_actions"`
+	SortOrder      pgtype.Int4 `json:"sort_order"`
+	ParentID       pgtype.Text `json:"parent_id"`
+}
+
+func (q *Queries) UpdateSystemModule(ctx context.Context, arg UpdateSystemModuleParams) (SystemModule, error) {
+	row := q.db.QueryRow(ctx, updateSystemModule,
+		arg.ID,
+		arg.Name,
+		arg.Category,
+		arg.Path,
+		arg.Icon,
+		arg.AllowedActions,
+		arg.SortOrder,
+		arg.ParentID,
+	)
+	var i SystemModule
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Category,
+		&i.Path,
+		&i.Icon,
+		&i.AllowedActions,
+		&i.SortOrder,
+		&i.ParentID,
 	)
 	return i, err
 }

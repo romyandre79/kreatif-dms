@@ -13,6 +13,7 @@ import (
 	"io"
 	"encoding/json"
 	"net/netip"
+	"strings"
 )
 
 type MasterService struct {
@@ -692,6 +693,81 @@ func (s *MasterService) ImportOrdners(ctx context.Context, r io.Reader) (int, er
 // Roles
 func (s *MasterService) ListRoles(ctx context.Context) ([]repository.Role, error) {
 	return s.repo.ListRoles(ctx)
+}
+
+func (s *MasterService) ListSystemModules(ctx context.Context) ([]repository.SystemModule, error) {
+	return s.repo.ListSystemModules(ctx)
+}
+
+func (s *MasterService) GetSystemModule(ctx context.Context, id string) (repository.SystemModule, error) {
+	return s.repo.GetSystemModule(ctx, id)
+}
+
+func (s *MasterService) CreateSystemModule(ctx context.Context, id, name, category, path, icon string, allowedActions []string, sortOrder int32, parentID *string) (repository.SystemModule, error) {
+	params := repository.CreateSystemModuleParams{
+		ID:             id,
+		Name:           name,
+		Category:       category,
+		Path:           pgtype.Text{String: path, Valid: path != ""},
+		Icon:           pgtype.Text{String: icon, Valid: icon != ""},
+		AllowedActions: allowedActions,
+		SortOrder:      pgtype.Int4{Int32: sortOrder, Valid: true},
+	}
+	if parentID != nil {
+		params.ParentID = pgtype.Text{String: *parentID, Valid: *parentID != ""}
+	}
+	return s.repo.CreateSystemModule(ctx, params)
+}
+
+func (s *MasterService) UpdateSystemModule(ctx context.Context, id, name, category, path, icon string, allowedActions []string, sortOrder int32, parentID *string) (repository.SystemModule, error) {
+	params := repository.UpdateSystemModuleParams{
+		ID:             id,
+		Name:           name,
+		Category:       category,
+		Path:           pgtype.Text{String: path, Valid: path != ""},
+		Icon:           pgtype.Text{String: icon, Valid: icon != ""},
+		AllowedActions: allowedActions,
+		SortOrder:      pgtype.Int4{Int32: sortOrder, Valid: true},
+	}
+	if parentID != nil {
+		params.ParentID = pgtype.Text{String: *parentID, Valid: *parentID != ""}
+	}
+	return s.repo.UpdateSystemModule(ctx, params)
+}
+
+func (s *MasterService) DeleteSystemModule(ctx context.Context, id string) error {
+	return s.repo.DeleteSystemModule(ctx, id)
+}
+
+func (s *MasterService) GetRolePermissions(ctx context.Context, roleID int32) ([]repository.GetRolePermissionsRow, error) {
+	return s.repo.GetRolePermissions(ctx, roleID)
+}
+
+func (s *MasterService) UpdateRolePermissions(ctx context.Context, roleID int32, permissions []struct {
+	ModuleID string `json:"module_id"`
+	Action   string `json:"action"`
+}) error {
+	// Start transaction if possible, but for simplicity we'll just clear and add
+	// Actually, repo.Queries usually don't have transaction support out of the box unless we use pgxpool.Begin
+	// We'll use the repo's existing interface.
+	
+	err := s.repo.ClearRolePermissions(ctx, roleID)
+	if err != nil {
+		return err
+	}
+
+	for _, p := range permissions {
+		err = s.repo.AddRolePermission(ctx, repository.AddRolePermissionParams{
+			RoleID:   roleID,
+			ModuleID: p.ModuleID,
+			Action:   p.Action,
+		})
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 // Retention Policies

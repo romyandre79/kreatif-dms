@@ -253,6 +253,111 @@ func (s *AuthService) ApproveUser(ctx context.Context, userID uuid.UUID) error {
 	return nil
 }
 
+func (s *AuthService) GetPermissions(ctx context.Context, userID uuid.UUID) ([]string, error) {
+	user, err := s.repo.GetUserByID(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	perms, err := s.repo.ListPermissionsByRole(ctx, user.RoleID)
+	if err != nil {
+		return nil, err
+	}
+
+	var result []string
+	for _, p := range perms {
+		result = append(result, fmt.Sprintf("%s:%s", p.ModuleID, p.Action))
+	}
+	return result, nil
+}
+
+type MenuItem struct {
+	Key      string     `json:"key"`
+	Path     string     `json:"path,omitempty"`
+	Icon     string     `json:"icon,omitempty"`
+	Children []MenuItem `json:"children,omitempty"`
+}
+
+func (s *AuthService) GetMenu(ctx context.Context, userID uuid.UUID) ([]MenuItem, error) {
+	user, err := s.repo.GetUserByID(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	// 1. Get all allowed modules for this role
+	perms, err := s.repo.ListPermissionsByRole(ctx, user.RoleID)
+	if err != nil {
+		return nil, err
+	}
+
+	// 2. Get unique module IDs that have at least VIEW permission
+	allowedModules := make(map[string]bool)
+	for _, p := range perms {
+		if p.Action == "VIEW" {
+			allowedModules[p.ModuleID] = true
+		}
+	}
+
+	// 3. Get all modules metadata from DB
+	allModules, err := s.repo.ListSystemModules(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	// 4. Create a map of MenuItems and identify roots
+	menuItems := make(map[string]*MenuItem)
+	var rootItems []*MenuItem
+
+	// First pass: Create all MenuItem objects that are allowed
+	for _, m := range allModules {
+		// Categories (parent_id is null/empty) are always included if they have allowed children,
+		// or we can just include them and prune later. 
+		// For now, let's include if allowed or if it's a category.
+		if !allowedModules[m.ID] && m.ParentID.String == "" && m.Path.String != "" {
+			continue
+		}
+
+		item := &MenuItem{
+			Key:      m.ID,
+			Path:     m.Path.String,
+			Icon:     m.Icon.String,
+			Children: []MenuItem{},
+		}
+		// Special case: for categories, use their name as the key if preferred, 
+		// but using ID is safer for i18n.
+		menuItems[m.ID] = item
+	}
+
+	// Second pass: Build the tree
+	for _, m := range allModules {
+		item, exists := menuItems[m.ID]
+		if !exists {
+			continue
+		}
+
+		if m.ParentID.String != "" {
+			parent, parentExists := menuItems[m.ParentID.String]
+			if parentExists {
+				parent.Children = append(parent.Children, *item)
+			}
+		} else {
+			rootItems = append(rootItems, item)
+		}
+	}
+
+	// Convert []*MenuItem to []MenuItem
+	var finalMenu []MenuItem
+	for _, item := range rootItems {
+		// Prune empty categories if they are not dashboard/search
+		if item.Path == "" && len(item.Children) == 0 {
+			continue
+		}
+		finalMenu = append(finalMenu, *item)
+	}
+
+	return finalMenu, nil
+}
+
 func (s *AuthService) generateLoginResponse(userID uuid.UUID, fullName, roleName string, deptIDRaw interface{}, avatarUrl, signatureUrl string) (*LoginResponse, error) {
 	var deptID uuid.UUID
 	

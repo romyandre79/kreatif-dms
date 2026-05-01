@@ -12,6 +12,9 @@ import (
 )
 
 type Querier interface {
+	AddRolePermission(ctx context.Context, arg AddRolePermissionParams) error
+	ClearRolePermissions(ctx context.Context, roleID int32) error
+	CountSsoSyncLogs(ctx context.Context) (int64, error)
 	CreateActivityLog(ctx context.Context, arg CreateActivityLogParams) (ActivityLog, error)
 	CreateBatch(ctx context.Context, arg CreateBatchParams) (ProcessingBatch, error)
 	CreateBox(ctx context.Context, arg CreateBoxParams) (Box, error)
@@ -28,6 +31,7 @@ type Querier interface {
 	CreateRfidTag(ctx context.Context, arg CreateRfidTagParams) (RfidTag, error)
 	CreateRole(ctx context.Context, arg CreateRoleParams) (Role, error)
 	CreateSsoSyncLog(ctx context.Context, arg CreateSsoSyncLogParams) (SsoSyncLog, error)
+	CreateSystemModule(ctx context.Context, arg CreateSystemModuleParams) (SystemModule, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
 	DeleteBox(ctx context.Context, id uuid.UUID) error
 	DeleteBranch(ctx context.Context, id uuid.UUID) error
@@ -39,6 +43,7 @@ type Querier interface {
 	DeleteRack(ctx context.Context, id uuid.UUID) error
 	DeleteRetentionPolicy(ctx context.Context, id uuid.UUID) error
 	DeleteRole(ctx context.Context, id int32) error
+	DeleteSystemModule(ctx context.Context, id string) error
 	GetActivityLogsByEntity(ctx context.Context, arg GetActivityLogsByEntityParams) ([]GetActivityLogsByEntityRow, error)
 	GetBatch(ctx context.Context, id uuid.UUID) (ProcessingBatch, error)
 	GetBox(ctx context.Context, id uuid.UUID) (Box, error)
@@ -56,6 +61,8 @@ type Querier interface {
 	GetRfidTag(ctx context.Context, tagID string) (RfidTag, error)
 	GetRole(ctx context.Context, id int32) (Role, error)
 	GetRoleIDByName(ctx context.Context, name string) (int32, error)
+	GetRolePermissions(ctx context.Context, roleID int32) ([]GetRolePermissionsRow, error)
+	GetSystemModule(ctx context.Context, id string) (SystemModule, error)
 	GetSystemSetting(ctx context.Context, arg GetSystemSettingParams) (SystemSetting, error)
 	// System Settings
 	GetSystemSettingsByCategory(ctx context.Context, category string) ([]SystemSetting, error)
@@ -86,6 +93,7 @@ type Querier interface {
 	// Ordners
 	ListOrdners(ctx context.Context, boxID uuid.UUID) ([]Ordner, error)
 	ListPendingUsers(ctx context.Context) ([]User, error)
+	ListPermissionsByRole(ctx context.Context, roleID int32) ([]ListPermissionsByRoleRow, error)
 	// Racks
 	ListRacks(ctx context.Context, departmentID uuid.UUID) ([]Rack, error)
 	// Retention Policies
@@ -95,6 +103,8 @@ type Querier interface {
 	// Roles
 	ListRoles(ctx context.Context) ([]Role, error)
 	ListSsoSyncLogs(ctx context.Context, arg ListSsoSyncLogsParams) ([]SsoSyncLog, error)
+	// System Modules & Permissions
+	ListSystemModules(ctx context.Context) ([]SystemModule, error)
 	ListUsers(ctx context.Context) ([]User, error)
 	MarkAllAsRead(ctx context.Context, userID uuid.UUID) error
 	MarkAsRead(ctx context.Context, arg MarkAsReadParams) error
@@ -114,6 +124,7 @@ type Querier interface {
 	UpdateRfidTagStatus(ctx context.Context, arg UpdateRfidTagStatusParams) (RfidTag, error)
 	UpdateRole(ctx context.Context, arg UpdateRoleParams) (Role, error)
 	UpdateSsoSyncLog(ctx context.Context, arg UpdateSsoSyncLogParams) (SsoSyncLog, error)
+	UpdateSystemModule(ctx context.Context, arg UpdateSystemModuleParams) (SystemModule, error)
 	UpdateUserPIN(ctx context.Context, arg UpdateUserPINParams) error
 	UpdateUserStatus(ctx context.Context, arg UpdateUserStatusParams) (User, error)
 	UpsertSystemSetting(ctx context.Context, arg UpsertSystemSettingParams) (SystemSetting, error)

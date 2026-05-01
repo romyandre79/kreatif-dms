@@ -6,9 +6,9 @@
     >
       <template #actions>
         <div class="flex items-center gap-3">
-          <button @click="downloadReport" class="flex items-center gap-2 px-4 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl border border-slate-200 dark:border-slate-700 transition-all font-bold text-sm">
-            <LucideDownload class="w-4 h-4" />
-            Download Integration Report
+          <button @click="downloadReport" :disabled="downloading" class="flex items-center gap-2 px-4 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl border border-slate-200 dark:border-slate-700 transition-all font-bold text-sm disabled:opacity-50">
+            <LucideDownload class="w-4 h-4" :class="{ 'animate-bounce': downloading }" />
+            {{ downloading ? 'Generating...' : 'Download Integration Report' }}
           </button>
           <button @click="openTypeModal" class="flex items-center gap-2 px-6 py-2.5 bg-[#1E3A5F] text-white rounded-xl shadow-lg shadow-blue-900/20 hover:bg-[#152943] transition-all font-bold text-sm active:scale-95">
             <LucidePlus class="w-4 h-4" />
@@ -161,14 +161,63 @@
           </div>
         </div>
 
-        <div class="bg-white/80 dark:bg-slate-900/50 backdrop-blur-xl border border-slate-200 dark:border-slate-800 rounded-3xl p-6">
-          <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-6">Latency Trend (Recent Checks)</h3>
-          <div class="h-40 flex items-end justify-between gap-1 px-2">
-            <div v-for="(v, i) in globalTrend" :key="i" 
-              class="flex-1 rounded-t-sm transition-all duration-700 hover:opacity-80" 
-              :class="[v > 70 ? 'bg-red-500/40 border-t-2 border-red-500' : i === globalTrend.length - 1 ? 'bg-primary-500 shadow-[0_0_15px_rgba(59,130,246,0.5)]' : 'bg-slate-700/40']"
-              :style="`height: ${Math.min(v, 100)}%`"
-            ></div>
+        <div class="bg-white/80 dark:bg-slate-900/50 backdrop-blur-xl border border-slate-200 dark:border-slate-800 rounded-3xl p-8">
+          <div class="flex items-center justify-between mb-8">
+            <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Global Latency Trend (Average)</h3>
+            <div class="flex items-center gap-4">
+              <div class="flex items-center gap-1.5">
+                <div class="w-2 h-2 rounded-full bg-primary-500"></div>
+                <span class="text-[9px] font-bold text-slate-400 uppercase">Current</span>
+              </div>
+              <div class="flex items-center gap-1.5">
+                <div class="w-2 h-2 rounded-full bg-slate-700/40"></div>
+                <span class="text-[9px] font-bold text-slate-400 uppercase">History</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex gap-4">
+            <!-- Y-Axis Labels -->
+            <div class="flex flex-col justify-between text-[9px] font-black text-slate-400 uppercase h-40 pb-1">
+              <span>500ms</span>
+              <span>250ms</span>
+              <span>0ms</span>
+            </div>
+
+            <!-- Chart Area -->
+            <div class="flex-1 relative">
+              <!-- Grid Lines -->
+              <div class="absolute inset-0 flex flex-col justify-between pointer-events-none">
+                <div class="w-full border-t border-slate-100 dark:border-slate-800/50 border-dashed"></div>
+                <div class="w-full border-t border-slate-100 dark:border-slate-800/50 border-dashed"></div>
+                <div class="w-full border-t border-slate-200 dark:border-slate-800"></div>
+              </div>
+
+              <!-- Bars -->
+              <div class="h-40 flex items-end justify-between gap-1.5 px-1 relative z-10">
+                <div v-for="(v, i) in globalTrend" :key="i" 
+                  class="flex-1 rounded-t-md transition-all duration-500 relative group/bar" 
+                  :class="[
+                    (v * 5) > 300 ? 'bg-red-500/40 border-t-2 border-red-500' : 
+                    i === globalTrend.length - 1 ? 'bg-primary-500 shadow-[0_0_20px_rgba(59,130,246,0.4)]' : 
+                    'bg-slate-700/40 hover:bg-primary-500/40'
+                  ]"
+                  :style="`height: ${Math.min(v, 100)}%`"
+                >
+                  <!-- Tooltip -->
+                  <div class="absolute -top-10 left-1/2 -translate-x-1/2 px-3 py-1.5 bg-slate-900 text-white text-[10px] font-black rounded-lg opacity-0 group-hover/bar:opacity-100 transition-all pointer-events-none shadow-xl z-20 whitespace-nowrap">
+                    {{ Math.round(v * 5) }} ms
+                    <div class="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-slate-900 rotate-45"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- X-Axis Label -->
+          <div class="mt-4 flex justify-between items-center px-12">
+            <span class="text-[8px] font-black text-slate-300 uppercase tracking-widest">Past 15 Checks</span>
+            <span class="text-[8px] font-black text-primary-500 uppercase tracking-widest">Real-time Now</span>
           </div>
         </div>
       </div>
@@ -266,249 +315,45 @@
               </div>
             </div>
 
-            <div v-if="formData.service_type === 'LDAP'" class="grid grid-cols-1 gap-8">
-                    <div class="flex items-center gap-3">
-                      <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest">LDAP ACTIVE</p>
-                      <button @click="formData.is_active = !formData.is_active" :class="`w-12 h-6 rounded-full transition-all relative ${formData.is_active ? 'bg-[#1E3A5F]' : 'bg-slate-300'}`">
-                        <div :class="`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${formData.is_active ? 'left-7' : 'left-1'}`"></div>
-                      </button>
-                    </div>
-                    <div class="space-y-3">
-                      <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Provider Type</label>
-                      <div class="grid grid-cols-2 gap-4">
-                        <button @click="formData.driver = 'active_directory'" :class="`py-3 rounded-xl text-xs font-black uppercase tracking-widest border transition-all flex items-center justify-center gap-2 ${formData.driver === 'active_directory' ? 'bg-blue-50 border-blue-200 text-blue-600' : 'bg-white border-slate-100 text-slate-400'}`">
-                          <LucideServer class="w-4 h-4" /> Active Directory
-                        </button>
-                        <button @click="formData.driver = 'openldap'" :class="`py-3 rounded-xl text-xs font-black uppercase tracking-widest border transition-all flex items-center justify-center gap-2 ${formData.driver === 'openldap' ? 'bg-blue-50 border-blue-200 text-blue-600' : 'bg-white border-slate-100 text-slate-400'}`">
-                          <LucideHash class="w-4 h-4" /> OpenLDAP
-                        </button>
-                      </div>
-                    </div>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                      <div class="space-y-2">
-                        <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Timeout (s)</label>
-                        <input v-model="formData.config.timeout" type="text" class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800 border-none rounded-xl text-sm font-bold" placeholder="30">
-                      </div>
-                      <div class="space-y-2">
-                        <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Bind DN</label>
-                        <input v-model="formData.config.bind_dn" type="text" class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800 border-none rounded-xl text-sm font-bold" placeholder="cn=admin,dc=example,dc=com">
-                      </div>
-                      <div class="space-y-2">
-                        <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Password</label>
-                        <div class="relative">
-                          <input :type="showPassword ? 'text' : 'password'" v-model="formData.config.bind_password" class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800 border-none rounded-xl text-sm font-bold pr-14">
-                          <button @click="showPassword = !showPassword" class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400">
-                            <LucideEye v-if="!showPassword" class="w-4 h-4" />
-                            <LucideEyeOff v-else class="w-4 h-4" />
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-            </div>
+            <!-- Dynamic Configuration Components -->
+            <div class="mt-8 transition-all duration-500">
+              <LdapConfig 
+                v-if="formData.service_type === 'LDAP'" 
+                v-model="formData" 
+              />
+              
+              <AiConfig 
+                v-else-if="formData.service_type === 'AI'" 
+                v-model="formData" 
+                :ai-models="aiModels"
+                :fetching="fetchingModels"
+                @fetch-models="fetchDynamicModels"
+              />
 
-            <div v-else-if="formData.service_type === 'AI'" class="grid grid-cols-1 gap-8">
-              <div class="space-y-6">
-                <div class="space-y-3">
-                  <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest">AI Provider</label>
-                  <div class="grid grid-cols-2 gap-4">
-                    <button @click="formData.driver = 'gemini'; formData.config.model = 'gemini-1.5-flash'" :class="`py-3 rounded-xl text-xs font-black uppercase tracking-widest border transition-all flex items-center justify-center gap-2 ${formData.driver === 'gemini' ? 'bg-blue-50 border-blue-200 text-blue-600' : 'bg-white border-slate-100 text-slate-400'}`">
-                      <LucideCpu class="w-4 h-4" /> Google Gemini
-                    </button>
-                    <button @click="formData.driver = 'openai'; formData.config.model = 'gpt-4o'" :class="`py-3 rounded-xl text-xs font-black uppercase tracking-widest border transition-all flex items-center justify-center gap-2 ${formData.driver === 'openai' ? 'bg-blue-50 border-blue-200 text-blue-600' : 'bg-white border-slate-100 text-slate-400'}`">
-                      <LucideCpu class="w-4 h-4" /> OpenAI
-                    </button>
-                  </div>
-                </div>
+              <SearchConfig 
+                v-else-if="formData.service_type === 'SEARCH'" 
+                v-model="formData" 
+              />
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div class="space-y-2">
-                    <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest">API Key</label>
-                    <div class="relative">
-                      <input :type="showPassword ? 'text' : 'password'" v-model="formData.config.token" class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800 border-none rounded-xl text-sm font-bold pr-14" placeholder="Enter API Key">
-                      <button @click="showPassword = !showPassword" class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400">
-                        <LucideEye v-if="!showPassword" class="w-4 h-4" />
-                        <LucideEyeOff v-else class="w-4 h-4" />
-                      </button>
-                    </div>
-                  </div>
-                  <div class="space-y-2">
-                    <div class="flex items-center justify-between">
-                      <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Model Name</label>
-                      <button @click="fetchDynamicModels" :disabled="fetchingModels" class="text-[9px] font-black text-blue-500 uppercase tracking-widest hover:text-blue-600 disabled:opacity-50 flex items-center gap-1">
-                        <LucideRefreshCw class="w-3 h-3" :class="{ 'animate-spin': fetchingModels }" />
-                        Fetch from API
-                      </button>
-                    </div>
-                    <select v-model="formData.config.model" class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800 border-none rounded-xl text-sm font-bold focus:ring-2 focus:ring-blue-500/20 transition-all">
-                      <option v-for="m in aiModels[formData.driver] || []" :key="m.id" :value="m.id">
-                        {{ m.name }}
-                      </option>
-                    </select>
-                  </div>
-                </div>
+              <StorageConfig 
+                v-else-if="formData.service_type === 'STORAGE' || formData.service_type === 'S3'" 
+                v-model="formData" 
+              />
 
-                <div class="space-y-2">
-                  <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest">System Instruction / Prompt</label>
-                  <textarea v-model="formData.config.system_prompt" rows="4" class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800 border-none rounded-xl text-sm font-medium leading-relaxed resize-none" placeholder="Default system prompt for AI responses..."></textarea>
-                </div>
-              </div>
-            </div>
+              <WhatsappConfig 
+                v-else-if="formData.service_type === 'WHATSAPP'" 
+                v-model="formData" 
+              />
 
-            <div v-else-if="formData.service_type === 'SEARCH'" class="grid grid-cols-1 gap-8">
-              <div class="space-y-6">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div class="space-y-2">
-                    <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Auth Method</label>
-                    <div class="grid grid-cols-2 gap-4">
-                      <button @click="formData.driver = 'basic'" :class="`py-3 rounded-xl text-xs font-black uppercase tracking-widest border transition-all ${formData.driver === 'basic' ? 'bg-blue-50 border-blue-200 text-blue-600' : 'bg-white border-slate-100 text-slate-400'}`">Basic Auth</button>
-                      <button @click="formData.driver = 'apikey'" :class="`py-3 rounded-xl text-xs font-black uppercase tracking-widest border transition-all ${formData.driver === 'apikey' ? 'bg-blue-50 border-blue-200 text-blue-600' : 'bg-white border-slate-100 text-slate-400'}`">API Key</button>
-                    </div>
-                  </div>
-                  <div class="space-y-2">
-                    <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Index Name</label>
-                    <input type="text" v-model="formData.config.index_name" class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800 border-none rounded-xl text-sm font-bold" placeholder="e.g. documents">
-                  </div>
-                </div>
+              <SmtpConfig 
+                v-else-if="formData.service_type === 'SMTP'" 
+                v-model="formData" 
+              />
 
-                <div v-if="formData.driver === 'basic'" class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div class="space-y-2">
-                    <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Username</label>
-                    <input type="text" v-model="formData.config.username" class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800 border-none rounded-xl text-sm font-bold" placeholder="elastic">
-                  </div>
-                  <div class="space-y-2">
-                    <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Password</label>
-                    <div class="relative">
-                      <input :type="showPassword ? 'text' : 'password'" v-model="formData.config.password" class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800 border-none rounded-xl text-sm font-bold pr-14">
-                      <button @click="showPassword = !showPassword" class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400">
-                        <LucideEye v-if="!showPassword" class="w-4 h-4" />
-                        <LucideEyeOff v-else class="w-4 h-4" />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
-                <div v-if="formData.driver === 'apikey'" class="space-y-2">
-                  <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Elastic API Key</label>
-                  <input type="text" v-model="formData.config.api_key" class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800 border-none rounded-xl text-sm font-bold" placeholder="Enter Base64 API Key">
-                </div>
-              </div>
-            </div>
-
-            <div v-else-if="formData.service_type === 'S3' || formData.service_type === 'STORAGE'" class="grid grid-cols-1 gap-8">
-              <div class="space-y-6">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div class="space-y-2">
-                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Bucket Name</label>
-                    <input v-model="formData.config.bucket" type="text" class="w-full px-5 py-3.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-sm font-bold focus:ring-4 focus:ring-blue-500/10 focus:border-[#1E3A5F] transition-all" placeholder="e.g. krdms-vault">
-                  </div>
-                  <div class="flex items-center gap-3 pt-8">
-                    <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Use SSL (HTTPS)</p>
-                    <button @click="formData.config.use_ssl = !formData.config.use_ssl" :class="`w-12 h-6 rounded-full transition-all relative ${formData.config.use_ssl ? 'bg-[#1E3A5F]' : 'bg-slate-300'}`">
-                      <div :class="`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${formData.config.use_ssl ? 'left-7' : 'left-1'}`"></div>
-                    </button>
-                  </div>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div class="space-y-2">
-                    <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Access Key</label>
-                    <input type="text" v-model="formData.config.access_key" class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800 border-none rounded-xl text-sm font-bold" placeholder="Enter Access Key">
-                  </div>
-                  <div class="space-y-2">
-                    <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Secret Key</label>
-                    <div class="relative">
-                      <input :type="showPassword ? 'text' : 'password'" v-model="formData.config.secret_key" class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800 border-none rounded-xl text-sm font-bold pr-14" placeholder="Enter Secret Key">
-                      <button @click="showPassword = !showPassword" class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400">
-                        <LucideEye v-if="!showPassword" class="w-4 h-4" />
-                        <LucideEyeOff v-else class="w-4 h-4" />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div v-else-if="formData.service_type === 'WHATSAPP'" class="grid grid-cols-1 gap-8">
-              <div class="space-y-6">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div class="space-y-2">
-                    <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest">WhatsApp Provider</label>
-                    <select v-model="formData.driver" class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800 border-none rounded-xl text-sm font-bold focus:ring-2 focus:ring-blue-500/20 transition-all">
-                      <option value="fonnte">Fonnte.com</option>
-                      <option value="wablas">Wablas.com</option>
-                      <option value="generic">Generic Webhook / API</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div v-if="formData.driver === 'fonnte' || formData.driver === 'wablas'" class="space-y-6">
-                  <div class="p-6 bg-blue-50 dark:bg-blue-900/20 rounded-2xl border border-blue-100 dark:border-blue-800/30 flex items-start gap-4">
-                    <div class="p-3 bg-white dark:bg-slate-800 rounded-xl shadow-sm">
-                      <LucideMail class="w-6 h-6 text-blue-600" />
-                    </div>
-                    <div class="space-y-1">
-                      <h4 class="text-sm font-black text-[#1E3A5F] dark:text-white uppercase tracking-tight">{{ formData.driver === 'fonnte' ? 'Fonnte' : 'Wablas' }} Integration</h4>
-                      <p class="text-xs text-slate-500 leading-relaxed">Enter your API Token to enable automated WhatsApp notifications via {{ formData.driver === 'fonnte' ? 'Fonnte' : 'Wablas' }} gateway.</p>
-                    </div>
-                  </div>
-
-                  <div class="space-y-2">
-                    <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest">API Token / API Key</label>
-                    <div class="relative">
-                      <input :type="showPassword ? 'text' : 'password'" v-model="formData.config.token" class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800 border-none rounded-xl text-sm font-bold pr-14" placeholder="Enter your API Token">
-                      <button @click="showPassword = !showPassword" class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400">
-                        <LucideEye v-if="!showPassword" class="w-4 h-4" />
-                        <LucideEyeOff v-else class="w-4 h-4" />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
-                <div v-if="formData.driver === 'generic'" class="space-y-6">
-                  <div class="space-y-2">
-                    <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Custom API Endpoint</label>
-                    <input type="text" v-model="formData.endpoint" class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800 border-none rounded-xl text-sm font-bold" placeholder="https://api.yourprovider.com/send">
-                  </div>
-                  <div class="space-y-2">
-                    <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Auth Header (Optional)</label>
-                    <input type="text" v-model="formData.config.auth_header" class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800 border-none rounded-xl text-sm font-bold" placeholder="e.g. Bearer your_token">
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div v-else-if="formData.service_type === 'SMTP'" class="grid grid-cols-1 gap-8">
-              <div class="space-y-6">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div class="space-y-2">
-                    <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Sender Email</label>
-                    <input type="email" v-model="formData.config.from_email" class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800 border-none rounded-xl text-sm font-bold" placeholder="noreply@company.com">
-                  </div>
-                  <div class="flex items-center gap-3 pt-8">
-                    <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Enable Authentication</p>
-                    <button @click="formData.config.auth = !formData.config.auth" :class="`w-12 h-6 rounded-full transition-all relative ${formData.config.auth ? 'bg-[#1E3A5F]' : 'bg-slate-300'}`">
-                      <div :class="`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${formData.config.auth ? 'left-7' : 'left-1'}`"></div>
-                    </button>
-                  </div>
-                </div>
-
-                <div v-if="formData.config.auth" class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div class="space-y-2">
-                    <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest">SMTP Username</label>
-                    <input type="text" v-model="formData.config.user" class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800 border-none rounded-xl text-sm font-bold" placeholder="Enter username">
-                  </div>
-                  <div class="space-y-2">
-                    <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest">SMTP Password</label>
-                    <div class="relative">
-                      <input :type="showPassword ? 'text' : 'password'" v-model="formData.config.pass" class="w-full px-5 py-3.5 bg-slate-50 dark:bg-slate-800 border-none rounded-xl text-sm font-bold pr-14" placeholder="Enter password">
-                      <button @click="showPassword = !showPassword" class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400">
-                        <LucideEye v-if="!showPassword" class="w-4 h-4" />
-                        <LucideEyeOff v-else class="w-4 h-4" />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
+              <OcrConfig 
+                v-else-if="formData.service_type === 'OCR'" 
+                v-model="formData" 
+              />
             </div>
           </div>
           <!-- Modal Footer Stats -->
@@ -618,9 +463,19 @@ import {
   LucideTimer, LucidePlus, LucideEdit3, LucideTrash2, LucideSave, 
   LucideEye, LucideEyeOff, LucideCheckSquare, LucideNetwork, 
   LucideShare2, LucideFilter, LucideHistory, LucidePlay, LucideSettings,
-  LucideSearch, LucideCpu
+  LucideSearch, LucideCpu, LucideScanLine
 } from 'lucide-vue-next'
-import { useApi } from '~/composables/useApi'
+import { useApi } from '@/composables/useApi'
+import PageHeader from '@/components/PageHeader.vue'
+
+// Import Split Config Components
+import LdapConfig from '@/components/integration/LdapConfig.vue'
+import AiConfig from '@/components/integration/AiConfig.vue'
+import SearchConfig from '@/components/integration/SearchConfig.vue'
+import StorageConfig from '@/components/integration/StorageConfig.vue'
+import WhatsappConfig from '@/components/integration/WhatsappConfig.vue'
+import SmtpConfig from '@/components/integration/SmtpConfig.vue'
+import OcrConfig from '@/components/integration/OcrConfig.vue'
 
 const refreshing = ref(false)
 const nodes = ref([])
@@ -633,6 +488,7 @@ const showModal = ref(false)
 const isEdit = ref(false)
 const loading = ref(false)
 const testing = ref(false)
+const downloading = ref(false)
 const showPassword = ref(false)
 const showLogsModal = ref(false)
 const syncLogs = ref([])
@@ -1065,21 +921,27 @@ const globalTrend = computed(() => {
 })
 
 const downloadReport = async () => {
+  if (downloading.value) return
+  downloading.value = true
   try {
     const res = await $api(`${config.public.apiBase}/master/integration/report`, {
-      method: 'GET'
+      method: 'GET',
+      responseType: 'blob'
     })
-    // Note: fetchWithAuth returns response._data, which for blob might need adjustment 
-    // but typically our backend returns data field.
-    const url = window.URL.createObjectURL(new Blob([res.data]))
+    
+    const blob = res instanceof Blob ? res : new Blob([res], { type: 'text/csv' })
+    const url = window.URL.createObjectURL(blob)
     const link = document.createElement('a')
     link.href = url
     link.setAttribute('download', `integration_report_${new Date().getTime()}.csv`)
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
+    window.URL.revokeObjectURL(url)
   } catch (err) {
     console.error('Failed to download report:', err)
+  } finally {
+    downloading.value = false
   }
 }
 

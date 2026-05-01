@@ -3,6 +3,7 @@ package handler
 import (
 	"encoding/json"
 	"fmt"
+	"strconv"
 	"github.com/gofiber/fiber/v3"
 	"github.com/google/uuid"
 	_ "github.com/kreatif/dms-backend/internal/repository"
@@ -930,6 +931,127 @@ func (h *MasterHandler) ListRoles(c fiber.Ctx) error {
 		return response.Error(c, fiber.StatusInternalServerError, "Failed to list roles", err.Error())
 	}
 	return response.Success(c, fiber.StatusOK, "Roles listed", roles)
+}
+
+func (h *MasterHandler) ListSystemModules(c fiber.Ctx) error {
+	modules, err := h.svc.ListSystemModules(c.Context())
+	if err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to list modules", err.Error())
+	}
+	return response.Success(c, fiber.StatusOK, "Modules listed", modules)
+}
+
+func (h *MasterHandler) GetSystemModule(c fiber.Ctx) error {
+	id := c.Params("id")
+	module, err := h.svc.GetSystemModule(c.Context(), id)
+	if err != nil {
+		return response.Error(c, fiber.StatusNotFound, "Module not found", err.Error())
+	}
+	return response.Success(c, fiber.StatusOK, "Module retrieved", module)
+}
+
+func (h *MasterHandler) CreateSystemModule(c fiber.Ctx) error {
+	type request struct {
+		ID             string   `json:"id"`
+		Name           string   `json:"name"`
+		Category       string   `json:"category"`
+		Path           string   `json:"path"`
+		Icon           string   `json:"icon"`
+		AllowedActions []string `json:"allowed_actions"`
+		SortOrder      int32    `json:"sort_order"`
+		ParentID       *string  `json:"parent_id"`
+	}
+	req := new(request)
+	if err := c.Bind().JSON(req); err != nil {
+		return response.Error(c, fiber.StatusBadRequest, "Invalid request body", err.Error())
+	}
+
+	module, err := h.svc.CreateSystemModule(c.Context(), req.ID, req.Name, req.Category, req.Path, req.Icon, req.AllowedActions, req.SortOrder, req.ParentID)
+	if err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to create module", err.Error())
+	}
+
+	// Log Activity
+	userID := c.Locals("user_id").(uuid.UUID)
+	h.svc.LogActivity(c.Context(), userID, "CREATE", "system_module", nil, req, c.IP())
+
+	return response.Success(c, fiber.StatusCreated, "Module created", module)
+}
+
+func (h *MasterHandler) UpdateSystemModule(c fiber.Ctx) error {
+	type request struct {
+		Name           string   `json:"name"`
+		Category       string   `json:"category"`
+		Path           string   `json:"path"`
+		Icon           string   `json:"icon"`
+		AllowedActions []string `json:"allowed_actions"`
+		SortOrder      int32    `json:"sort_order"`
+		ParentID       *string  `json:"parent_id"`
+	}
+	id := c.Params("id")
+	req := new(request)
+	if err := c.Bind().JSON(req); err != nil {
+		return response.Error(c, fiber.StatusBadRequest, "Invalid request body", err.Error())
+	}
+
+	module, err := h.svc.UpdateSystemModule(c.Context(), id, req.Name, req.Category, req.Path, req.Icon, req.AllowedActions, req.SortOrder, req.ParentID)
+	if err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to update module", err.Error())
+	}
+
+	// Log Activity
+	userID := c.Locals("user_id").(uuid.UUID)
+	h.svc.LogActivity(c.Context(), userID, "UPDATE", "system_module", nil, req, c.IP())
+
+	return response.Success(c, fiber.StatusOK, "Module updated", module)
+}
+
+func (h *MasterHandler) DeleteSystemModule(c fiber.Ctx) error {
+	id := c.Params("id")
+	if err := h.svc.DeleteSystemModule(c.Context(), id); err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to delete module", err.Error())
+	}
+
+	// Log Activity
+	userID := c.Locals("user_id").(uuid.UUID)
+	h.svc.LogActivity(c.Context(), userID, "DELETE", "system_module", nil, nil, c.IP())
+
+	return response.Success(c, fiber.StatusOK, "Module deleted", nil)
+}
+
+func (h *MasterHandler) GetRolePermissions(c fiber.Ctx) error {
+	roleID, err := strconv.Atoi(c.Params("role_id"))
+	if err != nil {
+		return response.Error(c, fiber.StatusBadRequest, "Invalid role ID", err.Error())
+	}
+
+	permissions, err := h.svc.GetRolePermissions(c.Context(), int32(roleID))
+	if err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to get role permissions", err.Error())
+	}
+	return response.Success(c, fiber.StatusOK, "Role permissions retrieved", permissions)
+}
+
+func (h *MasterHandler) UpdateRolePermissions(c fiber.Ctx) error {
+	roleID, err := strconv.Atoi(c.Params("role_id"))
+	if err != nil {
+		return response.Error(c, fiber.StatusBadRequest, "Invalid role ID", err.Error())
+	}
+
+	var req []struct {
+		ModuleID string `json:"module_id"`
+		Action   string `json:"action"`
+	}
+	if err := c.Bind().JSON(&req); err != nil {
+		return response.Error(c, fiber.StatusBadRequest, "Invalid request body", err.Error())
+	}
+
+	err = h.svc.UpdateRolePermissions(c.Context(), int32(roleID), req)
+	if err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to update role permissions", err.Error())
+	}
+
+	return response.Success(c, fiber.StatusOK, "Role permissions updated", nil)
 }
 
 func (h *MasterHandler) ListRetentionPolicies(c fiber.Ctx) error {

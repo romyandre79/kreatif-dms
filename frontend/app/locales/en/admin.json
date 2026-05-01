@@ -209,6 +209,38 @@
         "status": "STATUS"
       }
     },
+    "modules": {
+      "title": "System Modules",
+      "subtitle": "Manage system modules, navigation, and permission schemas.",
+      "add_btn": "Add New Module",
+      "search_placeholder": "Search modules (id, name, parent...)",
+      "total_label": "Total Modules",
+      "table": {
+        "module_id": "Module & ID",
+        "parent_path": "Parent & Path",
+        "permissions": "Permissions",
+        "sort_order": "Order",
+        "actions": "Actions"
+      },
+      "modal": {
+        "title_add": "Add New Module",
+        "title_edit": "Edit Module",
+        "subtitle": "Configure module parameters and access permissions.",
+        "section_core": "Core Information",
+        "section_nav": "Navigation & Visual",
+        "section_perms": "Permissions Schema (Allowed Actions)",
+        "label_id": "Module ID (Unique)",
+        "label_name": "Display Name",
+        "label_parent": "Parent Menu (Optional)",
+        "label_sort": "Display Order",
+        "label_path": "Relative Path (URL)",
+        "label_icon": "Icon (Lucide Name)",
+        "no_parent": "-- No Parent (Root Menu) --",
+        "btn_cancel": "Cancel",
+        "btn_save": "Save Configuration",
+        "saving": "Saving..."
+      }
+    },
     "role_permissions": {
       "title": "Roles & Permissions",
       "subtitle": "Configure Role-Based Access Control (RBAC)",

@@ -12,6 +12,17 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const countSsoSyncLogs = `-- name: CountSsoSyncLogs :one
+SELECT COUNT(*) FROM sso_sync_logs
+`
+
+func (q *Queries) CountSsoSyncLogs(ctx context.Context) (int64, error) {
+	row := q.db.QueryRow(ctx, countSsoSyncLogs)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const createSsoSyncLog = `-- name: CreateSsoSyncLog :one
 INSERT INTO sso_sync_logs (
     provider, status, started_at
@@ -157,15 +168,4 @@ func (q *Queries) UpdateSsoSyncLog(ctx context.Context, arg UpdateSsoSyncLogPara
 		&i.CreatedAt,
 	)
 	return i, err
-}
-
-const countSsoSyncLogs = `-- name: CountSsoSyncLogs :one
-SELECT COUNT(*) FROM sso_sync_logs
-`
-
-func (q *Queries) CountSsoSyncLogs(ctx context.Context) (int64, error) {
-	row := q.db.QueryRow(ctx, countSsoSyncLogs)
-	var count int64
-	err := row.Scan(&count)
-	return count, err
 }

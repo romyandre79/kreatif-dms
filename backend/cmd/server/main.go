@@ -172,6 +172,8 @@ func main() {
 	authGroup.Use(middleware.AuthMiddleware(cfg.JWTSecret))
 	authGroup.Post("/pin", authHandler.SetPIN)
 	authGroup.Post("/pin/verify", authHandler.VerifyPIN)
+	authGroup.Get("/me/permissions", authHandler.GetMyPermissions)
+	authGroup.Get("/me/menu", authHandler.GetMyMenu)
 
 	// User Routes
 	userGroup := api.Group("/users")
@@ -249,6 +251,13 @@ func main() {
 
 	masterGroup.Get("/topology", masterHandler.GetTopology)
 	masterGroup.Get("/roles", masterHandler.ListRoles)
+	masterGroup.Get("/modules", masterHandler.ListSystemModules)
+	masterGroup.Get("/modules/:id", masterHandler.GetSystemModule)
+	masterGroup.Post("/modules", masterHandler.CreateSystemModule)
+	masterGroup.Put("/modules/:id", masterHandler.UpdateSystemModule)
+	masterGroup.Delete("/modules/:id", masterHandler.DeleteSystemModule)
+	masterGroup.Get("/roles/:role_id/permissions", masterHandler.GetRolePermissions)
+	masterGroup.Post("/roles/:role_id/permissions", masterHandler.UpdateRolePermissions)
 	masterGroup.Get("/retention", masterHandler.ListRetentionPolicies)
 	masterGroup.Get("/settings/:category", masterHandler.GetSettings)
 	masterGroup.Post("/settings/:category", masterHandler.UpdateSetting)

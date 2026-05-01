@@ -1,4 +1,5 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
+// Triggering route refresh
 import tailwindcss from "@tailwindcss/vite";
 
 export default defineNuxtConfig({
