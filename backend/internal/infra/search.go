@@ -118,3 +118,33 @@ func (s *SearchService) Search(ctx context.Context, query string, deptID uuid.UU
 
 	return ids, nil
 }
+func (s *SearchService) TestConnection(ctx context.Context, addresses []string, username, password, apiKey string) (map[string]interface{}, error) {
+	cfg := elasticsearch.Config{
+		Addresses: addresses,
+		Username:  username,
+		Password:  password,
+		APIKey:    apiKey,
+	}
+
+	client, err := elasticsearch.NewClient(cfg)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create ES client: %v", err)
+	}
+
+	res, err := client.Info(client.Info.WithContext(ctx))
+	if err != nil {
+		return nil, fmt.Errorf("failed to connect to ES: %v", err)
+	}
+	defer res.Body.Close()
+
+	if res.IsError() {
+		return nil, fmt.Errorf("ES error: %s", res.String())
+	}
+
+	var info map[string]interface{}
+	if err := json.NewDecoder(res.Body).Decode(&info); err != nil {
+		return nil, fmt.Errorf("failed to decode ES info: %v", err)
+	}
+
+	return info, nil
+}

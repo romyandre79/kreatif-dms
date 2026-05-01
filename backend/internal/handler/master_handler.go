@@ -3,6 +3,7 @@ package handler
 import (
 	"encoding/json"
 	"fmt"
+	"strconv"
 	"github.com/gofiber/fiber/v3"
 	"github.com/google/uuid"
 	_ "github.com/kreatif/dms-backend/internal/repository"
@@ -932,6 +933,127 @@ func (h *MasterHandler) ListRoles(c fiber.Ctx) error {
 	return response.Success(c, fiber.StatusOK, "Roles listed", roles)
 }
 
+func (h *MasterHandler) ListSystemModules(c fiber.Ctx) error {
+	modules, err := h.svc.ListSystemModules(c.Context())
+	if err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to list modules", err.Error())
+	}
+	return response.Success(c, fiber.StatusOK, "Modules listed", modules)
+}
+
+func (h *MasterHandler) GetSystemModule(c fiber.Ctx) error {
+	id := c.Params("id")
+	module, err := h.svc.GetSystemModule(c.Context(), id)
+	if err != nil {
+		return response.Error(c, fiber.StatusNotFound, "Module not found", err.Error())
+	}
+	return response.Success(c, fiber.StatusOK, "Module retrieved", module)
+}
+
+func (h *MasterHandler) CreateSystemModule(c fiber.Ctx) error {
+	type request struct {
+		ID             string   `json:"id"`
+		Name           string   `json:"name"`
+		Category       string   `json:"category"`
+		Path           string   `json:"path"`
+		Icon           string   `json:"icon"`
+		AllowedActions []string `json:"allowed_actions"`
+		SortOrder      int32    `json:"sort_order"`
+		ParentID       *string  `json:"parent_id"`
+	}
+	req := new(request)
+	if err := c.Bind().JSON(req); err != nil {
+		return response.Error(c, fiber.StatusBadRequest, "Invalid request body", err.Error())
+	}
+
+	module, err := h.svc.CreateSystemModule(c.Context(), req.ID, req.Name, req.Category, req.Path, req.Icon, req.AllowedActions, req.SortOrder, req.ParentID)
+	if err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to create module", err.Error())
+	}
+
+	// Log Activity
+	userID := c.Locals("user_id").(uuid.UUID)
+	h.svc.LogActivity(c.Context(), userID, "CREATE", "system_module", nil, req, c.IP())
+
+	return response.Success(c, fiber.StatusCreated, "Module created", module)
+}
+
+func (h *MasterHandler) UpdateSystemModule(c fiber.Ctx) error {
+	type request struct {
+		Name           string   `json:"name"`
+		Category       string   `json:"category"`
+		Path           string   `json:"path"`
+		Icon           string   `json:"icon"`
+		AllowedActions []string `json:"allowed_actions"`
+		SortOrder      int32    `json:"sort_order"`
+		ParentID       *string  `json:"parent_id"`
+	}
+	id := c.Params("id")
+	req := new(request)
+	if err := c.Bind().JSON(req); err != nil {
+		return response.Error(c, fiber.StatusBadRequest, "Invalid request body", err.Error())
+	}
+
+	module, err := h.svc.UpdateSystemModule(c.Context(), id, req.Name, req.Category, req.Path, req.Icon, req.AllowedActions, req.SortOrder, req.ParentID)
+	if err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to update module", err.Error())
+	}
+
+	// Log Activity
+	userID := c.Locals("user_id").(uuid.UUID)
+	h.svc.LogActivity(c.Context(), userID, "UPDATE", "system_module", nil, req, c.IP())
+
+	return response.Success(c, fiber.StatusOK, "Module updated", module)
+}
+
+func (h *MasterHandler) DeleteSystemModule(c fiber.Ctx) error {
+	id := c.Params("id")
+	if err := h.svc.DeleteSystemModule(c.Context(), id); err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to delete module", err.Error())
+	}
+
+	// Log Activity
+	userID := c.Locals("user_id").(uuid.UUID)
+	h.svc.LogActivity(c.Context(), userID, "DELETE", "system_module", nil, nil, c.IP())
+
+	return response.Success(c, fiber.StatusOK, "Module deleted", nil)
+}
+
+func (h *MasterHandler) GetRolePermissions(c fiber.Ctx) error {
+	roleID, err := strconv.Atoi(c.Params("role_id"))
+	if err != nil {
+		return response.Error(c, fiber.StatusBadRequest, "Invalid role ID", err.Error())
+	}
+
+	permissions, err := h.svc.GetRolePermissions(c.Context(), int32(roleID))
+	if err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to get role permissions", err.Error())
+	}
+	return response.Success(c, fiber.StatusOK, "Role permissions retrieved", permissions)
+}
+
+func (h *MasterHandler) UpdateRolePermissions(c fiber.Ctx) error {
+	roleID, err := strconv.Atoi(c.Params("role_id"))
+	if err != nil {
+		return response.Error(c, fiber.StatusBadRequest, "Invalid role ID", err.Error())
+	}
+
+	var req []struct {
+		ModuleID string `json:"module_id"`
+		Action   string `json:"action"`
+	}
+	if err := c.Bind().JSON(&req); err != nil {
+		return response.Error(c, fiber.StatusBadRequest, "Invalid request body", err.Error())
+	}
+
+	err = h.svc.UpdateRolePermissions(c.Context(), int32(roleID), req)
+	if err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to update role permissions", err.Error())
+	}
+
+	return response.Success(c, fiber.StatusOK, "Role permissions updated", nil)
+}
+
 func (h *MasterHandler) ListRetentionPolicies(c fiber.Ctx) error {
 	policies, err := h.svc.ListRetentionPolicies(c.Context())
 	if err != nil {
@@ -969,7 +1091,31 @@ func (h *MasterHandler) GetIntegrationStatus(c fiber.Ctx) error {
 	if err != nil {
 		return response.Error(c, fiber.StatusInternalServerError, "Failed to get integration status", err.Error())
 	}
-	return response.Success(c, fiber.StatusOK, "Integration status retrieved", nodes)
+
+	syncCount, _ := h.svc.GetSyncLogsCount(c.Context())
+
+	return response.Success(c, fiber.StatusOK, "Integration status retrieved", fiber.Map{
+		"nodes":      nodes,
+		"sync_count": syncCount,
+	})
+}
+
+func (h *MasterHandler) CreateIntegrationNode(c fiber.Ctx) error {
+	req := new(CreateIntegrationNodeRequest)
+	if err := c.Bind().JSON(req); err != nil {
+		return response.Error(c, fiber.StatusBadRequest, "Invalid request body", err.Error())
+	}
+
+	node, err := h.svc.CreateIntegrationNode(c.Context(), req.Name, req.ServiceType, req.Driver, req.Endpoint, req.IsCritical, req.Config)
+	if err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to create integration node", err.Error())
+	}
+
+	// Log Activity
+	userID := c.Locals("user_id").(uuid.UUID)
+	h.svc.LogActivity(c.Context(), userID, "CREATE", "integration_node", &node.ID, req, c.IP())
+
+	return response.Success(c, fiber.StatusCreated, "Integration node created", node)
 }
 
 func (h *MasterHandler) UpdateIntegrationNode(c fiber.Ctx) error {
@@ -987,7 +1133,84 @@ func (h *MasterHandler) UpdateIntegrationNode(c fiber.Ctx) error {
 	if err != nil {
 		return response.Error(c, fiber.StatusInternalServerError, "Failed to update integration node", err.Error())
 	}
+
+	// Log Activity
+	userID := c.Locals("user_id").(uuid.UUID)
+	h.svc.LogActivity(c.Context(), userID, "UPDATE", "integration_node", &id, req, c.IP())
+
 	return response.Success(c, fiber.StatusOK, "Integration node updated", node)
+}
+
+func (h *MasterHandler) TestIntegrationNode(c fiber.Ctx) error {
+	req := new(TestIntegrationNodeRequest)
+	if err := c.Bind().JSON(req); err != nil {
+		return response.Error(c, fiber.StatusBadRequest, "Invalid request body", err.Error())
+	}
+
+	if req.ServiceType == "LDAP" {
+		result, err := h.svc.TestLDAPConnection(c.Context(), req.Endpoint, req.Config)
+		if err != nil {
+			return response.Error(c, fiber.StatusInternalServerError, "LDAP Connection Failed", err.Error())
+		}
+		return response.Success(c, fiber.StatusOK, "Connection Successful", result)
+	}
+
+	if req.ServiceType == "SEARCH" {
+		result, err := h.svc.TestSearchConnection(c.Context(), req.Endpoint, req.Config)
+		if err != nil {
+			return response.Error(c, fiber.StatusInternalServerError, "Search Engine Connection Failed", err.Error())
+		}
+		return response.Success(c, fiber.StatusOK, "Connection Successful", result)
+	}
+
+	if req.ServiceType == "S3" || req.ServiceType == "STORAGE" {
+		err := h.svc.TestStorageConnection(c.Context(), req.Endpoint, req.Config)
+		if err != nil {
+			return response.Error(c, fiber.StatusInternalServerError, "Storage Connection Failed", err.Error())
+		}
+		return response.Success(c, fiber.StatusOK, "Connection Successful", nil)
+	}
+
+	if req.ServiceType == "WHATSAPP" {
+		result, err := h.svc.TestWhatsAppConnection(c.Context(), req.Endpoint, req.Config)
+		if err != nil {
+			return response.Error(c, fiber.StatusInternalServerError, "WhatsApp Gateway Connection Failed", err.Error())
+		}
+		return response.Success(c, fiber.StatusOK, "Connection Successful", result)
+	}
+
+	if req.ServiceType == "SMTP" {
+		err := h.svc.TestSMTPConnection(c.Context(), req.Endpoint, req.Config)
+		if err != nil {
+			return response.Error(c, fiber.StatusInternalServerError, "SMTP Connection Failed", err.Error())
+		}
+		return response.Success(c, fiber.StatusOK, "Connection Successful", nil)
+	}
+
+	return response.Error(c, fiber.StatusBadRequest, "Service type not supported for testing", "")
+}
+
+func (h *MasterHandler) DeleteIntegrationNode(c fiber.Ctx) error {
+	id, err := uuid.Parse(c.Params("id"))
+	if err != nil {
+		return response.Error(c, fiber.StatusBadRequest, "Invalid node ID", err.Error())
+	}
+
+	if err := h.svc.DeleteIntegrationNode(c.Context(), id); err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to delete integration node", err.Error())
+	}
+
+	// Log Activity
+	userID := c.Locals("user_id").(uuid.UUID)
+	h.svc.LogActivity(c.Context(), userID, "DELETE", "integration_node", &id, nil, c.IP())
+
+	return response.Success(c, fiber.StatusOK, "Integration node deleted", nil)
+}
+
+type TestIntegrationNodeRequest struct {
+	ServiceType string          `json:"service_type"`
+	Endpoint    string          `json:"endpoint"`
+	Config      json.RawMessage `json:"config_json"`
 }
 
 type CreateCompanyRequest struct {
@@ -1071,6 +1294,15 @@ type UpdateSettingRequest struct {
 	Value string `json:"value"`
 	Type  string `json:"type"`
 	Desc  string `json:"description"`
+}
+
+type CreateIntegrationNodeRequest struct {
+	Name        string          `json:"name"`
+	ServiceType string          `json:"service_type"`
+	Driver      string          `json:"driver"`
+	Endpoint    string          `json:"endpoint"`
+	IsCritical  bool            `json:"is_critical"`
+	Config      json.RawMessage `json:"config_json"`
 }
 
 type UpdateIntegrationNodeRequest struct {
@@ -1202,6 +1434,18 @@ func (h *MasterHandler) ListActivityLogs(c fiber.Ctx) error {
 	return response.Success(c, fiber.StatusOK, "Activity logs listed", logs)
 }
 
+func (h *MasterHandler) ListSsoSyncLogs(c fiber.Ctx) error {
+	limit := int32(50)
+	offset := int32(0)
+	
+	logs, err := h.svc.ListSsoSyncLogs(c.Context(), limit, offset)
+	if err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to list sync logs", err.Error())
+	}
+	return response.Success(c, fiber.StatusOK, "Sync logs listed", logs)
+}
+
+
 type CreateDocumentTypeRequest struct {
 	Code        string `json:"code"`
 	Name        string `json:"name"`
@@ -1212,4 +1456,19 @@ type UpdateDocumentTypeRequest struct {
 	Code        string `json:"code"`
 	Name        string `json:"name"`
 	Description string `json:"description"`
+}
+func (h *MasterHandler) FetchAIModels(c fiber.Ctx) error {
+	driver := c.Query("driver")
+	apiKey := c.Query("api_key")
+
+	if driver == "" || apiKey == "" {
+		return response.Error(c, fiber.StatusBadRequest, "Driver and API Key are required", "")
+	}
+
+	models, err := h.svc.FetchAIModels(c.Context(), driver, apiKey)
+	if err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to fetch AI models", err.Error())
+	}
+
+	return response.Success(c, fiber.StatusOK, "AI models fetched", models)
 }

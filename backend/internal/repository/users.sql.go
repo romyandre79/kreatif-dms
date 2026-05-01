@@ -57,6 +57,15 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 	return i, err
 }
 
+const deleteUser = `-- name: DeleteUser :exec
+DELETE FROM users WHERE id = $1
+`
+
+func (q *Queries) DeleteUser(ctx context.Context, id uuid.UUID) error {
+	_, err := q.db.Exec(ctx, deleteUser, id)
+	return err
+}
+
 const getRoleIDByName = `-- name: GetRoleIDByName :one
 SELECT id FROM roles WHERE name = $1 LIMIT 1
 `
@@ -234,6 +243,50 @@ func (q *Queries) ListUsers(ctx context.Context) ([]User, error) {
 		return nil, err
 	}
 	return items, nil
+}
+
+const updateUser = `-- name: UpdateUser :one
+UPDATE users
+SET email = $2, full_name = $3, role_id = $4, department_id = $5, status = $6, updated_at = NOW()
+WHERE id = $1
+RETURNING id, email, password_hash, full_name, role_id, department_id, is_active, created_at, updated_at, status, avatar_url, signature_url, pin
+`
+
+type UpdateUserParams struct {
+	ID           uuid.UUID   `json:"id"`
+	Email        string      `json:"email"`
+	FullName     string      `json:"full_name"`
+	RoleID       int32       `json:"role_id"`
+	DepartmentID pgtype.UUID `json:"department_id"`
+	Status       string      `json:"status"`
+}
+
+func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (User, error) {
+	row := q.db.QueryRow(ctx, updateUser,
+		arg.ID,
+		arg.Email,
+		arg.FullName,
+		arg.RoleID,
+		arg.DepartmentID,
+		arg.Status,
+	)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Email,
+		&i.PasswordHash,
+		&i.FullName,
+		&i.RoleID,
+		&i.DepartmentID,
+		&i.IsActive,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Status,
+		&i.AvatarUrl,
+		&i.SignatureUrl,
+		&i.Pin,
+	)
+	return i, err
 }
 
 const updateUserPIN = `-- name: UpdateUserPIN :exec

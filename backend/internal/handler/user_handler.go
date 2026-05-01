@@ -42,6 +42,7 @@ func (h *UserHandler) Register(c fiber.Ctx) error {
 		FullName:     req.FullName,
 		RoleID:       req.RoleID,
 		DepartmentID: pgtype.UUID{Bytes: req.DepartmentID, Valid: req.DepartmentID != uuid.Nil},
+		Status:       "active",
 	})
 
 	if err != nil {
@@ -58,4 +59,53 @@ func (h *UserHandler) List(c fiber.Ctx) error {
 	}
 
 	return response.Success(c, fiber.StatusOK, "Users retrieved successfully", users)
+}
+
+func (h *UserHandler) Update(c fiber.Ctx) error {
+	id, err := uuid.Parse(c.Params("id"))
+	if err != nil {
+		return response.Error(c, fiber.StatusBadRequest, "Invalid user ID", err.Error())
+	}
+
+	type updateRequest struct {
+		Email        string    `json:"email"`
+		FullName     string    `json:"full_name"`
+		RoleID       int32     `json:"role_id"`
+		DepartmentID uuid.UUID `json:"department_id"`
+		Status       string    `json:"status"`
+	}
+
+	req := new(updateRequest)
+	if err := c.Bind().JSON(req); err != nil {
+		return response.Error(c, fiber.StatusBadRequest, "Invalid request body", err.Error())
+	}
+
+	user, err := h.repo.UpdateUser(c.Context(), repository.UpdateUserParams{
+		ID:           id,
+		Email:        req.Email,
+		FullName:     req.FullName,
+		RoleID:       req.RoleID,
+		DepartmentID: pgtype.UUID{Bytes: req.DepartmentID, Valid: req.DepartmentID != uuid.Nil},
+		Status:       req.Status,
+	})
+
+	if err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to update user", err.Error())
+	}
+
+	return response.Success(c, fiber.StatusOK, "User updated successfully", user)
+}
+
+func (h *UserHandler) Delete(c fiber.Ctx) error {
+	id, err := uuid.Parse(c.Params("id"))
+	if err != nil {
+		return response.Error(c, fiber.StatusBadRequest, "Invalid user ID", err.Error())
+	}
+
+	err = h.repo.DeleteUser(c.Context(), id)
+	if err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to delete user", err.Error())
+	}
+
+	return response.Success(c, fiber.StatusOK, "User deleted successfully", nil)
 }

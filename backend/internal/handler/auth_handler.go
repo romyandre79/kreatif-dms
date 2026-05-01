@@ -178,3 +178,21 @@ func (h *AuthHandler) Refresh(c fiber.Ctx) error {
 
 	return response.Success(c, fiber.StatusOK, "Token refreshed", res)
 }
+
+func (h *AuthHandler) GetMyPermissions(c fiber.Ctx) error {
+	userID := c.Locals("user_id").(uuid.UUID)
+	perms, err := h.svc.GetPermissions(c.Context(), userID)
+	if err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to get permissions", err.Error())
+	}
+	return response.Success(c, fiber.StatusOK, "Permissions retrieved", perms)
+}
+
+func (h *AuthHandler) GetMyMenu(c fiber.Ctx) error {
+	userID := c.Locals("user_id").(uuid.UUID)
+	menu, err := h.svc.GetMenu(c.Context(), userID)
+	if err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to get menu", err.Error())
+	}
+	return response.Success(c, fiber.StatusOK, "Menu retrieved", menu)
+}

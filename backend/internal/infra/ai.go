@@ -89,7 +89,7 @@ func (s *AIService) Summarize(ctx context.Context, text string) (string, error) 
 	}
 
 	prompt := fmt.Sprintf("Ringkas teks dokumen berikut dalam 2-3 kalimat yang padat:\n\n%s", text)
-	return s.callGemini(ctx, prompt)
+	return s.callAI(ctx, prompt)
 }
 
 func (s *AIService) RefineOCRText(ctx context.Context, rawText string) (string, error) {
@@ -108,7 +108,7 @@ Tugas Anda:
 TEKS MENTAH:
 %s`, rawText)
 
-	refined, err := s.callGemini(ctx, prompt)
+	refined, err := s.callAI(ctx, prompt)
 	if err != nil {
 		log.Printf("[AIService] Warning: AI refinement failed, falling back to raw text: %v", err)
 		return rawText, nil
@@ -137,7 +137,7 @@ Kembalikan HANYA JSON valid tanpa penjelasan tambahan.
 TEKS DOKUMEN:
 %s`, text)
 
-	jsonStr, err := s.callGemini(ctx, prompt)
+	jsonStr, err := s.callAI(ctx, prompt)
 	if err != nil {
 		return map[string]interface{}{}, err
 	}
@@ -170,52 +170,133 @@ func (s *AIService) cleanJSONString(s_input string) string {
 	return s_input
 }
 
-func (s *AIService) getGeminiConfig(ctx context.Context) (string, string, error) {
+func (s *AIService) getAIConfig(ctx context.Context) (string, string, string, string, error) {
 	node, err := s.repo.GetIntegrationNodeByType(ctx, "AI")
 	if err != nil {
-		return "", "", fmt.Errorf("AI integration node not found: %v", err)
+		return "", "", "", "", fmt.Errorf("AI integration node not found: %v", err)
 	}
 
 	if !node.IsActive.Bool {
-		return "", "", fmt.Errorf("AI integration is disabled")
+		return "", "", "", "", fmt.Errorf("AI integration is disabled")
 	}
 
 	var nodeCfg struct {
-		Token string `json:"token"`
-		Model string `json:"model"`
+		Token        string `json:"token"`
+		Model        string `json:"model"`
+		SystemPrompt string `json:"system_prompt"`
 	}
 	if err := json.Unmarshal(node.ConfigJson, &nodeCfg); err != nil {
-		return "", "", fmt.Errorf("failed to parse AI config: %v", err)
+		return "", "", "", "", fmt.Errorf("failed to parse AI config: %v", err)
 	}
 
+	driver := node.Driver.String
 	apiKey := nodeCfg.Token
 	model := nodeCfg.Model
+	systemPrompt := nodeCfg.SystemPrompt
 
 	if apiKey == "" {
 		apiKey = s.cfg.GeminiAPIKey
+		driver = "gemini"
 	}
+
+	// Final fallback for driver if still empty
+	if driver == "" {
+		driver = "gemini"
+	}
+
 	if model == "" {
 		model = "gemini-1.5-flash"
 	}
+	if systemPrompt == "" {
+		systemPrompt = "You are a helpful assistant for Kreatif DMS."
+	}
 
-	return apiKey, model, nil
+	return driver, apiKey, model, systemPrompt, nil
 }
 
-func (s *AIService) callGemini(ctx context.Context, prompt string) (string, error) {
-	apiKey, model, err := s.getGeminiConfig(ctx)
+func (s *AIService) callAI(ctx context.Context, prompt string) (string, error) {
+	driver, apiKey, model, systemPrompt, err := s.getAIConfig(ctx)
 	if err != nil {
 		// Fallback to legacy config if node not found
 		if s.cfg.GeminiAPIKey != "" {
+			driver = "gemini"
 			apiKey = s.cfg.GeminiAPIKey
 			model = "gemini-1.5-flash"
+			systemPrompt = "You are a helpful assistant for Kreatif DMS."
 		} else {
 			return "", err
 		}
 	}
 
+	if driver == "openai" {
+		return s.callOpenAI(ctx, apiKey, model, systemPrompt, prompt)
+	}
+
+	return s.callGemini(ctx, apiKey, model, systemPrompt, prompt)
+}
+
+func (s *AIService) callOpenAI(ctx context.Context, apiKey, model, systemPrompt, prompt string) (string, error) {
+	url := "https://api.openai.com/v1/chat/completions"
+	payload := map[string]interface{}{
+		"model": model,
+		"messages": []map[string]interface{}{
+			{"role": "system", "content": systemPrompt},
+			{"role": "user", "content": prompt},
+		},
+	}
+
+	jsonData, err := json.Marshal(payload)
+	if err != nil {
+		return "", err
+	}
+
+	req, err := http.NewRequestWithContext(ctx, "POST", url, bytes.NewBuffer(jsonData))
+	if err != nil {
+		return "", err
+	}
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+apiKey)
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		return "", fmt.Errorf("openai api error: %d - %s", resp.StatusCode, string(body))
+	}
+
+	var result struct {
+		Choices []struct {
+			Message struct {
+				Content string `json:"content"`
+			} `json:"message"`
+		} `json:"choices"`
+	}
+
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return "", err
+	}
+
+	if len(result.Choices) > 0 {
+		return result.Choices[0].Message.Content, nil
+	}
+
+	return "", fmt.Errorf("no content generated from openai")
+}
+
+func (s *AIService) callGemini(ctx context.Context, apiKey, model, systemPrompt, prompt string) (string, error) {
 	url := fmt.Sprintf("https://generativelanguage.googleapis.com/v1beta/models/%s:generateContent?key=%s", model, apiKey)
 
 	payload := map[string]interface{}{
+		"system_instruction": map[string]interface{}{
+			"parts": []map[string]interface{}{
+				{"text": systemPrompt},
+			},
+		},
 		"contents": []map[string]interface{}{
 			{
 				"parts": []map[string]interface{}{
@@ -267,4 +348,98 @@ func (s *AIService) callGemini(ctx context.Context, prompt string) (string, erro
 	}
 
 	return "", fmt.Errorf("no content generated from gemini")
+}
+func (s *AIService) FetchGeminiModels(ctx context.Context, apiKey string) ([]map[string]string, error) {
+	url := fmt.Sprintf("https://generativelanguage.googleapis.com/v1beta/models?key=%s", apiKey)
+	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		return nil, fmt.Errorf("gemini api error: %d - %s", resp.StatusCode, string(body))
+	}
+
+	var result struct {
+		Models []struct {
+			Name                       string   `json:"name"`
+			DisplayName                string   `json:"displayName"`
+			SupportedGenerationMethods []string `json:"supportedGenerationMethods"`
+		} `json:"models"`
+	}
+
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return nil, err
+	}
+
+	models := []map[string]string{}
+	for _, m := range result.Models {
+		isGenerative := false
+		for _, method := range m.SupportedGenerationMethods {
+			if method == "generateContent" {
+				isGenerative = true
+				break
+			}
+		}
+		if isGenerative {
+			models = append(models, map[string]string{
+				"id":   m.Name[7:], // remove "models/"
+				"name": m.DisplayName,
+			})
+		}
+	}
+
+	return models, nil
+}
+
+func (s *AIService) FetchOpenAIModels(ctx context.Context, apiKey string) ([]map[string]string, error) {
+	url := "https://api.openai.com/v1/models"
+	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Authorization", "Bearer "+apiKey)
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		return nil, fmt.Errorf("openai api error: %d - %s", resp.StatusCode, string(body))
+	}
+
+	var result struct {
+		Data []struct {
+			ID string `json:"id"`
+		} `json:"data"`
+	}
+
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return nil, err
+	}
+
+	models := []map[string]string{}
+	for _, m := range result.Data {
+		// Filter for common gpt models
+		if len(m.ID) >= 3 && m.ID[:3] == "gpt" {
+			models = append(models, map[string]string{
+				"id":   m.ID,
+				"name": m.ID,
+			})
+		}
+	}
+
+	return models, nil
 }

@@ -229,7 +229,56 @@ func (s *LDAPService) SearchUsers(ctx context.Context, query string) ([]LDAPUser
 			{Username: "ani", Email: "ani@kreatif.id", FullName: "Ani Wijaya"},
 		}, nil
 	}
-
-	// TODO: Implement real LDAP search using nodeCfg if needed
 	return nil, fmt.Errorf("not implemented for real LDAP yet")
+}
+
+// TestConnection performs a real connection and count check to the LDAP server
+func (s *LDAPService) TestConnection(ctx context.Context, endpoint string, baseDN, bindDN, bindPass string) (int, int, error) {
+	url := endpoint
+	if url == "" {
+		return 0, 0, fmt.Errorf("endpoint is required")
+	}
+	if !strings.HasPrefix(url, "ldap://") && !strings.HasPrefix(url, "ldaps://") {
+		url = "ldap://" + url
+	}
+
+	l, err := ldap.DialURL(url)
+	if err != nil {
+		return 0, 0, fmt.Errorf("failed to connect: %v", err)
+	}
+	defer l.Close()
+
+	if err := l.Bind(bindDN, bindPass); err != nil {
+		return 0, 0, fmt.Errorf("bind failed: %v", err)
+	}
+
+	// Count Users
+	userRequest := ldap.NewSearchRequest(
+		baseDN,
+		ldap.ScopeWholeSubtree, ldap.NeverDerefAliases, 0, 0, false,
+		"(objectClass=person)",
+		[]string{"dn"},
+		nil,
+	)
+	userRes, err := l.Search(userRequest)
+	userCount := 0
+	if err == nil {
+		userCount = len(userRes.Entries)
+	}
+
+	// Count Groups
+	groupRequest := ldap.NewSearchRequest(
+		baseDN,
+		ldap.ScopeWholeSubtree, ldap.NeverDerefAliases, 0, 0, false,
+		"(|(objectClass=group)(objectClass=groupOfNames)(objectClass=posixGroup))",
+		[]string{"dn"},
+		nil,
+	)
+	groupRes, err := l.Search(groupRequest)
+	groupCount := 0
+	if err == nil {
+		groupCount = len(groupRes.Entries)
+	}
+
+	return userCount, groupCount, nil
 }

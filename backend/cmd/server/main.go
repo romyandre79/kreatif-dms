@@ -111,8 +111,9 @@ func main() {
 	authSvc := service.NewAuthService(repo, cfg, ldapSvc, emailSvc)
 	docSvc := service.NewDocumentService(repo, storageSvc, asynqClient)
 	searchSvc := infra.NewSearchService(es)
+	aiSvc := infra.NewAIService(repo, cfg)
 	_ = service.NewCacheService(rdb) // Initialized for performance later
-	masterSvc := service.NewMasterService(repo)
+	masterSvc := service.NewMasterService(repo, ldapSvc, aiSvc, searchSvc, storageSvc, waSvc, emailSvc)
 	hardwareSvc := service.NewHardwareService(repo)
 	notifSvc := service.NewNotificationService(repo, waSvc)
 	integrationMonitorSvc := service.NewIntegrationMonitorService(repo)
@@ -171,11 +172,16 @@ func main() {
 	authGroup.Use(middleware.AuthMiddleware(cfg.JWTSecret))
 	authGroup.Post("/pin", authHandler.SetPIN)
 	authGroup.Post("/pin/verify", authHandler.VerifyPIN)
+	authGroup.Get("/me/permissions", authHandler.GetMyPermissions)
+	authGroup.Get("/me/menu", authHandler.GetMyMenu)
 
 	// User Routes
 	userGroup := api.Group("/users")
 	userGroup.Use(middleware.AuthMiddleware(cfg.JWTSecret))
 	userGroup.Get("/", middleware.RoleMiddleware("admin", "superadmin"), userHandler.List)
+	userGroup.Post("/", middleware.RoleMiddleware("admin", "superadmin"), userHandler.Register)
+	userGroup.Put("/:id", middleware.RoleMiddleware("admin", "superadmin"), userHandler.Update)
+	userGroup.Delete("/:id", middleware.RoleMiddleware("admin", "superadmin"), userHandler.Delete)
 	userGroup.Get("/pending", middleware.RoleMiddleware("admin", "superadmin"), authHandler.ListPendingUsers)
 	userGroup.Post("/:id/approve", middleware.RoleMiddleware("admin", "superadmin"), authHandler.ApproveUser)
 
@@ -248,12 +254,24 @@ func main() {
 
 	masterGroup.Get("/topology", masterHandler.GetTopology)
 	masterGroup.Get("/roles", masterHandler.ListRoles)
+	masterGroup.Get("/modules", masterHandler.ListSystemModules)
+	masterGroup.Get("/modules/:id", masterHandler.GetSystemModule)
+	masterGroup.Post("/modules", masterHandler.CreateSystemModule)
+	masterGroup.Put("/modules/:id", masterHandler.UpdateSystemModule)
+	masterGroup.Delete("/modules/:id", masterHandler.DeleteSystemModule)
+	masterGroup.Get("/roles/:role_id/permissions", masterHandler.GetRolePermissions)
+	masterGroup.Post("/roles/:role_id/permissions", masterHandler.UpdateRolePermissions)
 	masterGroup.Get("/retention", masterHandler.ListRetentionPolicies)
 	masterGroup.Get("/settings/:category", masterHandler.GetSettings)
 	masterGroup.Post("/settings/:category", masterHandler.UpdateSetting)
 	masterGroup.Get("/integration/status", middleware.RoleMiddleware("admin", "superadmin"), masterHandler.GetIntegrationStatus)
 	masterGroup.Get("/integration/report", middleware.RoleMiddleware("admin", "superadmin"), masterHandler.DownloadIntegrationReport)
+	masterGroup.Post("/integration/nodes", middleware.RoleMiddleware("admin", "superadmin"), masterHandler.CreateIntegrationNode)
 	masterGroup.Put("/integration/nodes/:id", middleware.RoleMiddleware("admin", "superadmin"), masterHandler.UpdateIntegrationNode)
+	masterGroup.Post("/integration/test-connection", middleware.RoleMiddleware("admin", "superadmin"), masterHandler.TestIntegrationNode)
+	masterGroup.Delete("/integration/nodes/:id", middleware.RoleMiddleware("admin", "superadmin"), masterHandler.DeleteIntegrationNode)
+	masterGroup.Get("/integration/sync-logs", middleware.RoleMiddleware("admin", "superadmin"), masterHandler.ListSsoSyncLogs)
+	masterGroup.Get("/integration/ai-models", middleware.RoleMiddleware("admin", "superadmin"), masterHandler.FetchAIModels)
 	masterGroup.Get("/audit-logs", middleware.RoleMiddleware("superadmin"), masterHandler.ListActivityLogs)
 
 	// Hardware Master Routes

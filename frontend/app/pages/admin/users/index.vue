@@ -1,228 +1,405 @@
 <template>
-  <div class="flex h-[calc(100vh-theme(spacing.32))] gap-10" v-motion-fade>
-    <!-- Left Section: Main Content -->
-    <div class="flex-grow space-y-10 overflow-y-auto pr-4 pb-20 custom-scrollbar">
-      <!-- Header -->
-      <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
-        <div class="space-y-1">
-          <h1 class="text-3xl font-black text-[#1E3A5F] dark:text-white uppercase tracking-tight">{{ $t('users.list.title') }}</h1>
-          <p class="text-xs font-bold text-slate-500">{{ $t('users.list.subtitle') }}</p>
+  <div class="space-y-8">
+    <div class="flex items-center justify-between">
+      <div class="space-y-1">
+        <h2 class="text-2xl font-black text-[#1E3A5F] dark:text-white uppercase tracking-tight">{{ $t('admin.user_management.title') }}</h2>
+        <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">{{ $t('admin.user_management.subtitle') }}</p>
+      </div>
+      <div class="flex items-center gap-3">
+        <button @click="openModal()" class="flex items-center gap-2 px-6 py-2.5 bg-[#1E3A5F] text-white rounded-xl shadow-lg shadow-blue-900/20 hover:bg-[#152943] transition-all font-bold text-sm active:scale-95">
+          <LucideUserPlus class="w-4 h-4" />
+          {{ $t('admin.user_management.add_btn') }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Filters & Stats -->
+    <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+      <div class="lg:col-span-3 bg-white/80 dark:bg-slate-900/50 backdrop-blur-xl border border-slate-200 dark:border-slate-800 rounded-3xl p-6 flex flex-wrap items-center gap-4">
+        <div class="relative flex-1 min-w-[200px]">
+          <LucideSearch class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+          <input 
+            type="text" 
+            v-model="filters.search"
+            :placeholder="$t('admin.user_management.search_placeholder')"
+            class="w-full pl-11 pr-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-xs font-bold focus:outline-none focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 transition-all"
+          />
         </div>
-        <div class="flex items-center gap-4">
-          <button class="px-6 py-3 text-[10px] font-black text-[#1E3A5F] dark:text-white uppercase tracking-widest flex items-center gap-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-all border border-slate-200 dark:border-slate-700">
-            <LucideFilter class="w-4 h-4" />
-            {{ $t('users.list.header.filter') }}
-          </button>
-          <button class="px-10 py-3 bg-[#1E3A5F] text-white rounded-xl text-xs font-black uppercase tracking-widest shadow-xl shadow-blue-900/20 hover:bg-[#152943] transition-all flex items-center gap-3">
-            <LucideUserPlus class="w-4 h-4" />
-            {{ $t('users.list.header.add') }}
-          </button>
+        <select v-model="filters.role_id" class="px-5 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-xs font-bold outline-none focus:ring-4 focus:ring-primary-500/10">
+          <option value="">{{ $t('admin.user_management.filter_role') }}</option>
+          <option v-for="r in rolesList" :key="r.id" :value="r.id">{{ r.name }}</option>
+        </select>
+        <select v-model="filters.status" class="px-5 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-xs font-bold outline-none focus:ring-4 focus:ring-primary-500/10">
+          <option value="">{{ $t('admin.user_management.filter_status') }}</option>
+          <option value="active">{{ $t('admin.user_management.status.active') }}</option>
+          <option value="inactive">{{ $t('admin.user_management.status.inactive') }}</option>
+          <option value="pending">{{ $t('admin.user_management.status.pending') }}</option>
+        </select>
+      </div>
+      <div class="bg-primary-500 rounded-3xl p-6 text-white flex items-center justify-between shadow-xl shadow-primary-500/20">
+        <div>
+          <p class="text-[10px] font-black uppercase tracking-widest opacity-80">{{ $t('admin.user_management.total_label') }}</p>
+          <p class="text-3xl font-black">{{ users.length }}</p>
+        </div>
+        <div class="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center">
+          <LucideUsers class="w-6 h-6" />
+        </div>
+      </div>
+    </div>
+
+    <!-- Table -->
+    <div class="bg-white/80 dark:bg-slate-900/50 backdrop-blur-xl border border-slate-200 dark:border-slate-800 rounded-3xl overflow-hidden relative min-h-[200px]">
+      <div v-if="loading" class="absolute inset-0 bg-white/50 dark:bg-slate-900/50 backdrop-blur-[2px] z-10 flex items-center justify-center">
+        <div class="flex flex-col items-center gap-3">
+          <div class="w-10 h-10 border-4 border-primary-500/20 border-t-primary-500 rounded-full animate-spin"></div>
+          <p class="text-[10px] font-black text-primary-500 uppercase tracking-widest">Loading Users...</p>
         </div>
       </div>
 
-      <!-- Stats Grid -->
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div v-for="s in [
-          { id: 'total', val: '1,248', color: 'text-blue-500', icon: LucideUsers },
-          { id: 'active', val: '1,120', color: 'text-green-500', icon: LucideCheckCircle2 },
-          { id: 'privileged', val: '42', color: 'text-amber-500', icon: LucideShieldCheck },
-          { id: 'inactive', val: '128', color: 'text-red-500', icon: LucideUserX }
-        ]" :key="s.id" class="glass p-8 rounded-[2.5rem] space-y-4 shadow-sm group hover:scale-105 transition-all cursor-pointer">
-          <div class="flex items-center justify-between">
-            <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest">{{ $t(`users.list.stats.${s.id}`) }}</p>
-            <div :class="`w-8 h-8 rounded-lg flex items-center justify-center bg-slate-50 dark:bg-slate-800 ${s.color} shadow-sm border border-slate-100 dark:border-slate-800 group-hover:bg-[#1E3A5F] group-hover:text-white transition-all`">
-              <component :is="s.icon" class="w-4 h-4" />
-            </div>
-          </div>
-          <p class="text-3xl font-black text-[#1E3A5F] dark:text-white tracking-tighter">{{ s.val }}</p>
-        </div>
-      </div>
-
-      <!-- User Table -->
-      <div class="glass rounded-[3rem] overflow-hidden shadow-sm">
-        <div class="p-8 flex items-center justify-between border-b border-slate-50 dark:border-slate-800">
-          <h3 class="text-xs font-black text-[#1E3A5F] dark:text-white uppercase tracking-widest">{{ $t('users.list.table.title') }}</h3>
-          <div class="flex items-center gap-6">
-            <span class="flex items-center gap-2 text-[8px] font-black text-green-500 uppercase tracking-widest">
-              <span class="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span>
-              {{ $t('users.list.table.online') }}
-            </span>
-            <span class="flex items-center gap-2 text-[8px] font-black text-slate-300 uppercase tracking-widest">
-              <span class="w-1.5 h-1.5 bg-slate-300 rounded-full"></span>
-              {{ $t('users.list.table.offline') }}
-            </span>
-          </div>
-        </div>
-        <table class="w-full text-left">
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
           <thead>
-            <tr class="bg-slate-50/50 dark:bg-slate-800/50 text-[8px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-50 dark:border-slate-800">
-              <th class="p-6 pl-10">{{ $t('users.list.table.cols.role') }}</th>
-              <th class="p-6">{{ $t('users.list.table.cols.dept') }}</th>
-              <th class="p-6">{{ $t('users.list.table.cols.status') }}</th>
-              <th class="p-6">{{ $t('users.list.table.cols.login') }}</th>
-              <th class="p-6 pr-10 text-right">{{ $t('users.list.table.cols.reporting') }}</th>
+            <tr class="text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 dark:border-slate-800">
+              <th class="px-8 py-5">{{ $t('admin.user_management.table.name_identity') }}</th>
+              <th class="px-6 py-5">{{ $t('admin.user_management.table.email_role') }}</th>
+              <th class="px-6 py-5 text-center">{{ $t('admin.user_management.table.status') }}</th>
+              <th class="px-6 py-5">{{ $t('admin.user_management.table.last_login') }}</th>
+              <th class="px-8 py-5 text-right">{{ $t('admin.user_management.table.actions') }}</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-slate-50 dark:divide-slate-800">
-            <tr v-for="u in [
-              { id: 1, role: 'IT MANAGER', dept: 'Information Technology', status: 'ok', time: 'Hari ini, 09:42', ip: '192.168.1.110', boss: 'Direktur Utama', online: true },
-              { id: 2, role: 'STAFF ADMIN', dept: 'Finance & Accounting', status: 'ok', time: 'Kemarin, 17:15', ip: '10.0.12.45', boss: 'Finance Manager', online: false },
-              { id: 3, role: 'STAFF ADMIN', dept: 'General Affairs', status: 'fail', time: '05 Feb 2024', ip: 'Akun Dinonaktifkan', boss: 'GA Supervisor', online: false },
-              { id: 4, role: 'ARCHIVE OFFICER', dept: 'Operations', status: 'ok', time: '08 Feb 2024', ip: '', boss: 'Ops Manager', online: false }
-            ]" :key="u.id" class="group hover:bg-slate-50/30 transition-all cursor-pointer" @click="selectedUser = u">
-              <td class="p-6 pl-10">
-                <div class="px-4 py-2 bg-slate-50 dark:bg-slate-800 rounded-lg text-[9px] font-black text-[#1E3A5F] dark:text-white inline-block border border-slate-100 dark:border-slate-800 group-hover:bg-[#1E3A5F] group-hover:text-white transition-all uppercase tracking-tight">
-                  {{ u.role }}
+          <tbody class="divide-y divide-slate-50 dark:divide-slate-800/50">
+            <tr v-for="user in filteredUsers" :key="user.id" class="group hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
+              <td class="px-8 py-5">
+                <div class="flex items-center gap-4 text-left">
+                  <div class="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-primary-500 font-black text-xs overflow-hidden">
+                    <img v-if="user.avatar_url" :src="user.avatar_url" class="w-full h-full object-cover">
+                    <span v-else-if="user.full_name">{{ user.full_name.split(' ').map(n => n[0]).join('').substring(0,2).toUpperCase() }}</span>
+                    <LucideUser v-else class="w-5 h-5 opacity-40" />
+                  </div>
+                  <div>
+                    <p class="text-[11px] font-black text-slate-900 dark:text-white uppercase tracking-tight">{{ user.full_name }}</p>
+                    <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">{{ user.username || user.email.split('@')[0] }}</p>
+                  </div>
                 </div>
               </td>
-              <td class="p-6 text-[11px] font-bold text-slate-500 uppercase">{{ u.dept }}</td>
-              <td class="p-6">
-                <span :class="`px-3 py-1 rounded text-[8px] font-black uppercase tracking-widest border ${u.status === 'ok' ? 'bg-green-50 text-green-500 border-green-100' : 'bg-red-50 text-red-500 border-red-100'}`">
-                  {{ u.status === 'ok' ? 'SELESAI' : 'GAGAL' }}
+              <td class="px-6 py-5">
+                <p class="text-[11px] font-bold text-slate-600 dark:text-slate-300">{{ user.email }}</p>
+                <span class="inline-block px-2 py-0.5 bg-blue-500/10 text-blue-500 rounded text-[9px] font-black uppercase mt-1">
+                  {{ getRoleName(user.role_id) }}
                 </span>
               </td>
-              <td class="p-6">
-                <div class="space-y-0.5">
-                  <p class="text-[11px] font-black text-slate-800 dark:text-white uppercase tracking-tight">{{ u.time }}</p>
-                  <p class="text-[8px] font-bold text-slate-400 uppercase font-mono">{{ u.ip }}</p>
+              <td class="px-6 py-5">
+                <div class="flex justify-center">
+                  <span :class="getStatusBadge(user.status)" class="px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest">
+                    {{ $t(`admin.user_management.status.${user.status}`) }}
+                  </span>
                 </div>
               </td>
-              <td class="p-6 pr-10 text-right">
-                <div class="flex items-center justify-end gap-3">
-                  <span class="text-[10px] font-black text-slate-400 uppercase">{{ u.boss }}</span>
-                  <div class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 border border-white dark:border-slate-700 shadow-sm flex items-center justify-center">
-                    <LucideUser class="w-4 h-4 text-slate-300" />
-                  </div>
+              <td class="px-6 py-5">
+                <p class="text-[10px] font-bold text-slate-500">{{ user.last_login || 'Never' }}</p>
+              </td>
+              <td class="px-8 py-5 text-right">
+                <div class="flex items-center justify-end gap-2">
+                  <button @click="openModal(user)" class="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl text-slate-400 hover:text-blue-500 transition-colors">
+                    <LucideEdit3 class="w-4 h-4" />
+                  </button>
+                  <button @click="deleteUser(user.id)" class="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl text-slate-400 hover:text-red-500 transition-colors">
+                    <LucideTrash2 class="w-4 h-4" />
+                  </button>
                 </div>
               </td>
             </tr>
           </tbody>
         </table>
-        <div class="p-8 flex items-center justify-between border-t border-slate-50 dark:border-slate-800 text-[10px] font-black text-slate-400 uppercase tracking-widest">
-          <span>MENAMPILKAN 1-10 DARI 1,248 PENGGUNA</span>
-          <div class="flex items-center gap-4">
-            <LucideChevronLeft class="w-4 h-4 cursor-pointer hover:text-[#1E3A5F]" />
-            <div class="flex items-center gap-2">
-              <span class="w-8 h-8 rounded-lg bg-[#1E3A5F] text-white flex items-center justify-center">1</span>
-              <span class="w-8 h-8 rounded-lg hover:bg-slate-50 flex items-center justify-center cursor-pointer">2</span>
-              <span class="w-8 h-8 rounded-lg hover:bg-slate-50 flex items-center justify-center cursor-pointer">3</span>
-              <span>...</span>
-              <span class="w-8 h-8 rounded-lg hover:bg-slate-50 flex items-center justify-center cursor-pointer">125</span>
-            </div>
-            <LucideChevronRight class="w-4 h-4 cursor-pointer hover:text-[#1E3A5F]" />
-          </div>
-        </div>
       </div>
     </div>
 
-    <!-- Right Section: Detail Sidebar -->
-    <div class="w-[450px] bg-white dark:bg-slate-900 border-l border-slate-100 dark:border-slate-800 overflow-y-auto custom-scrollbar p-10 space-y-12 shrink-0">
-      <div class="flex items-center justify-between">
-        <h3 class="text-xs font-black text-[#1E3A5F] dark:text-white uppercase tracking-widest">{{ $t('users.list.detail.title') }}</h3>
-        <LucideX class="w-5 h-5 text-slate-300 cursor-pointer hover:text-red-500 transition-all" />
-      </div>
-
-      <!-- User Profile Header -->
-      <div class="flex flex-col items-center text-center space-y-6 pt-6">
-        <div class="relative">
-          <div class="w-32 h-32 rounded-[2.5rem] bg-blue-50 dark:bg-blue-900/10 flex items-center justify-center text-4xl font-black text-[#1E3A5F] dark:text-white shadow-xl shadow-blue-900/5">
-            BP
-          </div>
-          <div class="absolute bottom-2 right-2 w-6 h-6 bg-green-500 rounded-full border-4 border-white dark:border-slate-900 animate-pulse shadow-lg"></div>
-        </div>
-        <div class="space-y-1">
-          <h4 class="text-2xl font-black text-[#1E3A5F] dark:text-white uppercase tracking-tight">Bambang Pamungkas</h4>
-          <p class="text-[10px] font-black text-blue-500 uppercase tracking-widest">IT MANAGER</p>
-          <p class="text-[11px] font-bold text-slate-400">b.pamungkas@akiradata.co.id</p>
-        </div>
-      </div>
-
-      <!-- Action Grid -->
-      <div class="grid grid-cols-2 gap-4">
-        <button v-for="action in [
-          { id: 'reset', icon: LucideRefreshCw },
-          { id: 'role', icon: LucideUsers },
-          { id: 'reporting', icon: LucideNetwork },
-          { id: 'deactivate', icon: LucideUserX, color: 'text-red-500' }
-        ]" :key="action.id" class="p-6 bg-slate-50/50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-800 flex flex-col items-center justify-center gap-4 group hover:bg-[#1E3A5F] transition-all">
-          <component :is="action.icon" :class="`w-5 h-5 ${action.color || 'text-slate-400'} group-hover:text-white transition-all`" />
-          <span :class="`text-[8px] font-black uppercase tracking-widest ${action.color || 'text-slate-500'} group-hover:text-white`">{{ $t(`users.list.detail.actions.${action.id}`) }}</span>
-        </button>
-      </div>
-
-      <!-- System Info -->
-      <div class="space-y-8">
-        <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-widest px-2">{{ $t('users.list.detail.system.title') }}</h4>
-        <div class="space-y-6">
-          <div class="flex items-center justify-between px-2">
-            <span class="text-[11px] font-bold text-slate-500 uppercase">{{ $t('users.list.detail.system.ldap') }}</span>
-            <span class="text-[11px] font-black text-[#1E3A5F] dark:text-white">12 Feb 2024, 08:00</span>
-          </div>
-          <div class="flex items-center justify-between px-2">
-            <span class="text-[11px] font-bold text-slate-500 uppercase">{{ $t('users.list.detail.system.access') }}</span>
-            <div class="flex gap-1.5">
-              <div class="w-2.5 h-2.5 rounded-full bg-blue-500"></div>
-              <div class="w-2.5 h-2.5 rounded-full bg-[#1E3A5F]"></div>
-              <div class="w-2.5 h-2.5 rounded-full bg-green-500"></div>
-            </div>
-          </div>
-          <div class="flex items-center justify-between px-2">
-            <span class="text-[11px] font-bold text-slate-500 uppercase">{{ $t('users.list.detail.system.status') }}</span>
-            <span class="px-3 py-1 bg-green-50 text-green-500 border border-green-100 rounded text-[8px] font-black uppercase tracking-widest">
-              {{ $t('users.list.detail.system.verified') }}
-            </span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Reporting Structure -->
-      <div class="p-8 bg-blue-50/50 dark:bg-blue-900/10 rounded-[2.5rem] space-y-6">
-        <h4 class="text-[9px] font-black text-[#1E3A5F] dark:text-white uppercase tracking-widest">{{ $t('users.list.detail.reporting.title') }}</h4>
-        <div class="flex items-center gap-5">
-          <div class="w-12 h-12 rounded-2xl bg-white dark:bg-slate-800 flex items-center justify-center text-xl font-black text-[#1E3A5F] dark:text-white shadow-sm border border-slate-100 dark:border-slate-800">
-            DP
-          </div>
-          <div class="space-y-1">
-            <h5 class="text-xs font-black text-[#1E3A5F] dark:text-white uppercase tracking-tight">Darmawan Pratama</h5>
-            <p class="text-[9px] font-bold text-slate-400 uppercase">{{ $t('users.list.detail.reporting.supervisor') }}</p>
-          </div>
-        </div>
-        <button class="w-full py-4 bg-white dark:bg-slate-800 text-[9px] font-black text-[#1E3A5F] dark:text-white uppercase tracking-widest rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 hover:bg-slate-50 transition-all">
-          {{ $t('users.list.detail.reporting.update') }}
-        </button>
-      </div>
-
-      <!-- Recent Logs -->
-      <div class="space-y-8">
-        <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-widest px-2">{{ $t('users.list.detail.logs.title') }}</h4>
-        <div class="space-y-10 pl-6 border-l-2 border-slate-50 dark:border-slate-800">
-          <div v-for="(log, idx) in [
-            { id: 'login', time: 'Hari ini, 09:42', loc: 'Jakarta Pusat' },
-            { id: 'download', idVal: 'AR-99', time: 'Kemarin, 14:20', loc: 'Head Office' },
-            { id: 'password', time: '02 Feb 2024, 10:11', loc: '' }
-          ]" :key="idx" class="relative">
-            <div class="absolute -left-[31px] top-0 w-4 h-4 rounded-full bg-white dark:bg-slate-900 border-4 border-[#1E3A5F] shadow-sm"></div>
+    <!-- User Modal (Centered) -->
+    <Transition name="fade-scale">
+      <div v-if="showModal" class="fixed inset-0 z-[150] flex items-center justify-center p-6">
+        <div class="absolute inset-0 bg-slate-950/60 backdrop-blur-md" @click="showModal = false"></div>
+        <div class="relative w-full max-w-2xl bg-white dark:bg-slate-900 rounded-[3rem] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+          <header class="p-10 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
             <div class="space-y-1">
-              <h5 class="text-[11px] font-black text-[#1E3A5F] dark:text-white uppercase tracking-tight">{{ $t(`users.list.detail.logs.${log.id}`, { id: log.idVal }) }}</h5>
-              <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">{{ log.time }} <span v-if="log.loc" class="ml-2">• {{ log.loc }}</span></p>
+              <h3 class="text-2xl font-black text-[#1E3A5F] dark:text-white uppercase tracking-tight">
+                {{ isEdit ? $t('admin.user_management.modal.title_edit') : $t('admin.user_management.modal.title_add') }}
+              </h3>
+              <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{{ isEdit ? 'Update user profile and access' : 'Create new user account' }}</p>
             </div>
-          </div>
+            <button @click="showModal = false" class="p-3 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-2xl transition-all">
+              <LucideX class="w-6 h-6 text-slate-400" />
+            </button>
+          </header>
+
+          <form @submit.prevent="saveUser" class="flex-1 overflow-y-auto p-10 space-y-10 custom-scrollbar">
+            <!-- Account Info -->
+            <div class="space-y-8">
+              <div class="flex items-center gap-3">
+                <span class="w-1.5 h-6 bg-primary-500 rounded-full"></span>
+                <h4 class="text-[11px] font-black text-[#1E3A5F] dark:text-white uppercase tracking-widest">
+                  {{ $t('admin.user_management.modal.section_account') }}
+                </h4>
+              </div>
+              <div class="grid grid-cols-2 gap-8">
+                <div class="space-y-2">
+                  <label class="text-[10px] font-black text-slate-500 uppercase px-1">{{ $t('admin.user_management.modal.label_name') }}</label>
+                  <input v-model="formData.full_name" type="text" class="w-full px-6 py-4 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-xs font-bold outline-none focus:ring-4 focus:ring-primary-500/10 transition-all" required />
+                </div>
+                <div class="space-y-2">
+                  <label class="text-[10px] font-black text-slate-500 uppercase px-1">{{ $t('admin.user_management.modal.label_username') }}</label>
+                  <input v-model="formData.username" type="text" class="w-full px-6 py-4 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-xs font-bold outline-none focus:ring-4 focus:ring-primary-500/10 transition-all" required />
+                </div>
+              </div>
+              <div class="space-y-2">
+                <label class="text-[10px] font-black text-slate-500 uppercase px-1">{{ $t('admin.user_management.modal.label_email') }}</label>
+                <input v-model="formData.email" type="email" class="w-full px-6 py-4 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-xs font-bold outline-none focus:ring-4 focus:ring-primary-500/10 transition-all" required />
+              </div>
+            </div>
+
+            <!-- Access & Security -->
+            <div class="space-y-8">
+              <div class="flex items-center gap-3">
+                <span class="w-1.5 h-6 bg-primary-500 rounded-full"></span>
+                <h4 class="text-[11px] font-black text-[#1E3A5F] dark:text-white uppercase tracking-widest">
+                  {{ $t('admin.user_management.modal.section_access') }}
+                </h4>
+              </div>
+              <div class="grid grid-cols-2 gap-8">
+                <div class="space-y-2">
+                  <label class="text-[10px] font-black text-slate-500 uppercase px-1">{{ $t('admin.user_management.modal.label_role') }}</label>
+                  <select v-model="formData.role_id" class="w-full px-6 py-4 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-xs font-bold outline-none focus:ring-4 focus:ring-primary-500/10" required>
+                    <option v-for="r in rolesList" :key="r.id" :value="r.id">{{ r.name }}</option>
+                  </select>
+                </div>
+                <div class="space-y-2">
+                  <label class="text-[10px] font-black text-slate-500 uppercase px-1">{{ $t('admin.user_management.modal.label_status') }}</label>
+                  <select v-model="formData.status" class="w-full px-6 py-4 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-xs font-bold outline-none focus:ring-4 focus:ring-primary-500/10">
+                    <option value="active">{{ $t('admin.user_management.status.active') }}</option>
+                    <option value="inactive">{{ $t('admin.user_management.status.inactive') }}</option>
+                  </select>
+                </div>
+              </div>
+              <div class="space-y-2">
+                <label class="text-[10px] font-black text-slate-500 uppercase px-1">
+                  {{ isEdit ? $t('admin.user_management.modal.label_password_edit') : $t('admin.user_management.modal.label_password') }}
+                </label>
+                <div class="relative">
+                  <input :type="showPassword ? 'text' : 'password'" v-model="formData.password" class="w-full px-6 py-4 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-xs font-bold outline-none focus:ring-4 focus:ring-primary-500/10 transition-all" :required="!isEdit" />
+                  <button type="button" @click="showPassword = !showPassword" class="absolute right-6 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors">
+                    <LucideEye v-if="!showPassword" class="w-5 h-5" />
+                    <LucideEyeOff v-else class="w-5 h-5" />
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Preferences -->
+            <div class="space-y-8">
+              <div class="flex items-center gap-3">
+                <span class="w-1.5 h-6 bg-primary-500 rounded-full"></span>
+                <h4 class="text-[11px] font-black text-[#1E3A5F] dark:text-white uppercase tracking-widest">
+                  {{ $t('admin.user_management.modal.section_prefs') }}
+                </h4>
+              </div>
+              <div class="flex items-center justify-between p-8 bg-slate-50 dark:bg-slate-800 rounded-[2.5rem] border border-slate-100 dark:border-slate-700">
+                <div class="space-y-1">
+                  <p class="text-[11px] font-black text-[#1E3A5F] dark:text-white uppercase tracking-tight">{{ $t('admin.user_management.modal.label_mfa') }}</p>
+                  <p class="text-[10px] font-bold text-slate-400 uppercase">{{ $t('admin.user_management.modal.label_mfa_desc') }}</p>
+                </div>
+                <button type="button" @click="formData.mfa = !formData.mfa" class="w-12 h-6 rounded-full transition-all duration-300 relative p-1" :class="formData.mfa ? 'bg-primary-500' : 'bg-slate-300'">
+                  <div class="w-4 h-4 bg-white rounded-full transition-transform" :class="{ 'translate-x-6': formData.mfa }"></div>
+                </button>
+              </div>
+            </div>
+          </form>
+
+          <footer class="p-10 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 flex items-center justify-end gap-6">
+            <button @click="showModal = false" class="px-8 py-4 text-[11px] font-black text-slate-400 hover:text-slate-600 uppercase tracking-widest transition-colors active:scale-95">
+              {{ $t('admin.user_management.modal.btn_cancel') }}
+            </button>
+            <button @click="saveUser" :disabled="saving" class="px-12 py-4 bg-[#1E3A5F] text-white rounded-2xl text-[11px] font-black uppercase tracking-widest shadow-xl shadow-blue-900/20 hover:bg-[#152943] transition-all flex items-center gap-3 active:scale-95 disabled:opacity-50">
+              <LucideSave class="w-5 h-5" />
+              {{ saving ? $t('admin.user_management.modal.saving') : $t('admin.user_management.modal.btn_save') }}
+            </button>
+          </footer>
         </div>
       </div>
-    </div>
+    </Transition>
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed, onMounted } from 'vue'
+import { useApi } from '@/composables/useApi'
+import { useI18n } from 'vue-i18n'
 import { 
-  LucideFilter, LucideUserPlus, LucideUsers, LucideCheckCircle2, 
-  LucideShieldCheck, LucideUserX, LucideUser, LucideChevronLeft, 
-  LucideChevronRight, LucideX, LucideRefreshCw, LucideNetwork, 
-  LucideExternalLink 
+  LucideUsers, LucideSearch, LucideUserPlus, LucideEdit3, 
+  LucideTrash2, LucideX, LucideSave, LucideEye, LucideEyeOff,
+  LucideUser
 } from 'lucide-vue-next'
 
-const selectedUser = ref(null)
+const { $api } = useApi()
+const { t } = useI18n()
+const config = useRuntimeConfig()
+
+const showModal = ref(false)
+const isEdit = ref(false)
+const saving = ref(false)
+const loading = ref(false)
+const showPassword = ref(false)
+
+const rolesList = ref([])
+const users = ref([])
+
+const filters = ref({
+  search: '',
+  role_id: '',
+  status: ''
+})
+
+const formData = ref({
+  id: '',
+  full_name: '',
+  username: '',
+  email: '',
+  role_id: '',
+  status: 'active',
+  password: '',
+  mfa: false
+})
+
+const fetchUsers = async () => {
+  loading.value = true
+  try {
+    const res = await $api(`${config.public.apiBase}/users`)
+    if (res && res.data) {
+      users.value = res.data
+    }
+  } catch (err) {
+    console.error('Failed to fetch users:', err)
+  } finally {
+    loading.value = false
+  }
+}
+
+const fetchRoles = async () => {
+  try {
+    const res = await $api(`${config.public.apiBase}/master/roles`)
+    if (res && res.data) {
+      rolesList.value = res.data
+    }
+  } catch (err) {
+    console.error('Failed to fetch roles:', err)
+  }
+}
+
+onMounted(() => {
+  fetchUsers()
+  fetchRoles()
+})
+
+const filteredUsers = computed(() => {
+  return users.value.filter(u => {
+    const matchSearch = !filters.value.search || 
+      u.full_name.toLowerCase().includes(filters.value.search.toLowerCase()) ||
+      u.email.toLowerCase().includes(filters.value.search.toLowerCase())
+    const matchRole = !filters.value.role_id || u.role_id == filters.value.role_id
+    const matchStatus = !filters.value.status || u.status === filters.value.status
+    return matchSearch && matchRole && matchStatus
+  })
+})
+
+const getRoleName = (roleId) => {
+  const role = rolesList.value.find(r => r.id === roleId)
+  return role ? role.name : 'Unknown'
+}
+
+const getStatusBadge = (status) => {
+  switch (status) {
+    case 'active': return 'bg-green-500/10 text-green-500 border border-green-500/20'
+    case 'inactive': return 'bg-red-500/10 text-red-500 border border-red-500/20'
+    case 'pending': return 'bg-amber-500/10 text-amber-500 border border-amber-500/20'
+    case 'approved': return 'bg-blue-500/10 text-blue-500 border border-blue-500/20'
+    default: return 'bg-slate-500/10 text-slate-500'
+  }
+}
+
+const openModal = (user = null) => {
+  if (user) {
+    isEdit.value = true
+    formData.value = { 
+      id: user.id,
+      full_name: user.full_name,
+      username: user.username || user.email.split('@')[0], // Fallback if username missing
+      email: user.email,
+      role_id: user.role_id,
+      status: user.status,
+      password: '',
+      mfa: user.mfa || false
+    }
+  } else {
+    isEdit.value = false
+    formData.value = {
+      id: '',
+      full_name: '',
+      username: '',
+      email: '',
+      role_id: rolesList.value.length > 0 ? rolesList.value[0].id : '',
+      status: 'active',
+      password: '',
+      mfa: false
+    }
+  }
+  showModal.value = true
+}
+
+const saveUser = async () => {
+  saving.value = true
+  try {
+    if (isEdit.value) {
+      await $api(`${config.public.apiBase}/users/${formData.value.id}`, {
+        method: 'PUT',
+        body: {
+          full_name: formData.value.full_name,
+          email: formData.value.email,
+          role_id: parseInt(formData.value.role_id),
+          status: formData.value.status,
+        }
+      })
+    } else {
+      await $api(`${config.public.apiBase}/users`, {
+        method: 'POST',
+        body: {
+          full_name: formData.value.full_name,
+          email: formData.value.email,
+          password: formData.value.password,
+          role_id: parseInt(formData.value.role_id),
+        }
+      })
+    }
+    await fetchUsers()
+    showModal.value = false
+  } catch (err) {
+    console.error('Failed to save user:', err)
+    alert('Gagal menyimpan user: ' + (err.data?.message || err.message))
+  } finally {
+    saving.value = false
+  }
+}
+
+const deleteUser = async (id) => {
+  if (confirm('Apakah Anda yakin ingin menghapus user ini?')) {
+    try {
+      await $api(`${config.public.apiBase}/users/${id}`, {
+        method: 'DELETE'
+      })
+      await fetchUsers()
+    } catch (err) {
+      console.error('Failed to delete user:', err)
+      alert('Gagal menghapus user: ' + (err.data?.message || err.message))
+    }
+  }
+}
 
 definePageMeta({
   layout: 'default'
@@ -230,16 +407,25 @@ definePageMeta({
 </script>
 
 <style scoped>
-.glass {
-  @apply bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border border-white/20 dark:border-white/10 shadow-sm;
-}
 .custom-scrollbar::-webkit-scrollbar {
   width: 4px;
 }
 .custom-scrollbar::-webkit-scrollbar-track {
-  @apply bg-transparent;
+  background: transparent;
 }
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  @apply bg-slate-200 dark:bg-slate-800 rounded-full;
+  background: rgba(148, 163, 184, 0.2);
+  border-radius: 10px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.4);
+}
+
+.fade-scale-enter-active, .fade-scale-leave-active {
+  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.fade-scale-enter-from, .fade-scale-leave-to {
+  opacity: 0;
+  transform: scale(0.9) translateY(20px);
 }
 </style>

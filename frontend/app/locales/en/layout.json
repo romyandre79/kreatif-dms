@@ -67,6 +67,11 @@
       "extensions": "Extensions",
       "disposal": "Disposal",
       "fast_track": "Fast Track",
+      "maintain_role": "Maintain Role",
+      "maintain_user": "Maintain User",
+      "roles": "Roles & Permissions",
+      "users": "User Management",
+      "modules": "System Modules",
       "request_loan": "Request Loan",
       "my_loans": "My Loans",
       "loan_history": "Loan History",
@@ -74,7 +79,17 @@
       "circulation_report": "Circulation Report",
       "overdue_monitoring": "Overdue Monitoring",
       "notifications": "Notifications",
-      "audit_logs": "System Audit Logs"
+      "audit_logs": "System Audit Logs",
+      "cat_dashboard": "Dashboard",
+      "cat_registration": "Registration",
+      "cat_warehouse": "Warehouse",
+      "cat_search": "Search",
+      "cat_circulation": "Circulation",
+      "cat_stock": "Stock Take",
+      "cat_retention": "Retention",
+      "cat_reports": "Reports",
+      "cat_config": "Configuration",
+      "cat_admin": "Administration"
     }
   }
 }

@@ -21,6 +21,12 @@
     },
     "menu": {
       "dashboard": "Dashboard",
+      "administration": "Administrasi",
+      "maintain_role": "Maintain Role",
+      "maintain_user": "Maintain User",
+      "roles": "Peran & Izin",
+      "users": "Manajemen User",
+      "modules": "Modul Sistem",
       "doc_reg": "Registrasi Dokumen",
       "inbound_pre": "Pre-Registrasi Masuk",
       "new_doc": "Input Dokumen Baru",
@@ -78,7 +84,17 @@
       "circulation_report": "Laporan Sirkulasi",
       "overdue_monitoring": "Monitoring Terlambat",
       "notifications": "Notifikasi",
-      "audit_logs": "Log Audit Sistem"
+      "audit_logs": "Log Audit Sistem",
+      "cat_dashboard": "Dashboard",
+      "cat_registration": "Registrasi",
+      "cat_warehouse": "Gudang",
+      "cat_search": "Pencarian",
+      "cat_circulation": "Sirkulasi",
+      "cat_stock": "Stock Take",
+      "cat_retention": "Retensi",
+      "cat_reports": "Laporan",
+      "cat_config": "Konfigurasi",
+      "cat_admin": "Administrasi"
     }
   }
 }

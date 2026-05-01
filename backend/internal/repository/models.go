@@ -617,6 +617,12 @@ type Role struct {
 	LdapGroup   pgtype.Text `json:"ldap_group"`
 }
 
+type RolePermission struct {
+	RoleID   int32  `json:"role_id"`
+	ModuleID string `json:"module_id"`
+	Action   string `json:"action"`
+}
+
 type RoutingSlipRecipient struct {
 	ID            uuid.UUID          `json:"id"`
 	CirculationID uuid.UUID          `json:"circulation_id"`
@@ -714,6 +720,17 @@ type StockOpnameSession struct {
 	ResolutionNote pgtype.Text        `json:"resolution_note"`
 	CreatedAt      pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt      pgtype.Timestamptz `json:"updated_at"`
+}
+
+type SystemModule struct {
+	ID             string      `json:"id"`
+	Name           string      `json:"name"`
+	Category       string      `json:"category"`
+	Path           pgtype.Text `json:"path"`
+	Icon           pgtype.Text `json:"icon"`
+	AllowedActions []string    `json:"allowed_actions"`
+	SortOrder      pgtype.Int4 `json:"sort_order"`
+	ParentID       pgtype.Text `json:"parent_id"`
 }
 
 type SystemSetting struct {
