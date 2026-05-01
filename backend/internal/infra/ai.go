@@ -52,6 +52,11 @@ func (s *AIService) ProcessOCR(ctx context.Context, fileName string, content []b
 		return "", err
 	}
 	req.Header.Set("Content-Type", writer.FormDataContentType())
+	
+	// Add Basic Auth if configured
+	if s.cfg.OCRServiceUser != "" && s.cfg.OCRServicePass != "" {
+		req.SetBasicAuth(s.cfg.OCRServiceUser, s.cfg.OCRServicePass)
+	}
 
 	client := &http.Client{}
 	resp, err := client.Do(req)

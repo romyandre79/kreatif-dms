@@ -514,6 +514,8 @@ const printHistory = [
 </script>
 
 <style scoped>
+@reference "../../assets/css/main.css";
+
 .custom-scrollbar::-webkit-scrollbar { width: 6px; }
 .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
 .custom-scrollbar::-webkit-scrollbar-thumb { background: #E2E8F0; border-radius: 10px; }

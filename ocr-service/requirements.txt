@@ -1,8 +1,7 @@
 fastapi
 uvicorn
 python-multipart
-paddleocr
-paddlepaddle
-opencv-python-headless
+easyocr
 pypdfium2
 pillow
+python-dotenv
