@@ -66,87 +66,121 @@
         </div>
 
         <!-- Form -->
-        <form @submit.prevent="handleSubmit" class="space-y-6 md:space-y-10">
-          <div v-if="mode === 'register'" class="space-y-4" v-motion-slide-visible-top>
-            <label class="text-lg font-bold text-slate-700 dark:text-slate-300">
-              {{ $t('register.name_label') }}
-            </label>
-            <div class="relative group">
-              <LucideUser class="absolute left-6 top-1/2 -translate-y-1/2 w-7 h-7 text-slate-400 group-focus-within:text-primary-500 transition-colors" />
-              <input 
-                v-model="form.fullName"
-                type="text" 
-                :placeholder="$t('register.name_placeholder')"
-                class="w-full pl-14 md:pl-16 pr-6 py-4 md:py-5.5 rounded-[1.5rem] md:rounded-[2rem] border-2 border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 focus:outline-none focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 transition-all text-base md:text-lg"
-                required
-              />
+        <form @submit.prevent="mfaRequired ? handleMfaVerify() : handleSubmit()" class="space-y-6 md:space-y-10">
+          <template v-if="!mfaRequired">
+            <div v-if="mode === 'register'" class="space-y-4" v-motion-slide-visible-top>
+              <label class="text-lg font-bold text-slate-700 dark:text-slate-300">
+                {{ $t('register.name_label') }}
+              </label>
+              <div class="relative group">
+                <LucideUser class="absolute left-6 top-1/2 -translate-y-1/2 w-7 h-7 text-slate-400 group-focus-within:text-primary-500 transition-colors" />
+                <input 
+                  v-model="form.fullName"
+                  type="text" 
+                  :placeholder="$t('register.name_placeholder')"
+                  class="w-full pl-14 md:pl-16 pr-6 py-4 md:py-5.5 rounded-[1.5rem] md:rounded-[2rem] border-2 border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 focus:outline-none focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 transition-all text-base md:text-lg"
+                  required
+                />
+              </div>
             </div>
-          </div>
 
-          <div class="space-y-4">
-            <label class="text-lg font-bold text-slate-700 dark:text-slate-300">
-              {{ authType === 'sso' ? $t('login.username_label') : $t('login.email_label') }}
-            </label>
-            <div class="relative group">
-              <LucideMail class="absolute left-6 top-1/2 -translate-y-1/2 w-7 h-7 text-slate-400 group-focus-within:text-primary-500 transition-colors" />
-              <input 
-                v-model="form.email"
-                type="text" 
-                :placeholder="authType === 'sso' ? $t('login.username_placeholder') : $t('login.email_placeholder')"
-                class="w-full pl-14 md:pl-16 pr-6 py-4 md:py-5.5 rounded-[1.5rem] md:rounded-[2rem] border-2 border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 focus:outline-none focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 transition-all text-base md:text-lg"
-                required
-              />
+            <div class="space-y-4">
+              <label class="text-lg font-bold text-slate-700 dark:text-slate-300">
+                {{ authType === 'sso' ? $t('login.username_label') : $t('login.email_label') }}
+              </label>
+              <div class="relative group">
+                <LucideMail class="absolute left-6 top-1/2 -translate-y-1/2 w-7 h-7 text-slate-400 group-focus-within:text-primary-500 transition-colors" />
+                <input 
+                  v-model="form.email"
+                  type="text" 
+                  :placeholder="authType === 'sso' ? $t('login.username_placeholder') : $t('login.email_placeholder')"
+                  class="w-full pl-14 md:pl-16 pr-6 py-4 md:py-5.5 rounded-[1.5rem] md:rounded-[2rem] border-2 border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 focus:outline-none focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 transition-all text-base md:text-lg"
+                  required
+                />
+              </div>
             </div>
-          </div>
 
-          <div class="space-y-4">
-            <div class="flex items-center justify-between">
-              <label class="text-lg font-bold text-slate-700 dark:text-slate-300">{{ $t('login.password_label') }}</label>
+            <div class="space-y-4">
+              <div class="flex items-center justify-between">
+                <label class="text-lg font-bold text-slate-700 dark:text-slate-300">{{ $t('login.password_label') }}</label>
+                <button 
+                  v-if="mode === 'login'" 
+                  type="button"
+                  @click="showResetModal = true"
+                  class="text-base font-bold text-slate-500 hover:text-primary-500 transition-colors"
+                >
+                  {{ $t('login.forgot_password') }}
+                </button>
+              </div>
+              <div class="relative group">
+                <LucideLock class="absolute left-6 top-1/2 -translate-y-1/2 w-7 h-7 text-slate-400 group-focus-within:text-primary-500 transition-colors" />
+                <input 
+                  v-model="form.password"
+                  :type="showPassword ? 'text' : 'password'" 
+                  :placeholder="$t('login.password_placeholder')"
+                  class="w-full pl-14 md:pl-16 pr-14 md:pr-16 py-4 md:py-5.5 rounded-[1.5rem] md:rounded-[2rem] border-2 border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 focus:outline-none focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 transition-all text-base md:text-lg"
+                  required
+                />
+                <button 
+                  type="button"
+                  @click="showPassword = !showPassword"
+                  class="absolute right-6 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+                >
+                  <LucideEye v-if="!showPassword" class="w-6 h-6" />
+                  <LucideEyeOff v-else class="w-6 h-6" />
+                </button>
+              </div>
+            </div>
+
+            <!-- Confirm Password (Register Only) -->
+            <div v-if="mode === 'register'" class="space-y-4" v-motion-slide-visible-top>
+              <label class="text-lg font-bold text-slate-700 dark:text-slate-300">
+                {{ $t('register.confirm_password_label') }}
+              </label>
+              <div class="relative group">
+                <LucideLock class="absolute left-6 top-1/2 -translate-y-1/2 w-7 h-7 text-slate-400 group-focus-within:text-primary-500 transition-colors" />
+                <input 
+                  v-model="form.confirmPassword"
+                  type="password" 
+                  :placeholder="$t('register.confirm_password_placeholder')"
+                  class="w-full pl-14 md:pl-16 pr-6 py-4 md:py-5.5 rounded-[1.5rem] md:rounded-[2rem] border-2 border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 focus:outline-none focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 transition-all text-base md:text-lg"
+                  required
+                />
+              </div>
+            </div>
+          </template>
+
+          <template v-else>
+            <div class="space-y-6" v-motion-pop>
+              <div class="text-center space-y-2">
+                <div class="w-20 h-20 bg-primary-50 dark:bg-primary-900/20 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <LucideShieldCheck class="w-10 h-10 text-primary-500" />
+                </div>
+                <h3 class="text-2xl font-bold text-slate-900 dark:text-white">Verify Your Identity</h3>
+                <p class="text-slate-500">Please enter the 6-digit code from your authenticator app.</p>
+              </div>
+
+              <div class="relative group">
+                <input 
+                  v-model="mfaCode"
+                  type="text" 
+                  maxlength="6"
+                  placeholder="000000"
+                  class="w-full text-center text-4xl tracking-[1rem] font-mono py-6 rounded-[2rem] border-2 border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 focus:outline-none focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 transition-all"
+                  required
+                  autofocus
+                />
+              </div>
+
               <button 
-                v-if="mode === 'login'" 
                 type="button"
-                @click="showResetModal = true"
-                class="text-base font-bold text-slate-500 hover:text-primary-500 transition-colors"
+                @click="mfaRequired = false"
+                class="w-full text-center text-sm font-bold text-slate-500 hover:text-primary-500 transition-colors"
               >
-                {{ $t('login.forgot_password') }}
+                Back to Login
               </button>
             </div>
-            <div class="relative group">
-              <LucideLock class="absolute left-6 top-1/2 -translate-y-1/2 w-7 h-7 text-slate-400 group-focus-within:text-primary-500 transition-colors" />
-              <input 
-                v-model="form.password"
-                :type="showPassword ? 'text' : 'password'" 
-                :placeholder="$t('login.password_placeholder')"
-                class="w-full pl-14 md:pl-16 pr-14 md:pr-16 py-4 md:py-5.5 rounded-[1.5rem] md:rounded-[2rem] border-2 border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 focus:outline-none focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 transition-all text-base md:text-lg"
-                required
-              />
-              <button 
-                type="button"
-                @click="showPassword = !showPassword"
-                class="absolute right-6 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
-              >
-                <LucideEye v-if="!showPassword" class="w-6 h-6" />
-                <LucideEyeOff v-else class="w-6 h-6" />
-              </button>
-            </div>
-          </div>
-
-          <!-- Confirm Password (Register Only) -->
-          <div v-if="mode === 'register'" class="space-y-4" v-motion-slide-visible-top>
-            <label class="text-lg font-bold text-slate-700 dark:text-slate-300">
-              {{ $t('register.confirm_password_label') }}
-            </label>
-            <div class="relative group">
-              <LucideLock class="absolute left-6 top-1/2 -translate-y-1/2 w-7 h-7 text-slate-400 group-focus-within:text-primary-500 transition-colors" />
-              <input 
-                v-model="form.confirmPassword"
-                type="password" 
-                :placeholder="$t('register.confirm_password_placeholder')"
-                class="w-full pl-14 md:pl-16 pr-6 py-4 md:py-5.5 rounded-[1.5rem] md:rounded-[2rem] border-2 border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 focus:outline-none focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 transition-all text-base md:text-lg"
-                required
-              />
-            </div>
-          </div>
+          </template>
 
           <!-- Alerts -->
           <div class="space-y-4">
@@ -168,7 +202,7 @@
             class="w-full py-5 md:py-6 bg-[#1E3A5F] hover:bg-[#152943] disabled:bg-slate-400 text-white font-black text-lg md:text-xl rounded-[1.5rem] md:rounded-[2rem] transition-all shadow-2xl shadow-blue-900/30 flex items-center justify-center gap-3"
           >
             <LucideLoader2 v-if="loading" class="w-6 h-6 animate-spin" />
-            <span v-else>{{ mode === 'login' ? $t('login.sign_in_button') : $t('register.submit_button') }}</span>
+            <span v-else>{{ mfaRequired ? 'Verify Code' : (mode === 'login' ? $t('login.sign_in_button') : $t('register.submit_button')) }}</span>
             <LucideArrowRight v-if="!loading" class="w-6 h-6" />
           </button>
         </form>
@@ -243,7 +277,8 @@ import {
   LucideLoader2,
   LucideAlertCircle,
   LucideUser,
-  LucideInfo
+  LucideInfo,
+  LucideShieldCheck
 } from 'lucide-vue-next'
 import { useAuthStore } from '~/stores/auth'
 
@@ -268,6 +303,11 @@ const successMessage = ref('')
 const showSuccess = ref(false)
 const showResetModal = ref(false)
 const resetEmail = ref('')
+
+// MFA State
+const mfaRequired = ref(false)
+const mfaCode = ref('')
+const mfaUserId = ref(null)
 
 const form = reactive({
   fullName: '',
@@ -324,6 +364,7 @@ const handleRegister = async () => {
     loading.value = false
   }
 }
+
 const handleLogin = async () => {
   loading.value = true
   error.value = ''
@@ -340,6 +381,14 @@ const handleLogin = async () => {
       }
     })
     
+    // Check if MFA is required
+    if (res.data.mfa_required) {
+      mfaRequired.value = true
+      mfaUserId.value = res.data.user_id
+      loading.value = false
+      return
+    }
+
     const auth = useAuthStore()
     auth.setTokens(res.data.access_token, res.data.refresh_token)
     auth.setUser({
@@ -355,6 +404,44 @@ const handleLogin = async () => {
     
   } catch (err) {
     error.value = err.data?.message || t('login.errors.invalid_credentials')
+    showError.value = true
+  } finally {
+    loading.value = false
+  }
+}
+
+const handleMfaVerify = async () => {
+  if (!mfaCode.value || mfaCode.value.length < 6) return
+
+  loading.value = true
+  error.value = ''
+  showError.value = false
+
+  try {
+    const config = useRuntimeConfig()
+    const res = await $fetch(`${config.public.apiBase}/auth/login/mfa`, {
+      method: 'POST',
+      body: {
+        user_id: mfaUserId.value,
+        code: mfaCode.value
+      }
+    })
+
+    const auth = useAuthStore()
+    auth.setTokens(res.data.access_token, res.data.refresh_token)
+    auth.setUser({
+      id: res.data.user_id,
+      full_name: res.data.full_name,
+      email: form.email,
+      role: res.data.role,
+      avatar_url: res.data.avatar_url,
+      signature_url: res.data.signature_url
+    })
+    
+    navigateTo('/dashboard')
+
+  } catch (err) {
+    error.value = err.data?.message || 'Invalid MFA code'
     showError.value = true
   } finally {
     loading.value = false

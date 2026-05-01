@@ -85,6 +85,7 @@
       "overdue_monitoring": "Monitoring Terlambat",
       "notifications": "Notifikasi",
       "audit_logs": "Log Audit Sistem",
+      "admin_pin": "Pendaftaran PIN Pengguna",
       "cat_dashboard": "Dashboard",
       "cat_registration": "Registrasi",
       "cat_warehouse": "Gudang",

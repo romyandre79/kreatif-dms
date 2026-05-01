@@ -80,6 +80,7 @@
       "overdue_monitoring": "Overdue Monitoring",
       "notifications": "Notifications",
       "audit_logs": "System Audit Logs",
+      "admin_pin": "User PIN Management",
       "cat_dashboard": "Dashboard",
       "cat_registration": "Registration",
       "cat_warehouse": "Warehouse",

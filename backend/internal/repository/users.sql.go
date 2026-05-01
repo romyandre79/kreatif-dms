@@ -14,10 +14,10 @@ import (
 
 const createUser = `-- name: CreateUser :one
 INSERT INTO users (
-    email, password_hash, full_name, role_id, department_id, status
+    email, password_hash, full_name, role_id, department_id, status, avatar_url, signature_url, is_mfa_enabled
 ) VALUES (
-    $1, $2, $3, $4, $5, $6
-) RETURNING id, email, password_hash, full_name, role_id, department_id, is_active, created_at, updated_at, status, avatar_url, signature_url, pin
+    $1, $2, $3, $4, $5, $6, $7, $8, $9
+) RETURNING id, email, password_hash, full_name, role_id, department_id, is_active, created_at, updated_at, status, avatar_url, signature_url, pin, pin_status, pin_failed_attempts, pin_locked_until, pin_updated_at, is_mfa_enabled, mfa_secret
 `
 
 type CreateUserParams struct {
@@ -27,6 +27,9 @@ type CreateUserParams struct {
 	RoleID       int32       `json:"role_id"`
 	DepartmentID pgtype.UUID `json:"department_id"`
 	Status       string      `json:"status"`
+	AvatarUrl    pgtype.Text `json:"avatar_url"`
+	SignatureUrl pgtype.Text `json:"signature_url"`
+	IsMfaEnabled pgtype.Bool `json:"is_mfa_enabled"`
 }
 
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
@@ -37,6 +40,9 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 		arg.RoleID,
 		arg.DepartmentID,
 		arg.Status,
+		arg.AvatarUrl,
+		arg.SignatureUrl,
+		arg.IsMfaEnabled,
 	)
 	var i User
 	err := row.Scan(
@@ -53,6 +59,12 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 		&i.AvatarUrl,
 		&i.SignatureUrl,
 		&i.Pin,
+		&i.PinStatus,
+		&i.PinFailedAttempts,
+		&i.PinLockedUntil,
+		&i.PinUpdatedAt,
+		&i.IsMfaEnabled,
+		&i.MfaSecret,
 	)
 	return i, err
 }
@@ -78,27 +90,33 @@ func (q *Queries) GetRoleIDByName(ctx context.Context, name string) (int32, erro
 }
 
 const getUserByEmail = `-- name: GetUserByEmail :one
-SELECT u.id, u.email, u.password_hash, u.full_name, u.role_id, u.department_id, u.is_active, u.created_at, u.updated_at, u.status, u.avatar_url, u.signature_url, u.pin, r.name as role_name 
+SELECT u.id, u.email, u.password_hash, u.full_name, u.role_id, u.department_id, u.is_active, u.created_at, u.updated_at, u.status, u.avatar_url, u.signature_url, u.pin, u.pin_status, u.pin_failed_attempts, u.pin_locked_until, u.pin_updated_at, u.is_mfa_enabled, u.mfa_secret, r.name as role_name 
 FROM users u
 LEFT JOIN roles r ON u.role_id = r.id
 WHERE u.email = $1 LIMIT 1
 `
 
 type GetUserByEmailRow struct {
-	ID           uuid.UUID          `json:"id"`
-	Email        string             `json:"email"`
-	PasswordHash string             `json:"password_hash"`
-	FullName     string             `json:"full_name"`
-	RoleID       int32              `json:"role_id"`
-	DepartmentID pgtype.UUID        `json:"department_id"`
-	IsActive     bool               `json:"is_active"`
-	CreatedAt    pgtype.Timestamptz `json:"created_at"`
-	UpdatedAt    pgtype.Timestamptz `json:"updated_at"`
-	Status       string             `json:"status"`
-	AvatarUrl    pgtype.Text        `json:"avatar_url"`
-	SignatureUrl pgtype.Text        `json:"signature_url"`
-	Pin          pgtype.Text        `json:"pin"`
-	RoleName     pgtype.Text        `json:"role_name"`
+	ID                uuid.UUID          `json:"id"`
+	Email             string             `json:"email"`
+	PasswordHash      string             `json:"password_hash"`
+	FullName          string             `json:"full_name"`
+	RoleID            int32              `json:"role_id"`
+	DepartmentID      pgtype.UUID        `json:"department_id"`
+	IsActive          bool               `json:"is_active"`
+	CreatedAt         pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt         pgtype.Timestamptz `json:"updated_at"`
+	Status            string             `json:"status"`
+	AvatarUrl         pgtype.Text        `json:"avatar_url"`
+	SignatureUrl      pgtype.Text        `json:"signature_url"`
+	Pin               pgtype.Text        `json:"pin"`
+	PinStatus         pgtype.Text        `json:"pin_status"`
+	PinFailedAttempts pgtype.Int4        `json:"pin_failed_attempts"`
+	PinLockedUntil    pgtype.Timestamptz `json:"pin_locked_until"`
+	PinUpdatedAt      pgtype.Timestamptz `json:"pin_updated_at"`
+	IsMfaEnabled      pgtype.Bool        `json:"is_mfa_enabled"`
+	MfaSecret         pgtype.Text        `json:"mfa_secret"`
+	RoleName          pgtype.Text        `json:"role_name"`
 }
 
 func (q *Queries) GetUserByEmail(ctx context.Context, email string) (GetUserByEmailRow, error) {
@@ -118,33 +136,45 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email string) (GetUserByEm
 		&i.AvatarUrl,
 		&i.SignatureUrl,
 		&i.Pin,
+		&i.PinStatus,
+		&i.PinFailedAttempts,
+		&i.PinLockedUntil,
+		&i.PinUpdatedAt,
+		&i.IsMfaEnabled,
+		&i.MfaSecret,
 		&i.RoleName,
 	)
 	return i, err
 }
 
 const getUserByID = `-- name: GetUserByID :one
-SELECT u.id, u.email, u.password_hash, u.full_name, u.role_id, u.department_id, u.is_active, u.created_at, u.updated_at, u.status, u.avatar_url, u.signature_url, u.pin, r.name as role_name 
+SELECT u.id, u.email, u.password_hash, u.full_name, u.role_id, u.department_id, u.is_active, u.created_at, u.updated_at, u.status, u.avatar_url, u.signature_url, u.pin, u.pin_status, u.pin_failed_attempts, u.pin_locked_until, u.pin_updated_at, u.is_mfa_enabled, u.mfa_secret, r.name as role_name 
 FROM users u
 LEFT JOIN roles r ON u.role_id = r.id
 WHERE u.id = $1 LIMIT 1
 `
 
 type GetUserByIDRow struct {
-	ID           uuid.UUID          `json:"id"`
-	Email        string             `json:"email"`
-	PasswordHash string             `json:"password_hash"`
-	FullName     string             `json:"full_name"`
-	RoleID       int32              `json:"role_id"`
-	DepartmentID pgtype.UUID        `json:"department_id"`
-	IsActive     bool               `json:"is_active"`
-	CreatedAt    pgtype.Timestamptz `json:"created_at"`
-	UpdatedAt    pgtype.Timestamptz `json:"updated_at"`
-	Status       string             `json:"status"`
-	AvatarUrl    pgtype.Text        `json:"avatar_url"`
-	SignatureUrl pgtype.Text        `json:"signature_url"`
-	Pin          pgtype.Text        `json:"pin"`
-	RoleName     pgtype.Text        `json:"role_name"`
+	ID                uuid.UUID          `json:"id"`
+	Email             string             `json:"email"`
+	PasswordHash      string             `json:"password_hash"`
+	FullName          string             `json:"full_name"`
+	RoleID            int32              `json:"role_id"`
+	DepartmentID      pgtype.UUID        `json:"department_id"`
+	IsActive          bool               `json:"is_active"`
+	CreatedAt         pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt         pgtype.Timestamptz `json:"updated_at"`
+	Status            string             `json:"status"`
+	AvatarUrl         pgtype.Text        `json:"avatar_url"`
+	SignatureUrl      pgtype.Text        `json:"signature_url"`
+	Pin               pgtype.Text        `json:"pin"`
+	PinStatus         pgtype.Text        `json:"pin_status"`
+	PinFailedAttempts pgtype.Int4        `json:"pin_failed_attempts"`
+	PinLockedUntil    pgtype.Timestamptz `json:"pin_locked_until"`
+	PinUpdatedAt      pgtype.Timestamptz `json:"pin_updated_at"`
+	IsMfaEnabled      pgtype.Bool        `json:"is_mfa_enabled"`
+	MfaSecret         pgtype.Text        `json:"mfa_secret"`
+	RoleName          pgtype.Text        `json:"role_name"`
 }
 
 func (q *Queries) GetUserByID(ctx context.Context, id uuid.UUID) (GetUserByIDRow, error) {
@@ -164,13 +194,19 @@ func (q *Queries) GetUserByID(ctx context.Context, id uuid.UUID) (GetUserByIDRow
 		&i.AvatarUrl,
 		&i.SignatureUrl,
 		&i.Pin,
+		&i.PinStatus,
+		&i.PinFailedAttempts,
+		&i.PinLockedUntil,
+		&i.PinUpdatedAt,
+		&i.IsMfaEnabled,
+		&i.MfaSecret,
 		&i.RoleName,
 	)
 	return i, err
 }
 
 const listPendingUsers = `-- name: ListPendingUsers :many
-SELECT id, email, password_hash, full_name, role_id, department_id, is_active, created_at, updated_at, status, avatar_url, signature_url, pin FROM users WHERE status = 'pending' ORDER BY created_at ASC
+SELECT id, email, password_hash, full_name, role_id, department_id, is_active, created_at, updated_at, status, avatar_url, signature_url, pin, pin_status, pin_failed_attempts, pin_locked_until, pin_updated_at, is_mfa_enabled, mfa_secret FROM users WHERE status = 'pending' ORDER BY created_at ASC
 `
 
 func (q *Queries) ListPendingUsers(ctx context.Context) ([]User, error) {
@@ -196,6 +232,12 @@ func (q *Queries) ListPendingUsers(ctx context.Context) ([]User, error) {
 			&i.AvatarUrl,
 			&i.SignatureUrl,
 			&i.Pin,
+			&i.PinStatus,
+			&i.PinFailedAttempts,
+			&i.PinLockedUntil,
+			&i.PinUpdatedAt,
+			&i.IsMfaEnabled,
+			&i.MfaSecret,
 		); err != nil {
 			return nil, err
 		}
@@ -208,18 +250,44 @@ func (q *Queries) ListPendingUsers(ctx context.Context) ([]User, error) {
 }
 
 const listUsers = `-- name: ListUsers :many
-SELECT id, email, password_hash, full_name, role_id, department_id, is_active, created_at, updated_at, status, avatar_url, signature_url, pin FROM users ORDER BY created_at DESC
+SELECT u.id, u.email, u.password_hash, u.full_name, u.role_id, u.department_id, u.is_active, u.created_at, u.updated_at, u.status, u.avatar_url, u.signature_url, u.pin, u.pin_status, u.pin_failed_attempts, u.pin_locked_until, u.pin_updated_at, u.is_mfa_enabled, u.mfa_secret, r.name as role_name 
+FROM users u
+LEFT JOIN roles r ON u.role_id = r.id
+ORDER BY u.created_at DESC
 `
 
-func (q *Queries) ListUsers(ctx context.Context) ([]User, error) {
+type ListUsersRow struct {
+	ID                uuid.UUID          `json:"id"`
+	Email             string             `json:"email"`
+	PasswordHash      string             `json:"password_hash"`
+	FullName          string             `json:"full_name"`
+	RoleID            int32              `json:"role_id"`
+	DepartmentID      pgtype.UUID        `json:"department_id"`
+	IsActive          bool               `json:"is_active"`
+	CreatedAt         pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt         pgtype.Timestamptz `json:"updated_at"`
+	Status            string             `json:"status"`
+	AvatarUrl         pgtype.Text        `json:"avatar_url"`
+	SignatureUrl      pgtype.Text        `json:"signature_url"`
+	Pin               pgtype.Text        `json:"pin"`
+	PinStatus         pgtype.Text        `json:"pin_status"`
+	PinFailedAttempts pgtype.Int4        `json:"pin_failed_attempts"`
+	PinLockedUntil    pgtype.Timestamptz `json:"pin_locked_until"`
+	PinUpdatedAt      pgtype.Timestamptz `json:"pin_updated_at"`
+	IsMfaEnabled      pgtype.Bool        `json:"is_mfa_enabled"`
+	MfaSecret         pgtype.Text        `json:"mfa_secret"`
+	RoleName          pgtype.Text        `json:"role_name"`
+}
+
+func (q *Queries) ListUsers(ctx context.Context) ([]ListUsersRow, error) {
 	rows, err := q.db.Query(ctx, listUsers)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []User
+	var items []ListUsersRow
 	for rows.Next() {
-		var i User
+		var i ListUsersRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.Email,
@@ -234,6 +302,13 @@ func (q *Queries) ListUsers(ctx context.Context) ([]User, error) {
 			&i.AvatarUrl,
 			&i.SignatureUrl,
 			&i.Pin,
+			&i.PinStatus,
+			&i.PinFailedAttempts,
+			&i.PinLockedUntil,
+			&i.PinUpdatedAt,
+			&i.IsMfaEnabled,
+			&i.MfaSecret,
+			&i.RoleName,
 		); err != nil {
 			return nil, err
 		}
@@ -247,9 +322,10 @@ func (q *Queries) ListUsers(ctx context.Context) ([]User, error) {
 
 const updateUser = `-- name: UpdateUser :one
 UPDATE users
-SET email = $2, full_name = $3, role_id = $4, department_id = $5, status = $6, updated_at = NOW()
+SET email = $2, full_name = $3, role_id = $4, department_id = $5, status = $6, 
+    avatar_url = $7, signature_url = $8, is_mfa_enabled = $9, updated_at = NOW()
 WHERE id = $1
-RETURNING id, email, password_hash, full_name, role_id, department_id, is_active, created_at, updated_at, status, avatar_url, signature_url, pin
+RETURNING id, email, password_hash, full_name, role_id, department_id, is_active, created_at, updated_at, status, avatar_url, signature_url, pin, pin_status, pin_failed_attempts, pin_locked_until, pin_updated_at, is_mfa_enabled, mfa_secret
 `
 
 type UpdateUserParams struct {
@@ -259,6 +335,9 @@ type UpdateUserParams struct {
 	RoleID       int32       `json:"role_id"`
 	DepartmentID pgtype.UUID `json:"department_id"`
 	Status       string      `json:"status"`
+	AvatarUrl    pgtype.Text `json:"avatar_url"`
+	SignatureUrl pgtype.Text `json:"signature_url"`
+	IsMfaEnabled pgtype.Bool `json:"is_mfa_enabled"`
 }
 
 func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (User, error) {
@@ -269,6 +348,9 @@ func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (User, e
 		arg.RoleID,
 		arg.DepartmentID,
 		arg.Status,
+		arg.AvatarUrl,
+		arg.SignatureUrl,
+		arg.IsMfaEnabled,
 	)
 	var i User
 	err := row.Scan(
@@ -285,8 +367,29 @@ func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (User, e
 		&i.AvatarUrl,
 		&i.SignatureUrl,
 		&i.Pin,
+		&i.PinStatus,
+		&i.PinFailedAttempts,
+		&i.PinLockedUntil,
+		&i.PinUpdatedAt,
+		&i.IsMfaEnabled,
+		&i.MfaSecret,
 	)
 	return i, err
+}
+
+const updateUserMFASecret = `-- name: UpdateUserMFASecret :exec
+UPDATE users SET mfa_secret = $2, is_mfa_enabled = $3 WHERE id = $1
+`
+
+type UpdateUserMFASecretParams struct {
+	ID           uuid.UUID   `json:"id"`
+	MfaSecret    pgtype.Text `json:"mfa_secret"`
+	IsMfaEnabled pgtype.Bool `json:"is_mfa_enabled"`
+}
+
+func (q *Queries) UpdateUserMFASecret(ctx context.Context, arg UpdateUserMFASecretParams) error {
+	_, err := q.db.Exec(ctx, updateUserMFASecret, arg.ID, arg.MfaSecret, arg.IsMfaEnabled)
+	return err
 }
 
 const updateUserPIN = `-- name: UpdateUserPIN :exec
@@ -307,7 +410,7 @@ const updateUserStatus = `-- name: UpdateUserStatus :one
 UPDATE users 
 SET status = $2, updated_at = NOW()
 WHERE id = $1
-RETURNING id, email, password_hash, full_name, role_id, department_id, is_active, created_at, updated_at, status, avatar_url, signature_url, pin
+RETURNING id, email, password_hash, full_name, role_id, department_id, is_active, created_at, updated_at, status, avatar_url, signature_url, pin, pin_status, pin_failed_attempts, pin_locked_until, pin_updated_at, is_mfa_enabled, mfa_secret
 `
 
 type UpdateUserStatusParams struct {
@@ -332,6 +435,12 @@ func (q *Queries) UpdateUserStatus(ctx context.Context, arg UpdateUserStatusPara
 		&i.AvatarUrl,
 		&i.SignatureUrl,
 		&i.Pin,
+		&i.PinStatus,
+		&i.PinFailedAttempts,
+		&i.PinLockedUntil,
+		&i.PinUpdatedAt,
+		&i.IsMfaEnabled,
+		&i.MfaSecret,
 	)
 	return i, err
 }

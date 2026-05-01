@@ -23,6 +23,9 @@ type createUserRequest struct {
 	FullName     string    `json:"full_name" validate:"required"`
 	RoleID       int32     `json:"role_id" validate:"required"`
 	DepartmentID uuid.UUID `json:"department_id"`
+	AvatarUrl    string    `json:"avatar_url"`
+	SignatureUrl string    `json:"signature_url"`
+	IsMfaEnabled bool      `json:"is_mfa_enabled"`
 }
 
 func (h *UserHandler) Register(c fiber.Ctx) error {
@@ -43,6 +46,9 @@ func (h *UserHandler) Register(c fiber.Ctx) error {
 		RoleID:       req.RoleID,
 		DepartmentID: pgtype.UUID{Bytes: req.DepartmentID, Valid: req.DepartmentID != uuid.Nil},
 		Status:       "active",
+		AvatarUrl:    pgtype.Text{String: req.AvatarUrl, Valid: req.AvatarUrl != ""},
+		SignatureUrl: pgtype.Text{String: req.SignatureUrl, Valid: req.SignatureUrl != ""},
+		IsMfaEnabled: pgtype.Bool{Bool: req.IsMfaEnabled, Valid: true},
 	})
 
 	if err != nil {
@@ -73,6 +79,9 @@ func (h *UserHandler) Update(c fiber.Ctx) error {
 		RoleID       int32     `json:"role_id"`
 		DepartmentID uuid.UUID `json:"department_id"`
 		Status       string    `json:"status"`
+		AvatarUrl    string    `json:"avatar_url"`
+		SignatureUrl string    `json:"signature_url"`
+		IsMfaEnabled bool      `json:"is_mfa_enabled"`
 	}
 
 	req := new(updateRequest)
@@ -87,6 +96,9 @@ func (h *UserHandler) Update(c fiber.Ctx) error {
 		RoleID:       req.RoleID,
 		DepartmentID: pgtype.UUID{Bytes: req.DepartmentID, Valid: req.DepartmentID != uuid.Nil},
 		Status:       req.Status,
+		AvatarUrl:    pgtype.Text{String: req.AvatarUrl, Valid: req.AvatarUrl != ""},
+		SignatureUrl: pgtype.Text{String: req.SignatureUrl, Valid: req.SignatureUrl != ""},
+		IsMfaEnabled: pgtype.Bool{Bool: req.IsMfaEnabled, Valid: true},
 	})
 
 	if err != nil {

@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"errors"
+	"strings"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
@@ -14,6 +15,7 @@ import (
 	"fmt"
 
 	"github.com/kreatif/dms-backend/internal/infra"
+	"github.com/pquerna/otp/totp"
 )
 
 type AuthService struct {
@@ -28,133 +30,112 @@ func NewAuthService(repo repository.Querier, cfg config.Config, ldapSvc *infra.L
 }
 
 type LoginResponse struct {
-	AccessToken  string    `json:"access_token"`
-	RefreshToken string    `json:"refresh_token"`
+	AccessToken  string    `json:"access_token,omitempty"`
+	RefreshToken string    `json:"refresh_token,omitempty"`
 	UserID       uuid.UUID `json:"user_id"`
 	FullName     string    `json:"full_name"`
 	Role         string    `json:"role"`
 	AvatarUrl    string    `json:"avatar_url"`
 	SignatureUrl string    `json:"signature_url"`
+	MfaRequired  bool      `json:"mfa_required"`
 }
 
 func (s *AuthService) Login(ctx context.Context, identifier, password, authType string) (*LoginResponse, error) {
 	log.Printf("[AuthService] Login attempt for: %s (Type: %s)", identifier, authType)
 
+	var userRow repository.GetUserByEmailRow
+	var err error
+
 	if authType == "sso" {
-		// 1. Corporate LDAP Authentication
 		ldapUser, ldapErr := s.ldapSvc.Authenticate(ctx, identifier, password)
-		if ldapErr == nil {
-			log.Printf("[AuthService] LDAP authenticated. Groups found: %v", ldapUser.Groups)
-			// 1. Fetch all roles from DB for dynamic mapping
-			roles, _ := s.repo.ListRoles(ctx)
-			
-			targetRole := "user" // Default fallback
-			highestPriority := 0 // For priority logic: admin(3) > manager(2) > user(1)
-			
-			// Map LDAP groups to roles from DB
-			for _, r := range roles {
-				if !r.LdapGroup.Valid {
-					continue
-				}
-				
-				// Check if user has this LDAP group
-				for _, userGroup := range ldapUser.Groups {
-					if userGroup == r.LdapGroup.String {
-						// Match found! Determine priority
-						priority := 1
-						if r.Name == "admin" || r.Name == "superadmin" {
-							priority = 3
-						} else if r.Name == "manager" || r.Name == "manajer" || r.Name == "doc_controller" {
-							priority = 2
-						}
-						
-						if priority > highestPriority {
-							highestPriority = priority
-							targetRole = r.Name
-							log.Printf("[AuthService] Match: Group %s -> Role %s (Priority: %d)", userGroup, targetRole, priority)
-						}
-					}
-				}
-			}
-
-			log.Printf("[AuthService] Final mapped role for %s: %s", ldapUser.Email, targetRole)
-
-			row, err := s.repo.GetUserByEmail(ctx, ldapUser.Email)
-			if err != nil {
-				// JIT (Just-In-Time) Provisioning
-				log.Printf("[AuthService] Creating JIT user for LDAP: %s with role: %s", ldapUser.Email, targetRole)
-				roleID, _ := s.repo.GetRoleIDByName(ctx, targetRole)
-				user, err := s.repo.CreateUser(ctx, repository.CreateUserParams{
-					FullName:     ldapUser.FullName,
-					Email:        ldapUser.Email,
-					PasswordHash: "LDAP_AUTH",
-					RoleID:       roleID,
-					Status:       "approved",
-				})
-				if err != nil {
-					return nil, err
-				}
-				return s.generateLoginResponse(user.ID, user.FullName, targetRole, user.DepartmentID, user.AvatarUrl.String, user.SignatureUrl.String)
-			}
-			
-			// Sync Role if it changed
-			roleName := "user"
-			if row.RoleName.Valid {
-				roleName = row.RoleName.String
-			}
-			
-			if roleName != targetRole {
-				log.Printf("[AuthService] Syncing role for %s: %s -> %s", ldapUser.Email, roleName, targetRole)
-				// We update the local role name for the response
-				roleName = targetRole
-				
-				// Optional: In a real app, you'd call s.repo.UpdateUserRole here
-				// For now, we just ensure the user remains approved
-				_, _ = s.repo.UpdateUserStatus(ctx, repository.UpdateUserStatusParams{
-					ID: row.ID,
-					Status: "approved", 
-				})
-			}
-			
-			return s.generateLoginResponse(row.ID, row.FullName, roleName, row.DepartmentID, row.AvatarUrl.String, row.SignatureUrl.String)
+		if ldapErr != nil {
+			return nil, fmt.Errorf("corporate login failed: %v", ldapErr)
 		}
-		log.Printf("[AuthService] Corporate login failed for %s: %v", identifier, ldapErr)
-		return nil, fmt.Errorf("corporate login failed: %v", ldapErr)
-	}
-
-	// 2. Local Database Authentication (for Emails or fallback)
-	log.Printf("[AuthService] Attempting Local DB login for email: [%s]", identifier)
-	row, err := s.repo.GetUserByEmail(ctx, identifier)
-	if err != nil {
-		log.Printf("[AuthService] User not found: [%s]. Error: %v", identifier, err)
-		
-		// Diagnostic: List all users to see if we're in the right DB
-		users, _ := s.repo.ListUsers(ctx)
-		var emails []string
-		for _, u := range users {
-			emails = append(emails, u.Email)
+		userRow, err = s.repo.GetUserByEmail(ctx, ldapUser.Email)
+		if err != nil {
+			return nil, errors.New("ldap user not provisioned")
 		}
-		log.Printf("[AuthService] DIAGNOSTIC: Total users in DB: %d. Available emails: %v", len(users), emails)
-		
-		return nil, errors.New("user not found in local database")
+	} else {
+		log.Printf("[AuthService] Attempting Local DB login for email: [%s]", identifier)
+		userRow, err = s.repo.GetUserByEmail(ctx, identifier)
+		if err != nil {
+			log.Printf("[AuthService] User not found: [%s]. Error: %v", identifier, err)
+			return nil, errors.New("invalid credentials")
+		}
+
+		if err := bcrypt.CompareHashAndPassword([]byte(userRow.PasswordHash), []byte(password)); err != nil {
+			log.Printf("[AuthService] Password mismatch for: %s", identifier)
+			return nil, errors.New("invalid credentials")
+		}
 	}
 
-	err = bcrypt.CompareHashAndPassword([]byte(row.PasswordHash), []byte(password))
+	// Check status
+	if userRow.Status != "approved" && userRow.Status != "active" {
+		return nil, fmt.Errorf("account status: %s", userRow.Status)
+	}
+
+	// Check MFA
+	if userRow.IsMfaEnabled.Bool {
+		log.Printf("[AuthService] MFA required for: %s", identifier)
+		return &LoginResponse{
+			MfaRequired: true,
+			UserID:      userRow.ID,
+		}, nil
+	}
+
+	return s.generateLoginResponse(ctx, userRow)
+}
+
+func (s *AuthService) GenerateMFASecret(ctx context.Context, userID uuid.UUID) (string, string, error) {
+	user, err := s.repo.GetUserByID(ctx, userID)
 	if err != nil {
-		log.Printf("[AuthService] Password mismatch for user: %s", identifier)
-		return nil, errors.New("invalid password")
+		return "", "", err
+	}
+	key, err := totp.Generate(totp.GenerateOpts{
+		Issuer:      "Kreatif DMS",
+		AccountName: user.Email,
+	})
+	if err != nil {
+		return "", "", err
+	}
+	return key.Secret(), key.URL(), nil
+}
+
+func (s *AuthService) VerifyMFAAndEnable(ctx context.Context, userID uuid.UUID, secret, code string) error {
+	if !totp.Validate(code, secret) {
+		return errors.New("invalid verification code")
+	}
+	return s.repo.UpdateUserMFASecret(ctx, repository.UpdateUserMFASecretParams{
+		ID:           userID,
+		MfaSecret:    pgtype.Text{String: secret, Valid: true},
+		IsMfaEnabled: pgtype.Bool{Bool: true, Valid: true},
+	})
+}
+
+func (s *AuthService) LoginMFA(ctx context.Context, userID uuid.UUID, code string) (*LoginResponse, error) {
+	user, err := s.repo.GetUserByID(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+	if !user.IsMfaEnabled.Bool || !user.MfaSecret.Valid {
+		return nil, errors.New("mfa not enabled")
+	}
+	if !totp.Validate(code, user.MfaSecret.String) {
+		return nil, errors.New("invalid mfa code")
 	}
 
-	if row.Status != "approved" {
-		return nil, fmt.Errorf("your account status is %s. Please wait for administrator approval", row.Status)
+	// Convert GetUserByIDRow to GetUserByEmailRow for generateLoginResponse
+	row := repository.GetUserByEmailRow{
+		ID:           user.ID,
+		Email:        user.Email,
+		FullName:     user.FullName,
+		RoleName:     user.RoleName,
+		AvatarUrl:    user.AvatarUrl,
+		SignatureUrl: user.SignatureUrl,
+		DepartmentID: user.DepartmentID,
 	}
 
-	roleName := "user"
-	if row.RoleName.Valid {
-		roleName = row.RoleName.String
-	}
-
-	return s.generateLoginResponse(row.ID, row.FullName, roleName, row.DepartmentID, row.AvatarUrl.String, row.SignatureUrl.String)
+	return s.generateLoginResponse(ctx, row)
 }
 
 func (s *AuthService) Register(ctx context.Context, fullName, email, password string) error {
@@ -293,7 +274,7 @@ func (s *AuthService) GetMenu(ctx context.Context, userID uuid.UUID) ([]MenuItem
 	// 2. Get unique module IDs that have at least VIEW permission
 	allowedModules := make(map[string]bool)
 	for _, p := range perms {
-		if p.Action == "VIEW" {
+		if strings.ToUpper(p.Action) == "VIEW" {
 			allowedModules[p.ModuleID] = true
 		}
 	}
@@ -358,16 +339,21 @@ func (s *AuthService) GetMenu(ctx context.Context, userID uuid.UUID) ([]MenuItem
 	return finalMenu, nil
 }
 
-func (s *AuthService) generateLoginResponse(userID uuid.UUID, fullName, roleName string, deptIDRaw interface{}, avatarUrl, signatureUrl string) (*LoginResponse, error) {
+func (s *AuthService) generateLoginResponse(ctx context.Context, user repository.GetUserByEmailRow) (*LoginResponse, error) {
 	var deptID uuid.UUID
 	
-	// Handle pgtype.UUID or other types if necessary
-	if val, ok := deptIDRaw.(pgtype.UUID); ok && val.Valid {
-		deptID = val.Bytes
+	// Handle pgtype.UUID
+	if user.DepartmentID.Valid {
+		deptID = user.DepartmentID.Bytes
+	}
+
+	roleName := "user"
+	if user.RoleName.Valid {
+		roleName = user.RoleName.String
 	}
 
 	payload := auth.TokenPayload{
-		UserID:       userID,
+		UserID:       user.ID,
 		Role:         roleName,
 		DepartmentID: deptID,
 	}
@@ -385,13 +371,14 @@ func (s *AuthService) generateLoginResponse(userID uuid.UUID, fullName, roleName
 	return &LoginResponse{
 		AccessToken:  access,
 		RefreshToken: refresh,
-		UserID:       userID,
-		FullName:     fullName,
+		UserID:       user.ID,
+		FullName:     user.FullName,
 		Role:         roleName,
-		AvatarUrl:    avatarUrl,
-		SignatureUrl: signatureUrl,
+		AvatarUrl:    user.AvatarUrl.String,
+		SignatureUrl: user.SignatureUrl.String,
 	}, nil
 }
+
 func (s *AuthService) SetPIN(ctx context.Context, userID uuid.UUID, pin string) error {
 	if len(pin) != 6 {
 		return errors.New("PIN must be 6 digits")
@@ -438,10 +425,16 @@ func (s *AuthService) RefreshToken(ctx context.Context, refreshToken string) (*L
 		return nil, errors.New("user not found")
 	}
 
-	roleName := "user"
-	if user.RoleName.Valid {
-		roleName = user.RoleName.String
+	// Convert to common row type
+	row := repository.GetUserByEmailRow{
+		ID:           user.ID,
+		Email:        user.Email,
+		FullName:     user.FullName,
+		RoleName:     user.RoleName,
+		AvatarUrl:    user.AvatarUrl,
+		SignatureUrl: user.SignatureUrl,
+		DepartmentID: user.DepartmentID,
 	}
 
-	return s.generateLoginResponse(user.ID, user.FullName, roleName, user.DepartmentID, user.AvatarUrl.String, user.SignatureUrl.String)
+	return s.generateLoginResponse(ctx, row)
 }

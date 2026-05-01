@@ -8,6 +8,8 @@ interface User {
   role: string
   avatar_url?: string
   signature_url?: string
+  is_mfa_enabled?: boolean
+  pin_status?: string
 }
 
 export const useAuthStore = defineStore('auth', () => {
@@ -58,14 +60,16 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  function setUser(userData: User) {
+  function setUser(userData: any) {
     user.value = {
       id: userData.id,
       email: userData.email,
       full_name: userData.full_name,
       role: userData.role,
       avatar_url: userData.avatar_url,
-      signature_url: userData.signature_url
+      signature_url: userData.signature_url,
+      is_mfa_enabled: userData.is_mfa_enabled,
+      pin_status: userData.pin_status
     }
   }
 

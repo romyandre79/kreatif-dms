@@ -132,6 +132,35 @@
           </header>
 
           <form @submit.prevent="saveUser" class="flex-1 overflow-y-auto p-10 space-y-10 custom-scrollbar">
+            <!-- Profile Photos -->
+            <div class="flex items-center gap-8 p-8 bg-slate-50 dark:bg-slate-800/50 rounded-[2.5rem] border border-slate-100 dark:border-slate-800">
+              <!-- Avatar -->
+              <div class="relative group cursor-pointer" @click="$refs.avatarInput.click()">
+                <div class="w-24 h-24 rounded-full bg-white dark:bg-slate-900 flex items-center justify-center border-2 border-primary-500/20 group-hover:border-primary-500 transition-all overflow-hidden shadow-xl ring-4 ring-white dark:ring-slate-800">
+                  <img v-if="formData.avatar_url" :src="formData.avatar_url" class="w-full h-full object-cover">
+                  <LucideUser v-else class="w-10 h-10 text-slate-300" />
+                </div>
+                <div class="absolute inset-0 bg-primary-500/80 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-full">
+                  <LucideCamera class="w-6 h-6 text-white" />
+                </div>
+                <input type="file" ref="avatarInput" class="hidden" accept="image/*" @change="handleAvatarUpload" />
+                <p class="mt-3 text-[9px] font-black text-center text-slate-400 uppercase tracking-widest">Avatar</p>
+              </div>
+
+              <!-- Signature -->
+              <div class="relative group cursor-pointer flex-grow" @click="$refs.signInput.click()">
+                <div class="h-24 w-full bg-white dark:bg-slate-900 rounded-2xl flex items-center justify-center border-2 border-dashed border-slate-200 dark:border-slate-700 group-hover:border-primary-500 transition-all overflow-hidden p-4">
+                  <img v-if="formData.signature_url" :src="formData.signature_url" class="max-h-full object-contain">
+                  <LucidePenTool v-else class="w-8 h-8 text-slate-300" />
+                </div>
+                <div class="absolute inset-0 bg-primary-500/80 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl">
+                  <LucideUpload class="w-6 h-6 text-white" />
+                </div>
+                <input type="file" ref="signInput" class="hidden" accept="image/*" @change="handleSignUpload" />
+                <p class="mt-3 text-[9px] font-black text-left text-slate-400 uppercase tracking-widest px-2">E-Signature</p>
+              </div>
+            </div>
+
             <!-- Account Info -->
             <div class="space-y-8">
               <div class="flex items-center gap-3">
@@ -172,23 +201,33 @@
                   </select>
                 </div>
                 <div class="space-y-2">
+                  <label class="text-[10px] font-black text-slate-500 uppercase px-1">Departemen</label>
+                  <select v-model="formData.department_id" class="w-full px-6 py-4 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-xs font-bold outline-none focus:ring-4 focus:ring-primary-500/10">
+                    <option value="">Pilih Departemen</option>
+                    <option v-for="d in deptList" :key="d.id" :value="d.id">{{ d.name }}</option>
+                  </select>
+                </div>
+              </div>
+              <div class="grid grid-cols-2 gap-8">
+                <div class="space-y-2">
                   <label class="text-[10px] font-black text-slate-500 uppercase px-1">{{ $t('admin.user_management.modal.label_status') }}</label>
                   <select v-model="formData.status" class="w-full px-6 py-4 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-xs font-bold outline-none focus:ring-4 focus:ring-primary-500/10">
                     <option value="active">{{ $t('admin.user_management.status.active') }}</option>
                     <option value="inactive">{{ $t('admin.user_management.status.inactive') }}</option>
+                    <option value="pending">{{ $t('admin.user_management.status.pending') }}</option>
                   </select>
                 </div>
-              </div>
-              <div class="space-y-2">
-                <label class="text-[10px] font-black text-slate-500 uppercase px-1">
-                  {{ isEdit ? $t('admin.user_management.modal.label_password_edit') : $t('admin.user_management.modal.label_password') }}
-                </label>
-                <div class="relative">
-                  <input :type="showPassword ? 'text' : 'password'" v-model="formData.password" class="w-full px-6 py-4 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-xs font-bold outline-none focus:ring-4 focus:ring-primary-500/10 transition-all" :required="!isEdit" />
-                  <button type="button" @click="showPassword = !showPassword" class="absolute right-6 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors">
-                    <LucideEye v-if="!showPassword" class="w-5 h-5" />
-                    <LucideEyeOff v-else class="w-5 h-5" />
-                  </button>
+                <div class="space-y-2">
+                  <label class="text-[10px] font-black text-slate-500 uppercase px-1">
+                    {{ isEdit ? $t('admin.user_management.modal.label_password_edit') : $t('admin.user_management.modal.label_password') }}
+                  </label>
+                  <div class="relative">
+                    <input :type="showPassword ? 'text' : 'password'" v-model="formData.password" class="w-full px-6 py-4 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-xs font-bold outline-none focus:ring-4 focus:ring-primary-500/10 transition-all" :required="!isEdit" />
+                    <button type="button" @click="showPassword = !showPassword" class="absolute right-6 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors">
+                      <LucideEye v-if="!showPassword" class="w-5 h-5" />
+                      <LucideEyeOff v-else class="w-5 h-5" />
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -201,13 +240,16 @@
                   {{ $t('admin.user_management.modal.section_prefs') }}
                 </h4>
               </div>
-              <div class="flex items-center justify-between p-8 bg-slate-50 dark:bg-slate-800 rounded-[2.5rem] border border-slate-100 dark:border-slate-700">
+              <div class="flex items-center justify-between p-8 bg-slate-50 dark:bg-slate-800 rounded-[2.5rem] border border-slate-100 dark:border-slate-800">
                 <div class="space-y-1">
-                  <p class="text-[11px] font-black text-[#1E3A5F] dark:text-white uppercase tracking-tight">{{ $t('admin.user_management.modal.label_mfa') }}</p>
+                  <div class="flex items-center gap-3">
+                    <LucideShieldCheck class="w-5 h-5 text-primary-500" />
+                    <p class="text-[11px] font-black text-[#1E3A5F] dark:text-white uppercase tracking-tight">{{ $t('admin.user_management.modal.label_mfa') }} (2FA)</p>
+                  </div>
                   <p class="text-[10px] font-bold text-slate-400 uppercase">{{ $t('admin.user_management.modal.label_mfa_desc') }}</p>
                 </div>
-                <button type="button" @click="formData.mfa = !formData.mfa" class="w-12 h-6 rounded-full transition-all duration-300 relative p-1" :class="formData.mfa ? 'bg-primary-500' : 'bg-slate-300'">
-                  <div class="w-4 h-4 bg-white rounded-full transition-transform" :class="{ 'translate-x-6': formData.mfa }"></div>
+                <button type="button" @click="formData.is_mfa_enabled = !formData.is_mfa_enabled" class="w-12 h-6 rounded-full transition-all duration-300 relative p-1" :class="formData.is_mfa_enabled ? 'bg-primary-500' : 'bg-slate-300 dark:bg-slate-700'">
+                  <div class="w-4 h-4 bg-white rounded-full transition-transform" :class="{ 'translate-x-6': formData.is_mfa_enabled }"></div>
                 </button>
               </div>
             </div>
@@ -235,7 +277,7 @@ import { useI18n } from 'vue-i18n'
 import { 
   LucideUsers, LucideSearch, LucideUserPlus, LucideEdit3, 
   LucideTrash2, LucideX, LucideSave, LucideEye, LucideEyeOff,
-  LucideUser
+  LucideUser, LucideCamera, LucidePenTool, LucideUpload, LucideShieldCheck
 } from 'lucide-vue-next'
 
 const { $api } = useApi()
@@ -249,6 +291,7 @@ const loading = ref(false)
 const showPassword = ref(false)
 
 const rolesList = ref([])
+const deptList = ref([])
 const users = ref([])
 
 const filters = ref({
@@ -263,9 +306,12 @@ const formData = ref({
   username: '',
   email: '',
   role_id: '',
+  department_id: '',
   status: 'active',
   password: '',
-  mfa: false
+  avatar_url: '',
+  signature_url: '',
+  is_mfa_enabled: false
 })
 
 const fetchUsers = async () => {
@@ -293,10 +339,44 @@ const fetchRoles = async () => {
   }
 }
 
+const fetchDepts = async () => {
+  try {
+    const res = await $api(`${config.public.apiBase}/master/departments`)
+    if (res && res.data) {
+      deptList.value = res.data
+    }
+  } catch (err) {
+    console.error('Failed to fetch departments:', err)
+  }
+}
+
 onMounted(() => {
   fetchUsers()
   fetchRoles()
+  fetchDepts()
 })
+
+const handleAvatarUpload = (e) => {
+  const file = e.target.files[0]
+  if (file) {
+    const reader = new FileReader()
+    reader.onload = (event) => {
+      formData.value.avatar_url = event.target.result
+    }
+    reader.readAsDataURL(file)
+  }
+}
+
+const handleSignUpload = (e) => {
+  const file = e.target.files[0]
+  if (file) {
+    const reader = new FileReader()
+    reader.onload = (event) => {
+      formData.value.signature_url = event.target.result
+    }
+    reader.readAsDataURL(file)
+  }
+}
 
 const filteredUsers = computed(() => {
   return users.value.filter(u => {
@@ -330,12 +410,15 @@ const openModal = (user = null) => {
     formData.value = { 
       id: user.id,
       full_name: user.full_name,
-      username: user.username || user.email.split('@')[0], // Fallback if username missing
+      username: user.username || user.email.split('@')[0],
       email: user.email,
       role_id: user.role_id,
-      status: user.status,
+      department_id: user.department_id || '',
+      status: user.status || (user.is_active ? 'active' : 'inactive'),
       password: '',
-      mfa: user.mfa || false
+      avatar_url: user.avatar_url || '',
+      signature_url: user.signature_url || '',
+      is_mfa_enabled: user.is_mfa_enabled || false
     }
   } else {
     isEdit.value = false
@@ -345,9 +428,12 @@ const openModal = (user = null) => {
       username: '',
       email: '',
       role_id: rolesList.value.length > 0 ? rolesList.value[0].id : '',
+      department_id: '',
       status: 'active',
       password: '',
-      mfa: false
+      avatar_url: '',
+      signature_url: '',
+      is_mfa_enabled: false
     }
   }
   showModal.value = true
@@ -356,25 +442,26 @@ const openModal = (user = null) => {
 const saveUser = async () => {
   saving.value = true
   try {
+    const payload = {
+      full_name: formData.value.full_name,
+      email: formData.value.email,
+      role_id: parseInt(formData.value.role_id),
+      department_id: formData.value.department_id,
+      status: formData.value.status,
+      avatar_url: formData.value.avatar_url,
+      signature_url: formData.value.signature_url,
+      is_mfa_enabled: formData.value.is_mfa_enabled
+    }
+
     if (isEdit.value) {
       await $api(`${config.public.apiBase}/users/${formData.value.id}`, {
         method: 'PUT',
-        body: {
-          full_name: formData.value.full_name,
-          email: formData.value.email,
-          role_id: parseInt(formData.value.role_id),
-          status: formData.value.status,
-        }
+        body: payload
       })
     } else {
       await $api(`${config.public.apiBase}/users`, {
         method: 'POST',
-        body: {
-          full_name: formData.value.full_name,
-          email: formData.value.email,
-          password: formData.value.password,
-          role_id: parseInt(formData.value.role_id),
-        }
+        body: { ...payload, password: formData.value.password }
       })
     }
     await fetchUsers()

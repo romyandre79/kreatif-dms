@@ -211,7 +211,8 @@ import {
   LucideLogIn, LucideClock, LucideFileJson, LucideClipboardList,
   LucideScanLine, LucideGitCompare, LucideHardDrive, LucideBuilding2,
   LucideMapPin, LucideUsers, LucideServer, LucideArchive,
-  LucideFolder, LucideSettings2, LucideUserCog, LucideBookOpen, LucideLayers
+  LucideFolder, LucideSettings2, LucideUserCog, LucideBookOpen, LucideLayers,
+  LucideLock
 } from 'lucide-vue-next'
 import { useApi } from '@/composables/useApi'
 
@@ -281,9 +282,12 @@ const iconMap = {
   'Reports': LucideBarChart3,
   'Configuration': LucideSettings,
   'Administration': LucideShieldAlert,
+  'cat_admin': LucideShieldAlert,
   'modules': LucideLayers,
   'roles': LucideShieldAlert,
-  'users': LucideUserCog
+  'users': LucideUserCog,
+  'admin_pin': LucideLock,
+  'LucideLock': LucideLock
 }
 
 const getIcon = (key) => iconMap[key] || LucideFileText

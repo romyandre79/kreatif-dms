@@ -758,5 +758,13 @@ type User struct {
 	AvatarUrl    pgtype.Text        `json:"avatar_url"`
 	SignatureUrl pgtype.Text        `json:"signature_url"`
 	// 6-digit transaction PIN for high-security approvals (L2)
-	Pin pgtype.Text `json:"pin"`
+	Pin               pgtype.Text        `json:"pin"`
+	PinStatus         pgtype.Text        `json:"pin_status"`
+	PinFailedAttempts pgtype.Int4        `json:"pin_failed_attempts"`
+	PinLockedUntil    pgtype.Timestamptz `json:"pin_locked_until"`
+	PinUpdatedAt      pgtype.Timestamptz `json:"pin_updated_at"`
+	// Flag to indicate if Multi-Factor Authentication is enabled for the user
+	IsMfaEnabled pgtype.Bool `json:"is_mfa_enabled"`
+	// TOTP secret for MFA verification
+	MfaSecret pgtype.Text `json:"mfa_secret"`
 }

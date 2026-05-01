@@ -100,47 +100,6 @@
         "required": "WAJIB"
       }
     },
-    "user_management": {
-      "title": "User Management",
-      "subtitle": "Manage system user identities, access, and security.",
-      "add_btn": "Add New User",
-      "search_placeholder": "Search user (name, email...)",
-      "filter_role": "All Roles",
-      "filter_status": "All Statuses",
-      "total_label": "Total Users",
-      "status": {
-        "active": "Active",
-        "inactive": "Inactive",
-        "pending": "Pending",
-        "approved": "Approved"
-      },
-      "table": {
-        "name_identity": "Name & Identity",
-        "email_role": "Email & Role",
-        "status": "Status",
-        "last_login": "Last Login",
-        "actions": "Actions"
-      },
-      "modal": {
-        "title_add": "Add New User",
-        "title_edit": "Edit User",
-        "section_account": "Account Information",
-        "section_access": "Access & Security",
-        "section_prefs": "System Preferences",
-        "label_name": "Full Name",
-        "label_username": "Username",
-        "label_email": "Email Address",
-        "label_role": "Role / Position",
-        "label_status": "Account Status",
-        "label_password": "Password",
-        "label_password_edit": "Change Password (Leave empty if unchanged)",
-        "label_mfa": "Two-Factor Authentication",
-        "label_mfa_desc": "Require OTP verification during login.",
-        "btn_cancel": "Cancel",
-        "btn_save": "Save User",
-        "saving": "Saving..."
-      }
-    },
     "reports_analytics": {
       "title": "Laporan & Analitik",
       "subtitle": "Wawasan operasional dan performa sistem",
@@ -463,6 +422,53 @@
         "error_delete": "Gagal menghapus data",
         "error_fetch": "Gagal mengambil data",
         "confirm_delete": "Hapus tipe dokumen ini?"
+      }
+    },
+    "pin": {
+      "compliance": {
+        "title": "Ringkasan Kepatuhan",
+        "score": "Skor Kepatuhan",
+        "lockouts": "Insiden Lockout",
+        "non_compliant_count": "{count} Akun Non-Compliant"
+      },
+      "rules": {
+        "title": "Aturan Penegakan PIN",
+        "mandatory": {
+          "label": "PIN Approval Mandatory",
+          "desc": "Wajibkan PIN untuk persetujuan dokumen"
+        },
+        "security": {
+          "label": "Download & Print Security",
+          "desc": "Wajibkan PIN sebelum akses ekspor"
+        },
+        "verification": {
+          "label": "Archive Verification",
+          "desc": "Wajibkan PIN untuk pengarsipan permanen"
+        },
+        "config": {
+          "length": "Panjang PIN",
+          "max_attempts": "Batas Percobaan",
+          "lockout_duration": "Durasi Lockout",
+          "expiry": "Masa Berlaku"
+        },
+        "policy_note": "Kebijakan pencegahan penggunaan kembali PIN yang sama (Reuse Prevention) aktif secara sistem."
+      },
+      "preview": {
+        "title": "PREVIEW: VERIFIKASI PIN"
+      },
+      "list": {
+        "title": "Pendaftaran PIN Pengguna",
+        "subtitle": "Kelola status keamanan PIN untuk semua staf operasional",
+        "search": "Cari nama atau peran...",
+        "table": {
+          "cols": {
+            "user": "NAMA PENGGUNA",
+            "role": "PERAN",
+            "status": "STATUS PIN",
+            "updated": "PEMBARUAN",
+            "failed": "PERCOBAAN GAGAL"
+          }
+        }
       }
     }
   }
