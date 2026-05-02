@@ -1,30 +1,37 @@
 import os
-# Set environment variables BEFORE any other imports to ensure they are picked up
+# Set environment variables BEFORE any other imports
 os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
-os.environ["FLAGS_enable_mkldnn"] = "0"
-os.environ["PADDLE_WITH_MKLDNN"] = "OFF"
-os.environ["OMP_NUM_THREADS"] = "1"
-os.environ["FLAGS_enable_pir_api"] = "0"
-os.environ["FLAGS_enable_new_executor"] = "0"
 
-from fastapi import FastAPI, UploadFile, File, HTTPException, Request, Depends, status
-from fastapi.responses import HTMLResponse
-from fastapi.security import HTTPBasic, HTTPBasicCredentials
-import easyocr
-import uvicorn
+import asyncio
 import io
-import pypdfium2 as pdfium
-from PIL import Image
-import numpy as np
-import logging
 import time
 import secrets
+import json
+import logging
+import numpy as np
 from datetime import datetime
-from collections import deque
+from PIL import Image
+import pypdfium2 as pdfium
+import uvicorn
+from concurrent.futures import ThreadPoolExecutor
+from contextlib import asynccontextmanager
+
+from fastapi import FastAPI, UploadFile, File, HTTPException, Request, Depends, status, WebSocket, WebSocketDisconnect
+from fastapi.responses import HTMLResponse
+from fastapi.security import HTTPBasic, HTTPBasicCredentials
+from fastapi.staticfiles import StaticFiles
 from dotenv import load_dotenv
 
-# Load environment variables
+# Load environment variables BEFORE importing custom modules
 load_dotenv()
+
+# Import our custom modules
+from db_logic import init_db, get_db, save_request_log, get_stats, get_recent_history, get_ocr_result_by_id
+from ai_logic import AI_ENABLED, AI_VISION_ENABLED, ocr_with_ai_vision, analyze_with_ai
+from ocr_engine import run_ocr, format_ocr_result, IMAGE_SCALE
+from ws_manager import manager, broadcast_log, WebSocketLogHandler
+from dashboard_html import DASHBOARD_HTML
+
 
 # Configure logging
 logging.basicConfig(
@@ -34,373 +41,170 @@ logging.basicConfig(
 )
 logger = logging.getLogger("ocr-service")
 
-app = FastAPI(title="Kreatif DMS OCR Service")
+# Setup WebSocket Logging
+ws_handler = WebSocketLogHandler()
+ws_handler.setFormatter(logging.Formatter("%(message)s"))
+logger.addHandler(ws_handler)
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    import ws_manager
+    ws_manager.main_loop = asyncio.get_event_loop()
+    logger.info("Kreatif DMS OCR Service started (Refactored Mode).")
+    init_db()
+    yield
+    logger.info("Kreatif DMS OCR Service is shutting down.")
+
+app = FastAPI(title="Kreatif DMS OCR Service", lifespan=lifespan)
 security = HTTPBasic()
 
-# Configuration
+# Ensure uploads directory exists
+UPLOAD_DIR = "uploads"
+if not os.path.exists(UPLOAD_DIR):
+    os.makedirs(UPLOAD_DIR)
+app.mount("/uploads", StaticFiles(directory=UPLOAD_DIR), name="uploads")
+
+# Auth Config
 ADMIN_USER = os.getenv("OCR_ADMIN_USER", "admin")
 ADMIN_PASSWORD = os.getenv("OCR_ADMIN_PASSWORD", "admin123")
-
-# Global State for Dashboard
-request_history = deque(maxlen=100)
-stats = {
-    "total_processed": 0,
-    "total_duration": 0,
-    "failed_count": 0,
-    "start_time": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-}
-
-# Initialize EasyOCR
-logger.info("Initializing EasyOCR Engine (Stable for Python 3.13)...")
-# Using Indonesian and English
-reader = easyocr.Reader(['id', 'en'], gpu=False)
-logger.info("EasyOCR Engine Ready.")
+ALLOWED_CLIENT_HOSTS = [h.strip() for h in os.getenv("CLIENT_HOST", "localhost").split(",")]
+RATE_LIMIT = int(os.getenv("RATE_LIMITER", "100"))
+MAX_PARALLEL_PAGES = int(os.getenv("MAX_PARALLEL_PAGES", "4"))
 
 def authenticate(credentials: HTTPBasicCredentials = Depends(security)):
-    current_username_bytes = credentials.username.encode("utf8")
-    correct_username_bytes = ADMIN_USER.encode("utf8")
-    is_correct_username = secrets.compare_digest(
-        current_username_bytes, correct_username_bytes
-    )
-    current_password_bytes = credentials.password.encode("utf8")
-    correct_password_bytes = ADMIN_PASSWORD.encode("utf8")
-    is_correct_password = secrets.compare_digest(
-        current_password_bytes, correct_password_bytes
-    )
-    if not (is_correct_username and is_correct_password):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect username or password",
-            headers={"WWW-Authenticate": "Basic"},
-        )
+    if not (secrets.compare_digest(credentials.username.encode("utf8"), ADMIN_USER.encode("utf8")) and 
+            secrets.compare_digest(credentials.password.encode("utf8"), ADMIN_PASSWORD.encode("utf8"))):
+        raise HTTPException(status_code=401, detail="Unauthorized", headers={"WWW-Authenticate": "Basic"})
     return credentials.username
 
+def check_rate_limit(request: Request):
+    host = request.client.host
+    now = time.time()
+    with get_db() as conn:
+        cursor = conn.cursor()
+        cursor.execute("DELETE FROM rate_limits WHERE timestamp < ?", (now - 3600,))
+        cursor.execute("SELECT COUNT(*) FROM rate_limits WHERE client_host = ?", (host,))
+        if cursor.fetchone()[0] >= RATE_LIMIT:
+            raise HTTPException(status_code=429, detail="Rate limit exceeded")
+        cursor.execute("INSERT INTO rate_limits (client_host, timestamp) VALUES (?, ?)", (host, now))
+        conn.commit()
+    return True
+
 @app.get("/", response_class=HTMLResponse, tags=["UI"])
-async def dashboard(request: Request, username: str = Depends(authenticate)):
-    avg_time = stats["total_duration"] / stats["total_processed"] if stats["total_processed"] > 0 else 0
-    success_rate = ((stats["total_processed"] - stats["failed_count"]) / stats["total_processed"] * 100) if stats["total_processed"] > 0 else 100
+async def dashboard(username: str = Depends(authenticate)):
+    return DASHBOARD_HTML
 
-    rows = ""
-    for req in reversed(request_history):
-        status_color = "text-green-500 bg-green-500/10" if req["status"] == "Success" else "text-red-500 bg-red-500/10"
-        rows += f"""
-        <tr class="border-b border-slate-800/50 hover:bg-slate-800/30 transition-colors">
-            <td class="py-4 px-6 text-slate-400 font-mono text-[10px]">{req["timestamp"]}</td>
-            <td class="py-4 px-6 font-bold text-slate-200">{req["filename"]}</td>
-            <td class="py-4 px-6 text-slate-400 text-xs">{req["size"]}</td>
-            <td class="py-4 px-6 font-black text-xs">{req["duration"]:.2f}s</td>
-            <td class="py-4 px-6">
-                <span class="px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest {status_color}">
-                    {req["status"]}
-                </span>
-            </td>
-        </tr>
-        """
+@app.get("/ocr/stats")
+async def get_stats_api(username: str = Depends(authenticate)):
+    total, dur, failed = get_stats()
+    history_raw = get_recent_history()
+    history = []
+    for row in history_raw:
+        history.append({
+            "id": row[0], "start_time": row[1], "end_time": row[2],
+            "filename": row[3], "size": row[4], "duration": row[5],
+            "status": row[6], "accuracy": row[7], "ai_analysis": row[8]
+        })
+    return {
+        "stats": {"total": total, "avg_time": dur/total if total > 0 else 0, "success_rate": (total-failed)/total*100 if total > 0 else 100},
+        "history": history
+    }
 
-    if not rows:
-        rows = '<tr><td colspan="5" class="py-20 text-center text-slate-500 font-bold uppercase tracking-widest text-xs">No processing history yet</td></tr>'
+@app.get("/ocr/result/{job_id}")
+async def get_result(job_id: int, username: str = Depends(authenticate)):
+    row = get_ocr_result_by_id(job_id)
+    if not row: raise HTTPException(status_code=404, detail="Not found")
+    return {
+        "id": row[0], "timestamp": row[1], "filename": row[2], "status": row[3],
+        "words_json": row[4], "file_path": row[5], "preview_path": row[6],
+        "ai_analysis": row[7], "preview_paths": json.loads(row[8]) if row[8] else [row[6]]
+    }
 
-    return f"""
-    <!DOCTYPE html>
-    <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>OCR Service Dashboard | Kreatif DMS</title>
-        <script src="https://cdn.tailwindcss.com"></script>
-        <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;900&display=swap" rel="stylesheet">
-        <script src="https://unpkg.com/lucide@latest"></script>
-        <style>
-            body {{ font-family: 'Outfit', sans-serif; background-color: #020617; color: #f8fafc; }}
-            .glass {{ background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.05); }}
-            .glow {{ box-shadow: 0 0 40px -10px rgba(56, 189, 248, 0.2); }}
-        </style>
-    </head>
-    <body class="p-8 lg:p-12 min-h-screen">
-        <div class="max-w-7xl mx-auto space-y-12">
-            <!-- Header -->
-            <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
-                <div class="space-y-1">
-                    <div class="flex items-center gap-3">
-                        <div class="p-2 bg-sky-500/10 rounded-lg"><i data-lucide="scan-text" class="text-sky-500 w-6 h-6"></i></div>
-                        <h1 class="text-3xl font-black tracking-tight uppercase">OCR Engine <span class="text-sky-500">Service</span></h1>
-                    </div>
-                    <p class="text-slate-500 text-sm font-medium">PaddleOCR High-Performance Intelligence Dashboard</p>
-                </div>
-                <div class="flex items-center gap-4">
-                    <div class="flex flex-col items-end mr-4">
-                        <span class="text-[9px] font-black text-slate-500 uppercase tracking-widest">Logged in as</span>
-                        <span class="text-xs font-bold text-sky-400">{username}</span>
-                    </div>
-                    <a href="/docs" class="px-6 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-slate-800 transition-all flex items-center gap-2">
-                        <i data-lucide="file-code" class="w-4 h-4 text-sky-500"></i> API Docs
-                    </a>
-                </div>
-            </div>
-
-            <!-- Stats -->
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-                <div class="glass p-8 rounded-[2rem] glow">
-                    <p class="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-4">Total Processed</p>
-                    <p class="text-4xl font-black">{stats["total_processed"]}</p>
-                </div>
-                <div class="glass p-8 rounded-[2rem]">
-                    <p class="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-4">Avg Processing Time</p>
-                    <p class="text-4xl font-black text-sky-500">{avg_time:.2f}s</p>
-                </div>
-                <div class="glass p-8 rounded-[2rem]">
-                    <p class="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-4">Engine Success Rate</p>
-                    <p class="text-4xl font-black text-green-500">{success_rate:.1f}%</p>
-                </div>
-                <div class="glass p-8 rounded-[2rem]">
-                    <p class="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-4">Service Uptime From</p>
-                    <p class="text-xs font-black uppercase tracking-tight text-slate-400 mt-2">{stats["start_time"]}</p>
-                </div>
-            </div>
-
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-10">
-                <!-- Playground -->
-                <div class="lg:col-span-1 space-y-6">
-                    <div class="glass p-10 rounded-[2.5rem] space-y-8 sticky top-12">
-                        <div class="flex items-center gap-3">
-                            <i data-lucide="beaker" class="text-sky-500 w-5 h-5"></i>
-                            <h2 class="font-black text-sm uppercase tracking-widest">Engine Playground</h2>
-                        </div>
-                        
-                        <div id="dropzone" class="border-2 border-dashed border-slate-800 rounded-[2rem] p-10 text-center space-y-4 hover:border-sky-500/50 hover:bg-sky-500/5 transition-all cursor-pointer group">
-                            <input type="file" id="fileInput" class="hidden" accept="image/*,.pdf">
-                            <div class="w-16 h-16 bg-slate-900 rounded-2xl flex items-center justify-center mx-auto group-hover:scale-110 transition-transform">
-                                <i data-lucide="upload-cloud" class="text-slate-500 group-hover:text-sky-500 w-8 h-8"></i>
-                            </div>
-                            <div>
-                                <p class="text-xs font-black uppercase tracking-widest">Drop test document</p>
-                                <p class="text-[10px] text-slate-500 font-bold mt-1">PDF or Images (Max 10MB)</p>
-                            </div>
-                        </div>
-
-                        <div id="loading" class="hidden">
-                            <div class="flex items-center gap-3 p-4 bg-sky-500/10 rounded-2xl border border-sky-500/20">
-                                <i data-lucide="refresh-cw" class="w-4 h-4 text-sky-500 animate-spin"></i>
-                                <p class="text-[10px] font-black text-sky-500 uppercase tracking-widest">Extracting intelligence...</p>
-                            </div>
-                        </div>
-
-                        <div id="result" class="hidden space-y-4">
-                            <div class="flex items-center justify-between">
-                                <p class="text-[10px] font-black text-slate-500 uppercase">Extraction Result</p>
-                                <button onclick="copyText()" class="text-sky-500 hover:text-sky-400"><i data-lucide="copy" class="w-4 h-4"></i></button>
-                            </div>
-                            <div class="bg-slate-950/50 rounded-2xl p-6 border border-slate-800">
-                                <pre id="ocrText" class="text-xs text-slate-300 font-medium whitespace-pre-wrap leading-relaxed max-h-[300px] overflow-y-auto custom-scrollbar"></pre>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Recent Requests -->
-                <div class="lg:col-span-2">
-                    <div class="glass rounded-[2.5rem] overflow-hidden shadow-2xl h-full">
-                        <div class="p-8 border-b border-slate-800/50 flex items-center justify-between">
-                            <div class="flex items-center gap-3">
-                                <i data-lucide="history" class="text-sky-500 w-5 h-5"></i>
-                                <h2 class="font-black text-sm uppercase tracking-widest">Recent Processing History</h2>
-                            </div>
-                            <button onclick="window.location.reload()" class="p-2 bg-slate-900 rounded-lg text-slate-500 hover:text-white transition-colors">
-                                <i data-lucide="refresh-cw" class="w-4 h-4"></i>
-                            </button>
-                        </div>
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-left">
-                                <thead class="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">
-                                    <tr class="bg-slate-900/50">
-                                        <th class="py-5 px-6">Timestamp</th>
-                                        <th class="py-5 px-6">File Name</th>
-                                        <th class="py-5 px-6">Size</th>
-                                        <th class="py-5 px-6">Duration</th>
-                                        <th class="py-5 px-6">Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="text-sm">
-                                    {rows}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <script>
-            lucide.createIcons();
-            
-            const dropzone = document.getElementById('dropzone');
-            const fileInput = document.getElementById('fileInput');
-            const loading = document.getElementById('loading');
-            const result = document.getElementById('result');
-            const ocrText = document.getElementById('ocrText');
-
-            dropzone.onclick = () => fileInput.click();
-            
-            fileInput.onchange = (e) => {{
-                if (e.target.files.length > 0) handleUpload(e.target.files[0]);
-            }};
-
-            async function handleUpload(file) {{
-                const formData = new FormData();
-                formData.append('file', file);
-
-                loading.classList.remove('hidden');
-                result.classList.add('hidden');
-                dropzone.classList.add('opacity-50', 'pointer-events-none');
-
-                try {{
-                    const resp = await fetch('/ocr/process', {{
-                        method: 'POST',
-                        body: formData
-                    }});
-                    
-                    if (!resp.ok) throw new Error('Failed to process OCR');
-                    
-                    const data = await resp.json();
-                    ocrText.innerText = data.full_text || 'No text extracted.';
-                    result.classList.remove('hidden');
-                }} catch (err) {{
-                    alert(err.message);
-                }} finally {{
-                    loading.classList.add('hidden');
-                    dropzone.classList.remove('opacity-50', 'pointer-events-none');
-                }}
-            }}
-
-            function copyText() {{
-                navigator.clipboard.writeText(ocrText.innerText);
-                alert('Text copied to clipboard!');
-            }}
-        </script>
-    </body>
-    </html>
-    """
-
-@app.get("/health")
-def health_check():
-    return {"status": "ok", "stats": stats}
+@app.websocket("/ws/logs")
+async def websocket_endpoint(websocket: WebSocket):
+    await manager.connect(websocket)
+    try:
+        while True: await websocket.receive_text()
+    except WebSocketDisconnect:
+        manager.disconnect(websocket)
 
 @app.post("/ocr/process")
-async def process_ocr(file: UploadFile = File(...), username: str = Depends(authenticate)):
-    start_time = time.time()
+async def process_ocr(file: UploadFile = File(...), username: str = Depends(authenticate), rate_ok: bool = Depends(check_rate_limit)):
+    logger.info(f"Received upload request: {file.filename}")
+    await broadcast_log(f"Received upload request: {file.filename}", "info")
+    start_time_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    start_time_val = time.time()
     filename = file.filename
     content = await file.read()
-    file_size = len(content)
-    
-    logger.info(f"Processing OCR request for file: {filename} (Size: {file_size} bytes) - Auth User: {username}")
+    timestamp = int(time.time())
+    save_filename = f"{timestamp}_{filename}"
+    file_path = os.path.join(UPLOAD_DIR, save_filename)
+    with open(file_path, "wb") as f: f.write(content)
     
     results = []
     full_text_parts = []
+    preview_paths = []
+    preview_path = f"/uploads/{save_filename}"
 
     try:
         if filename.lower().endswith('.pdf'):
-            # Process PDF
             pdf = pdfium.PdfDocument(content)
-            for page_index in range(len(pdf)):
-                page = pdf[page_index]
-                # Render page to image (scale=2 for better OCR)
-                bitmap = page.render(scale=2)
-                pil_image = bitmap.to_pil()
-                
-                # Convert PIL to numpy array for PaddleOCR
-                img_array = np.array(pil_image)
-                
-                # Process page with EasyOCR
-                page_result = reader.readtext(img_array)
-                if page_result:
-                    line_count = len(page_result)
-                    logger.info(f"Page {page_index + 1}: Found {line_count} lines of text.")
-                    extracted = format_ocr_result(page_result, page_index + 1)
-                    results.extend(extracted["words"])
-                    full_text_parts.append(extracted["full_text"])
-                else:
-                    logger.warning(f"Page {page_index + 1}: No text detected by engine.")
-        else:
-            # Process Image with EasyOCR
-            img = Image.open(io.BytesIO(content))
-            img_array = np.array(img.convert('RGB'))
+            for i in range(len(pdf)):
+                pname = f"preview_{timestamp}_{filename}_p{i+1}.jpg"
+                ppath = os.path.join(UPLOAD_DIR, pname)
+                pdf[i].render(scale=IMAGE_SCALE).to_pil().save(ppath)
+                preview_paths.append(f"/uploads/{pname}")
+            preview_path = preview_paths[0]
             
-            page_result = reader.readtext(img_array)
-            if page_result:
-                line_count = len(page_result)
-                logger.info(f"Image processed: Found {line_count} lines of text.")
-                extracted = format_ocr_result(page_result, 1)
-                results.extend(extracted["words"])
-                full_text_parts.append(extracted["full_text"])
-            else:
-                logger.warning("Image processed: No text detected by engine.")
+            def p_page(idx):
+                img = np.array(pdf[idx].render(scale=IMAGE_SCALE).to_pil())
+                return format_ocr_result(run_ocr(img), idx + 1)
 
-        duration = time.time() - start_time
-        logger.info(f"OCR completed for {filename} in {duration:.2f}s")
+            with ThreadPoolExecutor(max_workers=MAX_PARALLEL_PAGES) as exe:
+                paged_data = list(exe.map(p_page, range(len(pdf))))
+            
+            for i, ext in enumerate(paged_data):
+                results.extend(ext["words"])
+                full_text_parts.append(ext["full_text"])
+                await broadcast_log(f"Page {i+1} completed: {len(ext['words'])} text blocks", "success")
+        else:
+            await broadcast_log(f"Processing Image: {filename}", "info")
+            img = np.array(Image.open(io.BytesIO(content)).convert('RGB'))
+            ext = format_ocr_result(run_ocr(img), 1)
+            results.extend(ext["words"])
+            full_text_parts.append(ext["full_text"])
+            await broadcast_log(f"Image scan completed: {len(ext['words'])} blocks", "success")
+
+        # AI Analysis
+        all_text = " ".join(full_text_parts)
+        ai_result = None
+        if AI_ENABLED:
+            vision_text = None
+            if AI_VISION_ENABLED:
+                v_img = content if not filename.lower().endswith('.pdf') else io.BytesIO()
+                if filename.lower().endswith('.pdf'): 
+                    pdf[0].render(scale=IMAGE_SCALE).to_pil().save(v_img, format='JPEG')
+                    v_img = v_img.getvalue()
+                vision_text = await ocr_with_ai_vision(v_img)
+            ai_result = await analyze_with_ai(all_text, vision_text)
+
+        duration = time.time() - start_time_val
+        avg_acc = sum(w['confidence'] for w in results) / len(results) if results else 0
         
-        # Record Success Stats
-        stats["total_processed"] += 1
-        stats["total_duration"] += duration
-        request_history.append({
-            "timestamp": datetime.now().strftime("%H:%M:%S"),
-            "filename": filename,
-            "size": format_size(file_size),
-            "duration": duration,
-            "status": "Success"
+        save_request_log({
+            "start_time": start_time_str, "end_time": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "filename": filename, "size": f"{len(content)/1024:.1f} KB", "duration": duration,
+            "status": "Success", "words_json": json.dumps(results), "file_path": f"/uploads/{save_filename}",
+            "preview_path": preview_path, "accuracy": avg_acc, "ai_analysis": json.dumps(ai_result),
+            "preview_paths": json.dumps(preview_paths if preview_paths else [preview_path])
         })
+        
+        await manager.broadcast("REFRESH_HISTORY")
+        return {"status": "Success", "filename": filename, "insight": ai_result, "preview_paths": preview_paths or [preview_path], "words": results}
 
     except Exception as e:
-        logger.error(f"Error processing OCR for {filename}: {str(e)}")
-        stats["total_processed"] += 1
-        stats["failed_count"] += 1
-        request_history.append({
-            "timestamp": datetime.now().strftime("%H:%M:%S"),
-            "filename": filename,
-            "size": format_size(file_size),
-            "duration": time.time() - start_time,
-            "status": "Failed"
-        })
-        raise HTTPException(status_code=500, detail=f"OCR Processing Error: {str(e)}")
-
-    return {
-        "filename": filename,
-        "full_text": "\n".join(full_text_parts),
-        "words": results
-    }
-
-def format_ocr_result(result, page_num):
-    words = []
-    texts = []
-    for line in result:
-        box = line[0]  # [[x1,y1], [x2,y2], [x3,y3], [x4,y4]]
-        text = line[1]
-        confidence = line[2]
-        
-        texts.append(text)
-        
-        # Simplify box to x, y, w, h
-        x = min(p[0] for p in box)
-        y = min(p[1] for p in box)
-        w = max(p[0] for p in box) - x
-        h = max(p[1] for p in box) - y
-        
-        words.append({
-            "text": text,
-            "confidence": float(confidence),
-            "page": page_num,
-            "box": {"x": int(x), "y": int(y), "w": int(w), "h": int(h)}
-        })
-    
-    return {
-        "words": words,
-        "full_text": " ".join(texts)
-    }
-
-def format_size(bytes):
-    for unit in ['B', 'KB', 'MB', 'GB']:
-        if bytes < 1024:
-            return f"{bytes:.1f} {unit}"
-        bytes /= 1024
-    return f"{bytes:.1f} TB"
+        logger.error(f"OCR Error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)

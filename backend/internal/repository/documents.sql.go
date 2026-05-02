@@ -114,6 +114,71 @@ func (q *Queries) CreateDocument(ctx context.Context, arg CreateDocumentParams) 
 	return i, err
 }
 
+const createOCRJob = `-- name: CreateOCRJob :one
+INSERT INTO ocr_jobs (
+    entity_type, entity_id, ocr_service_url, ocr_engine, 
+    source_file_path, raw_text, word_count, confidence_avg, words_json,
+    status, processing_time_ms, created_at
+) VALUES (
+    $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW()
+) RETURNING id, entity_type, entity_id, ocr_service_url, ocr_engine, source_file_path, source_pages, raw_text, word_count, confidence_avg, words_json, ai_provider, ai_refined_text, ai_metadata, ai_refinement_status, status, error_message, processing_time_ms, async_task_id, created_at, completed_at
+`
+
+type CreateOCRJobParams struct {
+	EntityType       string         `json:"entity_type"`
+	EntityID         uuid.UUID      `json:"entity_id"`
+	OcrServiceUrl    pgtype.Text    `json:"ocr_service_url"`
+	OcrEngine        pgtype.Text    `json:"ocr_engine"`
+	SourceFilePath   pgtype.Text    `json:"source_file_path"`
+	RawText          pgtype.Text    `json:"raw_text"`
+	WordCount        pgtype.Int4    `json:"word_count"`
+	ConfidenceAvg    pgtype.Numeric `json:"confidence_avg"`
+	WordsJson        []byte         `json:"words_json"`
+	Status           string         `json:"status"`
+	ProcessingTimeMs pgtype.Int4    `json:"processing_time_ms"`
+}
+
+func (q *Queries) CreateOCRJob(ctx context.Context, arg CreateOCRJobParams) (OcrJob, error) {
+	row := q.db.QueryRow(ctx, createOCRJob,
+		arg.EntityType,
+		arg.EntityID,
+		arg.OcrServiceUrl,
+		arg.OcrEngine,
+		arg.SourceFilePath,
+		arg.RawText,
+		arg.WordCount,
+		arg.ConfidenceAvg,
+		arg.WordsJson,
+		arg.Status,
+		arg.ProcessingTimeMs,
+	)
+	var i OcrJob
+	err := row.Scan(
+		&i.ID,
+		&i.EntityType,
+		&i.EntityID,
+		&i.OcrServiceUrl,
+		&i.OcrEngine,
+		&i.SourceFilePath,
+		&i.SourcePages,
+		&i.RawText,
+		&i.WordCount,
+		&i.ConfidenceAvg,
+		&i.WordsJson,
+		&i.AiProvider,
+		&i.AiRefinedText,
+		&i.AiMetadata,
+		&i.AiRefinementStatus,
+		&i.Status,
+		&i.ErrorMessage,
+		&i.ProcessingTimeMs,
+		&i.AsyncTaskID,
+		&i.CreatedAt,
+		&i.CompletedAt,
+	)
+	return i, err
+}
+
 const getBatch = `-- name: GetBatch :one
 SELECT id, user_id, total_files, processed_files, status, created_at, updated_at, intake_session_id, department_id FROM processing_batches WHERE id = $1 LIMIT 1
 `
@@ -230,6 +295,47 @@ func (q *Queries) GetDocumentsByBatch(ctx context.Context, batchID pgtype.UUID) 
 		return nil, err
 	}
 	return items, nil
+}
+
+const getOCRJobByEntity = `-- name: GetOCRJobByEntity :one
+SELECT id, entity_type, entity_id, ocr_service_url, ocr_engine, source_file_path, source_pages, raw_text, word_count, confidence_avg, words_json, ai_provider, ai_refined_text, ai_metadata, ai_refinement_status, status, error_message, processing_time_ms, async_task_id, created_at, completed_at FROM ocr_jobs
+WHERE entity_type = $1 AND entity_id = $2
+ORDER BY created_at DESC
+LIMIT 1
+`
+
+type GetOCRJobByEntityParams struct {
+	EntityType string    `json:"entity_type"`
+	EntityID   uuid.UUID `json:"entity_id"`
+}
+
+func (q *Queries) GetOCRJobByEntity(ctx context.Context, arg GetOCRJobByEntityParams) (OcrJob, error) {
+	row := q.db.QueryRow(ctx, getOCRJobByEntity, arg.EntityType, arg.EntityID)
+	var i OcrJob
+	err := row.Scan(
+		&i.ID,
+		&i.EntityType,
+		&i.EntityID,
+		&i.OcrServiceUrl,
+		&i.OcrEngine,
+		&i.SourceFilePath,
+		&i.SourcePages,
+		&i.RawText,
+		&i.WordCount,
+		&i.ConfidenceAvg,
+		&i.WordsJson,
+		&i.AiProvider,
+		&i.AiRefinedText,
+		&i.AiMetadata,
+		&i.AiRefinementStatus,
+		&i.Status,
+		&i.ErrorMessage,
+		&i.ProcessingTimeMs,
+		&i.AsyncTaskID,
+		&i.CreatedAt,
+		&i.CompletedAt,
+	)
+	return i, err
 }
 
 const listDocumentsByDepartment = `-- name: ListDocumentsByDepartment :many

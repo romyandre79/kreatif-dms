@@ -52,3 +52,9 @@ logs/
 
 # Backend
 /backend/scratch
+
+# OCR Service
+/ocr-service/uploads
+/ocr-service/ocr_service.db*
+/ocr-service/__pycache__*
+/ocr-service/scratch

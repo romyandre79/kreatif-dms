@@ -23,33 +23,53 @@ func NewAIService(repo repository.Querier, cfg config.Config) *AIService {
 	return &AIService{repo: repo, cfg: cfg}
 }
 
+type AIInsight struct {
+	DocType      string                 `json:"doc_type"`
+	Summary      string                 `json:"summary"`
+	Entities     map[string]interface{} `json:"entities"`
+	CleanedText  string                 `json:"cleaned_text"`
+	Confidence   float64                `json:"confidence_score"`
+}
+
 type OCRResponse struct {
-	Words []struct {
-		Text       string `json:"text"`
+	Status      string      `json:"status"`
+	Filename    string      `json:"filename"`
+	FullText    string      `json:"full_text"`
+	Insight     *AIInsight  `json:"insight"`
+	AIAnalysis  interface{} `json:"ai_analysis"`
+	Words       []struct {
+		Text       string  `json:"text"`
 		Confidence float64 `json:"confidence"`
+		Page       int     `json:"page"`
+		Box        struct {
+			X int `json:"x"`
+			Y int `json:"y"`
+			W int `json:"w"`
+			H int `json:"h"`
+		} `json:"box"`
 	} `json:"words"`
 }
 
-func (s *AIService) ProcessOCR(ctx context.Context, fileName string, content []byte) (string, error) {
+func (s *AIService) ProcessOCR(ctx context.Context, fileName string, content []byte) (*OCRResponse, error) {
 	log.Printf("[AIService] Processing OCR for file: %s (Size: %d bytes)", fileName, len(content))
 	body := &bytes.Buffer{}
 	writer := multipart.NewWriter(body)
 	part, err := writer.CreateFormFile("file", fileName)
 	if err != nil {
 		log.Printf("[AIService] Error creating form file: %v", err)
-		return "", err
+		return nil, err
 	}
 	_, err = io.Copy(part, bytes.NewReader(content))
 	if err != nil {
 		log.Printf("[AIService] Error copying content to form: %v", err)
-		return "", err
+		return nil, err
 	}
 	writer.Close()
 
 	req, err := http.NewRequestWithContext(ctx, "POST", s.cfg.OCRServiceURL+"/ocr/process", body)
 	if err != nil {
 		log.Printf("[AIService] Error creating OCR request: %v", err)
-		return "", err
+		return nil, err
 	}
 	req.Header.Set("Content-Type", writer.FormDataContentType())
 	
@@ -62,27 +82,22 @@ func (s *AIService) ProcessOCR(ctx context.Context, fileName string, content []b
 	resp, err := client.Do(req)
 	if err != nil {
 		log.Printf("[AIService] Error calling OCR service: %v", err)
-		return "", err
+		return nil, err
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
 		log.Printf("[AIService] OCR service returned error code: %d", resp.StatusCode)
-		return "", fmt.Errorf("OCR service error: %d", resp.StatusCode)
+		return nil, fmt.Errorf("OCR service error: %d", resp.StatusCode)
 	}
 
 	var ocrRes OCRResponse
 	if err := json.NewDecoder(resp.Body).Decode(&ocrRes); err != nil {
 		log.Printf("[AIService] Error decoding OCR response: %v", err)
-		return "", err
+		return nil, err
 	}
 
-	var fullText string
-	for _, w := range ocrRes.Words {
-		fullText += w.Text + " "
-	}
-
-	return fullText, nil
+	return &ocrRes, nil
 }
 
 func (s *AIService) Summarize(ctx context.Context, text string) (string, error) {

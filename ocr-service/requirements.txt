@@ -5,3 +5,5 @@ easyocr
 pypdfium2
 pillow
 python-dotenv
+websockets
+google-genai

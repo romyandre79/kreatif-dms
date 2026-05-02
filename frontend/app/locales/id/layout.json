@@ -69,6 +69,7 @@
       "retention_code": "Master Kode Retensi",
       "params": "Parameter Sistem",
       "integration": "Monitor Status Integrasi",
+      "ocr": "Kecerdasan OCR",
       "submit": "Ajukan Dokumen",
       "loans": "Pinjaman Saya",
       "tracking": "Pelacakan Dokumen",
