@@ -26,6 +26,7 @@ func NewTaskProcessor(repo repository.Querier, storage *infra.StorageService, ai
 }
 
 func (p *TaskProcessor) ProcessDocumentOCR(ctx context.Context, t *asynq.Task) error {
+	log.Printf("!!! WORKER RECEIVED TASK: %s", t.Type())
 	var payload DocumentOCRPayload
 	if err := json.Unmarshal(t.Payload(), &payload); err != nil {
 		return fmt.Errorf("json unmarshal failed: %v", err)
@@ -87,7 +88,7 @@ func (p *TaskProcessor) ProcessDocumentOCR(ctx context.Context, t *asynq.Task) e
 		WordCount:        pgtype.Int4{Int32: int32(len(ocrRes.Words)), Valid: true},
 		ConfidenceAvg:    confNumeric,
 		WordsJson:        wordsJSON,
-		Status:           "completed",
+		Status:           "Success",
 		ProcessingTimeMs: pgtype.Int4{Int32: int32(ocrDuration.Milliseconds()), Valid: true},
 	})
 	if err != nil {

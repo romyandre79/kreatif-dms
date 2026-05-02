@@ -12,6 +12,17 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const countOCRJobs = `-- name: CountOCRJobs :one
+SELECT COUNT(*) FROM ocr_jobs
+`
+
+func (q *Queries) CountOCRJobs(ctx context.Context) (int64, error) {
+	row := q.db.QueryRow(ctx, countOCRJobs)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const createBatch = `-- name: CreateBatch :one
 INSERT INTO processing_batches (user_id, total_files) 
 VALUES ($1, $2) RETURNING id, user_id, total_files, processed_files, status, created_at, updated_at, intake_session_id, department_id
@@ -384,6 +395,71 @@ func (q *Queries) ListDocumentsByDepartment(ctx context.Context, departmentID uu
 			&i.CirculationID,
 			&i.MinioBucket,
 			&i.EsIndexed,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listOCRJobs = `-- name: ListOCRJobs :many
+SELECT 
+    j.id,
+    j.entity_id,
+    j.status,
+    j.processing_time_ms,
+    j.confidence_avg,
+    j.created_at,
+    COALESCE(d.file_name, j.source_file_path) as filename,
+    COALESCE(d.file_size, 0)::bigint as file_size,
+    u.full_name as owner_name
+FROM ocr_jobs j
+LEFT JOIN documents d ON j.entity_id = d.id
+LEFT JOIN users u ON d.owner_id = u.id
+ORDER BY j.created_at DESC
+LIMIT $1 OFFSET $2
+`
+
+type ListOCRJobsParams struct {
+	Limit  int32 `json:"limit"`
+	Offset int32 `json:"offset"`
+}
+
+type ListOCRJobsRow struct {
+	ID               uuid.UUID          `json:"id"`
+	EntityID         uuid.UUID          `json:"entity_id"`
+	Status           string             `json:"status"`
+	ProcessingTimeMs pgtype.Int4        `json:"processing_time_ms"`
+	ConfidenceAvg    pgtype.Numeric     `json:"confidence_avg"`
+	CreatedAt        pgtype.Timestamptz `json:"created_at"`
+	Filename         string             `json:"filename"`
+	FileSize         int64              `json:"file_size"`
+	OwnerName        pgtype.Text        `json:"owner_name"`
+}
+
+func (q *Queries) ListOCRJobs(ctx context.Context, arg ListOCRJobsParams) ([]ListOCRJobsRow, error) {
+	rows, err := q.db.Query(ctx, listOCRJobs, arg.Limit, arg.Offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListOCRJobsRow
+	for rows.Next() {
+		var i ListOCRJobsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.EntityID,
+			&i.Status,
+			&i.ProcessingTimeMs,
+			&i.ConfidenceAvg,
+			&i.CreatedAt,
+			&i.Filename,
+			&i.FileSize,
+			&i.OwnerName,
 		); err != nil {
 			return nil, err
 		}

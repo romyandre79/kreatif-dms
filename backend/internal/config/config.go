@@ -57,6 +57,8 @@ type Config struct {
 	HTTPSEnabled  bool   `mapstructure:"HTTPS_ENABLED"`
 	HTTPSCertFile string `mapstructure:"HTTPS_CERT_FILE"`
 	HTTPSKeyFile  string `mapstructure:"HTTPS_KEY_FILE"`
+
+	WorkerConcurrency int `mapstructure:"WORKER_CONCURRENCY"`
 }
 
 func LoadConfig(path string) (config Config, err error) {

@@ -64,9 +64,11 @@
             <thead class="text-[10px] font-black text-slate-400 uppercase tracking-widest bg-slate-50/50 dark:bg-slate-900/40">
               <tr>
                 <th class="py-5 px-8">File Name</th>
+                <th class="py-5 px-6">Owner</th>
+                <th class="py-5 px-6">Date</th>
                 <th class="py-5 px-6">Size</th>
-                <th class="py-5 px-6">Duration</th>
-                <th class="py-5 px-6">Accuracy</th>
+                <th class="py-5 px-6 text-center">Dur</th>
+                <th class="py-5 px-6 text-center">Acc</th>
                 <th class="py-5 px-6">Status</th>
                 <th class="py-5 px-8 text-right">Action</th>
               </tr>
@@ -78,29 +80,56 @@
               <tr v-for="item in history" :key="item.id" 
                   class="border-t border-slate-100 dark:border-slate-800 hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors group">
                 <td class="py-5 px-8 font-bold text-slate-700 dark:text-slate-300">{{ item.filename }}</td>
+                <td class="py-5 px-6 text-slate-500 text-[10px] font-bold uppercase">{{ item.owner }}</td>
+                <td class="py-5 px-6 text-slate-500 text-[10px]">{{ new Date(item.created_at).toLocaleDateString() }}</td>
                 <td class="py-5 px-6 text-slate-500 text-xs">{{ item.size }}</td>
-                <td class="py-5 px-6 font-black text-xs text-primary-500">{{ item.duration.toFixed(2) }}s</td>
-                <td class="py-5 px-6">
+                <td class="py-5 px-6 text-center font-black text-xs text-primary-500">{{ item.duration }}s</td>
+                <td class="py-5 px-6 text-center">
                   <span :class="['font-black text-xs', 
                              item.accuracy >= 0.8 ? 'text-green-500' : (item.accuracy >= 0.5 ? 'text-orange-500' : 'text-red-500')]">
-                    {{ (item.accuracy * 100).toFixed(1) }}%
+                    {{ (item.accuracy * 100).toFixed(0) }}%
                   </span>
                 </td>
                 <td class="py-5 px-6">
                   <span :class="['px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest', 
-                             item.status === 'Success' ? 'bg-green-500/10 text-green-500' : 'bg-red-500/10 text-red-500']">
+                             (item.status && item.status.toLowerCase() === 'success') ? 'bg-green-500/10 text-green-500' : 
+                             (item.status && item.status.toLowerCase() === 'processing') ? 'bg-sky-500/10 text-sky-500 animate-pulse' : 'bg-red-500/10 text-red-500']">
                     {{ item.status }}
                   </span>
                 </td>
                 <td class="py-5 px-8 text-right">
-                  <button v-if="item.status === 'Success'" @click="openVisualizer(item.id)"
-                          class="p-2 bg-primary-500/10 text-primary-500 hover:bg-primary-500 hover:text-white rounded-xl transition-all scale-0 group-hover:scale-100">
+                  <button v-if="item.status && item.status.toLowerCase() === 'success'" @click="openVisualizer(item.id)"
+                          class="p-2 bg-primary-500/10 text-primary-500 hover:bg-primary-500 hover:text-white rounded-xl transition-all">
                     <LucideEye class="w-4 h-4" />
                   </button>
                 </td>
               </tr>
             </tbody>
           </table>
+        </div>
+        
+        <!-- Pagination Controls -->
+        <div v-if="pagination.total_pages > 1" class="px-8 py-5 border-t border-slate-100 dark:border-slate-800 bg-slate-50/30 dark:bg-slate-900/20 flex items-center justify-between">
+          <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+            Showing {{ history.length }} of {{ pagination.total_items }} results
+          </p>
+          <div class="flex items-center gap-2">
+            <button @click="changePage(currentPage - 1)" :disabled="currentPage === 1" 
+                    class="p-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg disabled:opacity-50 transition-all hover:border-primary-500">
+              <LucideChevronLeft class="w-4 h-4 text-slate-400" />
+            </button>
+            <div class="flex items-center gap-1">
+              <button v-for="p in pagination.total_pages" :key="p" @click="changePage(p)"
+                      :class="['w-8 h-8 rounded-lg text-[10px] font-black transition-all', 
+                              currentPage === p ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/20' : 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-400 hover:border-primary-500']">
+                {{ p }}
+              </button>
+            </div>
+            <button @click="changePage(currentPage + 1)" :disabled="currentPage === pagination.total_pages"
+                    class="p-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg disabled:opacity-50 transition-all hover:border-primary-500">
+              <LucideChevronRight class="w-4 h-4 text-slate-400" />
+            </button>
+          </div>
         </div>
       </div>
 
@@ -286,7 +315,7 @@ import {
   LucideScanLine, LucideUploadCloud, LucideLoader2, LucideHistory, 
   LucideRefreshCw, LucideEye, LucideActivity, LucideClock, LucideCheckCircle2, 
   LucideX, LucideMonitor, LucideZap, LucideZoomIn, LucideZoomOut, LucideLayers,
-  LucideSearch
+  LucideSearch, LucideChevronLeft, LucideChevronRight
 } from 'lucide-vue-next'
 
 const config = useRuntimeConfig()
@@ -310,6 +339,9 @@ const translateY = ref(0)
 const isDragging = ref(false)
 const lastMouseX = ref(0)
 const lastMouseY = ref(0)
+const currentPage = ref(1)
+const pageSize = ref(10)
+const pagination = ref({ total_items: 0, total_pages: 0 })
 
 const stats = computed(() => [
   { label: 'Total Process', value: statsData.value.total, icon: LucideActivity, bg: 'bg-primary-500/10', color: 'text-primary-500' },
@@ -349,27 +381,42 @@ const handleUpload = async (e) => {
   if (!file) return
 
   isUploading.value = true
-  addLog(`[UI] Uploading ${file.name} to OCR Service...`)
+  addLog(`[UI] Uploading ${file.name} to DMS Backend...`)
 
   const formData = new FormData()
   formData.append('file', file)
+  formData.append('title', file.name)
+  // Optionally add default IDs if needed, otherwise backend will handle or return error
+  // formData.append('department_id', '...') 
 
   try {
-    const response = await fetch(`${ocrUrl}/ocr/process`, {
+    const apiBase = config.public.apiBase || 'http://localhost:8080/api/v1'
+    const token = localStorage.getItem('kreatif_access_token') || localStorage.getItem('token')
+    
+    const response = await fetch(`${apiBase}/documents`, {
       method: 'POST',
       body: formData,
-      headers: { 'Authorization': 'Basic ' + btoa('admin:admin123') }
+      headers: { 
+        'Authorization': `Bearer ${token}`,
+        'Accept': 'application/json'
+      }
     })
 
-    if (!response.ok) throw new Error(`HTTP Error: ${response.status}`)
-    const result = await response.json()
-    addLog(`[UI] Extraction successful for ${file.name}`, 'text-green-400')
-    fetchHistory()
-    if (result.words && result.words.length > 0) {
-      setTimeout(() => openVisualizer(null, result), 500)
+    if (!response.ok) {
+      const errData = await response.json().catch(() => ({}))
+      throw new Error(errData.message || `HTTP Error: ${response.status}`)
     }
+    
+    const json = await response.json()
+    addLog(`[UI] Upload successful. Document ID: ${json.data.id}`, 'text-green-400')
+    addLog(`[UI] OCR Task enqueued. Please wait for processing...`, 'text-sky-400')
+    
+    // Refresh history to show the new "Processing" item
+    fetchHistory()
+    
   } catch (err) {
-    addLog(`[UI] Error: ${err.message}`, 'text-red-500')
+    addLog(`[UI] Upload Error: ${err.message}`, 'text-red-500')
+    console.error(err)
   } finally {
     isUploading.value = false
     e.target.value = ''
@@ -378,18 +425,53 @@ const handleUpload = async (e) => {
 
 const fetchHistory = async () => {
   try {
-    const apiRes = await fetch(`${ocrUrl}/ocr/stats`, {
+    // Fetch from Main Go Backend instead of OCR Service
+    const apiBase = config.public.apiBase || 'http://localhost:8080/api/v1'
+    const token = localStorage.getItem('kreatif_access_token') || localStorage.getItem('token')
+    
+    const res = await fetch(`${apiBase}/documents?page=${currentPage.value}&page_size=${pageSize.value}`, {
+      headers: { 
+        'Authorization': `Bearer ${token}`,
+        'Accept': 'application/json'
+      }
+    })
+    
+    if (res.ok) {
+       const json = await res.json()
+       const data = json.data || {}
+       
+       // Map combined DB fields to what our table expects
+       history.value = (data.history || []).map(row => ({
+         id: row.entity_id || row.id, // Prefer document ID for visualizer
+         filename: row.filename,
+         size: (row.file_size / 1024).toFixed(1) + ' KB',
+         duration: (row.processing_time_ms / 1000).toFixed(2),
+         accuracy: parseFloat(row.confidence_avg || 0),
+         status: row.status === 'Success' || row.status === 'success' || row.status === 'active' ? 'Success' : row.status,
+         owner: row.owner_name || 'System',
+         created_at: row.created_at
+       }))
+       
+       if (data.pagination) pagination.value = data.pagination
+    }
+    
+    // Also fetch stats from OCR Service to keep the top cards updated
+    const statsRes = await fetch(`${ocrUrl}/ocr/stats`, {
       headers: { 'Authorization': 'Basic ' + btoa('admin:admin123') }
     }).catch(() => null)
-    
-    if (apiRes && apiRes.ok) {
-       const data = await apiRes.json()
-       history.value = data.history || []
-       statsData.value = data.stats || { total: 0, avg_time: 0, success_rate: 100 }
+    if (statsRes && statsRes.ok) {
+       const statsDataRaw = await statsRes.json()
+       statsData.value = statsDataRaw.stats || statsData.value
     }
   } catch (err) {
     console.error('Failed to fetch history:', err)
   }
+}
+
+const changePage = (p) => {
+  if (p < 1 || p > pagination.value.total_pages) return
+  currentPage.value = p
+  fetchHistory()
 }
 
 const addLog = (msg) => {
@@ -411,11 +493,18 @@ const openVisualizer = async (id, preloadedData = null) => {
     words.value = preloadedData.words || (typeof preloadedData.words_json === 'string' ? JSON.parse(preloadedData.words_json) : (preloadedData.words_json || []))
   } else {
     try {
-      const res = await fetch(`${ocrUrl}/ocr/result/${id}`, {
-        headers: { 'Authorization': 'Basic ' + btoa('admin:admin123') }
+      const apiBase = config.public.apiBase || 'http://localhost:8080/api/v1'
+      const token = localStorage.getItem('kreatif_access_token') || localStorage.getItem('token')
+      
+      const res = await fetch(`${apiBase}/documents/${id}/ocr`, {
+        headers: { 
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json'
+        }
       })
       if (!res.ok) throw new Error(`HTTP Error: ${res.status}`)
-      const data = await res.json()
+      const json = await res.json()
+      const data = json.data
       activeJob.value = data
       words.value = typeof data.words_json === 'string' ? JSON.parse(data.words_json) : (data.words_json || [])
     } catch (err) {

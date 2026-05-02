@@ -59,3 +59,22 @@ SELECT * FROM ocr_jobs
 WHERE entity_type = $1 AND entity_id = $2
 ORDER BY created_at DESC
 LIMIT 1;
+-- name: ListOCRJobs :many
+SELECT 
+    j.id,
+    j.entity_id,
+    j.status,
+    j.processing_time_ms,
+    j.confidence_avg,
+    j.created_at,
+    COALESCE(d.file_name, j.source_file_path) as filename,
+    COALESCE(d.file_size, 0)::bigint as file_size,
+    u.full_name as owner_name
+FROM ocr_jobs j
+LEFT JOIN documents d ON j.entity_id = d.id
+LEFT JOIN users u ON d.owner_id = u.id
+ORDER BY j.created_at DESC
+LIMIT $1 OFFSET $2;
+
+-- name: CountOCRJobs :one
+SELECT COUNT(*) FROM ocr_jobs;

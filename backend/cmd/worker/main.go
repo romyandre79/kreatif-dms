@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"log"
 
 	"github.com/elastic/go-elasticsearch/v8"
@@ -44,10 +45,22 @@ func main() {
 	// Processor
 	processor := worker.NewTaskProcessor(repo, storageSvc, aiSvc, searchSvc)
 
-	// Asynq Server
+	// Asynq Server (Redis from DB)
+	redisURL := cfg.RedisURL
+	node, err := repo.GetIntegrationNodeByType(context.Background(), "REDIS")
+	if err == nil && node.IsActive.Bool {
+		redisURL = node.Endpoint
+		log.Printf("Worker using Redis configuration from database: %s", redisURL)
+	}
+
+	concurrency := cfg.WorkerConcurrency
+	if concurrency < 1 {
+		concurrency = 5
+	}
+
 	srv := asynq.NewServer(
-		asynq.RedisClientOpt{Addr: cfg.RedisURL},
-		asynq.Config{Concurrency: 10},
+		asynq.RedisClientOpt{Addr: redisURL},
+		asynq.Config{Concurrency: concurrency},
 	)
 
 	mux := asynq.NewServeMux()

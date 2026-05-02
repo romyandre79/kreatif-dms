@@ -70,24 +70,35 @@ func main() {
 		}
 	}
 
-	// Initialize Infrastructure
+	// 1. Database
 	dbPool, err := config.InitDatabase(cfg.DatabaseURL)
 	if err != nil {
-		log.Printf("WARNING: Application starting without Database: %v\n", err)
+		log.Fatalf("Critical: Database initialization failed: %v", err)
+	}
+	defer dbPool.Close()
+	repo := repository.New(dbPool)
+
+	// 2. Redis (from DB)
+	redisURL := cfg.RedisURL
+	node, err := repo.GetIntegrationNodeByType(context.Background(), "REDIS")
+	if err == nil && node.IsActive.Bool {
+		redisURL = node.Endpoint
+		log.Printf("Using Redis configuration from database: %s", redisURL)
 	} else {
-		defer dbPool.Close()
+		log.Printf("Redis node not found in DB or inactive, falling back to .env: %s", redisURL)
 	}
 
-	rdb, err := config.InitRedis(cfg.RedisURL)
+	rdb, err := config.InitRedis(redisURL)
 	var asynqClient *asynq.Client
 	if err != nil {
 		log.Printf("WARNING: Application starting without Redis: %v\n", err)
 	} else {
 		defer rdb.Close()
-		asynqClient = asynq.NewClient(asynq.RedisClientOpt{Addr: cfg.RedisURL})
+		asynqClient = asynq.NewClient(asynq.RedisClientOpt{Addr: redisURL})
 		defer asynqClient.Close()
 	}
 
+	// 3. MinIO
 	minioClient, err := config.InitMinIO(cfg.MinIOEndpoint, cfg.MinIOAccessKey, cfg.MinIOSecretKey, cfg.MinIOUseSSL, cfg.MinIOBucket)
 	if err != nil && cfg.MinIOEndpoint != "" {
 		log.Printf("WARNING: Application starting without MinIO: %v\n", err)
@@ -99,9 +110,6 @@ func main() {
 	if err != nil {
 		log.Printf("WARNING: Elasticsearch client error: %v\n", err)
 	}
-
-	// Repositories
-	repo := repository.New(dbPool)
 
 	// Services
 	storageSvc := infra.NewStorageService(cfg, repo, minioClient, cfg.MinIOBucket)
@@ -192,8 +200,10 @@ func main() {
 	// Document Routes
 	docGroup := api.Group("/documents")
 	docGroup.Use(middleware.AuthMiddleware(cfg.JWTSecret))
+	docGroup.Get("/", docHandler.List)
 	docGroup.Post("/", docHandler.Upload)
 	docGroup.Get("/:id/preview", docHandler.Preview)
+	docGroup.Get("/:id/ocr", docHandler.GetOCRData)
 	docGroup.Get("/search", docHandler.Search)
 
 	// Batch Routes
