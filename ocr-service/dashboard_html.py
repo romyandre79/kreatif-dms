@@ -19,7 +19,7 @@ DASHBOARD_HTML = """
         .scan-line { height: 2px; background: linear-gradient(90deg, transparent, #0ea5e9, transparent); animation: scan 2s linear infinite; }
     </style>
 </head>
-<body class="min-h-screen p-4 lg:p-8 overflow-hidden flex flex-col gap-6">
+<body class="min-h-screen p-4 lg:p-8 overflow-x-hidden overflow-y-auto flex flex-col gap-6 custom-scrollbar">
     <!-- Header -->
     <header class="flex items-center justify-between glass p-6 rounded-[2.5rem] shrink-0">
         <div class="flex items-center gap-4">
@@ -43,7 +43,7 @@ DASHBOARD_HTML = """
         </div>
     </header>
 
-    <main class="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-6 min-h-0">
+    <main class="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-6">
         <!-- Left: Engine Console -->
         <section class="lg:col-span-4 flex flex-col gap-6 min-h-0">
             <div class="glass p-6 rounded-[2.5rem] flex flex-col gap-4">
@@ -151,25 +151,40 @@ DASHBOARD_HTML = """
             </div>
 
             <!-- Modal Content -->
-            <div class="flex-1 p-8 grid grid-cols-1 lg:grid-cols-12 gap-8 overflow-hidden">
+            <div class="flex-1 p-8 grid grid-cols-1 lg:grid-cols-12 gap-8 overflow-y-auto custom-scrollbar select-none">
                 <!-- Left: Document View (Taking 8 columns) -->
-                <div class="lg:col-span-8 glass rounded-[2rem] relative overflow-hidden bg-slate-950/50 flex flex-col">
+                <div class="lg:col-span-8 glass rounded-[2rem] relative overflow-hidden bg-slate-950/50 flex flex-col h-[500px] lg:h-full shrink-0">
                     <div class="p-4 border-b border-slate-800/50 flex items-center justify-between">
                         <div class="flex items-center gap-4">
-                            <button onclick="prevPage()" class="p-2 bg-slate-900 border border-slate-800 rounded-lg hover:bg-slate-800 transition-all">
+                            <button onclick="prevPage()" class="p-2 bg-slate-900 border border-slate-800 rounded-lg hover:bg-slate-800 transition-all" title="Previous Page">
                                 <i data-lucide="chevron-left" class="w-4 h-4"></i>
                             </button>
                             <span class="text-xs font-black uppercase tracking-widest"><span id="currentPageNum">1</span> / <span id="totalPageNum">1</span></span>
-                            <button onclick="nextPage()" class="p-2 bg-slate-900 border border-slate-800 rounded-lg hover:bg-slate-800 transition-all">
+                            <button onclick="nextPage()" class="p-2 bg-slate-900 border border-slate-800 rounded-lg hover:bg-slate-800 transition-all" title="Next Page">
                                 <i data-lucide="chevron-right" class="w-4 h-4"></i>
                             </button>
                         </div>
-                        <span id="zoomLevel" class="text-[10px] font-bold text-slate-500 uppercase">100% Scale</span>
+                        
+                        <div class="flex items-center gap-2">
+                            <button onclick="zoomOut()" class="p-2 bg-slate-900 border border-slate-800 rounded-lg hover:bg-slate-800 transition-all" title="Zoom Out">
+                                <i data-lucide="zoom-out" class="w-4 h-4 text-slate-400"></i>
+                            </button>
+                            <span id="zoomLevel" class="text-[10px] font-black text-sky-400 uppercase w-12 text-center">100%</span>
+                            <button onclick="zoomIn()" class="p-2 bg-slate-900 border border-slate-800 rounded-lg hover:bg-slate-800 transition-all" title="Zoom In">
+                                <i data-lucide="zoom-in" class="w-4 h-4 text-slate-400"></i>
+                            </button>
+                            <div class="w-px h-4 bg-slate-800 mx-1"></div>
+                            <button onclick="resetZoom()" class="p-2 bg-slate-900 border border-slate-800 rounded-lg hover:bg-slate-800 transition-all" title="Zoom as Page">
+                                <i data-lucide="maximize" class="w-4 h-4 text-slate-400"></i>
+                            </button>
+                        </div>
                     </div>
-                    <div class="flex-1 overflow-auto custom-scrollbar p-4 flex items-start justify-center">
-                        <div id="imageContainer" class="relative">
-                            <img id="originalImage" class="max-w-none shadow-2xl rounded-sm" src="" alt="Document">
-                            <div id="overlay" class="absolute inset-0 z-10"></div>
+                    <div class="flex-1 overflow-auto custom-scrollbar p-8 flex items-start justify-center bg-slate-950/20 cursor-grab active:cursor-grabbing" id="viewerScrollContainer">
+                        <div id="zoomWrapper" class="inline-block">
+                            <div id="imageContainer" class="relative transition-transform duration-200 ease-out origin-top">
+                                <img id="originalImage" class="max-w-none shadow-2xl rounded-sm" src="" alt="Document">
+                                <div id="overlay" class="absolute inset-0 z-10 pointer-events-none"></div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -223,6 +238,88 @@ DASHBOARD_HTML = """
         let currentWords = [];
         let currentPage = 1;
         let previewPaths = [];
+        let zoomScale = 1.0;
+        const ZOOM_STEP = 0.1;
+        const MIN_ZOOM = 0.1;
+        const MAX_ZOOM = 5.0;
+
+        function zoomIn() {
+            if (zoomScale < MAX_ZOOM) {
+                zoomScale += ZOOM_STEP;
+                applyZoom();
+            }
+        }
+
+        function zoomOut() {
+            if (zoomScale > MIN_ZOOM) {
+                zoomScale -= ZOOM_STEP;
+                applyZoom();
+            }
+        }
+
+        function resetZoom() {
+            const container = document.getElementById('viewerScrollContainer');
+            const img = document.getElementById('originalImage');
+            if (img.complete && img.naturalWidth > 0) {
+                const availableWidth = container.clientWidth - 64; // padding p-8
+                zoomScale = availableWidth / img.naturalWidth;
+                if (zoomScale > 1.2) zoomScale = 1.0; // Don't over-scale small images too much
+            } else {
+                zoomScale = 1.0;
+            }
+            applyZoom();
+        }
+
+        function applyZoom() {
+            const container = document.getElementById('imageContainer');
+            const wrapper = document.getElementById('zoomWrapper');
+            const img = document.getElementById('originalImage');
+            
+            container.style.transform = `scale(${zoomScale})`;
+            document.getElementById('zoomLevel').innerText = Math.round(zoomScale * 100) + '%';
+            
+            if (img.complete && img.naturalWidth > 0) {
+                wrapper.style.width = (img.naturalWidth * zoomScale) + 'px';
+                wrapper.style.height = (img.naturalHeight * zoomScale) + 'px';
+            }
+        }
+
+        // Mouse wheel zoom
+        const scrollContainer = document.getElementById('viewerScrollContainer');
+        scrollContainer.addEventListener('wheel', (e) => {
+            if (e.ctrlKey) {
+                e.preventDefault();
+                if (e.deltaY < 0) zoomIn();
+                else zoomOut();
+            }
+        }, { passive: false });
+
+        // Drag to scroll (Panning)
+        let isDragging = false;
+        let startX, startY, scrollLeft, scrollTop;
+
+        scrollContainer.addEventListener('mousedown', (e) => {
+            if (e.button !== 0) return; // Only left click
+            isDragging = true;
+            startX = e.pageX - scrollContainer.offsetLeft;
+            startY = e.pageY - scrollContainer.offsetTop;
+            scrollLeft = scrollContainer.scrollLeft;
+            scrollTop = scrollContainer.scrollTop;
+        });
+
+        scrollContainer.addEventListener('mouseleave', () => { isDragging = false; });
+        scrollContainer.addEventListener('mouseup', () => { isDragging = false; });
+
+        scrollContainer.addEventListener('mousemove', (e) => {
+            if (!isDragging) return;
+            e.preventDefault();
+            const x = e.pageX - scrollContainer.offsetLeft;
+            const y = e.pageY - scrollContainer.offsetTop;
+            const walkX = (x - startX) * 1.5;
+            const walkY = (y - startY) * 1.5;
+            scrollContainer.scrollLeft = scrollLeft - walkX;
+            scrollContainer.scrollTop = scrollTop - walkY;
+        });
 
         function prevPage() {
             if (currentPage > 1) {
@@ -243,9 +340,11 @@ DASHBOARD_HTML = """
             img.src = previewPaths[currentPage - 1];
             document.getElementById('currentPageNum').innerText = currentPage;
             
-            // Wait for image to load to re-render overlays
+            // Wait for image to load to re-render overlays and reset zoom if first time
             img.onload = () => {
                 renderTextDetails(currentWords);
+                // Optional: resetZoom() on first page load or every page change?
+                // resetZoom(); 
             };
         }
 
@@ -418,6 +517,7 @@ DASHBOARD_HTML = """
                     
                     img.onload = () => {
                         renderTextDetails(currentWords);
+                        resetZoom(); // Fit to page on first view
                     };
 
                     document.getElementById('viewerModal').classList.remove('hidden');
