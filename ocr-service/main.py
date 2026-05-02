@@ -107,9 +107,15 @@ async def dashboard(username: str = Depends(authenticate)):
     return DASHBOARD_HTML
 
 @app.get("/ocr/stats")
-async def get_stats_api(username: str = Depends(authenticate)):
-    total, dur, failed = get_stats()
-    history_raw = get_recent_history()
+async def get_stats_api(page: int = 1, page_size: int = 10, username: str = Depends(authenticate)):
+    from db_logic import get_total_history_count
+    total_logs, dur, failed = get_stats()
+    
+    # Pagination logic
+    total_items = get_total_history_count()
+    offset = (page - 1) * page_size
+    history_raw = get_recent_history(limit=page_size, offset=offset)
+    
     history = []
     for row in history_raw:
         history.append({
@@ -117,9 +123,20 @@ async def get_stats_api(username: str = Depends(authenticate)):
             "filename": row[3], "size": row[4], "duration": row[5],
             "status": row[6], "accuracy": row[7], "ai_analysis": row[8]
         })
+    
     return {
-        "stats": {"total": total, "avg_time": dur/total if total > 0 else 0, "success_rate": (total-failed)/total*100 if total > 0 else 100},
-        "history": history
+        "stats": {
+            "total": total_logs, 
+            "avg_time": dur/total_logs if total_logs > 0 else 0, 
+            "success_rate": (total_logs-failed)/total_logs*100 if total_logs > 0 else 100
+        },
+        "history": history,
+        "pagination": {
+            "total_items": total_items,
+            "page": page,
+            "page_size": page_size,
+            "total_pages": (total_items + page_size - 1) // page_size
+        }
     }
 
 @app.get("/ocr/result/{job_id}")

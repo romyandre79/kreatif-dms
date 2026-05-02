@@ -36,6 +36,9 @@ func (s *StorageService) getClient(ctx context.Context) (*minio.Client, string, 
 	node, err := s.repo.GetIntegrationNodeByType(ctx, "S3")
 	if err != nil {
 		log.Printf("[StorageService] S3 node not found in DB, using default client: %v", err)
+		if s.client == nil {
+			return nil, "", fmt.Errorf("storage client not initialized (check MinIO configuration in .env)")
+		}
 		return s.client, s.bucket, nil
 	}
 
@@ -65,7 +68,8 @@ func (s *StorageService) getClient(ctx context.Context) (*minio.Client, string, 
 		bucket = s.bucket
 	}
 
-	// Create a new client for this request (can be optimized with a pool/cache)
+	// Create a new client for this request
+	log.Printf("[StorageService] Connecting to S3 at %s with AccessKey: %s", endpoint, accessKey)
 	client, err := minio.New(endpoint, &minio.Options{
 		Creds:  credentials.NewStaticV4(accessKey, secretKey, ""),
 		Secure: nodeCfg.UseSSL,

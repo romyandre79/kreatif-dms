@@ -40,33 +40,21 @@ type ldapNodeConfig struct {
 }
 
 func (s *LDAPService) getLDAPConfig(ctx context.Context) (string, ldapNodeConfig, error) {
-	nodeCfg := ldapNodeConfig{
-		BaseDN:     s.cfg.LDAPBaseDN,
-		BindDN:     s.cfg.LDAPBindDN,
-		BindPass:   s.cfg.LDAPBindPass,
-		UserFilter: s.cfg.LDAPUserFilter,
-		UseTLS:     false,
-	}
-	url := s.cfg.LDAPURL
-
 	node, err := s.repo.GetIntegrationNodeByType(ctx, "LDAP")
-	if err == nil && node.IsActive.Bool {
-		log.Printf("[LDAPService] Using database configuration for LDAP")
-		if err := json.Unmarshal(node.ConfigJson, &nodeCfg); err == nil {
-			// Override with DB values if present
-			if node.Endpoint != "" {
-				url = node.Endpoint
-			}
-		}
-	} else {
-		log.Printf("[LDAPService] LDAP node not found in DB or inactive, falling back to .env settings")
+	if err != nil {
+		return "", ldapNodeConfig{}, fmt.Errorf("LDAP integration node not found in database: %v", err)
 	}
 
-	// Format URL from endpoint
-	if url == "" {
-		return "", nodeCfg, fmt.Errorf("LDAP URL/Endpoint is not configured in DB or .env")
+	if !node.IsActive.Bool {
+		return "", ldapNodeConfig{}, fmt.Errorf("LDAP integration is disabled in database")
 	}
 
+	var nodeCfg ldapNodeConfig
+	if err := json.Unmarshal(node.ConfigJson, &nodeCfg); err != nil {
+		return "", ldapNodeConfig{}, fmt.Errorf("failed to parse LDAP config JSON: %v", err)
+	}
+
+	url := node.Endpoint
 	if !strings.HasPrefix(url, "ldap://") && !strings.HasPrefix(url, "ldaps://") {
 		url = "ldap://" + url
 	}

@@ -14,6 +14,7 @@ import (
 type Querier interface {
 	AddRolePermission(ctx context.Context, arg AddRolePermissionParams) error
 	ClearRolePermissions(ctx context.Context, roleID int32) error
+	CountOCRJobs(ctx context.Context) (int64, error)
 	CountSsoSyncLogs(ctx context.Context) (int64, error)
 	CreateActivityLog(ctx context.Context, arg CreateActivityLogParams) (ActivityLog, error)
 	CreateBatch(ctx context.Context, arg CreateBatchParams) (ProcessingBatch, error)
@@ -93,6 +94,7 @@ type Querier interface {
 	ListDocumentsByDepartment(ctx context.Context, departmentID uuid.UUID) ([]Document, error)
 	ListIntegrationNodes(ctx context.Context) ([]IntegrationNode, error)
 	ListNotifications(ctx context.Context, arg ListNotificationsParams) ([]Notification, error)
+	ListOCRJobs(ctx context.Context, arg ListOCRJobsParams) ([]ListOCRJobsRow, error)
 	// Ordners
 	ListOrdners(ctx context.Context, boxID uuid.UUID) ([]Ordner, error)
 	ListPendingUsers(ctx context.Context) ([]User, error)

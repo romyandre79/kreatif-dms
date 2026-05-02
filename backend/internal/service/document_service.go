@@ -48,8 +48,8 @@ func (s *DocumentService) UploadDocument(ctx context.Context, p UploadDocumentPa
 	// 1. Generate unique file path
 	objectName := fmt.Sprintf("%s/%s", p.DepartmentID, p.FileName)
 
-	// 2. Upload to MinIO with Encryption
-	_, err := s.storage.Upload(ctx, objectName, p.Content, p.FileSize, p.MimeType, true)
+	// 2. Upload to MinIO (Encryption disabled for local dev/KMS not configured)
+	_, err := s.storage.Upload(ctx, objectName, p.Content, p.FileSize, p.MimeType, false)
 	if err != nil {
 		log.Printf("[DocumentService] Error uploading to storage: %v", err)
 		return repository.Document{}, err
@@ -75,19 +75,22 @@ func (s *DocumentService) UploadDocument(ctx context.Context, p UploadDocumentPa
 	}
 
 	// 4. Enqueue OCR Task
-	if s.asynq != nil {
-		task, err := worker.NewDocumentOCRTask(doc.ID)
-		if err == nil {
-			_, err = s.asynq.Enqueue(task)
-			if err != nil {
-				log.Printf("[DocumentService] Error enqueuing OCR task: %v", err)
-			} else {
-				log.Printf("[DocumentService] OCR task enqueued for doc: %s", doc.ID)
-			}
-		}
-	} else {
-		log.Printf("[DocumentService] WARNING: Skipping OCR task for doc %s because Redis/Asynq is unavailable", doc.ID)
+	if s.asynq == nil {
+		return doc, fmt.Errorf("OCR worker is unavailable (Redis connection failed)")
 	}
+
+	task, err := worker.NewDocumentOCRTask(doc.ID)
+	if err != nil {
+		return doc, fmt.Errorf("failed to create OCR task: %v", err)
+	}
+
+	_, err = s.asynq.Enqueue(task)
+	if err != nil {
+		log.Printf("[DocumentService] Error enqueuing OCR task: %v", err)
+		return doc, fmt.Errorf("failed to enqueue OCR task: %v", err)
+	}
+	
+	log.Printf("[DocumentService] OCR task enqueued for doc: %s", doc.ID)
 
 	log.Printf("[DocumentService] Document uploaded successfully: %s", doc.ID)
 	return doc, nil
@@ -168,4 +171,39 @@ func (s *DocumentService) GetBatchDetails(ctx context.Context, batchID uuid.UUID
 		Batch:     batch,
 		Documents: docs,
 	}, nil
+}
+func (s *DocumentService) ListOCRHistory(ctx context.Context, page, pageSize int) ([]repository.ListOCRJobsRow, int64, error) {
+	offset := (page - 1) * pageSize
+	rows, err := s.repo.ListOCRJobs(ctx, repository.ListOCRJobsParams{
+		Limit:  int32(pageSize),
+		Offset: int32(offset),
+	})
+	if err != nil {
+		return nil, 0, err
+	}
+
+	total, err := s.repo.CountOCRJobs(ctx)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return rows, total, nil
+}
+
+func (s *DocumentService) GetOCRJob(ctx context.Context, docID uuid.UUID) (repository.OcrJob, error) {
+	return s.repo.GetOCRJobByEntity(ctx, repository.GetOCRJobByEntityParams{
+		EntityType: "document",
+		EntityID:   docID,
+	})
+}
+func (s *DocumentService) GetUser(ctx context.Context, userID uuid.UUID) (repository.GetUserByIDRow, error) {
+	return s.repo.GetUserByID(ctx, userID)
+}
+
+func (s *DocumentService) GetDepartment(ctx context.Context, id uuid.UUID) (repository.Department, error) {
+	return s.repo.GetDepartment(ctx, id)
+}
+
+func (s *DocumentService) GetBranch(ctx context.Context, id uuid.UUID) (repository.Branch, error) {
+	return s.repo.GetBranch(ctx, id)
 }

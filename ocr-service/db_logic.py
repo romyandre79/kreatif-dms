@@ -68,10 +68,20 @@ def get_stats():
         total, total_dur, failed = cursor.fetchone()
         return total or 0, total_dur or 0, failed or 0
 
-def get_recent_history(limit=50):
+def get_total_history_count():
     with get_db() as conn:
         cursor = conn.cursor()
-        cursor.execute("SELECT id, start_time, end_time, filename, size, duration, status, accuracy, ai_analysis FROM request_logs ORDER BY id DESC LIMIT ?", (limit,))
+        cursor.execute("SELECT COUNT(*) FROM request_logs")
+        return cursor.fetchone()[0] or 0
+
+def get_recent_history(limit=10, offset=0):
+    with get_db() as conn:
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT id, start_time, end_time, filename, size, duration, status, accuracy, ai_analysis 
+            FROM request_logs 
+            ORDER BY id DESC LIMIT ? OFFSET ?
+        """, (limit, offset))
         return cursor.fetchall()
 
 def get_ocr_result_by_id(job_id):

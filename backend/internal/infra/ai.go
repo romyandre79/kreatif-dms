@@ -9,6 +9,7 @@ import (
 	"mime/multipart"
 	"net/http"
 	"log"
+	"strings"
 
 	"github.com/kreatif/dms-backend/internal/config"
 	"github.com/kreatif/dms-backend/internal/repository"
@@ -50,8 +51,42 @@ type OCRResponse struct {
 	} `json:"words"`
 }
 
+func (s *AIService) getOCRConfig(ctx context.Context) (string, string, string, error) {
+	node, err := s.repo.GetIntegrationNodeByType(ctx, "OCR")
+	if err != nil {
+		return "", "", "", fmt.Errorf("OCR integration node not found in database: %v", err)
+	}
+
+	if !node.IsActive.Bool {
+		return "", "", "", fmt.Errorf("OCR integration is disabled in database")
+	}
+
+	var nodeCfg struct {
+		Username string `json:"username"`
+		Password string `json:"password"`
+	}
+	if err := json.Unmarshal(node.ConfigJson, &nodeCfg); err != nil {
+		return "", "", "", fmt.Errorf("failed to parse OCR config JSON: %v", err)
+	}
+
+	url := node.Endpoint
+	if !strings.HasPrefix(url, "http://") && !strings.HasPrefix(url, "https://") {
+		url = "http://" + url
+	}
+
+	return url, nodeCfg.Username, nodeCfg.Password, nil
+}
+
 func (s *AIService) ProcessOCR(ctx context.Context, fileName string, content []byte) (*OCRResponse, error) {
 	log.Printf("[AIService] Processing OCR for file: %s (Size: %d bytes)", fileName, len(content))
+	
+	// Fetch config from Database
+	ocrURL, ocrUser, ocrPass, err := s.getOCRConfig(ctx)
+	if err != nil {
+		log.Printf("[AIService] Error getting OCR config: %v", err)
+		return nil, err
+	}
+
 	body := &bytes.Buffer{}
 	writer := multipart.NewWriter(body)
 	part, err := writer.CreateFormFile("file", fileName)
@@ -66,16 +101,17 @@ func (s *AIService) ProcessOCR(ctx context.Context, fileName string, content []b
 	}
 	writer.Close()
 
-	req, err := http.NewRequestWithContext(ctx, "POST", s.cfg.OCRServiceURL+"/ocr/process", body)
+	req, err := http.NewRequestWithContext(ctx, "POST", ocrURL+"/ocr/process", body)
 	if err != nil {
 		log.Printf("[AIService] Error creating OCR request: %v", err)
 		return nil, err
 	}
 	req.Header.Set("Content-Type", writer.FormDataContentType())
 	
-	// Add Basic Auth if configured
-	if s.cfg.OCRServiceUser != "" && s.cfg.OCRServicePass != "" {
-		req.SetBasicAuth(s.cfg.OCRServiceUser, s.cfg.OCRServicePass)
+	// Add Basic Auth
+	if ocrUser != "" && ocrPass != "" {
+		log.Printf("[AIService] Sending Basic Auth with User: %s (Password Length: %d)", ocrUser, len(ocrPass))
+		req.SetBasicAuth(ocrUser, ocrPass)
 	}
 
 	client := &http.Client{}
