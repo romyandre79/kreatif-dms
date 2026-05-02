@@ -131,100 +131,146 @@
         
         <div class="relative w-full h-full glass rounded-[3rem] border border-white/10 shadow-2xl flex flex-col overflow-hidden">
             <!-- Modal Header -->
-            <div class="p-8 border-b border-white/5 bg-white/5 flex items-center justify-between shrink-0">
+            <div class="px-8 py-6 border-b border-white/5 bg-white/5 flex items-center justify-between shrink-0">
               <div class="flex items-center gap-6">
                 <div>
-                  <h2 class="text-2xl font-black text-white uppercase tracking-tight leading-none mb-2">{{ activeJob?.filename }}</h2>
-                  <p class="text-slate-400 text-xs font-bold uppercase tracking-widest">
-                    {{ activeJob?.timestamp }} | Status: <span class="text-green-500">{{ activeJob?.status }}</span>
+                  <h2 class="text-xl font-black text-white uppercase tracking-tight leading-none mb-1">{{ activeJob?.filename }}</h2>
+                  <p class="text-slate-500 text-[10px] font-bold uppercase tracking-widest">
+                    {{ activeJob?.timestamp }} | <span class="text-green-500">{{ activeJob?.status }}</span>
                   </p>
                 </div>
-                <div v-if="activeJob?.ai_analysis && activeJob.ai_analysis !== 'null'" class="h-10 w-px bg-white/10 hidden md:block"></div>
+                <div v-if="activeJob?.ai_analysis && activeJob.ai_analysis !== 'null'" class="h-8 w-px bg-white/10 hidden md:block"></div>
                 <div v-if="activeJob?.ai_analysis && activeJob.ai_analysis !== 'null'" class="hidden md:block">
-                  <span class="px-4 py-2 bg-primary-500 text-white text-[10px] font-black rounded-xl uppercase tracking-widest shadow-lg shadow-primary-500/20">
-                    {{ parseAI(activeJob.ai_analysis).doc_type || 'Document' }}
+                  <span class="px-3 py-1.5 bg-primary-500 text-white text-[9px] font-black rounded-lg uppercase tracking-widest shadow-lg shadow-primary-500/20">
+                    {{ parseAI(activeJob?.ai_analysis).doc_type || 'Document' }}
                   </span>
                 </div>
               </div>
-              <button @click="closeVisualizer" class="w-12 h-12 bg-white/10 hover:bg-red-500/20 text-white hover:text-red-500 rounded-2xl flex items-center justify-center transition-all">
-                <LucideX class="w-6 h-6" />
-              </button>
-            </div>
-            
-            <!-- AI Insights Panel (if available) -->
-            <div v-if="activeJob?.ai_analysis && activeJob.ai_analysis !== 'null' && parseAI(activeJob.ai_analysis).summary" class="px-8 py-4 bg-primary-500/5 border-b border-white/5 flex flex-wrap items-center gap-6 overflow-x-auto custom-scrollbar no-scrollbar">
-              <div class="flex items-center gap-3">
-                <LucideHistory class="w-4 h-4 text-primary-500" />
-                <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">History:</span>
-              </div>
-            </div>
 
-            <!-- AI Cleaned Text Section -->
-            <div v-if="parseAI(activeJob?.ai_analysis).cleaned_text" class="px-8 py-6 bg-slate-900/40 border-b border-white/5">
-              <div class="flex items-center gap-3 mb-4">
-                <div class="p-1.5 bg-green-500/10 rounded-lg"><LucideCheckCircle2 class="w-4 h-4 text-green-500" /></div>
-                <h4 class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">AI Intelligent Text Recovery</h4>
+              <!-- Zoom Controls -->
+              <div class="flex items-center bg-white/5 rounded-xl p-1 border border-white/10 gap-1">
+                <button @click="zoomOut" class="p-2 hover:bg-white/10 rounded-lg text-slate-400 hover:text-white transition-all"><LucideZoomOut class="w-4 h-4" /></button>
+                <button @click="resetZoom" class="px-3 text-[10px] font-black text-slate-400 hover:text-white uppercase tracking-widest">{{ (scale * 100).toFixed(0) }}%</button>
+                <button @click="zoomIn" class="p-2 hover:bg-white/10 rounded-lg text-slate-400 hover:text-white transition-all"><LucideZoomIn class="w-4 h-4" /></button>
               </div>
-              <div class="p-6 bg-black/40 rounded-[1.5rem] border border-white/5 text-sm text-slate-300 leading-relaxed font-medium whitespace-pre-wrap max-h-48 overflow-y-auto custom-scrollbar">
-                {{ parseAI(activeJob.ai_analysis).cleaned_text }}
-              </div>
-            </div>
-              <p class="text-xs font-medium text-slate-300 italic">"{{ parseAI(activeJob.ai_analysis).summary }}"</p>
-              <div class="flex gap-2">
-                <div v-for="(val, key) in parseAI(activeJob.ai_analysis).entities" :key="key" 
-                     class="px-3 py-1 bg-white/5 rounded-lg border border-white/10 flex items-center gap-2">
-                  <span class="text-[9px] font-black text-slate-500 uppercase">{{ key }}:</span>
-                  <span class="text-[10px] font-bold text-primary-400">{{ val }}</span>
-                </div>
-              </div>
+
+              <button @click="closeVisualizer" class="w-10 h-10 bg-white/5 hover:bg-red-500/20 text-white hover:text-red-500 rounded-xl flex items-center justify-center transition-all">
+                <LucideX class="w-5 h-5" />
+              </button>
             </div>
           
           <!-- Modal Content -->
-          <div class="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-8 p-8 overflow-hidden">
+          <div class="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-0 overflow-hidden">
             <!-- Left: Image View (Taking 8 columns) -->
-            <div class="lg:col-span-8 bg-[#020617] rounded-[2rem] relative overflow-auto custom-scrollbar flex items-start justify-center p-8 group">
-              <div class="relative">
+            <div class="lg:col-span-8 bg-[#010409] relative overflow-hidden flex items-center justify-center group border-r border-white/5 select-none"
+                 @mousedown="startDrag" 
+                 @mousemove="onDrag" 
+                 @mouseup="stopDrag" 
+                 @mouseleave="stopDrag">
+              
+              <div class="relative transition-transform duration-200 ease-out" 
+                   :style="{ 
+                     transform: `scale(${scale}) translate(${translateX}px, ${translateY}px)`,
+                     cursor: isDragging ? 'grabbing' : 'grab'
+                   }">
                 <img v-if="activeJob" :src="`${ocrUrl}${activeJob.preview_path || activeJob.file_path}`" 
                      ref="visualizerImage"
                      @load="onImageLoad"
-                     class="max-w-none shadow-2xl rounded-sm ring-1 ring-white/10" 
+                     class="max-w-none shadow-[0_0_100px_rgba(0,0,0,0.5)] rounded-sm ring-1 ring-white/10 pointer-events-none" 
                      alt="Document">
-                <div class="absolute inset-0 z-10 overflow-hidden pointer-events-none">
+                <div class="absolute inset-0 z-10 pointer-events-none">
                   <div v-for="(word, i) in words" :key="i"
-                       :style="getBoxStyle(word.box)"
+                       :style="getBoxStyle(word.box, i)"
                        @mouseenter="onHoverBox(i)"
                        @mouseleave="onLeaveBox(i)"
                        @click="onBoxClick(i)"
                        :class="['absolute border-2 border-primary-500/40 bg-primary-500/10 hover:bg-primary-500/40 hover:border-primary-400 cursor-pointer transition-all pointer-events-auto',
-                                { 'ring-4 ring-white z-20 scale-[1.05]': hoveredIndex === i }]"
+                                { 'ring-4 ring-white z-20 scale-[1.05] shadow-2xl': hoveredIndex === i }]"
                        :data-index="i">
                   </div>
                 </div>
               </div>
+
+              <!-- Floating Zoom Hint -->
+              <div class="absolute bottom-8 left-1/2 -translate-x-1/2 px-4 py-2 bg-black/60 backdrop-blur-md rounded-full border border-white/10 text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] opacity-0 group-hover:opacity-100 transition-opacity">
+                Click & Drag to move • Use buttons to zoom
+              </div>
             </div>
             
-            <!-- Right: Text List (Taking 4 columns) -->
-            <div class="lg:col-span-4 bg-white/5 rounded-[2rem] flex flex-col overflow-hidden border border-white/5">
-              <div class="p-6 border-b border-white/5 bg-white/5 flex items-center justify-between">
-                <h4 class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Extracted Intelligence</h4>
-                <button @click="toggleHighlightAll" 
-                        :class="['px-4 py-1.5 text-[10px] font-black rounded-lg transition-all', 
-                                highlightAll ? 'bg-primary-500 text-white' : 'bg-primary-500/10 text-primary-500 border border-primary-500/20']">
-                  {{ highlightAll ? 'Hide All' : 'Highlight All' }}
-                </button>
-              </div>
-              <div class="flex-1 p-6 overflow-y-auto custom-scrollbar space-y-3 scroll-smooth" ref="textContainer">
-                <div v-for="(word, i) in words" :key="i"
-                     :id="`text-item-${i}`"
-                     @mouseenter="onHoverText(i)"
-                     @mouseleave="onLeaveText(i)"
-                     class="group p-4 rounded-xl border border-white/5 transition-all cursor-pointer"
-                     :class="{ 'bg-primary-500/20 border-primary-500 scale-[1.02]': hoveredIndex === i, 'hover:bg-white/5': hoveredIndex !== i }">
-                  <div class="flex items-center justify-between mb-1">
-                    <span class="text-[9px] font-black text-slate-500 uppercase">Page {{ word.page }} | Conf: {{ (word.confidence * 100).toFixed(1) }}%</span>
+            <!-- Right Sidebar: AI Intelligence & OCR List -->
+            <div class="lg:col-span-4 bg-[#0d1117] flex flex-col overflow-hidden">
+              <div class="flex-1 overflow-y-auto custom-scrollbar">
+                
+                <!-- AI Insight Sidebar Section -->
+                <div v-if="activeJob?.ai_analysis && activeJob.ai_analysis !== 'null'" class="p-6 border-b border-white/5 space-y-6">
+                  <!-- Summary -->
+                  <div v-if="parseAI(activeJob?.ai_analysis).summary">
+                    <div class="flex items-center gap-2 mb-3">
+                      <LucideZap class="w-3.5 h-3.5 text-primary-500" />
+                      <h4 class="text-[10px] font-black uppercase tracking-widest text-slate-400">AI Summary</h4>
+                    </div>
+                    <p class="text-[11px] font-bold text-slate-300 italic leading-relaxed bg-primary-500/5 p-4 rounded-xl border border-primary-500/10">
+                      "{{ parseAI(activeJob?.ai_analysis).summary }}"
+                    </p>
                   </div>
-                  <p class="text-sm font-medium text-slate-300 group-hover:text-white transition-colors">{{ word.text }}</p>
+
+                  <!-- Entities -->
+                  <div v-if="parseAI(activeJob?.ai_analysis).entities">
+                    <div class="flex items-center gap-2 mb-3">
+                      <LucideLayers class="w-3.5 h-3.5 text-sky-500" />
+                      <h4 class="text-[10px] font-black uppercase tracking-widest text-slate-400">Extracted Entities</h4>
+                    </div>
+                    <div class="space-y-2">
+                      <div v-for="(val, key) in parseAI(activeJob?.ai_analysis).entities" :key="key" 
+                           class="group flex items-center justify-between p-3 bg-white/5 rounded-xl border border-white/5 hover:border-primary-500/30 transition-all">
+                        <span class="text-[9px] font-black text-slate-500 uppercase tracking-tight">{{ key.replace('_', ' ') }}</span>
+                        <span class="text-[11px] font-bold text-primary-400 group-hover:text-primary-300">{{ val }}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Cleaned Text -->
+                  <div v-if="parseAI(activeJob?.ai_analysis).cleaned_text">
+                    <div class="flex items-center gap-2 mb-3">
+                      <LucideCheckCircle2 class="w-3.5 h-3.5 text-green-500" />
+                      <h4 class="text-[10px] font-black uppercase tracking-widest text-slate-400">Reconstructed Text</h4>
+                    </div>
+                    <div class="p-4 bg-black/40 rounded-xl border border-white/5 text-[11px] text-slate-300 leading-relaxed font-medium whitespace-pre-wrap ring-1 ring-inset ring-white/5">
+                      {{ parseAI(activeJob?.ai_analysis).cleaned_text }}
+                    </div>
+                  </div>
                 </div>
+
+                <!-- Raw OCR Word List -->
+                <div class="p-6 space-y-4">
+                  <div class="flex items-center justify-between">
+                    <h4 class="text-[10px] font-black uppercase tracking-widest text-slate-400">OCR Fragments</h4>
+                    <button @click="toggleHighlightAll" 
+                            :class="['px-3 py-1 text-[9px] font-black rounded-lg transition-all', 
+                                    highlightAll ? 'bg-primary-500 text-white' : 'bg-primary-500/10 text-primary-500 border border-primary-500/20']">
+                      {{ highlightAll ? 'Hide Overlay' : 'Show Overlay' }}
+                    </button>
+                  </div>
+                  <div class="space-y-2">
+                    <div v-for="(word, i) in words" :key="i"
+                         :id="`text-item-${i}`"
+                         @mouseenter="onHoverText(i)"
+                         @mouseleave="onLeaveText(i)"
+                         class="group p-3.5 rounded-xl border border-white/5 transition-all cursor-pointer relative overflow-hidden"
+                         :class="{ 'bg-primary-500/20 border-primary-500/50 scale-[1.02] shadow-xl z-10': hoveredIndex === i, 'hover:bg-white/5': hoveredIndex !== i }">
+                      <div class="flex items-center justify-between mb-1">
+                        <span class="text-[8px] font-black text-slate-500 uppercase tracking-tighter">P{{ word.page }} • {{ (word.confidence * 100).toFixed(0) }}%</span>
+                        <div v-if="hoveredIndex === i" class="w-1.5 h-1.5 rounded-full bg-primary-500 animate-ping"></div>
+                      </div>
+                      <p class="text-xs font-medium text-slate-300 group-hover:text-white transition-colors">{{ word.text }}</p>
+                    </div>
+                    <div v-if="words.length === 0" class="py-12 flex flex-col items-center justify-center text-slate-700 gap-4 opacity-50">
+                       <LucideSearch class="w-12 h-12" />
+                       <p class="text-[10px] font-black uppercase tracking-widest">No results</p>
+                    </div>
+                  </div>
+                </div>
+
               </div>
             </div>
           </div>
@@ -239,7 +285,8 @@ import { ref, onMounted, onUnmounted, nextTick, watch } from 'vue'
 import { 
   LucideScanLine, LucideUploadCloud, LucideLoader2, LucideHistory, 
   LucideRefreshCw, LucideEye, LucideActivity, LucideClock, LucideCheckCircle2, 
-  LucideX, LucideMonitor, LucideZap
+  LucideX, LucideMonitor, LucideZap, LucideZoomIn, LucideZoomOut, LucideLayers,
+  LucideSearch
 } from 'lucide-vue-next'
 
 const config = useRuntimeConfig()
@@ -257,6 +304,12 @@ const words = ref([])
 const hoveredIndex = ref(null)
 const highlightAll = ref(true)
 const ws = ref(null)
+const scale = ref(1)
+const translateX = ref(0)
+const translateY = ref(0)
+const isDragging = ref(false)
+const lastMouseX = ref(0)
+const lastMouseY = ref(0)
 
 const stats = computed(() => [
   { label: 'Total Process', value: statsData.value.total, icon: LucideActivity, bg: 'bg-primary-500/10', color: 'text-primary-500' },
@@ -264,6 +317,30 @@ const stats = computed(() => [
   { label: 'Success Rate', value: `${statsData.value.success_rate.toFixed(1)}%`, icon: LucideCheckCircle2, bg: 'bg-green-500/10', color: 'text-green-500' },
   { label: 'Service Status', value: 'ONLINE', icon: LucideMonitor, bg: 'bg-purple-500/10', color: 'text-purple-500' },
 ])
+
+const zoomIn = () => { scale.value = Math.min(scale.value + 0.25, 5) }
+const zoomOut = () => { scale.value = Math.max(scale.value - 0.25, 0.5) }
+const resetZoom = () => { scale.value = 1; translateX.value = 0; translateY.value = 0; }
+
+const startDrag = (e) => {
+  isDragging.value = true
+  lastMouseX.value = e.clientX
+  lastMouseY.value = e.clientY
+}
+
+const onDrag = (e) => {
+  if (!isDragging.value) return
+  const dx = e.clientX - lastMouseX.value
+  const dy = e.clientY - lastMouseY.value
+  translateX.value += dx / scale.value
+  translateY.value += dy / scale.value
+  lastMouseX.value = e.clientX
+  lastMouseY.value = e.clientY
+}
+
+const stopDrag = () => { isDragging.value = false }
+
+const onImageLoad = () => { console.log('[OCR] Image loaded into viewer') }
 
 const triggerUpload = () => fileInput.value.click()
 
@@ -281,25 +358,18 @@ const handleUpload = async (e) => {
     const response = await fetch(`${ocrUrl}/ocr/process`, {
       method: 'POST',
       body: formData,
-      // Simple auth for playground
-      headers: {
-        'Authorization': 'Basic ' + btoa('admin:admin123')
-      }
+      headers: { 'Authorization': 'Basic ' + btoa('admin:admin123') }
     })
 
     if (!response.ok) throw new Error(`HTTP Error: ${response.status}`)
-    
     const result = await response.json()
     addLog(`[UI] Extraction successful for ${file.name}`, 'text-green-400')
     fetchHistory()
-    
-    // Auto-open visualizer if it's a small file
     if (result.words && result.words.length > 0) {
       setTimeout(() => openVisualizer(null, result), 500)
     }
   } catch (err) {
     addLog(`[UI] Error: ${err.message}`, 'text-red-500')
-    console.error(err)
   } finally {
     isUploading.value = false
     e.target.value = ''
@@ -308,13 +378,6 @@ const handleUpload = async (e) => {
 
 const fetchHistory = async () => {
   try {
-    const res = await fetch(`${ocrUrl}/`, {
-      headers: { 'Authorization': 'Basic ' + btoa('admin:admin123') }
-    })
-    const html = await res.text()
-    
-    // Simple way to get data since the dashboard returns HTML with data embedded
-    // We'll fetch from our API endpoint instead for history
     const apiRes = await fetch(`${ocrUrl}/ocr/stats`, {
       headers: { 'Authorization': 'Basic ' + btoa('admin:admin123') }
     }).catch(() => null)
@@ -323,9 +386,6 @@ const fetchHistory = async () => {
        const data = await apiRes.json()
        history.value = data.history || []
        statsData.value = data.stats || { total: 0, avg_time: 0, success_rate: 100 }
-    } else {
-       // Fallback: If stats endpoint not ready, just reload
-       window.location.reload()
     }
   } catch (err) {
     console.error('Failed to fetch history:', err)
@@ -334,41 +394,32 @@ const fetchHistory = async () => {
 
 const addLog = (msg) => {
   logs.value.push(msg)
-  nextTick(() => {
-    if (logContainer.value) {
-      logContainer.value.scrollTop = logContainer.value.scrollHeight
-    }
-  })
 }
 
 const setupWebSocket = () => {
   const wsUrl = ocrUrl.replace('http', 'ws') + '/ws/logs'
   ws.value = new WebSocket(wsUrl)
-  
-  ws.value.onmessage = (event) => {
-    addLog(event.data)
-  }
-  
-  ws.value.onclose = () => {
-    setTimeout(setupWebSocket, 5000) // Reconnect
-  }
+  ws.value.onmessage = (event) => { addLog(event.data) }
+  ws.value.onclose = () => { setTimeout(setupWebSocket, 5000) }
 }
 
 const openVisualizer = async (id, preloadedData = null) => {
+  resetZoom()
   if (preloadedData) {
+    if (preloadedData.insight && !preloadedData.ai_analysis) preloadedData.ai_analysis = preloadedData.insight
     activeJob.value = preloadedData
-    words.value = preloadedData.words || []
+    words.value = preloadedData.words || (typeof preloadedData.words_json === 'string' ? JSON.parse(preloadedData.words_json) : (preloadedData.words_json || []))
   } else {
     try {
       const res = await fetch(`${ocrUrl}/ocr/result/${id}`, {
         headers: { 'Authorization': 'Basic ' + btoa('admin:admin123') }
       })
-      if (!res.ok) throw new Error('Result not found')
+      if (!res.ok) throw new Error(`HTTP Error: ${res.status}`)
       const data = await res.json()
       activeJob.value = data
-      words.value = JSON.parse(data.words_json)
+      words.value = typeof data.words_json === 'string' ? JSON.parse(data.words_json) : (data.words_json || [])
     } catch (err) {
-      alert('Could not load visualizer data')
+      alert('Could not load visualizer data: ' + err.message)
       return
     }
   }
@@ -380,51 +431,36 @@ const closeVisualizer = () => {
   showVisualizer.value = false
   activeJob.value = null
   words.value = []
+  resetZoom()
 }
 
 const parseAI = (data) => {
-  if (!data) return {}
+  if (!data || data === 'null') return {}
   if (typeof data === 'string') {
-    try { return JSON.parse(data) } catch { return { summary: data } }
+    try { return JSON.parse(data) || {} } catch (e) { return { summary: data } }
   }
-  return data
+  return data || {}
 }
 
-const getBoxStyle = (box) => ({
+const getBoxStyle = (box, index) => ({
   left: `${box.x}px`,
   top: `${box.y}px`,
   width: `${box.w}px`,
   height: `${box.h}px`,
-  display: highlightAll.value || hoveredIndex.value === words.value.indexOf(box) ? 'block' : 'none'
+  display: highlightAll.value || hoveredIndex.value === index ? 'block' : 'none'
 })
 
-const onHoverBox = (index) => {
-  hoveredIndex.value = index
-  const textItem = document.getElementById(`text-item-${index}`)
-  if (textItem) {
-    textItem.scrollIntoView({ behavior: 'smooth', block: 'center' })
-  }
-}
-
-const onLeaveBox = () => {
-  hoveredIndex.value = null
-}
-
-const onHoverText = (index) => {
-  hoveredIndex.value = index
-}
-
-const onLeaveText = () => {
-  hoveredIndex.value = null
-}
+const onHoverBox = (index) => { hoveredIndex.value = index }
+const onLeaveBox = () => { hoveredIndex.value = null }
+const onHoverText = (index) => { hoveredIndex.value = index }
+const onLeaveText = () => { hoveredIndex.value = null }
 
 const onBoxClick = (index) => {
-  // Toggle individual highlight?
+  const item = document.getElementById(`text-item-${index}`)
+  if (item) item.scrollIntoView({ behavior: 'smooth', block: 'center' })
 }
 
-const toggleHighlightAll = () => {
-  highlightAll.value = !highlightAll.value
-}
+const toggleHighlightAll = () => { highlightAll.value = !highlightAll.value }
 
 onMounted(() => {
   fetchHistory()
@@ -434,11 +470,18 @@ onMounted(() => {
 onUnmounted(() => {
   if (ws.value) ws.value.close()
 })
+
+watch(logs, () => {
+  nextTick(() => {
+    if (logContainer.value) logContainer.value.scrollTop = logContainer.value.scrollHeight
+  })
+}, { deep: true })
 </script>
 
-<style scoped>
+<style>
 .custom-scrollbar::-webkit-scrollbar {
-  width: 5px;
+  width: 6px;
+  height: 6px;
 }
 .custom-scrollbar::-webkit-scrollbar-track {
   background: transparent;

@@ -55,7 +55,26 @@ async def lifespan(app: FastAPI):
     yield
     logger.info("Kreatif DMS OCR Service is shutting down.")
 
+from fastapi.middleware.cors import CORSMiddleware
+
+# Auth Config
+ADMIN_USER = os.getenv("OCR_ADMIN_USER", "admin")
+ADMIN_PASSWORD = os.getenv("OCR_ADMIN_PASSWORD", "admin123")
+ALLOWED_CLIENT_HOSTS = [h.strip() for h in os.getenv("CLIENT_HOST", "http://localhost:3000").split(",")]
+RATE_LIMIT = int(os.getenv("RATE_LIMITER", "100"))
+MAX_PARALLEL_PAGES = int(os.getenv("MAX_PARALLEL_PAGES", "4"))
+
 app = FastAPI(title="Kreatif DMS OCR Service", lifespan=lifespan)
+
+# Enable CORS using settings from .env
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=ALLOWED_CLIENT_HOSTS,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 security = HTTPBasic()
 
 # Ensure uploads directory exists
@@ -63,13 +82,6 @@ UPLOAD_DIR = "uploads"
 if not os.path.exists(UPLOAD_DIR):
     os.makedirs(UPLOAD_DIR)
 app.mount("/uploads", StaticFiles(directory=UPLOAD_DIR), name="uploads")
-
-# Auth Config
-ADMIN_USER = os.getenv("OCR_ADMIN_USER", "admin")
-ADMIN_PASSWORD = os.getenv("OCR_ADMIN_PASSWORD", "admin123")
-ALLOWED_CLIENT_HOSTS = [h.strip() for h in os.getenv("CLIENT_HOST", "localhost").split(",")]
-RATE_LIMIT = int(os.getenv("RATE_LIMITER", "100"))
-MAX_PARALLEL_PAGES = int(os.getenv("MAX_PARALLEL_PAGES", "4"))
 
 def authenticate(credentials: HTTPBasicCredentials = Depends(security)):
     if not (secrets.compare_digest(credentials.username.encode("utf8"), ADMIN_USER.encode("utf8")) and 
