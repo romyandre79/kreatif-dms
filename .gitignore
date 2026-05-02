@@ -44,7 +44,6 @@ redis-server/
 dump.rdb
 start/
 data/
-logs/
 *.log
 
 # Docker

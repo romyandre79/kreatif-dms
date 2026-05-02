@@ -10,8 +10,8 @@ dist
 node_modules
 
 # Logs
-logs
-*.log
+#logs
+.log
 
 # Misc
 .DS_Store
