@@ -29,6 +29,8 @@ type Config struct {
 	ElasticsearchURL string `mapstructure:"ELASTICSEARCH_URL"`
 
 	OCRServiceURL string `mapstructure:"OCR_SERVICE_URL"`
+	OCRServiceUser string `mapstructure:"OCR_SERVICE_USER"`
+	OCRServicePass string `mapstructure:"OCR_SERVICE_PASS"`
 
 	GeminiAPIKey string `mapstructure:"GEMINI_API_KEY"`
 	OpenAIAPIKey string `mapstructure:"OPENAI_API_KEY"`

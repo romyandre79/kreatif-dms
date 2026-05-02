@@ -398,6 +398,53 @@
         "error_fetch": "Failed to fetch data",
         "confirm_delete": "Delete this document type?"
       }
+    },
+    "pin": {
+      "compliance": {
+        "title": "Compliance Summary",
+        "score": "Compliance Score",
+        "lockouts": "Lockout Incidents",
+        "non_compliant_count": "{count} Non-Compliant Accounts"
+      },
+      "rules": {
+        "title": "PIN Enforcement Rules",
+        "mandatory": {
+          "label": "PIN Approval Mandatory",
+          "desc": "Require PIN for document approvals"
+        },
+        "security": {
+          "label": "Download & Print Security",
+          "desc": "Require PIN before export access"
+        },
+        "verification": {
+          "label": "Archive Verification",
+          "desc": "Require PIN for permanent archiving"
+        },
+        "config": {
+          "length": "PIN Length",
+          "max_attempts": "Max Attempts",
+          "lockout_duration": "Lockout Duration",
+          "expiry": "Expiry Period"
+        },
+        "policy_note": "System-wide PIN reuse prevention policy is currently active."
+      },
+      "preview": {
+        "title": "PREVIEW: PIN VERIFICATION"
+      },
+      "list": {
+        "title": "User PIN Registration",
+        "subtitle": "Manage PIN security status for all operational staff",
+        "search": "Search name or role...",
+        "table": {
+          "cols": {
+            "user": "USER NAME",
+            "role": "ROLE",
+            "status": "PIN STATUS",
+            "updated": "UPDATED",
+            "failed": "FAILED ATTEMPTS"
+          }
+        }
+      }
     }
   }
 }

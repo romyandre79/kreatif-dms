@@ -164,6 +164,7 @@ func main() {
 	// Auth Routes
 	authGroup := api.Group("/auth")
 	authGroup.Post("/login", authHandler.Login)
+	authGroup.Post("/login/mfa", authHandler.LoginMFA)
 	authGroup.Post("/register", authHandler.Register)
 	authGroup.Post("/refresh", authHandler.Refresh)
 	authGroup.Post("/forgot-password", authHandler.ForgotPassword)
@@ -172,6 +173,9 @@ func main() {
 	authGroup.Use(middleware.AuthMiddleware(cfg.JWTSecret))
 	authGroup.Post("/pin", authHandler.SetPIN)
 	authGroup.Post("/pin/verify", authHandler.VerifyPIN)
+	authGroup.Post("/user-pin", middleware.RoleMiddleware("admin", "superadmin"), authHandler.SetUserPIN)
+	authGroup.Post("/mfa/setup", authHandler.SetupMFA)
+	authGroup.Post("/mfa/verify", authHandler.VerifyMFA)
 	authGroup.Get("/me/permissions", authHandler.GetMyPermissions)
 	authGroup.Get("/me/menu", authHandler.GetMyMenu)
 

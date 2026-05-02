@@ -25,6 +25,7 @@ type Querier interface {
 	CreateDocumentType(ctx context.Context, arg CreateDocumentTypeParams) (DocumentType, error)
 	CreateIntegrationNode(ctx context.Context, arg CreateIntegrationNodeParams) (IntegrationNode, error)
 	CreateNotification(ctx context.Context, arg CreateNotificationParams) (Notification, error)
+	CreateOCRJob(ctx context.Context, arg CreateOCRJobParams) (OcrJob, error)
 	CreateOrdner(ctx context.Context, arg CreateOrdnerParams) (Ordner, error)
 	CreateRack(ctx context.Context, arg CreateRackParams) (Rack, error)
 	CreateRetentionPolicy(ctx context.Context, arg CreateRetentionPolicyParams) (RetentionPolicy, error)
@@ -57,6 +58,7 @@ type Querier interface {
 	GetIntegrationNode(ctx context.Context, id uuid.UUID) (IntegrationNode, error)
 	GetIntegrationNodeByType(ctx context.Context, serviceType string) (IntegrationNode, error)
 	GetLastSsoSyncLog(ctx context.Context) (SsoSyncLog, error)
+	GetOCRJobByEntity(ctx context.Context, arg GetOCRJobByEntityParams) (OcrJob, error)
 	GetOrdner(ctx context.Context, id uuid.UUID) (Ordner, error)
 	GetRack(ctx context.Context, id uuid.UUID) (Rack, error)
 	GetRfidTag(ctx context.Context, tagID string) (RfidTag, error)
@@ -106,7 +108,7 @@ type Querier interface {
 	ListSsoSyncLogs(ctx context.Context, arg ListSsoSyncLogsParams) ([]SsoSyncLog, error)
 	// System Modules & Permissions
 	ListSystemModules(ctx context.Context) ([]SystemModule, error)
-	ListUsers(ctx context.Context) ([]User, error)
+	ListUsers(ctx context.Context) ([]ListUsersRow, error)
 	MarkAllAsRead(ctx context.Context, userID uuid.UUID) error
 	MarkAsRead(ctx context.Context, arg MarkAsReadParams) error
 	UpdateBatchProgress(ctx context.Context, id uuid.UUID) error
@@ -127,6 +129,7 @@ type Querier interface {
 	UpdateSsoSyncLog(ctx context.Context, arg UpdateSsoSyncLogParams) (SsoSyncLog, error)
 	UpdateSystemModule(ctx context.Context, arg UpdateSystemModuleParams) (SystemModule, error)
 	UpdateUser(ctx context.Context, arg UpdateUserParams) (User, error)
+	UpdateUserMFASecret(ctx context.Context, arg UpdateUserMFASecretParams) error
 	UpdateUserPIN(ctx context.Context, arg UpdateUserPINParams) error
 	UpdateUserStatus(ctx context.Context, arg UpdateUserStatusParams) (User, error)
 	UpsertSystemSetting(ctx context.Context, arg UpsertSystemSettingParams) (SystemSetting, error)

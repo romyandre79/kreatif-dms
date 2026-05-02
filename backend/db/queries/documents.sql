@@ -44,3 +44,18 @@ SET processed_files = processed_files + 1,
     status = CASE WHEN processed_files + 1 >= total_files THEN 'completed' ELSE 'processing' END,
     updated_at = NOW() 
 WHERE id = $1;
+
+-- name: CreateOCRJob :one
+INSERT INTO ocr_jobs (
+    entity_type, entity_id, ocr_service_url, ocr_engine, 
+    source_file_path, raw_text, word_count, confidence_avg, words_json,
+    status, processing_time_ms, created_at
+) VALUES (
+    $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW()
+) RETURNING *;
+
+-- name: GetOCRJobByEntity :one
+SELECT * FROM ocr_jobs
+WHERE entity_type = $1 AND entity_id = $2
+ORDER BY created_at DESC
+LIMIT 1;

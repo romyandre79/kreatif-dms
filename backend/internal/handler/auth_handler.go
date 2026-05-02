@@ -143,6 +143,29 @@ func (h *AuthHandler) SetPIN(c fiber.Ctx) error {
 	return response.Success(c, fiber.StatusOK, "PIN set successfully", nil)
 }
 
+type setUserPinRequest struct {
+	UserID uuid.UUID `json:"user_id" validate:"required"`
+	PIN    string    `json:"pin" validate:"required,len=6,numeric"`
+}
+
+func (h *AuthHandler) SetUserPIN(c fiber.Ctx) error {
+	req := new(setUserPinRequest)
+	if err := c.Bind().JSON(req); err != nil {
+		return response.Error(c, fiber.StatusBadRequest, "Invalid request body", err.Error())
+	}
+
+	if errs := utils.ValidateStruct(req); len(errs) > 0 {
+		return response.Error(c, fiber.StatusBadRequest, "Validation failed", utils.FormatValidationErrors(errs))
+	}
+
+	err := h.svc.SetPIN(c.Context(), req.UserID, req.PIN)
+	if err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to set user PIN", err.Error())
+	}
+
+	return response.Success(c, fiber.StatusOK, "User PIN set successfully", nil)
+}
+
 func (h *AuthHandler) VerifyPIN(c fiber.Ctx) error {
 	userID := c.Locals("user_id").(uuid.UUID)
 	req := new(pinRequest)
@@ -160,6 +183,56 @@ func (h *AuthHandler) VerifyPIN(c fiber.Ctx) error {
 	}
 
 	return response.Success(c, fiber.StatusOK, "PIN verified", nil)
+}
+
+func (h *AuthHandler) SetupMFA(c fiber.Ctx) error {
+	userID := c.Locals("user_id").(uuid.UUID)
+	secret, url, err := h.svc.GenerateMFASecret(c.Context(), userID)
+	if err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to generate MFA secret", err.Error())
+	}
+
+	return response.Success(c, fiber.StatusOK, "MFA setup initiated", fiber.Map{
+		"secret": secret,
+		"url":    url,
+	})
+}
+
+func (h *AuthHandler) VerifyMFA(c fiber.Ctx) error {
+	userID := c.Locals("user_id").(uuid.UUID)
+	type request struct {
+		Secret string `json:"secret" validate:"required"`
+		Code   string `json:"code" validate:"required"`
+	}
+	req := new(request)
+	if err := c.Bind().JSON(req); err != nil {
+		return response.Error(c, fiber.StatusBadRequest, "Invalid request body", err.Error())
+	}
+
+	err := h.svc.VerifyMFAAndEnable(c.Context(), userID, req.Secret, req.Code)
+	if err != nil {
+		return response.Error(c, fiber.StatusBadRequest, "MFA verification failed", err.Error())
+	}
+
+	return response.Success(c, fiber.StatusOK, "MFA enabled successfully", nil)
+}
+
+func (h *AuthHandler) LoginMFA(c fiber.Ctx) error {
+	type request struct {
+		UserID uuid.UUID `json:"user_id" validate:"required"`
+		Code   string    `json:"code" validate:"required"`
+	}
+	req := new(request)
+	if err := c.Bind().JSON(req); err != nil {
+		return response.Error(c, fiber.StatusBadRequest, "Invalid request body", err.Error())
+	}
+
+	res, err := h.svc.LoginMFA(c.Context(), req.UserID, req.Code)
+	if err != nil {
+		return response.Error(c, fiber.StatusUnauthorized, "MFA login failed", err.Error())
+	}
+
+	return response.Success(c, fiber.StatusOK, "Login successful", res)
 }
 
 func (h *AuthHandler) Refresh(c fiber.Ctx) error {

@@ -11,6 +11,7 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/kreatif/dms-backend/internal/infra"
 	"github.com/kreatif/dms-backend/internal/repository"
+	"time"
 )
 
 type TaskProcessor struct {
@@ -54,24 +55,71 @@ func (p *TaskProcessor) ProcessDocumentOCR(ctx context.Context, t *asynq.Task) e
 	}
 
 	// 3. Process OCR
-	rawText, err := p.ai.ProcessOCR(ctx, doc.FileName, content)
+	ocrStart := time.Now()
+	ocrRes, err := p.ai.ProcessOCR(ctx, doc.FileName, content)
 	if err != nil {
 		log.Printf("[TaskProcessor] Error processing OCR for doc %s: %v", doc.ID, err)
 		return err
 	}
+	ocrDuration := time.Since(ocrStart)
+	rawText := ocrRes.FullText
 
-	// 3.1 AI Refinement (Optional based on config)
-	text, err := p.ai.RefineOCRText(ctx, rawText)
-	if err != nil {
-		log.Printf("[TaskProcessor] Warning: AI refinement failed for doc %s: %v", doc.ID, err)
-		text = rawText // Fallback
+	// 3.1 Save to ocr_jobs table (Detailed results)
+	wordsJSON, _ := json.Marshal(ocrRes.Words)
+	
+	// Calculate avg confidence
+	var totalConf float64
+	if len(ocrRes.Words) > 0 {
+		for _, w := range ocrRes.Words {
+			totalConf += w.Confidence
+		}
+		totalConf = totalConf / float64(len(ocrRes.Words)) * 100
 	}
 
-	// 3.2 AI Metadata Extraction (Optional based on config)
-	metadata, err := p.ai.ExtractMetadata(ctx, text)
+	var confNumeric pgtype.Numeric
+	confNumeric.Scan(fmt.Sprintf("%.2f", totalConf))
+
+	_, err = p.repo.CreateOCRJob(ctx, repository.CreateOCRJobParams{
+		EntityType:       "document",
+		EntityID:         doc.ID,
+		SourceFilePath:   pgtype.Text{String: doc.FilePath, Valid: true},
+		RawText:          pgtype.Text{String: rawText, Valid: true},
+		WordCount:        pgtype.Int4{Int32: int32(len(ocrRes.Words)), Valid: true},
+		ConfidenceAvg:    confNumeric,
+		WordsJson:        wordsJSON,
+		Status:           "completed",
+		ProcessingTimeMs: pgtype.Int4{Int32: int32(ocrDuration.Milliseconds()), Valid: true},
+	})
 	if err != nil {
-		log.Printf("[TaskProcessor] Warning: AI metadata extraction failed for doc %s: %v", doc.ID, err)
-		metadata = map[string]interface{}{} // Fallback
+		log.Printf("[TaskProcessor] Warning: Failed to save to ocr_jobs: %v", err)
+	}
+
+	// 3.1 Use AI Insights from OCR Service if available
+	metadata := map[string]interface{}{}
+	text := rawText
+
+	if ocrRes.Insight != nil {
+		log.Printf("[TaskProcessor] Using AI Insights for Document: %s (Type: %s)", doc.ID, ocrRes.Insight.DocType)
+		metadata = ocrRes.Insight.Entities
+		// Include basic info in metadata
+		metadata["ai_doc_type"] = ocrRes.Insight.DocType
+		metadata["ai_summary"] = ocrRes.Insight.Summary
+		
+		if ocrRes.Insight.CleanedText != "" {
+			text = ocrRes.Insight.CleanedText
+		}
+	} else {
+		// Fallback to legacy refinement if ocr-service didn't provide insight
+		log.Printf("[TaskProcessor] Warning: No AI Insights from OCR Service, falling back to legacy refinement for doc %s", doc.ID)
+		refined, err := p.ai.RefineOCRText(ctx, rawText)
+		if err == nil {
+			text = refined
+		}
+		
+		extractedMeta, err := p.ai.ExtractMetadata(ctx, text)
+		if err == nil {
+			metadata = extractedMeta
+		}
 	}
 
 	metadataJSON, _ := json.Marshal(metadata)
@@ -94,6 +142,7 @@ func (p *TaskProcessor) ProcessDocumentOCR(ctx context.Context, t *asynq.Task) e
 		Content:      text,
 		DepartmentID: doc.DepartmentID,
 		Tags:         doc.Tags,
+		Metadata:     metadata,
 		CreatedAt:    doc.CreatedAt.Time.String(),
 	})
 	if err != nil {

@@ -1,7 +1,7 @@
 -- 000020_add_parent_id_to_modules.up.sql
 
 -- 1. Add parent_id column
-ALTER TABLE system_modules ADD COLUMN parent_id VARCHAR(50) REFERENCES system_modules(id) ON DELETE SET NULL;
+ALTER TABLE system_modules ADD COLUMN IF NOT EXISTS parent_id VARCHAR(50) REFERENCES system_modules(id) ON DELETE SET NULL;
 
 -- 2. Create Parent Rows for existing categories
 INSERT INTO system_modules (id, name, category, path, icon, allowed_actions, sort_order) VALUES
@@ -14,7 +14,8 @@ INSERT INTO system_modules (id, name, category, path, icon, allowed_actions, sor
 ('cat_retention', 'Retention', '', NULL, 'LucideTrash2', ARRAY['VIEW'], 60),
 ('cat_reports', 'Reports', '', NULL, 'LucideBarChart3', ARRAY['VIEW'], 70),
 ('cat_config', 'Configuration', '', NULL, 'LucideSettings', ARRAY['VIEW'], 80),
-('cat_admin', 'Administration', '', NULL, 'LucideShieldAlert', ARRAY['VIEW'], 90);
+('cat_admin', 'Administration', '', NULL, 'LucideShieldAlert', ARRAY['VIEW'], 90)
+ON CONFLICT (id) DO NOTHING;
 
 -- 3. Link existing modules to new parents
 UPDATE system_modules SET parent_id = 'cat_dashboard' WHERE id = 'dashboard';

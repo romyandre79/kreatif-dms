@@ -20,12 +20,13 @@ func NewSearchService(es *elasticsearch.Client) *SearchService {
 }
 
 type DocumentIndex struct {
-	ID           uuid.UUID `json:"id"`
-	Title        string    `json:"title"`
-	Content      string    `json:"content"`
-	DepartmentID uuid.UUID `json:"department_id"`
-	Tags         []string  `json:"tags"`
-	CreatedAt    string    `json:"created_at"`
+	ID           uuid.UUID              `json:"id"`
+	Title        string                 `json:"title"`
+	Content      string                 `json:"content"`
+	DepartmentID uuid.UUID              `json:"department_id"`
+	Tags         []string               `json:"tags"`
+	Metadata     map[string]interface{} `json:"metadata"`
+	CreatedAt    string                 `json:"created_at"`
 }
 
 func (s *SearchService) IndexDocument(ctx context.Context, doc DocumentIndex) error {
@@ -67,7 +68,7 @@ func (s *SearchService) Search(ctx context.Context, query string, deptID uuid.UU
 					{
 						"multi_match": map[string]interface{}{
 							"query":  query,
-							"fields": []string{"title", "content", "tags"},
+							"fields": []string{"title", "content", "tags", "metadata.*"},
 						},
 					},
 				},
