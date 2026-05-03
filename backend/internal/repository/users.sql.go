@@ -78,6 +78,78 @@ func (q *Queries) DeleteUser(ctx context.Context, id uuid.UUID) error {
 	return err
 }
 
+const getProfileByID = `-- name: GetProfileByID :one
+SELECT 
+    u.id, u.email, u.password_hash, u.full_name, u.role_id, u.department_id, u.is_active, u.created_at, u.updated_at, u.status, u.avatar_url, u.signature_url, u.pin, u.pin_status, u.pin_failed_attempts, u.pin_locked_until, u.pin_updated_at, u.is_mfa_enabled, u.mfa_secret, 
+    r.name as role_name,
+    d.name as department_name,
+    b.name as branch_name,
+    c.name as company_name
+FROM users u
+LEFT JOIN roles r ON u.role_id = r.id
+LEFT JOIN departments d ON u.department_id = d.id
+LEFT JOIN branches b ON d.branch_id = b.id
+LEFT JOIN companies c ON b.company_id = c.id
+WHERE u.id = $1 LIMIT 1
+`
+
+type GetProfileByIDRow struct {
+	ID                uuid.UUID          `json:"id"`
+	Email             string             `json:"email"`
+	PasswordHash      string             `json:"password_hash"`
+	FullName          string             `json:"full_name"`
+	RoleID            int32              `json:"role_id"`
+	DepartmentID      pgtype.UUID        `json:"department_id"`
+	IsActive          bool               `json:"is_active"`
+	CreatedAt         pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt         pgtype.Timestamptz `json:"updated_at"`
+	Status            string             `json:"status"`
+	AvatarUrl         pgtype.Text        `json:"avatar_url"`
+	SignatureUrl      pgtype.Text        `json:"signature_url"`
+	Pin               pgtype.Text        `json:"pin"`
+	PinStatus         pgtype.Text        `json:"pin_status"`
+	PinFailedAttempts pgtype.Int4        `json:"pin_failed_attempts"`
+	PinLockedUntil    pgtype.Timestamptz `json:"pin_locked_until"`
+	PinUpdatedAt      pgtype.Timestamptz `json:"pin_updated_at"`
+	IsMfaEnabled      pgtype.Bool        `json:"is_mfa_enabled"`
+	MfaSecret         pgtype.Text        `json:"mfa_secret"`
+	RoleName          pgtype.Text        `json:"role_name"`
+	DepartmentName    pgtype.Text        `json:"department_name"`
+	BranchName        pgtype.Text        `json:"branch_name"`
+	CompanyName       pgtype.Text        `json:"company_name"`
+}
+
+func (q *Queries) GetProfileByID(ctx context.Context, id uuid.UUID) (GetProfileByIDRow, error) {
+	row := q.db.QueryRow(ctx, getProfileByID, id)
+	var i GetProfileByIDRow
+	err := row.Scan(
+		&i.ID,
+		&i.Email,
+		&i.PasswordHash,
+		&i.FullName,
+		&i.RoleID,
+		&i.DepartmentID,
+		&i.IsActive,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Status,
+		&i.AvatarUrl,
+		&i.SignatureUrl,
+		&i.Pin,
+		&i.PinStatus,
+		&i.PinFailedAttempts,
+		&i.PinLockedUntil,
+		&i.PinUpdatedAt,
+		&i.IsMfaEnabled,
+		&i.MfaSecret,
+		&i.RoleName,
+		&i.DepartmentName,
+		&i.BranchName,
+		&i.CompanyName,
+	)
+	return i, err
+}
+
 const getRoleIDByName = `-- name: GetRoleIDByName :one
 SELECT id FROM roles WHERE name = $1 LIMIT 1
 `
@@ -403,6 +475,20 @@ type UpdateUserPINParams struct {
 
 func (q *Queries) UpdateUserPIN(ctx context.Context, arg UpdateUserPINParams) error {
 	_, err := q.db.Exec(ctx, updateUserPIN, arg.ID, arg.Pin)
+	return err
+}
+
+const updateUserPassword = `-- name: UpdateUserPassword :exec
+UPDATE users SET password_hash = $2, updated_at = NOW() WHERE id = $1
+`
+
+type UpdateUserPasswordParams struct {
+	ID           uuid.UUID `json:"id"`
+	PasswordHash string    `json:"password_hash"`
+}
+
+func (q *Queries) UpdateUserPassword(ctx context.Context, arg UpdateUserPasswordParams) error {
+	_, err := q.db.Exec(ctx, updateUserPassword, arg.ID, arg.PasswordHash)
 	return err
 }
 

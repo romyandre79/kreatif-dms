@@ -32,11 +32,23 @@ class AuthNotifier extends StateNotifier<AuthState> {
   }
 
   Future<void> _checkPersistence() async {
-    // In a real app, you would fetch the user profile here using the saved token
-    // For now, we just check if token exists
     final token = await _storage.read(key: 'jwt_token');
     if (token != null) {
-      // Potentially fetch user profile
+      await loadProfile();
+    }
+  }
+
+  Future<void> loadProfile() async {
+    state = state.copyWith(isLoading: true);
+    try {
+      final user = await _repository.getProfile();
+      state = state.copyWith(isLoading: false, user: user);
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: e.toString());
+      // If token is invalid, logout
+      if (e.toString().contains('Unauthorized')) {
+        logout();
+      }
     }
   }
 
@@ -56,7 +68,9 @@ class AuthNotifier extends StateNotifier<AuthState> {
       if (response.accessToken != null) {
         await _storage.write(key: 'jwt_token', value: response.accessToken);
         await _storage.write(key: 'refresh_token', value: response.refreshToken);
-        state = state.copyWith(isLoading: false, user: response.user);
+        
+        // After login, fetch the full profile to get detailed info (Department, etc)
+        await loadProfile();
       }
     } catch (e) {
       state = state.copyWith(isLoading: false, error: e.toString());
@@ -67,5 +81,51 @@ class AuthNotifier extends StateNotifier<AuthState> {
     await _storage.delete(key: 'jwt_token');
     await _storage.delete(key: 'refresh_token');
     state = AuthState();
+  }
+
+  Future<void> setPIN(String pin) async {
+    state = state.copyWith(isLoading: true, error: null);
+    try {
+      await _repository.setPIN(pin);
+      state = state.copyWith(isLoading: false);
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: e.toString());
+      rethrow;
+    }
+  }
+
+  Future<void> changePassword(String oldPassword, String newPassword) async {
+    state = state.copyWith(isLoading: true, error: null);
+    try {
+      await _repository.changePassword(oldPassword, newPassword);
+      state = state.copyWith(isLoading: false);
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: e.toString());
+      rethrow;
+    }
+  }
+
+  Future<Map<String, dynamic>> setupMFA() async {
+    state = state.copyWith(isLoading: true, error: null);
+    try {
+      final res = await _repository.setupMFA();
+      state = state.copyWith(isLoading: false);
+      return res;
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: e.toString());
+      rethrow;
+    }
+  }
+
+  Future<void> verifyMFA(String secret, String code) async {
+    state = state.copyWith(isLoading: true, error: null);
+    try {
+      await _repository.verifyMFA(secret, code);
+      await loadProfile(); // Refresh profile to see MFA enabled status
+      state = state.copyWith(isLoading: false);
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: e.toString());
+      rethrow;
+    }
   }
 }

@@ -61,6 +61,7 @@ type Querier interface {
 	GetLastSsoSyncLog(ctx context.Context) (SsoSyncLog, error)
 	GetOCRJobByEntity(ctx context.Context, arg GetOCRJobByEntityParams) (OcrJob, error)
 	GetOrdner(ctx context.Context, id uuid.UUID) (Ordner, error)
+	GetProfileByID(ctx context.Context, id uuid.UUID) (GetProfileByIDRow, error)
 	GetRack(ctx context.Context, id uuid.UUID) (Rack, error)
 	GetRfidTag(ctx context.Context, tagID string) (RfidTag, error)
 	GetRole(ctx context.Context, id int32) (Role, error)
@@ -133,6 +134,7 @@ type Querier interface {
 	UpdateUser(ctx context.Context, arg UpdateUserParams) (User, error)
 	UpdateUserMFASecret(ctx context.Context, arg UpdateUserMFASecretParams) error
 	UpdateUserPIN(ctx context.Context, arg UpdateUserPINParams) error
+	UpdateUserPassword(ctx context.Context, arg UpdateUserPasswordParams) error
 	UpdateUserStatus(ctx context.Context, arg UpdateUserStatusParams) (User, error)
 	UpsertSystemSetting(ctx context.Context, arg UpsertSystemSettingParams) (SystemSetting, error)
 }

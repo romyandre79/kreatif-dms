@@ -269,3 +269,35 @@ func (h *AuthHandler) GetMyMenu(c fiber.Ctx) error {
 	}
 	return response.Success(c, fiber.StatusOK, "Menu retrieved", menu)
 }
+
+func (h *AuthHandler) GetMyProfile(c fiber.Ctx) error {
+	userID := c.Locals("user_id").(uuid.UUID)
+	profile, err := h.svc.GetProfile(c.Context(), userID)
+	if err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to get profile", err.Error())
+	}
+	return response.Success(c, fiber.StatusOK, "Profile retrieved", profile)
+}
+
+func (h *AuthHandler) ChangePassword(c fiber.Ctx) error {
+	userID := c.Locals("user_id").(uuid.UUID)
+	type request struct {
+		OldPassword string `json:"old_password" validate:"required"`
+		NewPassword string `json:"new_password" validate:"required,min=6"`
+	}
+	req := new(request)
+	if err := c.Bind().JSON(req); err != nil {
+		return response.Error(c, fiber.StatusBadRequest, "Invalid request body", err.Error())
+	}
+
+	if errs := utils.ValidateStruct(req); len(errs) > 0 {
+		return response.Error(c, fiber.StatusBadRequest, "Validation failed", utils.FormatValidationErrors(errs))
+	}
+
+	err := h.svc.ChangePassword(c.Context(), userID, req.OldPassword, req.NewPassword)
+	if err != nil {
+		return response.Error(c, fiber.StatusUnauthorized, "Change password failed", err.Error())
+	}
+
+	return response.Success(c, fiber.StatusOK, "Password changed successfully", nil)
+}

@@ -1,19 +1,24 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:kreatif_dms/core/theme/app_theme.dart';
+import 'package:kreatif_dms/features/documents/domain/document_models.dart';
+import 'package:kreatif_dms/features/documents/presentation/document_provider.dart';
 
-class DocumentExplorerScreen extends StatelessWidget {
+class DocumentExplorerScreen extends ConsumerWidget {
   const DocumentExplorerScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final topologyAsync = ref.watch(topologyProvider);
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Explorer', style: TextStyle(fontWeight: FontWeight.bold)),
         backgroundColor: Colors.transparent,
         elevation: 0,
         actions: [
-          IconButton(onPressed: () {}, icon: const Icon(LucideIcons.filter, size: 20)),
+          IconButton(onPressed: () => ref.refresh(topologyProvider), icon: const Icon(LucideIcons.refreshCw, size: 20)),
         ],
       ),
       body: Column(
@@ -31,19 +36,17 @@ class DocumentExplorerScreen extends StatelessWidget {
           ),
           
           Expanded(
-            child: ListView(
-              padding: const EdgeInsets.all(16),
-              children: [
-                _FolderItem(title: 'Finance & Accounting', subtitle: '428 Documents', icon: LucideIcons.folder),
-                _FolderItem(title: 'Human Resources', subtitle: '156 Documents', icon: LucideIcons.folder),
-                _FolderItem(title: 'Legal & Compliance', subtitle: '89 Documents', icon: LucideIcons.folder),
-                _FolderItem(title: 'Marketing', subtitle: '210 Documents', icon: LucideIcons.folder),
-                const SizedBox(height: 24),
-                Text('Recent Files', style: Theme.of(context).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold)),
-                const SizedBox(height: 16),
-                _FileItem(title: 'Q3-Financial-Report.pdf', size: '2.4 MB', date: '2 days ago'),
-                _FileItem(title: 'Employee-Handbook-2024.pdf', size: '1.8 MB', date: '5 days ago'),
-              ],
+            child: topologyAsync.when(
+              data: (nodes) => ListView.builder(
+                padding: const EdgeInsets.all(16),
+                itemCount: nodes.length,
+                itemBuilder: (context, index) {
+                  final node = nodes[index];
+                  return _TopologyItem(node: node);
+                },
+              ),
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (err, stack) => Center(child: Text('Error: $err')),
             ),
           ),
         ],
@@ -52,56 +55,68 @@ class DocumentExplorerScreen extends StatelessWidget {
   }
 }
 
-class _FolderItem extends StatelessWidget {
-  final String title;
-  final String subtitle;
-  final IconData icon;
+class _TopologyItem extends StatelessWidget {
+  final TopologyNode node;
 
-  const _FolderItem({required this.title, required this.subtitle, required this.icon});
+  const _TopologyItem({required this.node});
 
   @override
   Widget build(BuildContext context) {
+    final isFolder = node.type != 'document';
+
     return ListTile(
       contentPadding: const EdgeInsets.symmetric(vertical: 4),
       leading: Container(
         padding: const EdgeInsets.all(10),
         decoration: BoxDecoration(
-          color: Colors.amber.withOpacity(0.1),
+          color: isFolder ? Colors.amber.withOpacity(0.1) : AppTheme.primary.withOpacity(0.1),
           borderRadius: BorderRadius.circular(12),
         ),
-        child: Icon(icon, color: Colors.amber, size: 24),
+        child: Icon(
+          isFolder ? LucideIcons.folder : LucideIcons.fileText, 
+          color: isFolder ? Colors.amber : AppTheme.primary, 
+          size: 24
+        ),
       ),
-      title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
-      subtitle: Text(subtitle, style: const TextStyle(color: AppTheme.textSecondary, fontSize: 12)),
-      trailing: const Icon(LucideIcons.chevronRight, color: AppTheme.textSecondary, size: 16),
-      onTap: () {},
+      title: Text(node.name, style: const TextStyle(fontWeight: FontWeight.bold)),
+      subtitle: Text(
+        node.type.toUpperCase(), 
+        style: const TextStyle(color: AppTheme.textSecondary, fontSize: 10, fontWeight: FontWeight.bold)
+      ),
+      trailing: isFolder ? const Icon(LucideIcons.chevronRight, color: AppTheme.textSecondary, size: 16) : null,
+      onTap: () {
+        if (isFolder && node.children != null && node.children!.isNotEmpty) {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) => _FolderDetailScreen(node: node),
+            ),
+          );
+        }
+      },
     );
   }
 }
 
-class _FileItem extends StatelessWidget {
-  final String title;
-  final String size;
-  final String date;
+class _FolderDetailScreen extends StatelessWidget {
+  final TopologyNode node;
 
-  const _FileItem({required this.title, required this.size, required this.date});
+  const _FolderDetailScreen({required this.node});
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
-      contentPadding: const EdgeInsets.symmetric(vertical: 4),
-      leading: Container(
-        padding: const EdgeInsets.all(10),
-        decoration: BoxDecoration(
-          color: AppTheme.primary.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: const Icon(LucideIcons.fileText, color: AppTheme.primary, size: 24),
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(node.name),
+        backgroundColor: Colors.transparent,
       ),
-      title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
-      subtitle: Text('$size • $date', style: const TextStyle(color: AppTheme.textSecondary, fontSize: 12)),
-      trailing: const Icon(LucideIcons.moreVertical, color: AppTheme.textSecondary, size: 16),
-      onTap: () {},
+      body: ListView.builder(
+        padding: const EdgeInsets.all(16),
+        itemCount: node.children?.length ?? 0,
+        itemBuilder: (context, index) {
+          final child = node.children![index];
+          return _TopologyItem(node: child);
+        },
+      ),
     );
   }
 }

@@ -6,6 +6,7 @@ import 'package:kreatif_dms/features/auth/presentation/auth_provider.dart';
 import 'package:kreatif_dms/features/dashboard/presentation/profile_screen.dart';
 import 'package:kreatif_dms/features/documents/presentation/document_explorer_screen.dart';
 import 'package:kreatif_dms/features/documents/presentation/loan_screen.dart';
+import 'package:kreatif_dms/features/documents/presentation/document_provider.dart';
 import 'package:kreatif_dms/features/documents/presentation/upload_screen.dart';
 import 'package:kreatif_dms/features/scanner/presentation/scanner_screen.dart';
 
@@ -213,19 +214,23 @@ class _HomeView extends ConsumerWidget {
                   'Dokumen Terbaru',
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold),
                 ),
-                TextButton(onPressed: () {}, child: const Text('Lihat Semua')),
+                TextButton(
+                  onPressed: () => ref.refresh(recentDocumentsProvider),
+                  child: const Text('Lihat Semua'),
+                ),
               ],
             ),
             const SizedBox(height: 8),
-            const _RecentDocItem(
-              title: 'Invoice-2024-001.pdf',
-              subtitle: 'Finance • 2 jam yang lalu',
-              icon: LucideIcons.fileText,
-            ),
-            const _RecentDocItem(
-              title: 'Contract-Draft-v2.pdf',
-              subtitle: 'Legal • 5 jam yang lalu',
-              icon: LucideIcons.fileCode,
+            ref.watch(recentDocumentsProvider).when(
+              data: (docs) => Column(
+                children: docs.take(5).map((doc) => _RecentDocItem(
+                  title: doc.title,
+                  subtitle: '${doc.category} • ${doc.createdAt.toLocal().toString().split(' ')[0]}',
+                  icon: LucideIcons.fileText,
+                )).toList(),
+              ),
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (err, stack) => Text('Error: $err'),
             ),
           ],
         ),

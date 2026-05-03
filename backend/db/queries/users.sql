@@ -50,3 +50,20 @@ DELETE FROM users WHERE id = $1;
 
 -- name: UpdateUserMFASecret :exec
 UPDATE users SET mfa_secret = $2, is_mfa_enabled = $3 WHERE id = $1;
+
+-- name: GetProfileByID :one
+SELECT 
+    u.*, 
+    r.name as role_name,
+    d.name as department_name,
+    b.name as branch_name,
+    c.name as company_name
+FROM users u
+LEFT JOIN roles r ON u.role_id = r.id
+LEFT JOIN departments d ON u.department_id = d.id
+LEFT JOIN branches b ON d.branch_id = b.id
+LEFT JOIN companies c ON b.company_id = c.id
+WHERE u.id = $1 LIMIT 1;
+
+-- name: UpdateUserPassword :exec
+UPDATE users SET password_hash = $2, updated_at = NOW() WHERE id = $1;
