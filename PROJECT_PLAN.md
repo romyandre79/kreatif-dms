@@ -71,3 +71,12 @@
 - [ ] E2E Testing for Upload & AI Chat
 - [ ] UI/UX Polish (Glassmorphism, Animations)
 - [ ] Security Headers & Permissions Validation
+
+### Phase 8: Flutter Mobile App
+- [x] Initialize Flutter Project (`flutter create mobile`)
+- [ ] Setup State Management (Riverpod) & API Client (Dio)
+- [ ] Design System (Colors, Typography, Themes)
+- [ ] Implement Auth Flow (Login, Token Persistence)
+- [ ] Implement Document Browser & Search
+- [ ] Implement QR/Barcode Scanner for Inventory Audit
+- [ ] Implement Document Detail & Preview
