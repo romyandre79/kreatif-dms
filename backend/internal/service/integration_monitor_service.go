@@ -90,10 +90,48 @@ func (s *IntegrationMonitorService) checkNode(ctx context.Context, node reposito
 			lastErr = err.Error()
 		}
 	case "SMTP", "OCR":
-		err := s.checkTCP(node.Endpoint)
-		if err != nil {
-			status = "offline"
-			lastErr = err.Error()
+		target := node.Endpoint
+		if strings.HasPrefix(target, "http") {
+			err := s.checkHTTP(target)
+			if err != nil {
+				status = "offline"
+				lastErr = err.Error()
+			}
+		} else {
+			err := s.checkTCP(target)
+			if err != nil {
+				status = "offline"
+				lastErr = err.Error()
+			}
+		}
+	case "SCANNER_LOCAL", "SCANNER_NETWORK":
+		// Use connection_string from config for scanners
+		var cfg struct {
+			ConnectionString string `json:"connection_string"`
+		}
+		json.Unmarshal(node.ConfigJson, &cfg)
+		
+		target := cfg.ConnectionString
+		if target == "" {
+			target = node.Endpoint
+		}
+		
+		// If it's a URL, try /health
+		if strings.HasPrefix(target, "http") {
+			if !strings.HasSuffix(target, "/") {
+				target += "/"
+			}
+			err := s.checkHTTP(target + "health")
+			if err != nil {
+				status = "offline"
+				lastErr = err.Error()
+			}
+		} else {
+			err := s.checkTCP(target)
+			if err != nil {
+				status = "offline"
+				lastErr = err.Error()
+			}
 		}
 	case "HTTP", "SCANNER", "PRINTER":
 		err := s.checkHTTP(node.Endpoint)

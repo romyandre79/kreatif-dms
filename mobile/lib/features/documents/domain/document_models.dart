@@ -31,6 +31,7 @@ class Document {
   final String? description;
   final String category;
   final String status;
+  final String mimeType;
   final Map<String, dynamic> metadata;
   final String? fileUrl;
   final DateTime createdAt;
@@ -41,6 +42,7 @@ class Document {
     this.description,
     required this.category,
     required this.status,
+    required this.mimeType,
     required this.metadata,
     this.fileUrl,
     required this.createdAt,
@@ -53,6 +55,7 @@ class Document {
       description: json['description'],
       category: json['category'] ?? 'General',
       status: json['status'] ?? 'active',
+      mimeType: json['mime_type'] ?? 'application/pdf',
       metadata: json['metadata'] ?? {},
       fileUrl: json['file_url'],
       createdAt: DateTime.parse(json['created_at'] ?? DateTime.now().toIso8601String()),

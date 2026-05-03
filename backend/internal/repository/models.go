@@ -515,6 +515,8 @@ type OcrJob struct {
 	AsyncTaskID        pgtype.UUID        `json:"async_task_id"`
 	CreatedAt          pgtype.Timestamptz `json:"created_at"`
 	CompletedAt        pgtype.Timestamptz `json:"completed_at"`
+	PreviewPath        pgtype.Text        `json:"preview_path"`
+	PreviewPaths       []byte             `json:"preview_paths"`
 }
 
 type Ordner struct {

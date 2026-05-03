@@ -66,6 +66,11 @@ func LoadConfig(path string) (config Config, err error) {
 	viper.AddConfigPath("..")
 	viper.AddConfigPath("../..")
 	
+	// Set defaults
+	viper.SetDefault("APP_PORT", "8080")
+	viper.SetDefault("REDIS_URL", "127.0.0.1:6379")
+	viper.SetDefault("WORKER_CONCURRENCY", 5)
+	
 	// Default to .env
 	viper.SetConfigName(".env")
 	viper.SetConfigType("env")

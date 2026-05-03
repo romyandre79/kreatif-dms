@@ -2,6 +2,7 @@ package handler
 
 import (
 	"strconv"
+	"strings"
 	"github.com/gofiber/fiber/v3"
 	"github.com/google/uuid"
 	"github.com/kreatif/dms-backend/internal/infra"
@@ -30,6 +31,16 @@ func (h *DocumentHandler) Search(c fiber.Ctx) error {
 		id, err := uuid.Parse(deptIDStr)
 		if err == nil {
 			deptID = id
+		}
+	} else {
+		// Default to user's department if not elevated role
+		role := c.Locals("user_role").(string)
+		if role != "superadmin" && role != "manajer" && !strings.Contains(role, "doc controller") {
+			userID := c.Locals("user_id").(uuid.UUID)
+			user, err := h.svc.GetUser(c.Context(), userID)
+			if err == nil && user.DepartmentID.Valid {
+				deptID = user.DepartmentID.Bytes
+			}
 		}
 	}
 
@@ -128,12 +139,16 @@ func (h *DocumentHandler) Preview(c fiber.Ctx) error {
 		userName = val.(string)
 	}
 
-	pdfData, err := h.svc.GetWatermarkedPDF(c.Context(), docID, userName, "center")
+	pdfData, mimeType, err := h.svc.GetWatermarkedPDF(c.Context(), docID, userName, "center")
 	if err != nil {
 		return response.Error(c, fiber.StatusInternalServerError, "Failed to generate preview", err.Error())
 	}
 
-	c.Set("Content-Type", "application/pdf")
+	if mimeType == "" {
+		mimeType = "application/pdf"
+	}
+
+	c.Set("Content-Type", mimeType)
 	c.Set("Content-Disposition", "inline")
 	return c.Send(pdfData)
 }
@@ -182,11 +197,12 @@ func (h *DocumentHandler) GetOCRData(c fiber.Ctx) error {
 	}
 
 	return response.Success(c, fiber.StatusOK, "OCR data retrieved", fiber.Map{
-		"id":           job.EntityID,
-		"filename":     job.SourceFilePath.String,
-		"status":       job.Status,
-		"words_json":   string(job.WordsJson),
-		"ai_analysis":  string(job.AiMetadata),
-		"preview_path": job.SourceFilePath.String, // Fallback
+		"id":            job.EntityID,
+		"filename":      job.SourceFilePath.String,
+		"status":        job.Status,
+		"words_json":    string(job.WordsJson),
+		"ai_analysis":   string(job.AiMetadata),
+		"preview_path":  job.PreviewPath.String,
+		"preview_paths": string(job.PreviewPaths),
 	})
 }

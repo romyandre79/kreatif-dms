@@ -49,9 +49,9 @@ WHERE id = $1;
 INSERT INTO ocr_jobs (
     entity_type, entity_id, ocr_service_url, ocr_engine, 
     source_file_path, raw_text, word_count, confidence_avg, words_json,
-    status, processing_time_ms, created_at
+    status, processing_time_ms, preview_path, preview_paths, created_at
 ) VALUES (
-    $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW()
+    $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, NOW()
 ) RETURNING *;
 
 -- name: GetOCRJobByEntity :one
@@ -66,6 +66,7 @@ SELECT
     j.status,
     j.processing_time_ms,
     j.confidence_avg,
+    j.preview_path,
     j.created_at,
     COALESCE(d.file_name, j.source_file_path) as filename,
     COALESCE(d.file_size, 0)::bigint as file_size,

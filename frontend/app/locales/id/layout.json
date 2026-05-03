@@ -86,6 +86,8 @@
       "overdue_monitoring": "Monitoring Terlambat",
       "notifications": "Notifikasi",
       "audit_logs": "Log Audit Sistem",
+      "watermark": "Konfigurasi Watermark",
+      "scan_to_web": "Scan to Web Launcher",
       "admin_pin": "Pendaftaran PIN Pengguna",
       "cat_dashboard": "Dashboard",
       "cat_registration": "Registrasi",

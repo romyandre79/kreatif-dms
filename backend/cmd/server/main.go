@@ -78,14 +78,17 @@ func main() {
 	defer dbPool.Close()
 	repo := repository.New(dbPool)
 
-	// 2. Redis (from DB)
+	// 2. Redis Configuration (Priority: Database Integration Node -> .env -> Default)
 	redisURL := cfg.RedisURL
 	node, err := repo.GetIntegrationNodeByType(context.Background(), "REDIS")
 	if err == nil && node.IsActive.Bool {
 		redisURL = node.Endpoint
-		log.Printf("Using Redis configuration from database: %s", redisURL)
+		log.Printf("[System] Redis: Using configuration from database node: %s", redisURL)
+	} else if redisURL != "" {
+		log.Printf("[System] Redis: Using configuration from .env: %s", redisURL)
 	} else {
-		log.Printf("Redis node not found in DB or inactive, falling back to .env: %s", redisURL)
+		redisURL = "127.0.0.1:6379" // Absolute fallback
+		log.Printf("[System] Redis: No configuration found in DB or .env, using default: %s", redisURL)
 	}
 
 	rdb, err := config.InitRedis(redisURL)
@@ -281,6 +284,11 @@ func main() {
 	masterGroup.Get("/retention", masterHandler.ListRetentionPolicies)
 	masterGroup.Get("/settings/:category", masterHandler.GetSettings)
 	masterGroup.Post("/settings/:category", masterHandler.UpdateSetting)
+	
+	// Watermark Settings
+	masterGroup.Get("/settings/watermark", masterHandler.GetWatermarkSettings)
+	masterGroup.Post("/settings/watermark", masterHandler.UpdateWatermarkSettings)
+	masterGroup.Post("/scanners/register", masterHandler.RegisterScanner)
 	masterGroup.Get("/integration/status", middleware.RoleMiddleware("admin", "superadmin"), masterHandler.GetIntegrationStatus)
 	masterGroup.Get("/integration/report", middleware.RoleMiddleware("admin", "superadmin"), masterHandler.DownloadIntegrationReport)
 	masterGroup.Post("/integration/nodes", middleware.RoleMiddleware("admin", "superadmin"), masterHandler.CreateIntegrationNode)

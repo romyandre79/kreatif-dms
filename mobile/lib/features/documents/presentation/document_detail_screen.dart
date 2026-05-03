@@ -106,9 +106,11 @@ class DocumentDetailScreen extends ConsumerWidget {
               child: ElevatedButton.icon(
                 onPressed: () => _openPreview(context, ref),
                 icon: const Icon(LucideIcons.eye),
-                label: const Text('Buka Preview PDF'),
+                label: Text(document.mimeType.contains('pdf') ? 'Buka Preview PDF' : 'Buka Preview Gambar'),
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 16),
+                  backgroundColor: AppTheme.primary,
+                  foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                 ),
               ),
@@ -129,7 +131,7 @@ class DocumentDetailScreen extends ConsumerWidget {
     final url = Uri.parse('$baseUrl/documents/${document.id}/preview?token=$token');
 
     if (await canLaunchUrl(url)) {
-      await launchUrl(url, mode: LaunchMode.externalApplication);
+      await launchUrl(url, mode: LaunchMode.inAppWebView);
     } else {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

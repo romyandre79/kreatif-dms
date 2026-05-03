@@ -91,6 +91,16 @@ func (p *TaskProcessor) ProcessDocumentOCR(ctx context.Context, t *asynq.Task) e
 	var confNumeric pgtype.Numeric
 	confNumeric.Scan(fmt.Sprintf("%.2f", totalConf))
 
+	// Save preview paths
+	if ocrRes.PreviewPath == "" && len(ocrRes.PreviewPaths) > 0 {
+		ocrRes.PreviewPath = ocrRes.PreviewPaths[0]
+	}
+
+	previewPathsJSON, _ := json.Marshal(ocrRes.PreviewPaths)
+	if len(ocrRes.PreviewPaths) == 0 && ocrRes.PreviewPath != "" {
+		previewPathsJSON, _ = json.Marshal([]string{ocrRes.PreviewPath})
+	}
+
 	_, err = p.repo.CreateOCRJob(ctx, repository.CreateOCRJobParams{
 		EntityType:       "document",
 		EntityID:         doc.ID,
@@ -101,6 +111,8 @@ func (p *TaskProcessor) ProcessDocumentOCR(ctx context.Context, t *asynq.Task) e
 		WordsJson:        wordsJSON,
 		Status:           "Success",
 		ProcessingTimeMs: pgtype.Int4{Int32: int32(ocrDuration.Milliseconds()), Valid: true},
+		PreviewPath:      pgtype.Text{String: ocrRes.PreviewPath, Valid: ocrRes.PreviewPath != ""},
+		PreviewPaths:     previewPathsJSON,
 	})
 	if err != nil {
 		log.Printf("[TaskProcessor] Warning: Failed to save to ocr_jobs: %v", err)

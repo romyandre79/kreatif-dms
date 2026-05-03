@@ -81,7 +81,17 @@
                   </div>
                 </td>
                 <td class="px-6 py-5">
-                  <span class="text-xs font-mono font-medium text-slate-500 dark:text-slate-400">{{ service.host }}</span>
+                  <div v-if="service.category === 'SCANNER_LOCAL' || service.category === 'SCANNER_NETWORK'" class="flex flex-col gap-1">
+                    <div class="flex items-center gap-1.5">
+                      <LucideGlobe class="w-3 h-3 text-slate-400" />
+                      <span class="text-[10px] font-mono font-bold text-blue-500">{{ service.config?.connection_string || 'No IP' }}</span>
+                    </div>
+                    <div class="flex items-center gap-1.5">
+                      <LucideHash class="w-3 h-3 text-slate-400" />
+                      <span class="text-[9px] font-mono font-medium text-slate-400 truncate max-w-[120px]" :title="service.host">{{ service.host }}</span>
+                    </div>
+                  </div>
+                  <span v-else class="text-xs font-mono font-medium text-slate-500 dark:text-slate-400">{{ service.host }}</span>
                 </td>
                 <td class="px-6 py-5">
                   <div v-if="service.status === 'online'" class="inline-flex items-center px-3 py-1 bg-green-500/10 text-green-600 dark:text-green-400 rounded-full border border-green-500/20 text-[10px] font-black uppercase tracking-widest">
@@ -225,7 +235,7 @@
 
     <!-- Type Selection Modal -->
     <Transition name="fade">
-      <div v-if="showTypeModal" class="fixed inset-0 z-[60] flex items-center justify-center p-4">
+      <div v-if="showTypeModal" class="fixed inset-0 z-[101] flex items-center justify-center p-4 lg:pl-[280px]">
         <div class="absolute inset-0 bg-slate-950/40 backdrop-blur-sm" @click="showTypeModal = false"></div>
         <div class="relative bg-white dark:bg-slate-900 w-full max-w-2xl rounded-[2.5rem] shadow-2xl p-10 border border-slate-200 dark:border-slate-800" v-motion-pop>
           <div class="text-center space-y-2 mb-10">
@@ -254,7 +264,7 @@
 
     <!-- Configuration Modal (Dynamic) -->
     <Transition name="fade">
-      <div v-if="showModal" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div v-if="showModal" class="fixed inset-0 z-[100] flex items-center justify-center p-4 lg:pl-[280px]">
         <div class="absolute inset-0 bg-slate-950/60 backdrop-blur-sm" @click="showModal = false"></div>
         <div class="relative bg-white dark:bg-slate-950 w-full max-w-6xl rounded-[2.5rem] shadow-2xl overflow-hidden border border-slate-200 dark:border-slate-800" v-motion-pop>
           <!-- Modal Header -->
@@ -354,6 +364,11 @@
                 v-else-if="formData.service_type === 'OCR'" 
                 v-model="formData" 
               />
+
+              <ScannerConfig 
+                v-else-if="formData.service_type === 'SCANNER_LOCAL' || formData.service_type === 'SCANNER_NETWORK'" 
+                v-model="formData" 
+              />
             </div>
           </div>
           <!-- Modal Footer Stats -->
@@ -386,7 +401,7 @@
 
     <!-- Sync Logs Modal -->
     <Transition name="fade">
-      <div v-if="showLogsModal" class="fixed inset-0 z-[70] flex items-center justify-center p-4">
+      <div v-if="showLogsModal" class="fixed inset-0 z-[110] flex items-center justify-center p-4 lg:pl-[280px]">
         <div class="absolute inset-0 bg-slate-950/60 backdrop-blur-sm" @click="showLogsModal = false"></div>
         <div class="relative bg-white dark:bg-slate-900 w-full max-w-4xl rounded-[2.5rem] shadow-2xl overflow-hidden border border-slate-200 dark:border-slate-800" v-motion-pop>
           <div class="px-10 py-8 bg-slate-50 dark:bg-slate-950/50 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
@@ -463,7 +478,7 @@ import {
   LucideTimer, LucidePlus, LucideEdit3, LucideTrash2, LucideSave, 
   LucideEye, LucideEyeOff, LucideCheckSquare, LucideNetwork, 
   LucideShare2, LucideFilter, LucideHistory, LucidePlay, LucideSettings,
-  LucideSearch, LucideCpu, LucideScanLine
+  LucideSearch, LucideCpu, LucideScanLine, LucideGlobe
 } from 'lucide-vue-next'
 import { useApi } from '@/composables/useApi'
 import PageHeader from '@/components/PageHeader.vue'
@@ -476,6 +491,7 @@ import StorageConfig from '@/components/integration/StorageConfig.vue'
 import WhatsappConfig from '@/components/integration/WhatsappConfig.vue'
 import SmtpConfig from '@/components/integration/SmtpConfig.vue'
 import OcrConfig from '@/components/integration/OcrConfig.vue'
+import ScannerConfig from '@/components/integration/ScannerConfig.vue'
 
 const refreshing = ref(false)
 const nodes = ref([])
@@ -520,7 +536,9 @@ const integrationTypes = [
   { id: 'OCR', name: 'OCR Engine', icon: LucideScan },
   { id: 'STORAGE', name: 'Storage', icon: LucideHardDrive },
   { id: 'SMTP', name: 'SMTP / Mail', icon: LucidePrinter },
-  { id: 'AI', name: 'AI Provider', icon: LucideCpu }
+  { id: 'AI', name: 'AI Provider', icon: LucideCpu },
+  { id: 'SCANNER_LOCAL', name: 'Local Scanner (Bridge)', icon: LucidePrinter },
+  { id: 'SCANNER_NETWORK', name: 'Network Scanner', icon: LucideScanLine }
 ]
 
 const aiModels = ref({
@@ -546,6 +564,13 @@ const initialForm = {
   config: {
     connection_string: '',
     timeout: '30',
+    // Scanner Config
+    resolution: 300,
+    color_mode: 'color',
+    format: 'jpeg',
+    username: '',
+    password: '',
+    // LDAP Config
     bind_dn: '',
     bind_password: '',
     anonymous_bind: false,
@@ -568,9 +593,6 @@ const initialForm = {
     secret_key: '',
     bucket: '',
     use_ssl: true,
-    // WHATSAPP Config
-    // token is already defined for AI, we can reuse it or define separately
-    // but in DB it's stored in config_json.
     // SMTP Config
     from_email: 'noreply@kreatif-dms.com',
     auth: true,
@@ -580,6 +602,18 @@ const initialForm = {
 }
 
 const formData = ref(JSON.parse(JSON.stringify(initialForm)))
+
+// Sync endpoint with connection_string for relevant types
+watch(() => formData.value.config.connection_string, (newVal) => {
+  const type = formData.value.service_type
+  // For scanners, endpoint is Device ID, connection_string is Bridge IP. Keep separate.
+  if (type === 'SCANNER_LOCAL' || type === 'SCANNER_NETWORK') return
+  
+  // For others, usually connection_string is the endpoint
+  if (newVal) {
+    formData.value.endpoint = newVal
+  }
+})
 
 const fetchNodes = async () => {
   try {
@@ -651,8 +685,8 @@ const openModal = (node = null) => {
       config: { 
         ...JSON.parse(JSON.stringify(initialForm.config)), 
         ...configData,
-        // Map connection_string from endpoint if missing in config
-        connection_string: configData.connection_string || node.endpoint || '',
+        // Priority: Saved connection_string > Endpoint (if it's a URL) > Empty
+        connection_string: configData.connection_string || (node.endpoint && node.endpoint.includes('://') ? node.endpoint : ''),
         // Map password if source uses bind_pass
         bind_password: configData.bind_password || configData.bind_pass || ''
       }
@@ -821,23 +855,38 @@ const getIcon = (type) => {
     case 'OCR': return LucideScan
     case 'PRINTER': return LucidePrinter
     case 'WHATSAPP': return LucideMail
+    case 'SCANNER_LOCAL': return LucidePrinter
+    case 'SCANNER_NETWORK': return LucideScanLine
     default: return LucideHash
   }
 }
 
 const services = computed(() => {
-  return nodes.value.map(node => ({
-    id: node.id,
-    name: node.name,
-    category: node.service_type,
-    host: node.endpoint,
-    status: node.status || 'offline',
-    icon: getIcon(node.service_type),
-    latencyHistory: node.latency_history || [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    lastLatency: node.last_latency || 0,
-    lastError: node.last_error,
-    raw: node
-  }))
+  return nodes.value.map(node => {
+    let configData = node.config_json || {}
+    if (typeof configData === 'string' && configData !== '') {
+      try {
+        configData = JSON.parse(atob(configData))
+      } catch (e) {
+        console.error('Failed to decode config_json for node', node.id, e)
+        configData = {}
+      }
+    }
+    
+    return {
+      id: node.id,
+      name: node.name,
+      category: node.service_type,
+      host: node.endpoint,
+      status: node.status || 'offline',
+      icon: getIcon(node.service_type),
+      latencyHistory: node.latency_history || [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      lastLatency: node.last_latency || 0,
+      lastError: node.last_error,
+      config: configData,
+      raw: node
+    }
+  })
 })
 
 const topStats = computed(() => {

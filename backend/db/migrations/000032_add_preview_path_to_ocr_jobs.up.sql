@@ -1,0 +1,2 @@
+ALTER TABLE ocr_jobs ADD COLUMN IF NOT EXISTS preview_path TEXT;
+ALTER TABLE ocr_jobs ADD COLUMN IF NOT EXISTS preview_paths JSONB DEFAULT '[]';

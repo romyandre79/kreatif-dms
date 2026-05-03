@@ -97,6 +97,40 @@ func (q *Queries) GetIntegrationNode(ctx context.Context, id uuid.UUID) (Integra
 	return i, err
 }
 
+const getIntegrationNodeByEndpoint = `-- name: GetIntegrationNodeByEndpoint :one
+SELECT id, name, service_type, driver, endpoint, is_active, is_critical, config_json, status, last_latency, latency_history, last_check_at, last_error, created_at, updated_at FROM integration_nodes
+WHERE endpoint = $1 AND service_type = $2
+LIMIT 1
+`
+
+type GetIntegrationNodeByEndpointParams struct {
+	Endpoint    string `json:"endpoint"`
+	ServiceType string `json:"service_type"`
+}
+
+func (q *Queries) GetIntegrationNodeByEndpoint(ctx context.Context, arg GetIntegrationNodeByEndpointParams) (IntegrationNode, error) {
+	row := q.db.QueryRow(ctx, getIntegrationNodeByEndpoint, arg.Endpoint, arg.ServiceType)
+	var i IntegrationNode
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.ServiceType,
+		&i.Driver,
+		&i.Endpoint,
+		&i.IsActive,
+		&i.IsCritical,
+		&i.ConfigJson,
+		&i.Status,
+		&i.LastLatency,
+		&i.LatencyHistory,
+		&i.LastCheckAt,
+		&i.LastError,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
 const getIntegrationNodeByType = `-- name: GetIntegrationNodeByType :one
 SELECT id, name, service_type, driver, endpoint, is_active, is_critical, config_json, status, last_latency, latency_history, last_check_at, last_error, created_at, updated_at FROM integration_nodes
 WHERE service_type = $1 AND is_active = true

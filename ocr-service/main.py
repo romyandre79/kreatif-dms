@@ -235,7 +235,14 @@ async def process_ocr(
         })
         
         await manager.broadcast("REFRESH_HISTORY")
-        return {"status": "Success", "filename": filename, "insight": ai_result, "preview_paths": preview_paths or [preview_path], "words": results}
+        return {
+            "status": "Success", 
+            "filename": filename, 
+            "insight": ai_result, 
+            "preview_path": preview_path, 
+            "preview_paths": preview_paths or [preview_path], 
+            "words": results
+        }
 
     except Exception as e:
         logger.error(f"OCR Error: {str(e)}")

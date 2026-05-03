@@ -215,6 +215,7 @@ definePageMeta({
 </script>
 
 <style scoped>
+@reference "tailwindcss";
 .glass {
   @apply bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border border-white/20 dark:border-white/10 shadow-sm;
 }
@@ -223,3 +224,4 @@ definePageMeta({
 .custom-scrollbar::-webkit-scrollbar-thumb { background: #E2E8F0; border-radius: 10px; }
 .dark .custom-scrollbar::-webkit-scrollbar-thumb { background: #1E293B; }
 </style>
+

@@ -54,6 +54,45 @@ func (s *MasterService) LogActivity(ctx context.Context, userID uuid.UUID, actio
 	return err
 }
 
+func (s *MasterService) GetUser(ctx context.Context, id uuid.UUID) (repository.GetUserByIDRow, error) {
+	return s.repo.GetUserByID(ctx, id)
+}
+
+func (s *MasterService) RegisterScanner(ctx context.Context, name, serviceType, endpoint string, config map[string]interface{}) (repository.IntegrationNode, error) {
+	configJSON, err := json.Marshal(config)
+	if err != nil {
+		return repository.IntegrationNode{}, err
+	}
+
+	// Use Endpoint as a unique key for local scanners (e.g., PC Hostname/ID + Scanner ID)
+	// For network scanners, it's the IP.
+	
+	// Check if exists by endpoint and service type
+	existing, err := s.repo.GetIntegrationNodeByEndpoint(ctx, repository.GetIntegrationNodeByEndpointParams{
+		Endpoint:    endpoint,
+		ServiceType: serviceType,
+	})
+
+	if err != nil {
+		// Create new
+		return s.repo.CreateIntegrationNode(ctx, repository.CreateIntegrationNodeParams{
+			Name:        name,
+			ServiceType: serviceType,
+			Endpoint:    endpoint,
+			ConfigJson:  configJSON,
+		})
+	}
+
+	// Update existing
+	return s.repo.UpdateIntegrationNodeConfig(ctx, repository.UpdateIntegrationNodeConfigParams{
+		ID:         existing.ID,
+		Name:       name,
+		Endpoint:   endpoint,
+		IsActive:   pgtype.Bool{Bool: true, Valid: true},
+		ConfigJson: configJSON,
+	})
+}
+
 // Company
 func (s *MasterService) ListCompanies(ctx context.Context) ([]repository.Company, error) {
 	return s.repo.ListCompanies(ctx)
@@ -799,19 +838,16 @@ type TopologyNode struct {
 	Children []TopologyNode `json:"children,omitempty"`
 }
 
-func (s *MasterService) GetTopology(ctx context.Context) ([]TopologyNode, error) {
+func (s *MasterService) GetTopology(ctx context.Context, deptID uuid.UUID) ([]TopologyNode, error) {
 	rows, err := s.repo.GetWarehouseTopology(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	// Build tree from flat rows
-	// For simplicity in this example, we just return a nested structure
-	// In a real app, you'd use maps to build the hierarchy
-	return s.buildTopologyTree(rows), nil
+	return s.buildTopologyTree(rows, deptID), nil
 }
 
-func (s *MasterService) buildTopologyTree(rows []repository.GetWarehouseTopologyRow) []TopologyNode {
+func (s *MasterService) buildTopologyTree(rows []repository.GetWarehouseTopologyRow, deptID uuid.UUID) []TopologyNode {
 	type ordnerNode struct {
 		id   string
 		name string
@@ -856,6 +892,11 @@ func (s *MasterService) buildTopologyTree(rows []repository.GetWarehouseTopology
 		}
 
 		dID := row.DepartmentID.String()
+		// Filter by department if requested
+		if deptID != uuid.Nil && dID != deptID.String() {
+			continue
+		}
+
 		if _, ok := companies[cID].branches[bID].depts[dID]; !ok {
 			companies[cID].branches[bID].depts[dID] = deptNode{id: dID, name: row.DepartmentName, racks: make(map[string]rackNode)}
 		}
@@ -1214,4 +1255,52 @@ func (s *MasterService) TestSMTPConnection(ctx context.Context, endpoint string,
 
 	host := strings.Split(endpoint, ":")[0]
 	return s.emailSvc.TestConnection(ctx, endpoint, host, cfg.User, cfg.Pass, cfg.Auth)
+}
+func (s *MasterService) GetWatermarkSettings(ctx context.Context) (map[string]interface{}, error) {
+	node, err := s.repo.GetIntegrationNodeByType(ctx, "WATERMARK")
+	if err != nil {
+		return map[string]interface{}{
+			"type":     "text",
+			"text":     "CONFIDENTIAL - {user} - {date}",
+			"opacity":  0.3,
+			"position": "diagonal",
+		}, nil
+	}
+
+	var config map[string]interface{}
+	if err := json.Unmarshal(node.ConfigJson, &config); err != nil {
+		return nil, err
+	}
+
+	return config, nil
+}
+
+func (s *MasterService) UpdateWatermarkSettings(ctx context.Context, config map[string]interface{}) error {
+	configJSON, err := json.Marshal(config)
+	if err != nil {
+		return err
+	}
+
+	// Try to find existing node
+	node, err := s.repo.GetIntegrationNodeByType(ctx, "WATERMARK")
+	if err != nil {
+		// Create new node
+		_, err = s.repo.CreateIntegrationNode(ctx, repository.CreateIntegrationNodeParams{
+			Name:        "Watermark Configuration",
+			ServiceType: "WATERMARK",
+			Endpoint:    "internal",
+			ConfigJson:  configJSON,
+		})
+		return err
+	}
+
+	// Update existing node
+	_, err = s.repo.UpdateIntegrationNodeConfig(ctx, repository.UpdateIntegrationNodeConfigParams{
+		ID:         node.ID,
+		Name:       "Watermark Configuration",
+		Endpoint:   "internal",
+		IsActive:   pgtype.Bool{Bool: true, Valid: true},
+		ConfigJson: configJSON,
+	})
+	return err
 }

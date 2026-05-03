@@ -3,7 +3,11 @@ package handler
 import (
 	"encoding/json"
 	"fmt"
+	"net"
+	"net/http"
 	"strconv"
+	"strings"
+	"time"
 	"github.com/gofiber/fiber/v3"
 	"github.com/google/uuid"
 	_ "github.com/kreatif/dms-backend/internal/repository"
@@ -569,7 +573,18 @@ func (h *MasterHandler) ImportOrdners(c fiber.Ctx) error {
 }
 
 func (h *MasterHandler) GetTopology(c fiber.Ctx) error {
-	topology, err := h.svc.GetTopology(c.Context())
+	var deptID uuid.UUID
+	
+	role := c.Locals("user_role").(string)
+	if role != "superadmin" && role != "manajer" && !strings.Contains(role, "doc controller") {
+		userID := c.Locals("user_id").(uuid.UUID)
+		user, err := h.svc.GetUser(c.Context(), userID)
+		if err == nil && user.DepartmentID.Valid {
+			deptID = user.DepartmentID.Bytes
+		}
+	}
+
+	topology, err := h.svc.GetTopology(c.Context(), deptID)
 	if err != nil {
 		return response.Error(c, fiber.StatusInternalServerError, "Failed to get topology", err.Error())
 	}
@@ -1187,6 +1202,42 @@ func (h *MasterHandler) TestIntegrationNode(c fiber.Ctx) error {
 		return response.Success(c, fiber.StatusOK, "Connection Successful", nil)
 	}
 
+	if req.ServiceType == "SCANNER_LOCAL" || req.ServiceType == "SCANNER_NETWORK" {
+		var cfg struct {
+			ConnectionString string `json:"connection_string"`
+		}
+		json.Unmarshal(req.Config, &cfg)
+		
+		target := cfg.ConnectionString
+		if target == "" {
+			target = req.Endpoint
+		}
+		
+		if strings.HasPrefix(target, "http") {
+			if !strings.HasSuffix(target, "/") {
+				target += "/"
+			}
+			// Use a simple HTTP check
+			client := &http.Client{Timeout: 5 * time.Second}
+			resp, err := client.Get(target + "health")
+			if err != nil {
+				return response.Error(c, fiber.StatusInternalServerError, "Scanner Bridge Unreachable", err.Error())
+			}
+			defer resp.Body.Close()
+			if resp.StatusCode >= 400 {
+				return response.Error(c, fiber.StatusInternalServerError, "Scanner Bridge Error", fmt.Sprintf("Status: %d", resp.StatusCode))
+			}
+		} else {
+			// TCP check
+			conn, err := net.DialTimeout("tcp", target, 5*time.Second)
+			if err != nil {
+				return response.Error(c, fiber.StatusInternalServerError, "Scanner Node Unreachable", err.Error())
+			}
+			conn.Close()
+		}
+		return response.Success(c, fiber.StatusOK, "Connection Successful", nil)
+	}
+
 	return response.Error(c, fiber.StatusBadRequest, "Service type not supported for testing", "")
 }
 
@@ -1471,4 +1522,56 @@ func (h *MasterHandler) FetchAIModels(c fiber.Ctx) error {
 	}
 
 	return response.Success(c, fiber.StatusOK, "AI models fetched", models)
+}
+func (h *MasterHandler) GetWatermarkSettings(c fiber.Ctx) error {
+	settings, err := h.svc.GetWatermarkSettings(c.Context())
+	if err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to get watermark settings", err.Error())
+	}
+	return response.Success(c, fiber.StatusOK, "Watermark settings retrieved", settings)
+}
+
+func (h *MasterHandler) UpdateWatermarkSettings(c fiber.Ctx) error {
+	var req map[string]interface{}
+	if err := c.Bind().JSON(&req); err != nil {
+		return response.Error(c, fiber.StatusBadRequest, "Invalid request body", err.Error())
+	}
+
+	if err := h.svc.UpdateWatermarkSettings(c.Context(), req); err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to update watermark settings", err.Error())
+	}
+
+	// Log Activity
+	userID := c.Locals("user_id").(uuid.UUID)
+	h.svc.LogActivity(c.Context(), userID, "UPDATE", "watermark_settings", nil, req, c.IP())
+
+	return response.Success(c, fiber.StatusOK, "Watermark settings updated", nil)
+}
+
+func (h *MasterHandler) RegisterScanner(c fiber.Ctx) error {
+	var req struct {
+		Name        string                 `json:"name"`
+		ServiceType string                 `json:"service_type"` // SCANNER_LOCAL or SCANNER_NETWORK
+		Endpoint    string                 `json:"endpoint"`
+		Config      map[string]interface{} `json:"config"`
+	}
+
+	if err := c.Bind().JSON(&req); err != nil {
+		return response.Error(c, fiber.StatusBadRequest, "Invalid request body", err.Error())
+	}
+
+	if req.ServiceType == "" {
+		req.ServiceType = "SCANNER_LOCAL"
+	}
+
+	node, err := h.svc.RegisterScanner(c.Context(), req.Name, req.ServiceType, req.Endpoint, req.Config)
+	if err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to register scanner", err.Error())
+	}
+
+	// Log Activity
+	userID := c.Locals("user_id").(uuid.UUID)
+	h.svc.LogActivity(c.Context(), userID, "REGISTER", "scanner", &node.ID, req, c.IP())
+
+	return response.Success(c, fiber.StatusOK, "Scanner registered successfully", node)
 }

@@ -180,7 +180,7 @@
               <h4 class="text-xl font-black text-[#1E3A5F] dark:text-white uppercase tracking-tight">{{ $t('admin.backup.history.encryption.val') }}</h4>
             </div>
             <div class="flex items-center gap-3 text-[9px] font-black text-blue-500 uppercase tracking-widest">
-              <LucideShieldLock class="w-3.5 h-3.5" />
+              <LucideShieldCheck class="w-3.5 h-3.5" />
               {{ $t('admin.backup.history.encryption.desc') }}
             </div>
           </div>
@@ -270,8 +270,8 @@ import { ref } from 'vue'
 import { 
   LucidePlay, LucideClock, LucideChevronDown, LucideCloud, 
   LucideShieldCheck, LucideFilter, LucideChevronLeft, LucideChevronRight, 
-  LucideGlobe, LucideCheckCircle2, LucideLock, LucideShieldLock, 
-  LucideRotateCcw, LucideCheck, LucideInfo 
+  LucideGlobe, LucideCheckCircle2, LucideLock, LucideRotateCcw, 
+  LucideCheck, LucideInfo 
 } from 'lucide-vue-next'
 
 const selectedScope = ref('full')
@@ -283,6 +283,8 @@ definePageMeta({
 </script>
 
 <style scoped>
+@reference "tailwindcss";
+
 .glass {
   @apply bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border border-white/20 dark:border-white/10 shadow-sm;
 }

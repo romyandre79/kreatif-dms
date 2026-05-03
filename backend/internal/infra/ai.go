@@ -38,6 +38,8 @@ type OCRResponse struct {
 	FullText    string      `json:"full_text"`
 	Insight     *AIInsight  `json:"insight"`
 	AIAnalysis  interface{} `json:"ai_analysis"`
+	PreviewPath string      `json:"preview_path"`
+	PreviewPaths []string   `json:"preview_paths"`
 	Words       []struct {
 		Text       string  `json:"text"`
 		Confidence float64 `json:"confidence"`
