@@ -184,7 +184,7 @@ const registeredScanners = ref([])
 const networkEndpoint = ref('')
 const scanning = ref(false)
 const lastResult = ref(null)
-const autoMode = ref(true)
+const autoMode = ref(false)
 
 const scanSettings = ref({
   dpi: 300,
@@ -350,14 +350,15 @@ const uploadResult = async () => {
     formData.append('title', `Scan - ${new Date().toLocaleString()}`)
     formData.append('description', 'Scanned via Web Launcher')
 
-    await $api(`${config.public.apiBase}/documents/upload`, {
+    await $api(`${config.public.apiBase}/documents`, {
       method: 'POST',
       body: formData
     })
 
-    alert('Document uploaded and queued for processing!')
+    console.log('Document uploaded successfully')
     lastResult.value = null
   } catch (err) {
+    console.error('Upload failed:', err)
     alert('Upload failed: ' + err.message)
   }
 }

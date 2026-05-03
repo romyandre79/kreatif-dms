@@ -184,14 +184,12 @@ func Scan(req ScanRequest) (*ScanResult, error) {
 	// 3. Get Items
 	itemsVar, err := oleutil.GetProperty(deviceDisp, "Items")
 	if err != nil {
-		deviceDisp.Release()
 		deviceVar.Clear()
 		return nil, fmt.Errorf("gagal ambil items: %w", err)
 	}
 	itemsDisp := itemsVar.ToIDispatch()
 	if itemsDisp == nil {
 		if itemsVar != nil { itemsVar.Clear() }
-		deviceDisp.Release()
 		deviceVar.Clear()
 		return nil, fmt.Errorf("items bukan IDispatch")
 	}
@@ -199,18 +197,14 @@ func Scan(req ScanRequest) (*ScanResult, error) {
 	// 4. Get first item
 	itemVar, err := oleutil.GetProperty(itemsDisp, "Item", 1)
 	if err != nil {
-		itemsDisp.Release()
 		if itemsVar != nil { itemsVar.Clear() }
-		deviceDisp.Release()
 		deviceVar.Clear()
 		return nil, fmt.Errorf("scanner item tidak ditemukan: %w", err)
 	}
 	itemDisp := itemVar.ToIDispatch()
 	if itemDisp == nil {
 		if itemVar != nil { itemVar.Clear() }
-		itemsDisp.Release()
 		if itemsVar != nil { itemsVar.Clear() }
-		deviceDisp.Release()
 		deviceVar.Clear()
 		return nil, fmt.Errorf("item bukan IDispatch")
 	}
@@ -222,11 +216,8 @@ func Scan(req ScanRequest) (*ScanResult, error) {
 	outputFormat, _, ext := resolveFormat(req.Format)
 	imageFileVar, err := oleutil.CallMethod(itemDisp, "Transfer", outputFormat)
 	if err != nil {
-		itemDisp.Release()
 		if itemVar != nil { itemVar.Clear() }
-		itemsDisp.Release()
 		if itemsVar != nil { itemsVar.Clear() }
-		deviceDisp.Release()
 		deviceVar.Clear()
 		return nil, fmt.Errorf("transfer gagal: %w", err)
 	}
@@ -234,8 +225,9 @@ func Scan(req ScanRequest) (*ScanResult, error) {
 	imageFileDisp := imageFileVar.ToIDispatch()
 	if imageFileDisp == nil {
 		if imageFileVar != nil { imageFileVar.Clear() }
-		itemDisp.Release()
-		// ... cleanup ...
+		if itemVar != nil { itemVar.Clear() }
+		if itemsVar != nil { itemsVar.Clear() }
+		deviceVar.Clear()
 		return nil, fmt.Errorf("transfer tidak mengembalikan IDispatch")
 	}
 
@@ -254,15 +246,14 @@ func Scan(req ScanRequest) (*ScanResult, error) {
 	fmt.Printf("[Bridge] Saving to %s...\n", tmpPath)
 	_, err = oleutil.CallMethod(imageFileDisp, "SaveFile", tmpPath)
 	
-	// Cleanup OLE Objects before reading file to free memory
-	imageFileDisp.Release()
+	// Cleanup OLE Objects using VARIANT.Clear() which handles IDispatch Release
 	if imageFileVar != nil { imageFileVar.Clear() }
-	itemDisp.Release()
 	if itemVar != nil { itemVar.Clear() }
-	itemsDisp.Release()
 	if itemsVar != nil { itemsVar.Clear() }
-	deviceDisp.Release()
 	if deviceVar != nil { deviceVar.Clear() }
+	
+	// Only release DM and DeviceInfo if not already handled
+	// deviceDisp, itemsDisp etc are just pointers into the Variants
 
 	if err != nil {
 		return nil, fmt.Errorf("simpan hasil scan: %w", err)

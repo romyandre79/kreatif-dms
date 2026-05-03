@@ -5,10 +5,33 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"scannerbridge/scanner"
 )
+
+func init() {
+	loadEnv()
+}
+
+func loadEnv() {
+	content, err := os.ReadFile(".env")
+	if err != nil {
+		return
+	}
+	lines := strings.Split(string(content), "\n")
+	for _, line := range lines {
+		line = strings.TrimSpace(line)
+		if line == "" || strings.HasPrefix(line, "#") {
+			continue
+		}
+		parts := strings.SplitN(line, "=", 2)
+		if len(parts) == 2 {
+			os.Setenv(strings.TrimSpace(parts[0]), strings.TrimSpace(parts[1]))
+		}
+	}
+}
 
 func main() {
 	port := os.Getenv("PORT")
