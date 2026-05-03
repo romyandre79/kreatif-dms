@@ -87,7 +87,7 @@ export default defineNuxtConfig({
   },
   devServer: {
     host: 'localhost',
-    port: 3000
+    port: process.env.APP_PORT ? parseInt(process.env.APP_PORT) : 3000
   },
   vite: {
     plugins: [
