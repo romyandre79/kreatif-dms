@@ -57,10 +57,12 @@ type Querier interface {
 	GetDocumentType(ctx context.Context, id uuid.UUID) (DocumentType, error)
 	GetDocumentsByBatch(ctx context.Context, batchID pgtype.UUID) ([]Document, error)
 	GetIntegrationNode(ctx context.Context, id uuid.UUID) (IntegrationNode, error)
+	GetIntegrationNodeByEndpoint(ctx context.Context, arg GetIntegrationNodeByEndpointParams) (IntegrationNode, error)
 	GetIntegrationNodeByType(ctx context.Context, serviceType string) (IntegrationNode, error)
 	GetLastSsoSyncLog(ctx context.Context) (SsoSyncLog, error)
 	GetOCRJobByEntity(ctx context.Context, arg GetOCRJobByEntityParams) (OcrJob, error)
 	GetOrdner(ctx context.Context, id uuid.UUID) (Ordner, error)
+	GetProfileByID(ctx context.Context, id uuid.UUID) (GetProfileByIDRow, error)
 	GetRack(ctx context.Context, id uuid.UUID) (Rack, error)
 	GetRfidTag(ctx context.Context, tagID string) (RfidTag, error)
 	GetRole(ctx context.Context, id int32) (Role, error)
@@ -73,7 +75,6 @@ type Querier interface {
 	GetUnreadCount(ctx context.Context, userID uuid.UUID) (int64, error)
 	GetUserByEmail(ctx context.Context, email string) (GetUserByEmailRow, error)
 	GetUserByID(ctx context.Context, id uuid.UUID) (GetUserByIDRow, error)
-	// Topology
 	GetWarehouseTopology(ctx context.Context) ([]GetWarehouseTopologyRow, error)
 	ListActivityLogs(ctx context.Context, arg ListActivityLogsParams) ([]ListActivityLogsRow, error)
 	ListAllBoxesGlobal(ctx context.Context) ([]ListAllBoxesGlobalRow, error)
@@ -101,6 +102,7 @@ type Querier interface {
 	ListPermissionsByRole(ctx context.Context, roleID int32) ([]ListPermissionsByRoleRow, error)
 	// Racks
 	ListRacks(ctx context.Context, departmentID uuid.UUID) ([]Rack, error)
+	ListRecentDocuments(ctx context.Context, arg ListRecentDocumentsParams) ([]ListRecentDocumentsRow, error)
 	// Retention Policies
 	ListRetentionPolicies(ctx context.Context) ([]RetentionPolicy, error)
 	// RFID Tags
@@ -133,6 +135,7 @@ type Querier interface {
 	UpdateUser(ctx context.Context, arg UpdateUserParams) (User, error)
 	UpdateUserMFASecret(ctx context.Context, arg UpdateUserMFASecretParams) error
 	UpdateUserPIN(ctx context.Context, arg UpdateUserPINParams) error
+	UpdateUserPassword(ctx context.Context, arg UpdateUserPasswordParams) error
 	UpdateUserStatus(ctx context.Context, arg UpdateUserStatusParams) (User, error)
 	UpsertSystemSetting(ctx context.Context, arg UpsertSystemSettingParams) (SystemSetting, error)
 }

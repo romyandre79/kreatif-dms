@@ -41,6 +41,17 @@ func (p *TaskProcessor) ProcessDocumentOCR(ctx context.Context, t *asynq.Task) e
 		return err
 	}
 
+	// Send "Processing" notification
+	_, _ = p.repo.CreateNotification(ctx, repository.CreateNotificationParams{
+		UserID:     doc.OwnerID,
+		Title:      "Dokumen Sedang Diproses",
+		Body:       pgtype.Text{String: fmt.Sprintf("Dokumen '%s' sedang dalam proses analisis OCR.", doc.Title), Valid: true},
+		Type:       "INFO",
+		EntityType: pgtype.Text{String: "document", Valid: true},
+		EntityID:   pgtype.UUID{Bytes: doc.ID, Valid: true},
+		Channel:    pgtype.Text{String: "app", Valid: true},
+	})
+
 	// 2. Download from storage
 	reader, err := p.storage.Download(ctx, doc.FilePath)
 	if err != nil {
@@ -80,6 +91,16 @@ func (p *TaskProcessor) ProcessDocumentOCR(ctx context.Context, t *asynq.Task) e
 	var confNumeric pgtype.Numeric
 	confNumeric.Scan(fmt.Sprintf("%.2f", totalConf))
 
+	// Save preview paths
+	if ocrRes.PreviewPath == "" && len(ocrRes.PreviewPaths) > 0 {
+		ocrRes.PreviewPath = ocrRes.PreviewPaths[0]
+	}
+
+	previewPathsJSON, _ := json.Marshal(ocrRes.PreviewPaths)
+	if len(ocrRes.PreviewPaths) == 0 && ocrRes.PreviewPath != "" {
+		previewPathsJSON, _ = json.Marshal([]string{ocrRes.PreviewPath})
+	}
+
 	_, err = p.repo.CreateOCRJob(ctx, repository.CreateOCRJobParams{
 		EntityType:       "document",
 		EntityID:         doc.ID,
@@ -90,6 +111,8 @@ func (p *TaskProcessor) ProcessDocumentOCR(ctx context.Context, t *asynq.Task) e
 		WordsJson:        wordsJSON,
 		Status:           "Success",
 		ProcessingTimeMs: pgtype.Int4{Int32: int32(ocrDuration.Milliseconds()), Valid: true},
+		PreviewPath:      pgtype.Text{String: ocrRes.PreviewPath, Valid: ocrRes.PreviewPath != ""},
+		PreviewPaths:     previewPathsJSON,
 	})
 	if err != nil {
 		log.Printf("[TaskProcessor] Warning: Failed to save to ocr_jobs: %v", err)
@@ -159,5 +182,17 @@ func (p *TaskProcessor) ProcessDocumentOCR(ctx context.Context, t *asynq.Task) e
 	}
 
 	log.Printf("[TaskProcessor] Completed OCR processing for Document: %s", doc.ID)
+
+	// Send "Completed" notification
+	_, _ = p.repo.CreateNotification(ctx, repository.CreateNotificationParams{
+		UserID:     doc.OwnerID,
+		Title:      "Dokumen Selesai Diproses",
+		Body:       pgtype.Text{String: fmt.Sprintf("Dokumen '%s' telah berhasil dianalisis.", doc.Title), Valid: true},
+		Type:       "SUCCESS",
+		EntityType: pgtype.Text{String: "document", Valid: true},
+		EntityID:   pgtype.UUID{Bytes: doc.ID, Valid: true},
+		Channel:    pgtype.Text{String: "app", Valid: true},
+	})
+
 	return nil
 }

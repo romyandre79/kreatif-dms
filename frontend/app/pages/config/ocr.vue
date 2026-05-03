@@ -176,16 +176,33 @@
                 </div>
               </div>
 
-              <!-- Zoom Controls -->
-              <div class="flex items-center bg-white/5 rounded-xl p-1 border border-white/10 gap-1">
-                <button @click="zoomOut" class="p-2 hover:bg-white/10 rounded-lg text-slate-400 hover:text-white transition-all"><LucideZoomOut class="w-4 h-4" /></button>
-                <button @click="resetZoom" class="px-3 text-[10px] font-black text-slate-400 hover:text-white uppercase tracking-widest">{{ (scale * 100).toFixed(0) }}%</button>
-                <button @click="zoomIn" class="p-2 hover:bg-white/10 rounded-lg text-slate-400 hover:text-white transition-all"><LucideZoomIn class="w-4 h-4" /></button>
+              <!-- Page Controls -->
+              <div v-if="activeJob?.preview_paths?.length > 1" class="flex items-center gap-4 bg-white/5 rounded-xl p-1 border border-white/10 ml-4">
+                <button @click="prevPage" :disabled="currentPreviewIndex === 0" 
+                        class="p-2 hover:bg-white/10 rounded-lg text-slate-400 hover:text-white disabled:opacity-30 transition-all">
+                  <LucideChevronLeft class="w-4 h-4" />
+                </button>
+                <span class="text-[10px] font-black text-white uppercase tracking-widest px-2">
+                  Page {{ currentPreviewIndex + 1 }} / {{ activeJob.preview_paths.length }}
+                </span>
+                <button @click="nextPage" :disabled="currentPreviewIndex === activeJob.preview_paths.length - 1"
+                        class="p-2 hover:bg-white/10 rounded-lg text-slate-400 hover:text-white disabled:opacity-30 transition-all">
+                  <LucideChevronRight class="w-4 h-4" />
+                </button>
               </div>
 
-              <button @click="closeVisualizer" class="w-10 h-10 bg-white/5 hover:bg-red-500/20 text-white hover:text-red-500 rounded-xl flex items-center justify-center transition-all">
-                <LucideX class="w-5 h-5" />
-              </button>
+              <div class="flex items-center gap-4 ml-auto">
+                <!-- Zoom Controls -->
+                <div class="flex items-center bg-white/5 rounded-xl p-1 border border-white/10 gap-1">
+                  <button @click="zoomOut" class="p-2 hover:bg-white/10 rounded-lg text-slate-400 hover:text-white transition-all"><LucideZoomOut class="w-4 h-4" /></button>
+                  <button @click="resetZoom" class="px-3 text-[10px] font-black text-slate-400 hover:text-white uppercase tracking-widest">{{ (scale * 100).toFixed(0) }}%</button>
+                  <button @click="zoomIn" class="p-2 hover:bg-white/10 rounded-lg text-slate-400 hover:text-white transition-all"><LucideZoomIn class="w-4 h-4" /></button>
+                </div>
+
+                <button @click="closeVisualizer" class="w-10 h-10 bg-white/5 hover:bg-red-500/20 text-white hover:text-red-500 rounded-xl flex items-center justify-center transition-all">
+                  <LucideX class="w-5 h-5" />
+                </button>
+              </div>
             </div>
           
           <!-- Modal Content -->
@@ -202,13 +219,13 @@
                      transform: `scale(${scale}) translate(${translateX}px, ${translateY}px)`,
                      cursor: isDragging ? 'grabbing' : 'grab'
                    }">
-                <img v-if="activeJob" :src="`${ocrUrl}${activeJob.preview_path || activeJob.file_path}`" 
+                <img v-if="activeJob" :src="currentPreviewUrl" 
                      ref="visualizerImage"
                      @load="onImageLoad"
                      class="max-w-none shadow-[0_0_100px_rgba(0,0,0,0.5)] rounded-sm ring-1 ring-white/10 pointer-events-none" 
                      alt="Document">
                 <div class="absolute inset-0 z-10 pointer-events-none">
-                  <div v-for="(word, i) in words" :key="i"
+                  <div v-for="(word, i) in filteredWords" :key="i"
                        :style="getBoxStyle(word.box, i)"
                        @mouseenter="onHoverBox(i)"
                        @mouseleave="onLeaveBox(i)"
@@ -281,7 +298,7 @@
                     </button>
                   </div>
                   <div class="space-y-2">
-                    <div v-for="(word, i) in words" :key="i"
+                    <div v-for="(word, i) in filteredWords" :key="i"
                          :id="`text-item-${i}`"
                          @mouseenter="onHoverText(i)"
                          @mouseleave="onLeaveText(i)"
@@ -293,9 +310,9 @@
                       </div>
                       <p class="text-xs font-medium text-slate-300 group-hover:text-white transition-colors">{{ word.text }}</p>
                     </div>
-                    <div v-if="words.length === 0" class="py-12 flex flex-col items-center justify-center text-slate-700 gap-4 opacity-50">
+                    <div v-if="filteredWords.length === 0" class="py-12 flex flex-col items-center justify-center text-slate-700 gap-4 opacity-50">
                        <LucideSearch class="w-12 h-12" />
-                       <p class="text-[10px] font-black uppercase tracking-widest">No results</p>
+                       <p class="text-[10px] font-black uppercase tracking-widest">No results for this page</p>
                     </div>
                   </div>
                 </div>
@@ -342,6 +359,37 @@ const lastMouseY = ref(0)
 const currentPage = ref(1)
 const pageSize = ref(10)
 const pagination = ref({ total_items: 0, total_pages: 0 })
+const currentPreviewIndex = ref(0)
+
+const currentPreviewUrl = computed(() => {
+  if (!activeJob.value) return ''
+  const paths = activeJob.value.preview_paths || []
+  if (paths.length > 0 && currentPreviewIndex.value < paths.length) {
+    return `${ocrUrl}${paths[currentPreviewIndex.value]}`
+  }
+  return `${ocrUrl}${activeJob.value.preview_path || activeJob.value.file_path}`
+})
+
+const filteredWords = computed(() => {
+  if (activeJob.value?.preview_paths?.length > 1) {
+    return words.value.filter(w => w.page === currentPreviewIndex.value + 1)
+  }
+  return words.value
+})
+
+const nextPage = () => {
+  if (currentPreviewIndex.value < (activeJob.value?.preview_paths?.length || 0) - 1) {
+    currentPreviewIndex.value++
+    resetZoom()
+  }
+}
+
+const prevPage = () => {
+  if (currentPreviewIndex.value > 0) {
+    currentPreviewIndex.value--
+    resetZoom()
+  }
+}
 
 const stats = computed(() => [
   { label: 'Total Process', value: statsData.value.total, icon: LucideActivity, bg: 'bg-primary-500/10', color: 'text-primary-500' },
@@ -429,7 +477,7 @@ const fetchHistory = async () => {
     const apiBase = config.public.apiBase || 'http://localhost:8080/api/v1'
     const token = localStorage.getItem('kreatif_access_token') || localStorage.getItem('token')
     
-    const res = await fetch(`${apiBase}/documents?page=${currentPage.value}&page_size=${pageSize.value}`, {
+    const res = await fetch(`${apiBase}/documents/history?page=${currentPage.value}&page_size=${pageSize.value}`, {
       headers: { 
         'Authorization': `Bearer ${token}`,
         'Accept': 'application/json'
@@ -505,7 +553,14 @@ const openVisualizer = async (id, preloadedData = null) => {
       if (!res.ok) throw new Error(`HTTP Error: ${res.status}`)
       const json = await res.json()
       const data = json.data
+      
+      // Ensure preview_paths is an array
+      if (typeof data.preview_paths === 'string') {
+        try { data.preview_paths = JSON.parse(data.preview_paths) } catch (e) { data.preview_paths = [] }
+      }
+      
       activeJob.value = data
+      currentPreviewIndex.value = 0
       words.value = typeof data.words_json === 'string' ? JSON.parse(data.words_json) : (data.words_json || [])
     } catch (err) {
       alert('Could not load visualizer data: ' + err.message)

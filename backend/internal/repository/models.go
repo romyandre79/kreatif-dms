@@ -5,6 +5,7 @@
 package repository
 
 import (
+	"encoding/json"
 	"net/netip"
 
 	"github.com/google/uuid"
@@ -218,7 +219,7 @@ type Document struct {
 	CurrentVersion      int32              `json:"current_version"`
 	Status              string             `json:"status"`
 	Tags                []string           `json:"tags"`
-	Metadata            []byte             `json:"metadata"`
+	Metadata            json.RawMessage    `json:"metadata"`
 	ExtractedText       pgtype.Text        `json:"extracted_text"`
 	IsOcrProcessed      pgtype.Bool        `json:"is_ocr_processed"`
 	CreatedAt           pgtype.Timestamptz `json:"created_at"`
@@ -503,10 +504,10 @@ type OcrJob struct {
 	RawText            pgtype.Text        `json:"raw_text"`
 	WordCount          pgtype.Int4        `json:"word_count"`
 	ConfidenceAvg      pgtype.Numeric     `json:"confidence_avg"`
-	WordsJson          []byte             `json:"words_json"`
+	WordsJson          json.RawMessage    `json:"words_json"`
 	AiProvider         pgtype.Text        `json:"ai_provider"`
 	AiRefinedText      pgtype.Text        `json:"ai_refined_text"`
-	AiMetadata         []byte             `json:"ai_metadata"`
+	AiMetadata         json.RawMessage    `json:"ai_metadata"`
 	AiRefinementStatus pgtype.Text        `json:"ai_refinement_status"`
 	Status             string             `json:"status"`
 	ErrorMessage       pgtype.Text        `json:"error_message"`
@@ -514,6 +515,8 @@ type OcrJob struct {
 	AsyncTaskID        pgtype.UUID        `json:"async_task_id"`
 	CreatedAt          pgtype.Timestamptz `json:"created_at"`
 	CompletedAt        pgtype.Timestamptz `json:"completed_at"`
+	PreviewPath        pgtype.Text        `json:"preview_path"`
+	PreviewPaths       []byte             `json:"preview_paths"`
 }
 
 type Ordner struct {

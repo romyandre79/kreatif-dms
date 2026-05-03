@@ -7,6 +7,7 @@ package repository
 
 import (
 	"context"
+	"encoding/json"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
@@ -129,24 +130,26 @@ const createOCRJob = `-- name: CreateOCRJob :one
 INSERT INTO ocr_jobs (
     entity_type, entity_id, ocr_service_url, ocr_engine, 
     source_file_path, raw_text, word_count, confidence_avg, words_json,
-    status, processing_time_ms, created_at
+    status, processing_time_ms, preview_path, preview_paths, created_at
 ) VALUES (
-    $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW()
-) RETURNING id, entity_type, entity_id, ocr_service_url, ocr_engine, source_file_path, source_pages, raw_text, word_count, confidence_avg, words_json, ai_provider, ai_refined_text, ai_metadata, ai_refinement_status, status, error_message, processing_time_ms, async_task_id, created_at, completed_at
+    $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, NOW()
+) RETURNING id, entity_type, entity_id, ocr_service_url, ocr_engine, source_file_path, source_pages, raw_text, word_count, confidence_avg, words_json, ai_provider, ai_refined_text, ai_metadata, ai_refinement_status, status, error_message, processing_time_ms, async_task_id, created_at, completed_at, preview_path, preview_paths
 `
 
 type CreateOCRJobParams struct {
-	EntityType       string         `json:"entity_type"`
-	EntityID         uuid.UUID      `json:"entity_id"`
-	OcrServiceUrl    pgtype.Text    `json:"ocr_service_url"`
-	OcrEngine        pgtype.Text    `json:"ocr_engine"`
-	SourceFilePath   pgtype.Text    `json:"source_file_path"`
-	RawText          pgtype.Text    `json:"raw_text"`
-	WordCount        pgtype.Int4    `json:"word_count"`
-	ConfidenceAvg    pgtype.Numeric `json:"confidence_avg"`
-	WordsJson        []byte         `json:"words_json"`
-	Status           string         `json:"status"`
-	ProcessingTimeMs pgtype.Int4    `json:"processing_time_ms"`
+	EntityType       string          `json:"entity_type"`
+	EntityID         uuid.UUID       `json:"entity_id"`
+	OcrServiceUrl    pgtype.Text     `json:"ocr_service_url"`
+	OcrEngine        pgtype.Text     `json:"ocr_engine"`
+	SourceFilePath   pgtype.Text     `json:"source_file_path"`
+	RawText          pgtype.Text     `json:"raw_text"`
+	WordCount        pgtype.Int4     `json:"word_count"`
+	ConfidenceAvg    pgtype.Numeric  `json:"confidence_avg"`
+	WordsJson        json.RawMessage `json:"words_json"`
+	Status           string          `json:"status"`
+	ProcessingTimeMs pgtype.Int4     `json:"processing_time_ms"`
+	PreviewPath      pgtype.Text     `json:"preview_path"`
+	PreviewPaths     []byte          `json:"preview_paths"`
 }
 
 func (q *Queries) CreateOCRJob(ctx context.Context, arg CreateOCRJobParams) (OcrJob, error) {
@@ -162,6 +165,8 @@ func (q *Queries) CreateOCRJob(ctx context.Context, arg CreateOCRJobParams) (Ocr
 		arg.WordsJson,
 		arg.Status,
 		arg.ProcessingTimeMs,
+		arg.PreviewPath,
+		arg.PreviewPaths,
 	)
 	var i OcrJob
 	err := row.Scan(
@@ -186,6 +191,8 @@ func (q *Queries) CreateOCRJob(ctx context.Context, arg CreateOCRJobParams) (Ocr
 		&i.AsyncTaskID,
 		&i.CreatedAt,
 		&i.CompletedAt,
+		&i.PreviewPath,
+		&i.PreviewPaths,
 	)
 	return i, err
 }
@@ -309,7 +316,7 @@ func (q *Queries) GetDocumentsByBatch(ctx context.Context, batchID pgtype.UUID) 
 }
 
 const getOCRJobByEntity = `-- name: GetOCRJobByEntity :one
-SELECT id, entity_type, entity_id, ocr_service_url, ocr_engine, source_file_path, source_pages, raw_text, word_count, confidence_avg, words_json, ai_provider, ai_refined_text, ai_metadata, ai_refinement_status, status, error_message, processing_time_ms, async_task_id, created_at, completed_at FROM ocr_jobs
+SELECT id, entity_type, entity_id, ocr_service_url, ocr_engine, source_file_path, source_pages, raw_text, word_count, confidence_avg, words_json, ai_provider, ai_refined_text, ai_metadata, ai_refinement_status, status, error_message, processing_time_ms, async_task_id, created_at, completed_at, preview_path, preview_paths FROM ocr_jobs
 WHERE entity_type = $1 AND entity_id = $2
 ORDER BY created_at DESC
 LIMIT 1
@@ -345,6 +352,8 @@ func (q *Queries) GetOCRJobByEntity(ctx context.Context, arg GetOCRJobByEntityPa
 		&i.AsyncTaskID,
 		&i.CreatedAt,
 		&i.CompletedAt,
+		&i.PreviewPath,
+		&i.PreviewPaths,
 	)
 	return i, err
 }
@@ -413,6 +422,7 @@ SELECT
     j.status,
     j.processing_time_ms,
     j.confidence_avg,
+    j.preview_path,
     j.created_at,
     COALESCE(d.file_name, j.source_file_path) as filename,
     COALESCE(d.file_size, 0)::bigint as file_size,
@@ -435,6 +445,7 @@ type ListOCRJobsRow struct {
 	Status           string             `json:"status"`
 	ProcessingTimeMs pgtype.Int4        `json:"processing_time_ms"`
 	ConfidenceAvg    pgtype.Numeric     `json:"confidence_avg"`
+	PreviewPath      pgtype.Text        `json:"preview_path"`
 	CreatedAt        pgtype.Timestamptz `json:"created_at"`
 	Filename         string             `json:"filename"`
 	FileSize         int64              `json:"file_size"`
@@ -456,10 +467,65 @@ func (q *Queries) ListOCRJobs(ctx context.Context, arg ListOCRJobsParams) ([]Lis
 			&i.Status,
 			&i.ProcessingTimeMs,
 			&i.ConfidenceAvg,
+			&i.PreviewPath,
 			&i.CreatedAt,
 			&i.Filename,
 			&i.FileSize,
 			&i.OwnerName,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listRecentDocuments = `-- name: ListRecentDocuments :many
+SELECT 
+    id, title, status, created_at, mime_type, file_size, metadata,
+    COALESCE(description, '')::text as category
+FROM documents
+ORDER BY created_at DESC
+LIMIT $1 OFFSET $2
+`
+
+type ListRecentDocumentsParams struct {
+	Limit  int32 `json:"limit"`
+	Offset int32 `json:"offset"`
+}
+
+type ListRecentDocumentsRow struct {
+	ID        uuid.UUID          `json:"id"`
+	Title     string             `json:"title"`
+	Status    string             `json:"status"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
+	MimeType  string             `json:"mime_type"`
+	FileSize  int64              `json:"file_size"`
+	Metadata  json.RawMessage    `json:"metadata"`
+	Category  string             `json:"category"`
+}
+
+func (q *Queries) ListRecentDocuments(ctx context.Context, arg ListRecentDocumentsParams) ([]ListRecentDocumentsRow, error) {
+	rows, err := q.db.Query(ctx, listRecentDocuments, arg.Limit, arg.Offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListRecentDocumentsRow
+	for rows.Next() {
+		var i ListRecentDocumentsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Title,
+			&i.Status,
+			&i.CreatedAt,
+			&i.MimeType,
+			&i.FileSize,
+			&i.Metadata,
+			&i.Category,
 		); err != nil {
 			return nil, err
 		}
@@ -491,8 +557,8 @@ WHERE id = $1
 `
 
 type UpdateDocumentMetadataParams struct {
-	ID       uuid.UUID `json:"id"`
-	Metadata []byte    `json:"metadata"`
+	ID       uuid.UUID       `json:"id"`
+	Metadata json.RawMessage `json:"metadata"`
 }
 
 func (q *Queries) UpdateDocumentMetadata(ctx context.Context, arg UpdateDocumentMetadataParams) error {
@@ -511,9 +577,9 @@ WHERE id = $1
 `
 
 type UpdateDocumentOCRParams struct {
-	ID            uuid.UUID   `json:"id"`
-	ExtractedText pgtype.Text `json:"extracted_text"`
-	Metadata      []byte      `json:"metadata"`
+	ID            uuid.UUID       `json:"id"`
+	ExtractedText pgtype.Text     `json:"extracted_text"`
+	Metadata      json.RawMessage `json:"metadata"`
 }
 
 func (q *Queries) UpdateDocumentOCR(ctx context.Context, arg UpdateDocumentOCRParams) error {

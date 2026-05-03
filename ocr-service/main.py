@@ -16,7 +16,7 @@ import uvicorn
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, UploadFile, File, HTTPException, Request, Depends, status, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Request, Depends, status, WebSocket, WebSocketDisconnect
 from fastapi.responses import HTMLResponse
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from fastapi.staticfiles import StaticFiles
@@ -158,9 +158,15 @@ async def websocket_endpoint(websocket: WebSocket):
         manager.disconnect(websocket)
 
 @app.post("/ocr/process")
-async def process_ocr(file: UploadFile = File(...), username: str = Depends(authenticate), rate_ok: bool = Depends(check_rate_limit)):
-    logger.info(f"Received upload request: {file.filename}")
-    await broadcast_log(f"Received upload request: {file.filename}", "info")
+async def process_ocr(
+    file: UploadFile = File(...), 
+    ai_model: str = Form(None), 
+    ai_api_key: str = Form(None),
+    username: str = Depends(authenticate), 
+    rate_ok: bool = Depends(check_rate_limit)
+):
+    logger.info(f"Received upload request: {file.filename} | AI Model: {ai_model}")
+    await broadcast_log(f"Received upload request: {file.filename} (AI: {ai_model or 'Default'})", "info")
     start_time_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     start_time_val = time.time()
     filename = file.filename
@@ -214,8 +220,8 @@ async def process_ocr(file: UploadFile = File(...), username: str = Depends(auth
                 if filename.lower().endswith('.pdf'): 
                     pdf[0].render(scale=IMAGE_SCALE).to_pil().save(v_img, format='JPEG')
                     v_img = v_img.getvalue()
-                vision_text = await ocr_with_ai_vision(v_img)
-            ai_result = await analyze_with_ai(all_text, vision_text)
+                vision_text = await ocr_with_ai_vision(v_img, model=ai_model, api_key=ai_api_key)
+            ai_result = await analyze_with_ai(all_text, vision_text, model=ai_model, api_key=ai_api_key)
 
         duration = time.time() - start_time_val
         avg_acc = sum(w['confidence'] for w in results) / len(results) if results else 0
@@ -229,7 +235,14 @@ async def process_ocr(file: UploadFile = File(...), username: str = Depends(auth
         })
         
         await manager.broadcast("REFRESH_HISTORY")
-        return {"status": "Success", "filename": filename, "insight": ai_result, "preview_paths": preview_paths or [preview_path], "words": results}
+        return {
+            "status": "Success", 
+            "filename": filename, 
+            "insight": ai_result, 
+            "preview_path": preview_path, 
+            "preview_paths": preview_paths or [preview_path], 
+            "words": results
+        }
 
     except Exception as e:
         logger.error(f"OCR Error: {str(e)}")

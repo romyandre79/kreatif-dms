@@ -45,12 +45,17 @@ func main() {
 	// Processor
 	processor := worker.NewTaskProcessor(repo, storageSvc, aiSvc, searchSvc)
 
-	// Asynq Server (Redis from DB)
+	// Asynq Server (Redis Configuration Priority: DB -> .env -> Default)
 	redisURL := cfg.RedisURL
 	node, err := repo.GetIntegrationNodeByType(context.Background(), "REDIS")
 	if err == nil && node.IsActive.Bool {
 		redisURL = node.Endpoint
-		log.Printf("Worker using Redis configuration from database: %s", redisURL)
+		log.Printf("[Worker] Redis: Using configuration from database node: %s", redisURL)
+	} else if redisURL != "" {
+		log.Printf("[Worker] Redis: Using configuration from .env: %s", redisURL)
+	} else {
+		redisURL = "127.0.0.1:6379" // Absolute fallback
+		log.Printf("[Worker] Redis: No configuration found in DB or .env, using default: %s", redisURL)
 	}
 
 	concurrency := cfg.WorkerConcurrency

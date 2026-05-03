@@ -72,15 +72,19 @@ func (s *SearchService) Search(ctx context.Context, query string, deptID uuid.UU
 						},
 					},
 				},
-				"filter": []map[string]interface{}{
-					{
-						"term": map[string]interface{}{
-							"department_id": deptID.String(),
-						},
-					},
-				},
 			},
 		},
+	}
+
+	// Add department filter if specified
+	if deptID != uuid.Nil {
+		searchQuery["query"].(map[string]interface{})["bool"].(map[string]interface{})["filter"] = []map[string]interface{}{
+			{
+				"term": map[string]interface{}{
+					"department_id": deptID.String(),
+				},
+			},
+		}
 	}
 
 	if err := json.NewEncoder(&buf).Encode(searchQuery); err != nil {

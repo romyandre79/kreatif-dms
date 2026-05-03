@@ -78,14 +78,17 @@ func main() {
 	defer dbPool.Close()
 	repo := repository.New(dbPool)
 
-	// 2. Redis (from DB)
+	// 2. Redis Configuration (Priority: Database Integration Node -> .env -> Default)
 	redisURL := cfg.RedisURL
 	node, err := repo.GetIntegrationNodeByType(context.Background(), "REDIS")
 	if err == nil && node.IsActive.Bool {
 		redisURL = node.Endpoint
-		log.Printf("Using Redis configuration from database: %s", redisURL)
+		log.Printf("[System] Redis: Using configuration from database node: %s", redisURL)
+	} else if redisURL != "" {
+		log.Printf("[System] Redis: Using configuration from .env: %s", redisURL)
 	} else {
-		log.Printf("Redis node not found in DB or inactive, falling back to .env: %s", redisURL)
+		redisURL = "127.0.0.1:6379" // Absolute fallback
+		log.Printf("[System] Redis: No configuration found in DB or .env, using default: %s", redisURL)
 	}
 
 	rdb, err := config.InitRedis(redisURL)
@@ -181,11 +184,13 @@ func main() {
 	authGroup.Use(middleware.AuthMiddleware(cfg.JWTSecret))
 	authGroup.Post("/pin", authHandler.SetPIN)
 	authGroup.Post("/pin/verify", authHandler.VerifyPIN)
+	authGroup.Post("/change-password", authHandler.ChangePassword)
 	authGroup.Post("/user-pin", middleware.RoleMiddleware("admin", "superadmin"), authHandler.SetUserPIN)
 	authGroup.Post("/mfa/setup", authHandler.SetupMFA)
 	authGroup.Post("/mfa/verify", authHandler.VerifyMFA)
 	authGroup.Get("/me/permissions", authHandler.GetMyPermissions)
 	authGroup.Get("/me/menu", authHandler.GetMyMenu)
+	authGroup.Get("/me/profile", authHandler.GetMyProfile)
 
 	// User Routes
 	userGroup := api.Group("/users")
@@ -201,6 +206,7 @@ func main() {
 	docGroup := api.Group("/documents")
 	docGroup.Use(middleware.AuthMiddleware(cfg.JWTSecret))
 	docGroup.Get("/", docHandler.List)
+	docGroup.Get("/history", docHandler.ListOCRHistory)
 	docGroup.Post("/", docHandler.Upload)
 	docGroup.Get("/:id/preview", docHandler.Preview)
 	docGroup.Get("/:id/ocr", docHandler.GetOCRData)
@@ -278,6 +284,11 @@ func main() {
 	masterGroup.Get("/retention", masterHandler.ListRetentionPolicies)
 	masterGroup.Get("/settings/:category", masterHandler.GetSettings)
 	masterGroup.Post("/settings/:category", masterHandler.UpdateSetting)
+	
+	// Watermark Settings
+	masterGroup.Get("/settings/watermark", masterHandler.GetWatermarkSettings)
+	masterGroup.Post("/settings/watermark", masterHandler.UpdateWatermarkSettings)
+	masterGroup.Post("/scanners/register", masterHandler.RegisterScanner)
 	masterGroup.Get("/integration/status", middleware.RoleMiddleware("admin", "superadmin"), masterHandler.GetIntegrationStatus)
 	masterGroup.Get("/integration/report", middleware.RoleMiddleware("admin", "superadmin"), masterHandler.DownloadIntegrationReport)
 	masterGroup.Post("/integration/nodes", middleware.RoleMiddleware("admin", "superadmin"), masterHandler.CreateIntegrationNode)

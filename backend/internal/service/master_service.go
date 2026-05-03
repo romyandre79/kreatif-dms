@@ -54,6 +54,45 @@ func (s *MasterService) LogActivity(ctx context.Context, userID uuid.UUID, actio
 	return err
 }
 
+func (s *MasterService) GetUser(ctx context.Context, id uuid.UUID) (repository.GetUserByIDRow, error) {
+	return s.repo.GetUserByID(ctx, id)
+}
+
+func (s *MasterService) RegisterScanner(ctx context.Context, name, serviceType, endpoint string, config map[string]interface{}) (repository.IntegrationNode, error) {
+	configJSON, err := json.Marshal(config)
+	if err != nil {
+		return repository.IntegrationNode{}, err
+	}
+
+	// Use Endpoint as a unique key for local scanners (e.g., PC Hostname/ID + Scanner ID)
+	// For network scanners, it's the IP.
+	
+	// Check if exists by endpoint and service type
+	existing, err := s.repo.GetIntegrationNodeByEndpoint(ctx, repository.GetIntegrationNodeByEndpointParams{
+		Endpoint:    endpoint,
+		ServiceType: serviceType,
+	})
+
+	if err != nil {
+		// Create new
+		return s.repo.CreateIntegrationNode(ctx, repository.CreateIntegrationNodeParams{
+			Name:        name,
+			ServiceType: serviceType,
+			Endpoint:    endpoint,
+			ConfigJson:  configJSON,
+		})
+	}
+
+	// Update existing
+	return s.repo.UpdateIntegrationNodeConfig(ctx, repository.UpdateIntegrationNodeConfigParams{
+		ID:         existing.ID,
+		Name:       name,
+		Endpoint:   endpoint,
+		IsActive:   pgtype.Bool{Bool: true, Valid: true},
+		ConfigJson: configJSON,
+	})
+}
+
 // Company
 func (s *MasterService) ListCompanies(ctx context.Context) ([]repository.Company, error) {
 	return s.repo.ListCompanies(ctx)
@@ -793,39 +832,119 @@ func (s *MasterService) UpdateSetting(ctx context.Context, category, key, value,
 
 // Warehouse Topology
 type TopologyNode struct {
+	ID       string         `json:"id"`
 	Name     string         `json:"name"`
 	Type     string         `json:"type"`
 	Children []TopologyNode `json:"children,omitempty"`
 }
 
-func (s *MasterService) GetTopology(ctx context.Context) ([]TopologyNode, error) {
+func (s *MasterService) GetTopology(ctx context.Context, deptID uuid.UUID) ([]TopologyNode, error) {
 	rows, err := s.repo.GetWarehouseTopology(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	// Build tree from flat rows
-	// For simplicity in this example, we just return a nested structure
-	// In a real app, you'd use maps to build the hierarchy
-	return s.buildTopologyTree(rows), nil
+	return s.buildTopologyTree(rows, deptID), nil
 }
 
-func (s *MasterService) buildTopologyTree(rows []repository.GetWarehouseTopologyRow) []TopologyNode {
-	// Simple grouping logic for simulation
-	// In a real scenario, this would be a recursive map-based builder
-	var tree []TopologyNode
-	companies := make(map[string]*TopologyNode)
+func (s *MasterService) buildTopologyTree(rows []repository.GetWarehouseTopologyRow, deptID uuid.UUID) []TopologyNode {
+	type ordnerNode struct {
+		id   string
+		name string
+	}
+	type boxNode struct {
+		id      string
+		name    string
+		ordners map[string]ordnerNode
+	}
+	type rackNode struct {
+		id    string
+		name  string
+		boxes map[string]boxNode
+	}
+	type deptNode struct {
+		id    string
+		name  string
+		racks map[string]rackNode
+	}
+	type branchNode struct {
+		id    string
+		name  string
+		depts map[string]deptNode
+	}
+	type companyNode struct {
+		id       string
+		name     string
+		branches map[string]branchNode
+	}
+
+	companies := make(map[string]companyNode)
 
 	for _, row := range rows {
-		if _, ok := companies[row.CompanyName]; !ok {
-			companies[row.CompanyName] = &TopologyNode{Name: row.CompanyName, Type: "company"}
+		cID := row.CompanyID.String()
+		if _, ok := companies[cID]; !ok {
+			companies[cID] = companyNode{id: cID, name: row.CompanyName, branches: make(map[string]branchNode)}
 		}
-		// ... logic to nest branches, depts, racks ...
+
+		bID := row.BranchID.String()
+		if _, ok := companies[cID].branches[bID]; !ok {
+			companies[cID].branches[bID] = branchNode{id: bID, name: row.BranchName, depts: make(map[string]deptNode)}
+		}
+
+		dID := row.DepartmentID.String()
+		// Filter by department if requested
+		if deptID != uuid.Nil && dID != deptID.String() {
+			continue
+		}
+
+		if _, ok := companies[cID].branches[bID].depts[dID]; !ok {
+			companies[cID].branches[bID].depts[dID] = deptNode{id: dID, name: row.DepartmentName, racks: make(map[string]rackNode)}
+		}
+
+		rID := row.RackID.String()
+		if _, ok := companies[cID].branches[bID].depts[dID].racks[rID]; !ok {
+			companies[cID].branches[bID].depts[dID].racks[rID] = rackNode{id: rID, name: row.RackName, boxes: make(map[string]boxNode)}
+		}
+
+		if row.BoxID.Valid {
+			bxID := uuid.UUID(row.BoxID.Bytes).String()
+			if _, ok := companies[cID].branches[bID].depts[dID].racks[rID].boxes[bxID]; !ok {
+				companies[cID].branches[bID].depts[dID].racks[rID].boxes[bxID] = boxNode{id: bxID, name: row.BoxName.String, ordners: make(map[string]ordnerNode)}
+			}
+
+			if row.OrdnerID.Valid {
+				oID := uuid.UUID(row.OrdnerID.Bytes).String()
+				companies[cID].branches[bID].depts[dID].racks[rID].boxes[bxID].ordners[oID] = ordnerNode{id: oID, name: row.OrdnerName.String}
+			}
+		}
 	}
-	
+
+	// Convert maps to slices
+	var tree []TopologyNode
 	for _, c := range companies {
-		tree = append(tree, *c)
+		cNode := TopologyNode{ID: c.id, Name: c.name, Type: "company"}
+		for _, b := range c.branches {
+			bNode := TopologyNode{ID: b.id, Name: b.name, Type: "branch"}
+			for _, d := range b.depts {
+				dNode := TopologyNode{ID: d.id, Name: d.name, Type: "department"}
+				for _, r := range d.racks {
+					rNode := TopologyNode{ID: r.id, Name: r.name, Type: "rack"}
+					for _, bx := range r.boxes {
+						bxNode := TopologyNode{ID: bx.id, Name: bx.name, Type: "box"}
+						for _, o := range bx.ordners {
+							bxNode.Children = append(bxNode.Children, TopologyNode{ID: o.id, Name: o.name, Type: "ordner"})
+						}
+						rNode.Children = append(rNode.Children, bxNode)
+					}
+					dNode.Children = append(dNode.Children, rNode)
+				}
+				bNode.Children = append(bNode.Children, dNode)
+			}
+			cNode.Children = append(cNode.Children, bNode)
+		}
+		tree = append(tree, cNode)
 	}
+
 	return tree
 }
 
@@ -1136,4 +1255,52 @@ func (s *MasterService) TestSMTPConnection(ctx context.Context, endpoint string,
 
 	host := strings.Split(endpoint, ":")[0]
 	return s.emailSvc.TestConnection(ctx, endpoint, host, cfg.User, cfg.Pass, cfg.Auth)
+}
+func (s *MasterService) GetWatermarkSettings(ctx context.Context) (map[string]interface{}, error) {
+	node, err := s.repo.GetIntegrationNodeByType(ctx, "WATERMARK")
+	if err != nil {
+		return map[string]interface{}{
+			"type":     "text",
+			"text":     "CONFIDENTIAL - {user} - {date}",
+			"opacity":  0.3,
+			"position": "diagonal",
+		}, nil
+	}
+
+	var config map[string]interface{}
+	if err := json.Unmarshal(node.ConfigJson, &config); err != nil {
+		return nil, err
+	}
+
+	return config, nil
+}
+
+func (s *MasterService) UpdateWatermarkSettings(ctx context.Context, config map[string]interface{}) error {
+	configJSON, err := json.Marshal(config)
+	if err != nil {
+		return err
+	}
+
+	// Try to find existing node
+	node, err := s.repo.GetIntegrationNodeByType(ctx, "WATERMARK")
+	if err != nil {
+		// Create new node
+		_, err = s.repo.CreateIntegrationNode(ctx, repository.CreateIntegrationNodeParams{
+			Name:        "Watermark Configuration",
+			ServiceType: "WATERMARK",
+			Endpoint:    "internal",
+			ConfigJson:  configJSON,
+		})
+		return err
+	}
+
+	// Update existing node
+	_, err = s.repo.UpdateIntegrationNodeConfig(ctx, repository.UpdateIntegrationNodeConfigParams{
+		ID:         node.ID,
+		Name:       "Watermark Configuration",
+		Endpoint:   "internal",
+		IsActive:   pgtype.Bool{Bool: true, Valid: true},
+		ConfigJson: configJSON,
+	})
+	return err
 }

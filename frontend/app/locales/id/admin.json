@@ -470,6 +470,20 @@
           }
         }
       }
+    },
+    "watermark": {
+      "title": "Konfigurasi Watermark",
+      "subtitle": "Kelola overlay keamanan untuk pratinjau dokumen",
+      "settings": {
+        "general": "Pengaturan Umum",
+        "type": "Tipe Watermark",
+        "text": "Teks Watermark",
+        "image": "Gambar Watermark (Logo)",
+        "opacity": "Transparansi",
+        "position": "Gaya Penempatan"
+      },
+      "preview": "Pratinjau Visual Langsung",
+      "save_btn": "Simpan Konfigurasi"
     }
   }
 }

@@ -2,6 +2,7 @@ package handler
 
 import (
 	"strconv"
+	"strings"
 	"github.com/gofiber/fiber/v3"
 	"github.com/google/uuid"
 	"github.com/kreatif/dms-backend/internal/infra"
@@ -30,6 +31,16 @@ func (h *DocumentHandler) Search(c fiber.Ctx) error {
 		id, err := uuid.Parse(deptIDStr)
 		if err == nil {
 			deptID = id
+		}
+	} else {
+		// Default to user's department if not elevated role
+		role := c.Locals("user_role").(string)
+		if role != "superadmin" && role != "manajer" && !strings.Contains(role, "doc controller") {
+			userID := c.Locals("user_id").(uuid.UUID)
+			user, err := h.svc.GetUser(c.Context(), userID)
+			if err == nil && user.DepartmentID.Valid {
+				deptID = user.DepartmentID.Bytes
+			}
 		}
 	}
 
@@ -79,6 +90,10 @@ func (h *DocumentHandler) Upload(c fiber.Ctx) error {
 		}
 	}
 
+	if companyID == uuid.Nil || branchID == uuid.Nil || departmentID == uuid.Nil {
+		return response.Error(c, fiber.StatusBadRequest, "Missing required location data", "Please ensure your profile is complete or select Company, Branch, and Department manually.")
+	}
+
 	f, err := file.Open()
 	if err != nil {
 		return response.Error(c, fiber.StatusInternalServerError, "Failed to open file", err.Error())
@@ -111,18 +126,44 @@ func (h *DocumentHandler) Preview(c fiber.Ctx) error {
 		return response.Error(c, fiber.StatusBadRequest, "Invalid document ID", err.Error())
 	}
 
-	userName := "Authorized User" // Should be taken from context if available
+	userName := "Authorized User"
 	
-	pdfData, err := h.svc.GetWatermarkedPDF(c.Context(), docID, userName, "center")
+	// Try to get user from token in query if context is missing (for external links)
+	token := c.Query("token")
+	if token != "" {
+		// In a real app, we would validate the token here if not already done by middleware
+		// For now, let's assume middleware handled it or we use it to get the user
+	}
+	
+	if val := c.Locals("user_name"); val != nil {
+		userName = val.(string)
+	}
+
+	pdfData, mimeType, err := h.svc.GetWatermarkedPDF(c.Context(), docID, userName, "center")
 	if err != nil {
 		return response.Error(c, fiber.StatusInternalServerError, "Failed to generate preview", err.Error())
 	}
 
-	c.Set("Content-Type", "application/pdf")
+	if mimeType == "" {
+		mimeType = "application/pdf"
+	}
+
+	c.Set("Content-Type", mimeType)
 	c.Set("Content-Disposition", "inline")
 	return c.Send(pdfData)
 }
 func (h *DocumentHandler) List(c fiber.Ctx) error {
+	limit, _ := strconv.Atoi(c.Query("limit", "10"))
+	
+	docs, err := h.svc.ListRecentDocuments(c.Context(), limit)
+	if err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to list documents", err.Error())
+	}
+
+	return response.Success(c, fiber.StatusOK, "Documents retrieved successfully", docs)
+}
+
+func (h *DocumentHandler) ListOCRHistory(c fiber.Ctx) error {
 	page, _ := strconv.Atoi(c.Query("page", "1"))
 	pageSize, _ := strconv.Atoi(c.Query("page_size", "10"))
 	
@@ -156,11 +197,12 @@ func (h *DocumentHandler) GetOCRData(c fiber.Ctx) error {
 	}
 
 	return response.Success(c, fiber.StatusOK, "OCR data retrieved", fiber.Map{
-		"id":           job.EntityID,
-		"filename":     job.SourceFilePath.String,
-		"status":       job.Status,
-		"words_json":   string(job.WordsJson),
-		"ai_analysis":  string(job.AiMetadata),
-		"preview_path": job.SourceFilePath.String, // Fallback
+		"id":            job.EntityID,
+		"filename":      job.SourceFilePath.String,
+		"status":        job.Status,
+		"words_json":    string(job.WordsJson),
+		"ai_analysis":   string(job.AiMetadata),
+		"preview_path":  job.PreviewPath.String,
+		"preview_paths": string(job.PreviewPaths),
 	})
 }

@@ -221,6 +221,7 @@ definePageMeta({
 </script>
 
 <style scoped>
+@reference "tailwindcss";
 .custom-scrollbar::-webkit-scrollbar {
   width: 4px;
 }
@@ -237,3 +238,4 @@ definePageMeta({
   @apply bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border border-white/20 dark:border-white/5 shadow-sm;
 }
 </style>
+

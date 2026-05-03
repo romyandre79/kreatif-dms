@@ -221,6 +221,7 @@ definePageMeta({
 </script>
 
 <style scoped>
+@reference "tailwindcss";
 .glass {
   @apply bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border border-white/20 dark:border-white/10 shadow-sm;
 }
@@ -234,3 +235,4 @@ definePageMeta({
   @apply bg-slate-200 dark:bg-slate-800 rounded-full;
 }
 </style>
+

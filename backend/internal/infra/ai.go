@@ -38,6 +38,8 @@ type OCRResponse struct {
 	FullText    string      `json:"full_text"`
 	Insight     *AIInsight  `json:"insight"`
 	AIAnalysis  interface{} `json:"ai_analysis"`
+	PreviewPath string      `json:"preview_path"`
+	PreviewPaths []string   `json:"preview_paths"`
 	Words       []struct {
 		Text       string  `json:"text"`
 		Confidence float64 `json:"confidence"`
@@ -89,6 +91,21 @@ func (s *AIService) ProcessOCR(ctx context.Context, fileName string, content []b
 
 	body := &bytes.Buffer{}
 	writer := multipart.NewWriter(body)
+
+	// Add AI config if available (Fields BEFORE file)
+	_, aiKey, aiModel, _, err := s.getAIConfig(ctx)
+	if err == nil {
+		log.Printf("[AIService] Sending AI Config to OCR: Model=%s, KeyLen=%d", aiModel, len(aiKey))
+		if aiModel != "" {
+			writer.WriteField("ai_model", aiModel)
+		}
+		if aiKey != "" {
+			writer.WriteField("ai_api_key", aiKey)
+		}
+	} else {
+		log.Printf("[AIService] Warning: Could not get AI config for OCR: %v", err)
+	}
+
 	part, err := writer.CreateFormFile("file", fileName)
 	if err != nil {
 		log.Printf("[AIService] Error creating form file: %v", err)
@@ -99,6 +116,7 @@ func (s *AIService) ProcessOCR(ctx context.Context, fileName string, content []b
 		log.Printf("[AIService] Error copying content to form: %v", err)
 		return nil, err
 	}
+
 	writer.Close()
 
 	req, err := http.NewRequestWithContext(ctx, "POST", ocrURL+"/ocr/process", body)

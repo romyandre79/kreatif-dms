@@ -244,10 +244,11 @@ RETURNING *;
 -- name: DeleteOrdner :exec
 DELETE FROM ordners WHERE id = $1;
 
--- Topology
 -- name: GetWarehouseTopology :many
 SELECT 
-    c.name as company_name, b.name as branch_name, d.name as department_name,
+    c.id as company_id, c.name as company_name, 
+    b.id as branch_id, b.name as branch_name, 
+    d.id as department_id, d.name as department_name,
     r.id as rack_id, r.name as rack_name,
     bx.id as box_id, bx.name as box_name,
     o.id as ordner_id, o.name as ordner_name

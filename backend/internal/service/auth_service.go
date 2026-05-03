@@ -438,3 +438,28 @@ func (s *AuthService) RefreshToken(ctx context.Context, refreshToken string) (*L
 
 	return s.generateLoginResponse(ctx, row)
 }
+
+func (s *AuthService) GetProfile(ctx context.Context, userID uuid.UUID) (repository.GetProfileByIDRow, error) {
+	return s.repo.GetProfileByID(ctx, userID)
+}
+
+func (s *AuthService) ChangePassword(ctx context.Context, userID uuid.UUID, oldPassword, newPassword string) error {
+	user, err := s.repo.GetUserByID(ctx, userID)
+	if err != nil {
+		return err
+	}
+
+	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(oldPassword)); err != nil {
+		return errors.New("invalid old password")
+	}
+
+	hashed, err := bcrypt.GenerateFromPassword([]byte(newPassword), bcrypt.DefaultCost)
+	if err != nil {
+		return err
+	}
+
+	return s.repo.UpdateUserPassword(ctx, repository.UpdateUserPasswordParams{
+		ID:           userID,
+		PasswordHash: string(hashed),
+	})
+}

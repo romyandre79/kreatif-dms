@@ -15,3 +15,15 @@ sql:
         overrides:
           - db_type: "uuid"
             go_type: "github.com/google/uuid.UUID"
+          - column: "documents.metadata"
+            go_type:
+              import: "encoding/json"
+              type: "RawMessage"
+          - column: "ocr_jobs.words_json"
+            go_type:
+              import: "encoding/json"
+              type: "RawMessage"
+          - column: "ocr_jobs.ai_metadata"
+            go_type:
+              import: "encoding/json"
+              type: "RawMessage"

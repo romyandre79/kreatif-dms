@@ -11,6 +11,11 @@ SELECT * FROM integration_nodes
 WHERE service_type = $1 AND is_active = true
 LIMIT 1;
 
+-- name: GetIntegrationNodeByEndpoint :one
+SELECT * FROM integration_nodes
+WHERE endpoint = $1 AND service_type = $2
+LIMIT 1;
+
 -- name: CreateIntegrationNode :one
 INSERT INTO integration_nodes (
     name, service_type, driver, endpoint, is_critical, config_json
