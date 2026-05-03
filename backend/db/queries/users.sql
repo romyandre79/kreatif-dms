@@ -56,7 +56,9 @@ SELECT
     u.*, 
     r.name as role_name,
     d.name as department_name,
+    b.id as branch_id,
     b.name as branch_name,
+    c.id as company_id,
     c.name as company_name
 FROM users u
 LEFT JOIN roles r ON u.role_id = r.id

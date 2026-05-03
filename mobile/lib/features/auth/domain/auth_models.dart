@@ -5,6 +5,9 @@ class User {
   final String role;
   final String? avatarUrl;
   final String? signatureUrl;
+  final String? departmentId;
+  final String? branchId;
+  final String? companyId;
   final String? departmentName;
   final String? branchName;
   final String? companyName;
@@ -17,6 +20,9 @@ class User {
     required this.role,
     this.avatarUrl,
     this.signatureUrl,
+    this.departmentId,
+    this.branchId,
+    this.companyId,
     this.departmentName,
     this.branchName,
     this.companyName,
@@ -49,6 +55,9 @@ class User {
       role: json['role_name'] ?? json['role'],
       avatarUrl: getValue(json['avatar_url']),
       signatureUrl: getValue(json['signature_url']),
+      departmentId: getValue(json['department_id']),
+      branchId: getValue(json['branch_id']),
+      companyId: getValue(json['company_id']),
       departmentName: getValue(json['department_name']),
       branchName: getValue(json['branch_name']),
       companyName: getValue(json['company_name']),

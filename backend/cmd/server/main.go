@@ -203,6 +203,7 @@ func main() {
 	docGroup := api.Group("/documents")
 	docGroup.Use(middleware.AuthMiddleware(cfg.JWTSecret))
 	docGroup.Get("/", docHandler.List)
+	docGroup.Get("/history", docHandler.ListOCRHistory)
 	docGroup.Post("/", docHandler.Upload)
 	docGroup.Get("/:id/preview", docHandler.Preview)
 	docGroup.Get("/:id/ocr", docHandler.GetOCRData)

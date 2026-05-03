@@ -78,3 +78,11 @@ LIMIT $1 OFFSET $2;
 
 -- name: CountOCRJobs :one
 SELECT COUNT(*) FROM ocr_jobs;
+
+-- name: ListRecentDocuments :many
+SELECT 
+    id, title, status, created_at, mime_type, file_size, metadata,
+    COALESCE(description, '')::text as category
+FROM documents
+ORDER BY created_at DESC
+LIMIT $1 OFFSET $2;

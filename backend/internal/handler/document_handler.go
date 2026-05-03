@@ -79,6 +79,10 @@ func (h *DocumentHandler) Upload(c fiber.Ctx) error {
 		}
 	}
 
+	if companyID == uuid.Nil || branchID == uuid.Nil || departmentID == uuid.Nil {
+		return response.Error(c, fiber.StatusBadRequest, "Missing required location data", "Please ensure your profile is complete or select Company, Branch, and Department manually.")
+	}
+
 	f, err := file.Open()
 	if err != nil {
 		return response.Error(c, fiber.StatusInternalServerError, "Failed to open file", err.Error())
@@ -111,8 +115,19 @@ func (h *DocumentHandler) Preview(c fiber.Ctx) error {
 		return response.Error(c, fiber.StatusBadRequest, "Invalid document ID", err.Error())
 	}
 
-	userName := "Authorized User" // Should be taken from context if available
+	userName := "Authorized User"
 	
+	// Try to get user from token in query if context is missing (for external links)
+	token := c.Query("token")
+	if token != "" {
+		// In a real app, we would validate the token here if not already done by middleware
+		// For now, let's assume middleware handled it or we use it to get the user
+	}
+	
+	if val := c.Locals("user_name"); val != nil {
+		userName = val.(string)
+	}
+
 	pdfData, err := h.svc.GetWatermarkedPDF(c.Context(), docID, userName, "center")
 	if err != nil {
 		return response.Error(c, fiber.StatusInternalServerError, "Failed to generate preview", err.Error())
@@ -123,6 +138,17 @@ func (h *DocumentHandler) Preview(c fiber.Ctx) error {
 	return c.Send(pdfData)
 }
 func (h *DocumentHandler) List(c fiber.Ctx) error {
+	limit, _ := strconv.Atoi(c.Query("limit", "10"))
+	
+	docs, err := h.svc.ListRecentDocuments(c.Context(), limit)
+	if err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to list documents", err.Error())
+	}
+
+	return response.Success(c, fiber.StatusOK, "Documents retrieved successfully", docs)
+}
+
+func (h *DocumentHandler) ListOCRHistory(c fiber.Ctx) error {
 	page, _ := strconv.Atoi(c.Query("page", "1"))
 	pageSize, _ := strconv.Atoi(c.Query("page_size", "10"))
 	

@@ -1,9 +1,11 @@
 class TopologyNode {
+  final String id;
   final String name;
   final String type;
   final List<TopologyNode>? children;
 
   TopologyNode({
+    required this.id,
     required this.name,
     required this.type,
     this.children,
@@ -11,6 +13,7 @@ class TopologyNode {
 
   factory TopologyNode.fromJson(Map<String, dynamic> json) {
     return TopologyNode(
+      id: json['id'] ?? '',
       name: json['name'],
       type: json['type'],
       children: json['children'] != null
@@ -27,6 +30,8 @@ class Document {
   final String title;
   final String? description;
   final String category;
+  final String status;
+  final Map<String, dynamic> metadata;
   final String? fileUrl;
   final DateTime createdAt;
 
@@ -35,6 +40,8 @@ class Document {
     required this.title,
     this.description,
     required this.category,
+    required this.status,
+    required this.metadata,
     this.fileUrl,
     required this.createdAt,
   });
@@ -45,6 +52,8 @@ class Document {
       title: json['title'] ?? json['name'] ?? 'Untitled',
       description: json['description'],
       category: json['category'] ?? 'General',
+      status: json['status'] ?? 'active',
+      metadata: json['metadata'] ?? {},
       fileUrl: json['file_url'],
       createdAt: DateTime.parse(json['created_at'] ?? DateTime.now().toIso8601String()),
     );

@@ -429,7 +429,7 @@ const fetchHistory = async () => {
     const apiBase = config.public.apiBase || 'http://localhost:8080/api/v1'
     const token = localStorage.getItem('kreatif_access_token') || localStorage.getItem('token')
     
-    const res = await fetch(`${apiBase}/documents?page=${currentPage.value}&page_size=${pageSize.value}`, {
+    const res = await fetch(`${apiBase}/documents/history?page=${currentPage.value}&page_size=${pageSize.value}`, {
       headers: { 
         'Authorization': `Bearer ${token}`,
         'Accept': 'application/json'

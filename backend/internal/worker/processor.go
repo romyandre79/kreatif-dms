@@ -41,6 +41,17 @@ func (p *TaskProcessor) ProcessDocumentOCR(ctx context.Context, t *asynq.Task) e
 		return err
 	}
 
+	// Send "Processing" notification
+	_, _ = p.repo.CreateNotification(ctx, repository.CreateNotificationParams{
+		UserID:     doc.OwnerID,
+		Title:      "Dokumen Sedang Diproses",
+		Body:       pgtype.Text{String: fmt.Sprintf("Dokumen '%s' sedang dalam proses analisis OCR.", doc.Title), Valid: true},
+		Type:       "INFO",
+		EntityType: pgtype.Text{String: "document", Valid: true},
+		EntityID:   pgtype.UUID{Bytes: doc.ID, Valid: true},
+		Channel:    pgtype.Text{String: "app", Valid: true},
+	})
+
 	// 2. Download from storage
 	reader, err := p.storage.Download(ctx, doc.FilePath)
 	if err != nil {
@@ -159,5 +170,17 @@ func (p *TaskProcessor) ProcessDocumentOCR(ctx context.Context, t *asynq.Task) e
 	}
 
 	log.Printf("[TaskProcessor] Completed OCR processing for Document: %s", doc.ID)
+
+	// Send "Completed" notification
+	_, _ = p.repo.CreateNotification(ctx, repository.CreateNotificationParams{
+		UserID:     doc.OwnerID,
+		Title:      "Dokumen Selesai Diproses",
+		Body:       pgtype.Text{String: fmt.Sprintf("Dokumen '%s' telah berhasil dianalisis.", doc.Title), Valid: true},
+		Type:       "SUCCESS",
+		EntityType: pgtype.Text{String: "document", Valid: true},
+		EntityID:   pgtype.UUID{Bytes: doc.ID, Valid: true},
+		Channel:    pgtype.Text{String: "app", Valid: true},
+	})
+
 	return nil
 }

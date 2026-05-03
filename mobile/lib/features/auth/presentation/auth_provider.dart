@@ -5,14 +5,16 @@ import 'package:kreatif_dms/features/auth/domain/auth_models.dart';
 
 class AuthState {
   final User? user;
+  final String? accessToken;
   final bool isLoading;
   final String? error;
 
-  AuthState({this.user, this.isLoading = false, this.error});
+  AuthState({this.user, this.accessToken, this.isLoading = false, this.error});
 
-  AuthState copyWith({User? user, bool? isLoading, String? error}) {
+  AuthState copyWith({User? user, String? accessToken, bool? isLoading, String? error}) {
     return AuthState(
       user: user ?? this.user,
+      accessToken: accessToken ?? this.accessToken,
       isLoading: isLoading ?? this.isLoading,
       error: error,
     );
@@ -34,6 +36,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
   Future<void> _checkPersistence() async {
     final token = await _storage.read(key: 'jwt_token');
     if (token != null) {
+      state = state.copyWith(accessToken: token);
       await loadProfile();
     }
   }
@@ -68,6 +71,8 @@ class AuthNotifier extends StateNotifier<AuthState> {
       if (response.accessToken != null) {
         await _storage.write(key: 'jwt_token', value: response.accessToken);
         await _storage.write(key: 'refresh_token', value: response.refreshToken);
+        
+        state = state.copyWith(accessToken: response.accessToken);
         
         // After login, fetch the full profile to get detailed info (Department, etc)
         await loadProfile();

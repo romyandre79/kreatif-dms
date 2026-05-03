@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import 'package:qr_flutter/qr_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:kreatif_dms/core/theme/app_theme.dart';
 import 'package:kreatif_dms/features/auth/presentation/auth_provider.dart';
 
@@ -288,83 +291,9 @@ class ProfileScreen extends ConsumerWidget {
       return;
     }
 
-    // Setup MFA Flow
     showDialog(
       context: context,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setState) {
-          String? secret;
-          String? url;
-          bool loading = false;
-          final codeController = TextEditingController();
-
-          return AlertDialog(
-            backgroundColor: AppTheme.cardBg,
-            title: const Text('Setup MFA'),
-            content: secret == null ? Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Text('Aktifkan MFA untuk keamanan tambahan. Klik tombol di bawah untuk mulai.'),
-                const SizedBox(height: 16),
-                ElevatedButton(
-                  onPressed: loading ? null : () async {
-                    setState(() => loading = true);
-                    try {
-                      final res = await ref.read(authProvider.notifier).setupMFA();
-                      setState(() {
-                        secret = res['secret'];
-                        url = res['url'];
-                        loading = false;
-                      });
-                    } catch (e) {
-                      setState(() => loading = false);
-                    }
-                  },
-                  child: loading ? const CircularProgressIndicator() : const Text('Mulai Setup'),
-                ),
-              ],
-            ) : Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Text('Masukkan kode dari aplikasi Authenticator Anda:'),
-                const SizedBox(height: 8),
-                SelectableText('Secret: $secret', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: codeController,
-                  keyboardType: TextInputType.number,
-                  maxLength: 6,
-                  decoration: const InputDecoration(labelText: '6-Digit Code'),
-                ),
-              ],
-            ),
-            actions: [
-              TextButton(onPressed: () => Navigator.pop(context), child: const Text('Batal')),
-              if (secret != null)
-                ElevatedButton(
-                  onPressed: () async {
-                    try {
-                      await ref.read(authProvider.notifier).verifyMFA(secret!, codeController.text);
-                      if (context.mounted) {
-                        Navigator.pop(context);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('MFA berhasil diaktifkan')),
-                        );
-                      }
-                    } catch (e) {
-                      if (context.mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text(e.toString()), backgroundColor: Colors.redAccent),
-                        );
-                      }
-                    }
-                  },
-                  child: const Text('Verifikasi & Aktifkan'),
-                ),
-            ],
-          );
-        },
-      ),
+      builder: (context) => _MFASetupDialog(ref: ref),
     );
   }
 
@@ -392,6 +321,175 @@ class ProfileScreen extends ConsumerWidget {
     );
   }
 }
+
+class _MFASetupDialog extends StatefulWidget {
+  final WidgetRef ref;
+  const _MFASetupDialog({required this.ref});
+
+  @override
+  State<_MFASetupDialog> createState() => _MFASetupDialogState();
+}
+
+class _MFASetupDialogState extends State<_MFASetupDialog> {
+  String? secret;
+  String? url;
+  bool loading = false;
+  final codeController = TextEditingController();
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      backgroundColor: AppTheme.cardBg,
+      title: const Text('Setup MFA'),
+      content: SizedBox(
+        width: MediaQuery.of(context).size.width,
+        child: secret == null 
+        ? Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text('Aktifkan MFA untuk keamanan tambahan. Klik tombol di bawah untuk mulai.'),
+              const SizedBox(height: 16),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: loading ? null : () async {
+                    setState(() => loading = true);
+                    try {
+                      final res = await widget.ref.read(authProvider.notifier).setupMFA();
+                      setState(() {
+                        secret = res['secret'];
+                        url = res['url'];
+                        loading = false;
+                      });
+                    } catch (e) {
+                      setState(() => loading = false);
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text(e.toString()), backgroundColor: Colors.redAccent),
+                        );
+                      }
+                    }
+                  },
+                  child: loading 
+                    ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2)) 
+                    : const Text('Mulai Setup'),
+                ),
+              ),
+            ],
+          ) 
+        : SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text('Scan QR Code ini di aplikasi Authenticator Anda:'),
+                const SizedBox(height: 16),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: QrImageView(
+                    data: url ?? '',
+                    version: QrVersions.auto,
+                    size: 200.0,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                const Text('Atau masukkan secret key secara manual:'),
+                const SizedBox(height: 8),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Expanded(
+                      child: SelectableText(
+                        secret!, 
+                        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppTheme.primary),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(LucideIcons.copy, size: 16),
+                      onPressed: () {
+                        Clipboard.setData(ClipboardData(text: secret!));
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Secret key disalin!')),
+                        );
+                      },
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                ElevatedButton.icon(
+                  onPressed: () async {
+                    final uri = Uri.parse(url ?? '');
+                    if (await canLaunchUrl(uri)) {
+                      await launchUrl(uri);
+                    } else {
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Gagal membuka aplikasi Autentikator')),
+                        );
+                      }
+                    }
+                  },
+                  icon: const Icon(LucideIcons.externalLink, size: 18),
+                  label: const Text('Buka Aplikasi Autentikator'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blueGrey,
+                    foregroundColor: Colors.white,
+                  ),
+                ),
+                const SizedBox(height: 32),
+                const Text('Masukkan 6-digit kode verifikasi:'),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: codeController,
+                  keyboardType: TextInputType.number,
+                  maxLength: 6,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, letterSpacing: 8),
+                  decoration: const InputDecoration(
+                    hintText: '000000',
+                    counterText: '',
+                  ),
+                ),
+              ],
+            ),
+          ),
+      ),
+      actions: [
+        TextButton(onPressed: () => Navigator.pop(context), child: const Text('Batal')),
+        if (secret != null)
+          ElevatedButton(
+            onPressed: loading ? null : () async {
+              setState(() => loading = true);
+              try {
+                await widget.ref.read(authProvider.notifier).verifyMFA(secret!, codeController.text);
+                if (mounted) {
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('MFA berhasil diaktifkan')),
+                  );
+                }
+              } catch (e) {
+                setState(() => loading = false);
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(e.toString()), backgroundColor: Colors.redAccent),
+                  );
+                }
+              }
+            },
+            child: loading 
+              ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+              : const Text('Verifikasi & Aktifkan'),
+          ),
+      ],
+    );
+  }
+}
+
 
 class _ProfileMenuItem extends StatelessWidget {
   final IconData icon;

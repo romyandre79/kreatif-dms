@@ -83,7 +83,9 @@ SELECT
     u.id, u.email, u.password_hash, u.full_name, u.role_id, u.department_id, u.is_active, u.created_at, u.updated_at, u.status, u.avatar_url, u.signature_url, u.pin, u.pin_status, u.pin_failed_attempts, u.pin_locked_until, u.pin_updated_at, u.is_mfa_enabled, u.mfa_secret, 
     r.name as role_name,
     d.name as department_name,
+    b.id as branch_id,
     b.name as branch_name,
+    c.id as company_id,
     c.name as company_name
 FROM users u
 LEFT JOIN roles r ON u.role_id = r.id
@@ -115,7 +117,9 @@ type GetProfileByIDRow struct {
 	MfaSecret         pgtype.Text        `json:"mfa_secret"`
 	RoleName          pgtype.Text        `json:"role_name"`
 	DepartmentName    pgtype.Text        `json:"department_name"`
+	BranchID          pgtype.UUID        `json:"branch_id"`
 	BranchName        pgtype.Text        `json:"branch_name"`
+	CompanyID         pgtype.UUID        `json:"company_id"`
 	CompanyName       pgtype.Text        `json:"company_name"`
 }
 
@@ -144,7 +148,9 @@ func (q *Queries) GetProfileByID(ctx context.Context, id uuid.UUID) (GetProfileB
 		&i.MfaSecret,
 		&i.RoleName,
 		&i.DepartmentName,
+		&i.BranchID,
 		&i.BranchName,
+		&i.CompanyID,
 		&i.CompanyName,
 	)
 	return i, err

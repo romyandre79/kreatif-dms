@@ -708,7 +708,9 @@ func (q *Queries) GetSystemSettingsByCategory(ctx context.Context, category stri
 
 const getWarehouseTopology = `-- name: GetWarehouseTopology :many
 SELECT 
-    c.name as company_name, b.name as branch_name, d.name as department_name,
+    c.id as company_id, c.name as company_name, 
+    b.id as branch_id, b.name as branch_name, 
+    d.id as department_id, d.name as department_name,
     r.id as rack_id, r.name as rack_name,
     bx.id as box_id, bx.name as box_name,
     o.id as ordner_id, o.name as ordner_name
@@ -722,8 +724,11 @@ ORDER BY c.name, b.name, d.name, r.name, bx.name, o.name
 `
 
 type GetWarehouseTopologyRow struct {
+	CompanyID      uuid.UUID   `json:"company_id"`
 	CompanyName    string      `json:"company_name"`
+	BranchID       uuid.UUID   `json:"branch_id"`
 	BranchName     string      `json:"branch_name"`
+	DepartmentID   uuid.UUID   `json:"department_id"`
 	DepartmentName string      `json:"department_name"`
 	RackID         uuid.UUID   `json:"rack_id"`
 	RackName       string      `json:"rack_name"`
@@ -733,7 +738,6 @@ type GetWarehouseTopologyRow struct {
 	OrdnerName     pgtype.Text `json:"ordner_name"`
 }
 
-// Topology
 func (q *Queries) GetWarehouseTopology(ctx context.Context) ([]GetWarehouseTopologyRow, error) {
 	rows, err := q.db.Query(ctx, getWarehouseTopology)
 	if err != nil {
@@ -744,8 +748,11 @@ func (q *Queries) GetWarehouseTopology(ctx context.Context) ([]GetWarehouseTopol
 	for rows.Next() {
 		var i GetWarehouseTopologyRow
 		if err := rows.Scan(
+			&i.CompanyID,
 			&i.CompanyName,
+			&i.BranchID,
 			&i.BranchName,
+			&i.DepartmentID,
 			&i.DepartmentName,
 			&i.RackID,
 			&i.RackName,

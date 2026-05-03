@@ -74,7 +74,6 @@ type Querier interface {
 	GetUnreadCount(ctx context.Context, userID uuid.UUID) (int64, error)
 	GetUserByEmail(ctx context.Context, email string) (GetUserByEmailRow, error)
 	GetUserByID(ctx context.Context, id uuid.UUID) (GetUserByIDRow, error)
-	// Topology
 	GetWarehouseTopology(ctx context.Context) ([]GetWarehouseTopologyRow, error)
 	ListActivityLogs(ctx context.Context, arg ListActivityLogsParams) ([]ListActivityLogsRow, error)
 	ListAllBoxesGlobal(ctx context.Context) ([]ListAllBoxesGlobalRow, error)
@@ -102,6 +101,7 @@ type Querier interface {
 	ListPermissionsByRole(ctx context.Context, roleID int32) ([]ListPermissionsByRoleRow, error)
 	// Racks
 	ListRacks(ctx context.Context, departmentID uuid.UUID) ([]Rack, error)
+	ListRecentDocuments(ctx context.Context, arg ListRecentDocumentsParams) ([]ListRecentDocumentsRow, error)
 	// Retention Policies
 	ListRetentionPolicies(ctx context.Context) ([]RetentionPolicy, error)
 	// RFID Tags

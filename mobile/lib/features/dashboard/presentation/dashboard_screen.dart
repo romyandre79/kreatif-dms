@@ -7,8 +7,12 @@ import 'package:kreatif_dms/features/dashboard/presentation/profile_screen.dart'
 import 'package:kreatif_dms/features/documents/presentation/document_explorer_screen.dart';
 import 'package:kreatif_dms/features/documents/presentation/loan_screen.dart';
 import 'package:kreatif_dms/features/documents/presentation/document_provider.dart';
+import 'package:kreatif_dms/features/documents/domain/document_models.dart';
 import 'package:kreatif_dms/features/documents/presentation/upload_screen.dart';
+import 'package:kreatif_dms/features/documents/presentation/document_detail_screen.dart';
 import 'package:kreatif_dms/features/scanner/presentation/scanner_screen.dart';
+import 'package:kreatif_dms/features/notifications/presentation/notification_screen.dart';
+import 'package:kreatif_dms/features/notifications/data/notification_repository.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -80,10 +84,48 @@ class _HomeView extends ConsumerWidget {
                     ),
                   ],
                 ),
-                CircleAvatar(
-                  radius: 24,
-                  backgroundColor: AppTheme.primary.withOpacity(0.2),
-                  child: const Icon(LucideIcons.user, color: AppTheme.primary),
+                Row(
+                  children: [
+                    IconButton(
+                      icon: Stack(
+                        children: [
+                          const Icon(LucideIcons.bell, size: 28),
+                          ref.watch(unreadCountProvider).when(
+                            data: (count) => count > 0
+                                ? Positioned(
+                                    right: 0,
+                                    top: 0,
+                                    child: Container(
+                                      padding: const EdgeInsets.all(4),
+                                      decoration: const BoxDecoration(
+                                        color: Colors.red,
+                                        shape: BoxShape.circle,
+                                      ),
+                                      constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
+                                      child: Text(
+                                        count > 9 ? '9+' : count.toString(),
+                                        style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                                        textAlign: TextAlign.center,
+                                      ),
+                                    ),
+                                  )
+                                : const SizedBox.shrink(),
+                            loading: () => const SizedBox.shrink(),
+                            error: (_, __) => const SizedBox.shrink(),
+                          ),
+                        ],
+                      ),
+                      onPressed: () {
+                        Navigator.of(context).push(MaterialPageRoute(builder: (_) => const NotificationScreen()));
+                      },
+                    ),
+                    const SizedBox(width: 8),
+                    CircleAvatar(
+                      radius: 20,
+                      backgroundColor: AppTheme.primary.withOpacity(0.2),
+                      child: const Icon(LucideIcons.user, color: AppTheme.primary, size: 20),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -224,9 +266,7 @@ class _HomeView extends ConsumerWidget {
             ref.watch(recentDocumentsProvider).when(
               data: (docs) => Column(
                 children: docs.take(5).map((doc) => _RecentDocItem(
-                  title: doc.title,
-                  subtitle: '${doc.category} • ${doc.createdAt.toLocal().toString().split(' ')[0]}',
-                  icon: LucideIcons.fileText,
+                  document: doc,
                 )).toList(),
               ),
               loading: () => const Center(child: CircularProgressIndicator()),
@@ -280,54 +320,63 @@ class _QuickActionItem extends StatelessWidget {
 }
 
 class _RecentDocItem extends StatelessWidget {
-  final String title;
-  final String subtitle;
-  final IconData icon;
+  final Document document;
 
   const _RecentDocItem({
-    required this.title,
-    required this.subtitle,
-    required this.icon,
+    required this.document,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppTheme.cardBg.withOpacity(0.5),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: AppTheme.primary.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(icon, color: AppTheme.primary, size: 24),
+    return GestureDetector(
+      onTap: () {
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => DocumentDetailScreen(document: document),
           ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(fontWeight: FontWeight.w600),
-                ),
-                Text(
-                  subtitle,
-                  style: const TextStyle(color: AppTheme.textSecondary, fontSize: 12),
-                ),
-              ],
+        );
+      },
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: AppTheme.cardBg.withOpacity(0.5),
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: AppTheme.primary.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Icon(LucideIcons.fileText, color: AppTheme.primary, size: 24),
             ),
-          ),
-          const Icon(LucideIcons.moreVertical, color: AppTheme.textSecondary, size: 20),
-        ],
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    document.title,
+                    style: const TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                  Text(
+                    '${document.category} • ${_formatDate(document.createdAt)}',
+                    style: const TextStyle(color: AppTheme.textSecondary, fontSize: 12),
+                  ),
+                ],
+              ),
+            ),
+            const Icon(LucideIcons.moreVertical, color: AppTheme.textSecondary, size: 20),
+          ],
+        ),
       ),
     );
+  }
+
+  String _formatDate(DateTime dt) {
+    return '${dt.day}/${dt.month}/${dt.year}';
   }
 }
