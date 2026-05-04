@@ -22,8 +22,13 @@ from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from fastapi.staticfiles import StaticFiles
 from dotenv import load_dotenv
 
-# Load environment variables BEFORE importing custom modules
-load_dotenv()
+# Load environment variables from the same directory as this script
+script_dir = os.path.dirname(os.path.abspath(__file__))
+env_path = os.path.join(script_dir, ".env")
+if os.path.exists(env_path):
+    load_dotenv(env_path)
+else:
+    load_dotenv() # Fallback to default
 
 # Import our custom modules
 from db_logic import init_db, get_db, save_request_log, get_stats, get_recent_history, get_ocr_result_by_id
@@ -74,6 +79,13 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+@app.middleware("http")
+async def log_requests(request: Request, call_next):
+    client_ip = request.client.host
+    logger.info(f"Incoming request from {client_ip} to {request.url.path}")
+    response = await call_next(request)
+    return response
 
 security = HTTPBasic()
 
@@ -249,5 +261,40 @@ async def process_ocr(
         raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":
+    # Force reload env
+    if os.path.exists(env_path):
+        with open(env_path, "r") as f:
+            for line in f:
+                if "=" in line and not line.startswith("#"):
+                    key, value = line.strip().split("=", 1)
+                    os.environ[key.strip()] = value.strip()
+    
     port = int(os.getenv("APP_PORT", 8000))
-    uvicorn.run(app, host="0.0.0.0", port=port)
+    ssl_enabled_raw = os.getenv("OCR_SSL_ENABLED") or os.getenv("OCR_SSL_ENABLE") or "false"
+    ssl_enabled = ssl_enabled_raw.lower() == "true"
+    
+    ssl_cert = os.getenv("OCR_SSL_CERTFILE", "").strip()
+    ssl_key = os.getenv("OCR_SSL_KEYFILE", "").strip()
+
+    logger.info(f"DEBUG: APP_PORT={port}, SSL_ENABLED={ssl_enabled} (Raw: '{ssl_enabled_raw}')")
+    logger.info(f"DEBUG: CERT={ssl_cert}, KEY={ssl_key}")
+
+    if ssl_enabled:
+        if not ssl_cert or not ssl_key:
+            logger.warning("SSL is enabled but Cert or Key file path is missing in .env!")
+            uvicorn.run(app, host="0.0.0.0", port=port)
+        elif not os.path.exists(ssl_cert) or not os.path.exists(ssl_key):
+            logger.error(f"SSL Files not found! Cert: {os.path.exists(ssl_cert)}, Key: {os.path.exists(ssl_key)}")
+            uvicorn.run(app, host="0.0.0.0", port=port)
+        else:
+            logger.info(f"Starting OCR Service with SSL on port {port}")
+            uvicorn.run(
+                app, 
+                host="0.0.0.0", 
+                port=port, 
+                ssl_certfile=ssl_cert, 
+                ssl_keyfile=ssl_key
+            )
+    else:
+        logger.info(f"Starting OCR Service on port {port} (SSL Disabled)")
+        uvicorn.run(app, host="0.0.0.0", port=port)

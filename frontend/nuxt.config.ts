@@ -83,6 +83,8 @@ export default defineNuxtConfig({
     headers: {
       contentSecurityPolicy: {
         'img-src': ["'self'", "data:", "blob:", "https:", "http:"],
+        'script-src': ["'self'", "'unsafe-inline'", "https:", "https://vercel.live"],
+        'frame-src': ["'self'", "https:", "http:"],
       },
     },
   },
