@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"strings"
 	"time"
+	"crypto/tls"
 
 	"github.com/go-ldap/ldap/v3"
 	"github.com/jackc/pgx/v5/pgtype"
@@ -212,8 +213,14 @@ func (s *IntegrationMonitorService) checkHTTP(endpoint string) error {
 		url = "https://" + url // Default to https for external APIs
 	}
 
+	// Create custom transport to skip SSL verification (common issue on RHEL 7)
+	tr := &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+	}
+
 	client := &http.Client{
-		Timeout: 5 * time.Second,
+		Timeout:   5 * time.Second,
+		Transport: tr,
 	}
 
 	req, err := http.NewRequest("GET", url, nil)
@@ -226,6 +233,7 @@ func (s *IntegrationMonitorService) checkHTTP(endpoint string) error {
 
 	resp, err := client.Do(req)
 	if err != nil {
+		log.Printf("[IntegrationMonitor] Error connecting to %s: %v", url, err)
 		return err
 	}
 	defer resp.Body.Close()

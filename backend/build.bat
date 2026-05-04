@@ -38,7 +38,7 @@ echo [BUILD] !GOOS!/!GOARCH! - Server...
 set CGO_ENABLED=0
 set GOOS=!GOOS!
 set GOARCH=!GOARCH!
-go build -ldflags="-s -w" -o !TARGET_DIR!\server!SUFFIX! .\cmd\server
+go build -v -ldflags="-s -w" -o !TARGET_DIR!\server!SUFFIX! .\cmd\server
 if !errorlevel! neq 0 (
     echo [ERROR] Server build failed
     exit /b 1
@@ -46,7 +46,7 @@ if !errorlevel! neq 0 (
 echo [OK] !TARGET_DIR!\server!SUFFIX!
 
 echo [BUILD] !GOOS!/!GOARCH! - Worker...
-go build -ldflags="-s -w" -o !TARGET_DIR!\worker!SUFFIX! .\cmd\worker
+go build -v -ldflags="-s -w" -o !TARGET_DIR!\worker!SUFFIX! .\cmd\worker
 if !errorlevel! neq 0 (
     echo [ERROR] Worker build failed
     exit /b 1

@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"crypto/tls"
 	"github.com/gofiber/fiber/v3"
 	"github.com/google/uuid"
 	_ "github.com/kreatif/dms-backend/internal/repository"
@@ -1218,7 +1219,13 @@ func (h *MasterHandler) TestIntegrationNode(c fiber.Ctx) error {
 				target += "/"
 			}
 			// Use a simple HTTP check
-			client := &http.Client{Timeout: 5 * time.Second}
+			tr := &http.Transport{
+				TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+			}
+			client := &http.Client{
+				Timeout:   5 * time.Second,
+				Transport: tr,
+			}
 			req, err := http.NewRequest("GET", target+"health", nil)
 			if err != nil {
 				return response.Error(c, fiber.StatusInternalServerError, "Request Creation Failed", err.Error())
@@ -1229,6 +1236,7 @@ func (h *MasterHandler) TestIntegrationNode(c fiber.Ctx) error {
 
 			resp, err := client.Do(req)
 			if err != nil {
+				fmt.Printf("[DEBUG] Scanner Bridge Unreachable at %s: %v\n", target+"health", err)
 				return response.Error(c, fiber.StatusInternalServerError, "Scanner Bridge Unreachable", err.Error())
 			}
 			defer resp.Body.Close()
