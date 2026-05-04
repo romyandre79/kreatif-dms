@@ -2,7 +2,9 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"log"
+	"strings"
 
 	"github.com/elastic/go-elasticsearch/v8"
 	"github.com/hibiken/asynq"
@@ -29,15 +31,49 @@ func main() {
 		log.Printf("WARNING: Worker starting without MinIO: %v", err)
 	}
 	
+	// Repositories
+	repo := repository.New(dbPool)
+
+	// 4. Elasticsearch (Priority: DB -> .env)
+	esURL := strings.TrimSpace(cfg.ElasticsearchURL)
+	var esUser, esPass, esAPIKey string
+
+	// Try "SEARCH" type first, then "ELASTICSEARCH"
+	esNode, err := repo.GetIntegrationNodeByType(context.Background(), "SEARCH")
+	if err != nil {
+		esNode, err = repo.GetIntegrationNodeByType(context.Background(), "ELASTICSEARCH")
+	}
+
+	if err == nil && esNode.IsActive.Bool {
+		esURL = strings.TrimSpace(esNode.Endpoint)
+		log.Printf("[Worker] Search Engine: Using configuration from database node (%s): %s", esNode.ServiceType, esURL)
+
+		var esCfg struct {
+			Username string `json:"username"`
+			Password string `json:"password"`
+			APIKey   string `json:"api_key"`
+		}
+		json.Unmarshal(esNode.ConfigJson, &esCfg)
+		esUser = esCfg.Username
+		esPass = esCfg.Password
+		esAPIKey = esCfg.APIKey
+	}
+
+	if esURL != "" && !strings.HasPrefix(esURL, "http://") && !strings.HasPrefix(esURL, "https://") {
+		esURL = "http://" + esURL
+	}
+
 	es, err := elasticsearch.NewClient(elasticsearch.Config{
-		Addresses: []string{cfg.ElasticsearchURL},
+		Addresses: []string{esURL},
+		Username:  esUser,
+		Password:  esPass,
+		APIKey:    esAPIKey,
 	})
 	if err != nil {
 		log.Fatalf("ES client error: %v", err)
 	}
 
-	// Repositories & Services
-	repo := repository.New(dbPool)
+	// Services
 	storageSvc := infra.NewStorageService(cfg, repo, minioClient, cfg.MinIOBucket)
 	aiSvc := infra.NewAIService(repo, cfg)
 	searchSvc := infra.NewSearchService(es)

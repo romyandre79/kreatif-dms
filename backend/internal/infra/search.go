@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"strings"
 
 	"github.com/elastic/go-elasticsearch/v8"
 	"github.com/google/uuid"
@@ -124,8 +125,18 @@ func (s *SearchService) Search(ctx context.Context, query string, deptID uuid.UU
 	return ids, nil
 }
 func (s *SearchService) TestConnection(ctx context.Context, addresses []string, username, password, apiKey string) (map[string]interface{}, error) {
+	// Ensure addresses have protocol
+	formattedAddresses := make([]string, len(addresses))
+	for i, addr := range addresses {
+		if !strings.HasPrefix(addr, "http://") && !strings.HasPrefix(addr, "https://") {
+			formattedAddresses[i] = "http://" + addr
+		} else {
+			formattedAddresses[i] = addr
+		}
+	}
+
 	cfg := elasticsearch.Config{
-		Addresses: addresses,
+		Addresses: formattedAddresses,
 		Username:  username,
 		Password:  password,
 		APIKey:    apiKey,

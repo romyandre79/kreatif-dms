@@ -869,10 +869,10 @@ func (q *Queries) ListAllBranchesGlobal(ctx context.Context) ([]ListAllBranchesG
 const listAllDepartments = `-- name: ListAllDepartments :many
 SELECT 
     d.id, d.branch_id, d.name, d.head_id, d.created_at, 
-    b.name as branch_name,
+    COALESCE(b.name, '')::text as branch_name,
     u.full_name as head_name
 FROM departments d
-JOIN branches b ON d.branch_id = b.id
+LEFT JOIN branches b ON d.branch_id = b.id
 LEFT JOIN users u ON d.head_id = u.id
 ORDER BY d.name
 `

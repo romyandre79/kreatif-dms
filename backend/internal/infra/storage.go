@@ -26,10 +26,10 @@ func NewStorageService(cfg config.Config, repo repository.Querier, client *minio
 }
 
 type storageNodeConfig struct {
-	Bucket    string `json:"bucket"`
-	AccessKey string `json:"access_key"`
-	SecretKey string `json:"secret_key"`
-	UseSSL    bool   `json:"use_ssl"`
+	Bucket    string      `json:"bucket"`
+	AccessKey string      `json:"access_key"`
+	SecretKey string      `json:"secret_key"`
+	UseSSL    interface{} `json:"use_ssl"`
 }
 
 func (s *StorageService) getClient(ctx context.Context) (*minio.Client, string, error) {
@@ -45,6 +45,15 @@ func (s *StorageService) getClient(ctx context.Context) (*minio.Client, string, 
 	var nodeCfg storageNodeConfig
 	if err := json.Unmarshal(node.ConfigJson, &nodeCfg); err != nil {
 		return s.client, s.bucket, fmt.Errorf("failed to parse S3 config JSON: %v", err)
+	}
+
+	// Safely parse UseSSL (could be bool or string)
+	useSSL := false
+	switch v := nodeCfg.UseSSL.(type) {
+	case bool:
+		useSSL = v
+	case string:
+		useSSL = (v == "true" || v == "1")
 	}
 
 	// For performance, we should cache this client. 
@@ -72,7 +81,7 @@ func (s *StorageService) getClient(ctx context.Context) (*minio.Client, string, 
 	log.Printf("[StorageService] Connecting to S3 at %s with AccessKey: %s", endpoint, accessKey)
 	client, err := minio.New(endpoint, &minio.Options{
 		Creds:  credentials.NewStaticV4(accessKey, secretKey, ""),
-		Secure: nodeCfg.UseSSL,
+		Secure: useSSL,
 	})
 	if err != nil {
 		return nil, "", fmt.Errorf("failed to create MinIO client for %s: %v", endpoint, err)

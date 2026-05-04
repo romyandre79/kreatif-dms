@@ -1220,16 +1220,24 @@ func (s *MasterService) TestSearchConnection(ctx context.Context, endpoint strin
 
 func (s *MasterService) TestStorageConnection(ctx context.Context, endpoint string, config []byte) error {
 	var cfg struct {
-		AccessKey string `json:"access_key"`
-		SecretKey string `json:"secret_key"`
-		Bucket    string `json:"bucket"`
-		UseSSL    bool   `json:"use_ssl"`
+		AccessKey string      `json:"access_key"`
+		SecretKey string      `json:"secret_key"`
+		Bucket    string      `json:"bucket"`
+		UseSSL    interface{} `json:"use_ssl"`
 	}
 	if err := json.Unmarshal(config, &cfg); err != nil {
 		return err
 	}
 
-	return s.storageSvc.TestConnection(ctx, endpoint, cfg.AccessKey, cfg.SecretKey, cfg.Bucket, cfg.UseSSL)
+	useSSL := false
+	switch v := cfg.UseSSL.(type) {
+	case bool:
+		useSSL = v
+	case string:
+		useSSL = (v == "true" || v == "1")
+	}
+
+	return s.storageSvc.TestConnection(ctx, endpoint, cfg.AccessKey, cfg.SecretKey, cfg.Bucket, useSSL)
 }
 
 func (s *MasterService) TestWhatsAppConnection(ctx context.Context, endpoint string, config []byte) (map[string]interface{}, error) {
