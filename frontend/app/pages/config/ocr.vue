@@ -234,7 +234,8 @@
                      transform: `scale(${scale}) translate(${translateX}px, ${translateY}px)`,
                      cursor: isDragging ? 'grabbing' : 'grab'
                    }">
-                <img v-if="activeJob" :src="currentPreviewUrl" 
+                <img v-if="activeJob && currentPreviewBlobUrl" 
+                     :src="currentPreviewBlobUrl" 
                      ref="visualizerImage"
                      @load="onImageLoad"
                      class="max-w-none shadow-[0_0_100px_rgba(0,0,0,0.5)] rounded-sm ring-1 ring-white/10 pointer-events-none" 
@@ -378,14 +379,43 @@ const currentPreviewIndex = ref(0)
 const departments = ref([])
 const selectedDept = ref('')
 
+const currentPreviewBlobUrl = ref('')
+
+const fetchPreviewImage = async (url) => {
+  if (!url) return
+  try {
+    const res = await fetch(url, {
+      headers: {
+        'Authorization': 'Basic ' + btoa('admin:admin123')
+      }
+    })
+    if (res.ok) {
+      const blob = await res.blob()
+      if (currentPreviewBlobUrl.value) {
+        URL.revokeObjectURL(currentPreviewBlobUrl.value)
+      }
+      currentPreviewBlobUrl.value = URL.createObjectURL(blob)
+    }
+  } catch (err) {
+    console.error('Failed to load preview image:', err)
+  }
+}
+
 const currentPreviewUrl = computed(() => {
   if (!activeJob.value) return ''
   const paths = activeJob.value.preview_paths || []
+  let path = ''
   if (paths.length > 0 && currentPreviewIndex.value < paths.length) {
-    return `${ocrUrl}${paths[currentPreviewIndex.value]}`
+    path = paths[currentPreviewIndex.value]
+  } else {
+    path = activeJob.value.preview_path || activeJob.value.file_path
   }
-  return `${ocrUrl}${activeJob.value.preview_path || activeJob.value.file_path}`
+  return path ? `${ocrUrl}${path}` : ''
 })
+
+watch(currentPreviewUrl, (newUrl) => {
+  if (newUrl) fetchPreviewImage(newUrl)
+}, { immediate: true })
 
 const filteredWords = computed(() => {
   if (activeJob.value?.preview_paths?.length > 1) {
@@ -543,6 +573,8 @@ const fetchDepartments = async () => {
     const apiBase = config.public.apiBase || 'http://localhost:8080/api/v1'
     const token = localStorage.getItem('kreatif_access_token') || localStorage.getItem('token')
     
+    addLog(`[UI] Fetching departments from ${apiBase}...`)
+    
     const res = await fetch(`${apiBase}/master/departments`, {
       headers: { 
         'Authorization': `Bearer ${token}`,
@@ -554,12 +586,22 @@ const fetchDepartments = async () => {
       const json = await res.json()
       departments.value = json.data || []
       
-      // Auto-select first department
-      if (departments.value.length > 0 && !selectedDept.value) {
-        selectedDept.value = departments.value[0].id
+      if (departments.value.length === 0) {
+        addLog(`[UI] Warning: No departments found in database.`, 'text-orange-400')
+      } else {
+        addLog(`[UI] Loaded ${departments.value.length} departments.`, 'text-green-400')
+        // Auto-select first department
+        if (!selectedDept.value) {
+          selectedDept.value = departments.value[0].id
+        }
       }
+    } else {
+      const errText = await res.text()
+      addLog(`[UI] Error fetching departments: ${res.status} ${res.statusText}`, 'text-red-500')
+      console.error('Dept Fetch Error:', errText)
     }
   } catch (err) {
+    addLog(`[UI] Connection Error: ${err.message}`, 'text-red-500')
     console.error('Failed to fetch departments:', err)
   }
 }
@@ -623,6 +665,10 @@ const closeVisualizer = () => {
   showVisualizer.value = false
   activeJob.value = null
   words.value = []
+  if (currentPreviewBlobUrl.value) {
+    URL.revokeObjectURL(currentPreviewBlobUrl.value)
+    currentPreviewBlobUrl.value = ''
+  }
   resetZoom()
 }
 

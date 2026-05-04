@@ -177,15 +177,23 @@ func (s *IntegrationMonitorService) checkLDAP(endpoint string) error {
 
 func (s *IntegrationMonitorService) checkS3(node repository.IntegrationNode) error {
 	var nodeCfg struct {
-		AccessKey string `json:"access_key"`
-		SecretKey string `json:"secret_key"`
-		UseSSL    bool   `json:"use_ssl"`
+		AccessKey string      `json:"access_key"`
+		SecretKey string      `json:"secret_key"`
+		UseSSL    interface{} `json:"use_ssl"`
 	}
 	json.Unmarshal(node.ConfigJson, &nodeCfg)
 
+	useSSL := false
+	switch v := nodeCfg.UseSSL.(type) {
+	case bool:
+		useSSL = v
+	case string:
+		useSSL = (v == "true" || v == "1")
+	}
+
 	client, err := minio.New(node.Endpoint, &minio.Options{
 		Creds:  credentials.NewStaticV4(nodeCfg.AccessKey, nodeCfg.SecretKey, ""),
-		Secure: nodeCfg.UseSSL,
+		Secure: useSSL,
 	})
 	if err != nil {
 		return err

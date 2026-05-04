@@ -108,8 +108,40 @@ func main() {
 		log.Printf("WARNING: Application starting without MinIO: %v\n", err)
 	}
 
+	// 4. Elasticsearch (Priority: DB -> .env)
+	esURL := strings.TrimSpace(cfg.ElasticsearchURL)
+	var esUser, esPass, esAPIKey string
+
+	// Try "SEARCH" type first, then "ELASTICSEARCH"
+	esNode, err := repo.GetIntegrationNodeByType(context.Background(), "SEARCH")
+	if err != nil {
+		esNode, err = repo.GetIntegrationNodeByType(context.Background(), "ELASTICSEARCH")
+	}
+
+	if err == nil && esNode.IsActive.Bool {
+		esURL = strings.TrimSpace(esNode.Endpoint)
+		log.Printf("[Server] Search Engine: Using configuration from database node (%s): %s", esNode.ServiceType, esURL)
+
+		var esCfg struct {
+			Username string `json:"username"`
+			Password string `json:"password"`
+			APIKey   string `json:"api_key"`
+		}
+		json.Unmarshal(esNode.ConfigJson, &esCfg)
+		esUser = esCfg.Username
+		esPass = esCfg.Password
+		esAPIKey = esCfg.APIKey
+	}
+
+	if esURL != "" && !strings.HasPrefix(esURL, "http://") && !strings.HasPrefix(esURL, "https://") {
+		esURL = "http://" + esURL
+	}
+
 	es, err := elasticsearch.NewClient(elasticsearch.Config{
-		Addresses: []string{cfg.ElasticsearchURL},
+		Addresses: []string{esURL},
+		Username:  esUser,
+		Password:  esPass,
+		APIKey:    esAPIKey,
 	})
 	if err != nil {
 		log.Printf("WARNING: Elasticsearch client error: %v\n", err)
