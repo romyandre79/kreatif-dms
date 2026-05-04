@@ -95,6 +95,7 @@ func (s *WhatsAppService) SendMessage(ctx context.Context, to string, message st
 			req.Header.Set("Authorization", authHeader)
 		}
 		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("ngrok-skip-browser-warning", "true")
 
 	default:
 		return fmt.Errorf("unsupported whatsapp driver: %s", driver)

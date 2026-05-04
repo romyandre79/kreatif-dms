@@ -125,6 +125,8 @@ func (s *AIService) ProcessOCR(ctx context.Context, fileName string, content []b
 		return nil, err
 	}
 	req.Header.Set("Content-Type", writer.FormDataContentType())
+	// Bypass ngrok warning
+	req.Header.Set("ngrok-skip-browser-warning", "true")
 	
 	// Add Basic Auth
 	if ocrUser != "" && ocrPass != "" {
