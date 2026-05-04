@@ -216,7 +216,15 @@ func (s *IntegrationMonitorService) checkHTTP(endpoint string) error {
 		Timeout: 5 * time.Second,
 	}
 
-	resp, err := client.Get(url)
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return err
+	}
+
+	// Add ngrok bypass header
+	req.Header.Set("ngrok-skip-browser-warning", "true")
+
+	resp, err := client.Do(req)
 	if err != nil {
 		return err
 	}

@@ -1219,7 +1219,15 @@ func (h *MasterHandler) TestIntegrationNode(c fiber.Ctx) error {
 			}
 			// Use a simple HTTP check
 			client := &http.Client{Timeout: 5 * time.Second}
-			resp, err := client.Get(target + "health")
+			req, err := http.NewRequest("GET", target+"health", nil)
+			if err != nil {
+				return response.Error(c, fiber.StatusInternalServerError, "Request Creation Failed", err.Error())
+			}
+
+			// Bypass ngrok warning
+			req.Header.Set("ngrok-skip-browser-warning", "true")
+
+			resp, err := client.Do(req)
 			if err != nil {
 				return response.Error(c, fiber.StatusInternalServerError, "Scanner Bridge Unreachable", err.Error())
 			}
