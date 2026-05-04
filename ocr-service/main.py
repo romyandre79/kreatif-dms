@@ -114,6 +114,10 @@ def check_rate_limit(request: Request):
         conn.commit()
     return True
 
+@app.get("/health", tags=["System"])
+async def health_check():
+    return {"status": "ok", "time": datetime.now().isoformat()}
+
 @app.get("/", response_class=HTMLResponse, tags=["UI"])
 async def dashboard(username: str = Depends(authenticate)):
     return DASHBOARD_HTML

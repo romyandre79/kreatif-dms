@@ -85,15 +85,27 @@ func (s *IntegrationMonitorService) checkNode(ctx context.Context, node reposito
 			lastErr = err.Error()
 		}
 	case "WHATSAPP", "AI":
-		err := s.checkHTTP(node.Endpoint)
-		if err != nil {
-			status = "offline"
-			lastErr = err.Error()
+		target := node.Endpoint
+		if strings.HasPrefix(target, "http") {
+			healthURL := strings.TrimSuffix(target, "/") + "/health"
+			err := s.checkHTTP(healthURL)
+			if err != nil {
+				status = "offline"
+				lastErr = err.Error()
+			}
+		} else {
+			err := s.checkHTTP(target)
+			if err != nil {
+				status = "offline"
+				lastErr = err.Error()
+			}
 		}
 	case "SMTP", "OCR":
 		target := node.Endpoint
 		if strings.HasPrefix(target, "http") {
-			err := s.checkHTTP(target)
+			// Ensure exactly one slash before health
+			healthURL := strings.TrimSuffix(target, "/") + "/health"
+			err := s.checkHTTP(healthURL)
 			if err != nil {
 				status = "offline"
 				lastErr = err.Error()
