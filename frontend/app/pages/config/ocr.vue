@@ -384,6 +384,7 @@ const currentPreviewBlobUrl = ref('')
 const fetchPreviewImage = async (url) => {
   if (!url) return
   try {
+    console.log('[OCR] Fetching preview from:', url)
     const res = await fetch(url, {
       headers: {
         'Authorization': 'Basic ' + btoa('admin:admin123')
@@ -391,13 +392,22 @@ const fetchPreviewImage = async (url) => {
     })
     if (res.ok) {
       const blob = await res.blob()
+      console.log(`[OCR] Preview loaded: ${blob.size} bytes, type: ${blob.type}`)
+      
+      if (blob.size < 100) {
+        const text = await blob.text()
+        console.warn('[OCR] Warning: Preview blob is very small, might be an error message:', text)
+      }
+
       if (currentPreviewBlobUrl.value) {
         URL.revokeObjectURL(currentPreviewBlobUrl.value)
       }
       currentPreviewBlobUrl.value = URL.createObjectURL(blob)
+    } else {
+      console.error(`[OCR] HTTP Error ${res.status}: ${res.statusText}`)
     }
   } catch (err) {
-    console.error('Failed to load preview image:', err)
+    console.error('[OCR] Failed to fetch preview image:', err)
   }
 }
 
@@ -410,7 +420,8 @@ const currentPreviewUrl = computed(() => {
   } else {
     path = activeJob.value.preview_path || activeJob.value.file_path
   }
-  return path ? `${ocrUrl}${path}` : ''
+  // Encode URI to handle spaces in filenames
+  return path ? `${ocrUrl}${encodeURI(path)}` : ''
 })
 
 watch(currentPreviewUrl, (newUrl) => {
