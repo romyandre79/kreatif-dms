@@ -20,11 +20,26 @@
       </div>
       
       <div class="flex items-center gap-4 relative z-10">
+        <!-- Department Selector -->
+        <div class="flex flex-col gap-1.5 min-w-[240px]">
+          <span class="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-2 flex items-center gap-2">
+            <LucideBuilding2 class="w-3 h-3" />
+            Target Department
+          </span>
+          <select v-model="selectedDept" 
+                  class="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800/60 rounded-xl px-4 py-3.5 text-xs font-black text-[#1E3A5F] dark:text-slate-300 outline-none focus:ring-2 focus:ring-primary-500/20 transition-all cursor-pointer hover:border-primary-500/30">
+            <option value="" disabled>Select Department</option>
+            <option v-for="dept in departments" :key="dept.id" :value="dept.id">
+              {{ dept.name }}
+            </option>
+          </select>
+        </div>
+
         <button @click="triggerUpload" :disabled="isUploading"
-                class="flex items-center gap-3 px-8 py-4 bg-primary-500 text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-primary-600 hover:shadow-xl hover:shadow-primary-500/20 active:scale-95 transition-all disabled:opacity-50">
+                class="flex items-center gap-3 px-8 py-4 bg-primary-500 text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-primary-600 hover:shadow-xl hover:shadow-primary-500/20 active:scale-95 transition-all disabled:opacity-50 mt-5">
           <LucideUploadCloud v-if="!isUploading" class="w-4 h-4" />
           <LucideLoader2 v-else class="w-4 h-4 animate-spin" />
-          {{ isUploading ? 'Extracting...' : 'Upload Test File' }}
+          {{ isUploading ? 'Extracting...' : 'Upload Test' }}
         </button>
         <input type="file" ref="fileInput" @change="handleUpload" class="hidden" accept=".pdf,.jpg,.png,.jpeg">
       </div>
@@ -332,7 +347,7 @@ import {
   LucideScanLine, LucideUploadCloud, LucideLoader2, LucideHistory, 
   LucideRefreshCw, LucideEye, LucideActivity, LucideClock, LucideCheckCircle2, 
   LucideX, LucideMonitor, LucideZap, LucideZoomIn, LucideZoomOut, LucideLayers,
-  LucideSearch, LucideChevronLeft, LucideChevronRight
+  LucideSearch, LucideChevronLeft, LucideChevronRight, LucideBuilding2
 } from 'lucide-vue-next'
 
 const config = useRuntimeConfig()
@@ -360,6 +375,8 @@ const currentPage = ref(1)
 const pageSize = ref(10)
 const pagination = ref({ total_items: 0, total_pages: 0 })
 const currentPreviewIndex = ref(0)
+const departments = ref([])
+const selectedDept = ref('')
 
 const currentPreviewUrl = computed(() => {
   if (!activeJob.value) return ''
@@ -428,14 +445,19 @@ const handleUpload = async (e) => {
   const file = e.target.files[0]
   if (!file) return
 
+  if (!selectedDept.value) {
+    addLog(`[UI] Error: Please select a department first!`, 'text-red-500')
+    alert('Please select a target department first.')
+    return
+  }
+
   isUploading.value = true
-  addLog(`[UI] Uploading ${file.name} to DMS Backend...`)
+  addLog(`[UI] Uploading ${file.name} to Target Department...`)
 
   const formData = new FormData()
   formData.append('file', file)
   formData.append('title', file.name)
-  // Optionally add default IDs if needed, otherwise backend will handle or return error
-  // formData.append('department_id', '...') 
+  formData.append('department_id', selectedDept.value)
 
   try {
     const apiBase = config.public.apiBase || 'http://localhost:8080/api/v1'
@@ -513,6 +535,32 @@ const fetchHistory = async () => {
     }
   } catch (err) {
     console.error('Failed to fetch history:', err)
+  }
+}
+
+const fetchDepartments = async () => {
+  try {
+    const apiBase = config.public.apiBase || 'http://localhost:8080/api/v1'
+    const token = localStorage.getItem('kreatif_access_token') || localStorage.getItem('token')
+    
+    const res = await fetch(`${apiBase}/master/departments`, {
+      headers: { 
+        'Authorization': `Bearer ${token}`,
+        'Accept': 'application/json'
+      }
+    })
+    
+    if (res.ok) {
+      const json = await res.json()
+      departments.value = json.data || []
+      
+      // Auto-select first department
+      if (departments.value.length > 0 && !selectedDept.value) {
+        selectedDept.value = departments.value[0].id
+      }
+    }
+  } catch (err) {
+    console.error('Failed to fetch departments:', err)
   }
 }
 
@@ -608,6 +656,7 @@ const toggleHighlightAll = () => { highlightAll.value = !highlightAll.value }
 
 onMounted(() => {
   fetchHistory()
+  fetchDepartments()
   setupWebSocket()
 })
 

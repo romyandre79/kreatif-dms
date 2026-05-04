@@ -59,6 +59,7 @@ type Config struct {
 	HTTPSKeyFile  string `mapstructure:"HTTPS_KEY_FILE"`
 
 	WorkerConcurrency int `mapstructure:"WORKER_CONCURRENCY"`
+	CORSAllowedOrigins string `mapstructure:"CORS_ALLOWED_ORIGINS"`
 }
 
 func LoadConfig(path string) (config Config, err error) {
@@ -70,6 +71,7 @@ func LoadConfig(path string) (config Config, err error) {
 	viper.SetDefault("APP_PORT", "8080")
 	viper.SetDefault("REDIS_URL", "127.0.0.1:6379")
 	viper.SetDefault("WORKER_CONCURRENCY", 5)
+	viper.SetDefault("CORS_ALLOWED_ORIGINS", "http://localhost:3000,http://127.0.0.1:3000")
 	
 	// Default to .env
 	viper.SetConfigName(".env")
