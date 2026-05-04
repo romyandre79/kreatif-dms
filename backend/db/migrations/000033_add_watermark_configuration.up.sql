@@ -35,15 +35,15 @@ BEGIN
     END IF;
 END $$;
 
--- 3. Seed Default Watermark Settings (into settings or integration_nodes)
+-- 3. Seed Default Watermark Settings (into integration_nodes)
 -- Using integration_nodes for consistency with other services
-INSERT INTO integration_nodes (id, name, service_type, endpoint, is_active, config)
-VALUES (
-    gen_random_uuid(),
+INSERT INTO integration_nodes (name, service_type, endpoint, is_active, config_json)
+SELECT 
     'Default Watermark Configuration',
     'WATERMARK',
     'internal',
     true,
     '{"type": "text", "text": "CONFIDENTIAL - {user} - {date}", "opacity": 0.3, "position": "diagonal"}'
-)
-ON CONFLICT (service_type) WHERE service_type = 'WATERMARK' DO NOTHING;
+WHERE NOT EXISTS (
+    SELECT 1 FROM integration_nodes WHERE service_type = 'WATERMARK'
+);

@@ -89,7 +89,13 @@ const localModel = ref(JSON.parse(JSON.stringify(props.modelValue)))
 
 // Update local state when prop changes (e.g. when opening a different node)
 watch(() => props.modelValue, (newVal) => {
-  localModel.value = JSON.parse(JSON.stringify(newVal))
+  // Optimized check: Only update if the content actually differs
+  // This prevents infinite loop during typing
+  const current = JSON.stringify(localModel.value)
+  const incoming = JSON.stringify(newVal)
+  if (current !== incoming) {
+    localModel.value = JSON.parse(incoming)
+  }
 }, { deep: true })
 
 // Emit changes to parent
