@@ -241,6 +241,8 @@ async def process_ocr(
 
         duration = time.time() - start_time_val
         avg_acc = sum(w['confidence'] for w in results) / len(results) if results else 0
+        if avg_acc > 1.0:
+            avg_acc = avg_acc / 100.0
         
         save_request_log({
             "start_time": start_time_str, "end_time": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),

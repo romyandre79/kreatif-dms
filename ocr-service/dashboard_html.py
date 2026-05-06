@@ -439,7 +439,7 @@ DASHBOARD_HTML = """
                         <td class="py-4 px-6 text-slate-400 text-[10px]">${req.size}</td>
                         <td class="py-4 px-6 font-black text-[10px] text-sky-400 uppercase tracking-tighter">${docType}</td>
                         <td class="py-4 px-6 font-black text-xs text-sky-400">${req.duration.toFixed(2)}s</td>
-                        <td class="py-4 px-6 font-black text-xs text-sky-500">${(req.accuracy * 100).toFixed(1)}%</td>
+                        <td class="py-4 px-6 font-black text-xs text-sky-500">${(req.accuracy <= 1 ? req.accuracy * 100 : req.accuracy).toFixed(1)}%</td>
                         <td class="py-4 px-6">
                             <span class="px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${statusColor}">
                                 ${req.status}
@@ -544,7 +544,7 @@ DASHBOARD_HTML = """
                 div.className = 'group p-4 rounded-xl border border-slate-800/40 hover:border-sky-500/50 hover:bg-sky-500/5 transition-all cursor-pointer';
                 div.innerHTML = `
                     <div class="flex items-center justify-between mb-1">
-                        <span class="text-[9px] font-black text-slate-600 uppercase">Conf: ${ (w.confidence * 100).toFixed(1) }%</span>
+                        <span class="text-[9px] font-black text-slate-600 uppercase">Conf: ${ (w.confidence <= 1 ? w.confidence * 100 : w.confidence).toFixed(1) }%</span>
                     </div>
                     <p class="text-sm font-medium text-slate-300 group-hover:text-white">${w.text}</p>
                 `;

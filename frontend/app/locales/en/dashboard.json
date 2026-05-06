@@ -27,8 +27,10 @@
         "manifest": "MANIFEST / DESCRIPTION",
         "type": "TYPE",
         "status": "STATUS",
-        "urgency": "URGENSI"
+        "urgency": "URGENCY"
       },
+      "no_tasks": "No tasks available",
+      "level": "LEVEL",
       "items": {
         "bulk_scan": "Bulk Scan",
         "indexing": "Indexing",
@@ -75,7 +77,9 @@
         "storage_warning_title": "Storage Threshold Warning",
         "storage_warning_desc": "Cloud Bucket is at 92% capacity."
       },
-      "title": "Recent Activity"
+      "title": "Recent Activity",
+      "no_activity": "No recent activity",
+      "by": "By {name}"
     },
     "infrastructure": {
       "scanner": "SCANNER STATUS",
@@ -83,7 +87,11 @@
       "ocr_engine": "OCR ENGINE",
       "active_accuracy": "ACTIVE - ACCURACY {accuracy}%",
       "database": "DATABASE",
-      "synchronized": "SYNCHRONIZED"
+      "synchronized": "SYNCHRONIZED",
+      "no_scanner": "No Scanner",
+      "offline": "OFFLINE",
+      "active": "ACTIVE",
+      "sync_desc_ok": "System is synchronized"
     },
     "manager": {
       "alert_title": "Urgent Approvals Required",
@@ -113,7 +121,8 @@
           "inv_8821": "Vendor Invoice - PT Sentosa",
           "doc_xp_012": "Executive Contract - Project X",
           "pr_990_2": "Equipment Purchase Request"
-        }
+        },
+        "no_pending": "No pending approvals"
       },
       "compliance": {
         "title": "SLA COMPLIANCE",
@@ -147,7 +156,8 @@
           "tr_2201": "Tax Report 2023",
           "rq_882": "Requisition 882",
           "po_991": "Purchase Order 991"
-        }
+        },
+        "no_decisions": "No recent decisions"
       }
     },
     "user": {
@@ -174,10 +184,11 @@
           "phys_val": "Physical Validation",
           "today": "Today",
           "tomorrow": "Tomorrow",
-          "execute": "EXECUTE",
-          "process": "PROCESS",
-          "verify": "VERIFY"
-        }
+          "verify": "Verify",
+          "execute": "Execute",
+          "process": "Process"
+        },
+        "no_tasks": "No pending tasks"
       },
       "quick_actions": {
         "title": "Quick Actions",
@@ -197,10 +208,9 @@
           "ten_mins": "10 mins ago",
           "one_hour": "1 hour ago",
           "three_hours": "3 hours ago",
-          "details": "DETAILS",
-          "view": "VIEW",
           "sign_now": "SIGN NOW"
-        }
+        },
+        "no_activity": "No activity records"
       },
       "system_update": {
         "title": "System Update",
@@ -218,7 +228,8 @@
           "expected_return": "EST. RETURN",
           "status": "STATUS",
           "action": "ACTION"
-        }
+        },
+        "no_records": "No loan records found"
       }
     },
     "tools": {

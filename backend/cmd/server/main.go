@@ -162,6 +162,8 @@ func main() {
 	hardwareSvc := service.NewHardwareService(repo)
 	notifSvc := service.NewNotificationService(repo, waSvc)
 	integrationMonitorSvc := service.NewIntegrationMonitorService(repo)
+	dashboardSvc := service.NewDashboardService(repo)
+
 	
 	// Start Background Workers
 	integrationMonitorSvc.StartMonitoring(context.Background())
@@ -174,6 +176,8 @@ func main() {
 	batchHandler := handler.NewBatchHandler(docSvc)
 	masterHandler := handler.NewMasterHandler(masterSvc)
 	hardwareHandler := handler.NewHardwareHandler(hardwareSvc)
+	dashboardHandler := handler.NewDashboardHandler(dashboardSvc)
+
 
 	// Create Fiber App
 	app := fiber.New(fiber.Config{
@@ -346,6 +350,12 @@ func main() {
 	notifGroup.Get("/", notifHandler.GetNotifications)
 	notifGroup.Post("/:id/read", notifHandler.MarkAsRead)
 	notifGroup.Post("/read-all", notifHandler.MarkAllAsRead)
+
+	// Dashboard Routes
+	dashboardGroup := api.Group("/dashboard")
+	dashboardGroup.Use(middleware.AuthMiddleware(cfg.JWTSecret))
+	dashboardGroup.Get("/summary", dashboardHandler.GetSummary)
+
 
 	// Health check
 	app.Get("/health", func(c fiber.Ctx) error {

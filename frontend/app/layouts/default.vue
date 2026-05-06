@@ -206,7 +206,7 @@ import {
   LucideChevronDown, LucideChevronRight, LucideMenu, LucideBell,
   LucideLogOut, LucideUser, LucideFileText, LucideBox, LucideTrash2,
   LucideBarChart3, LucideActivity, LucideShieldAlert, LucideCheckCircle2,
-  LucideAlertCircle, LucideInfo, LucideUploadCloud, LucideInbox,
+  LucideAlertCircle, LucideInfo, LucideUploadCloud, LucideUpload, LucideInbox,
   LucidePieChart, LucideMap, LucideQrCode, LucideShoppingBag,
   LucideLogIn, LucideClock, LucideFileJson, LucideClipboardList,
   LucideScanLine, LucideGitCompare, LucideHardDrive, LucideBuilding2,
@@ -287,7 +287,12 @@ const iconMap = {
   'roles': LucideShieldAlert,
   'users': LucideUserCog,
   'admin_pin': LucideLock,
-  'LucideLock': LucideLock
+  'LucideLock': LucideLock,
+  'Dashboard': LucideLayoutDashboard,
+  'Search': LucideSearch,
+  'Submit': LucideUpload,
+  'Loans': LucideFileText,
+  'Tracking': LucideQrCode
 }
 
 const getIcon = (key) => iconMap[key] || LucideFileText

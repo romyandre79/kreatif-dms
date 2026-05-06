@@ -16,11 +16,11 @@
           </button>
           <div class="bg-slate-100 dark:bg-slate-800 px-4 py-2 rounded-xl flex items-center gap-2 border border-slate-200 dark:border-slate-700">
             <LucideDatabase class="w-4 h-4 text-slate-500" />
-            <span class="text-xs font-black text-slate-700 dark:text-slate-300 uppercase tracking-tighter">{{ $t('dashboard.stats.storage_percent', { percent: 72 }) }}</span>
+            <span class="text-xs font-black text-slate-700 dark:text-slate-300 uppercase tracking-tighter">{{ $t('dashboard.stats.storage_percent', { percent: Math.round(((statsSummary?.total_storage_size || 0) / (25 * 1024 * 1024 * 1024 * 1024)) * 100) }) }}</span>
           </div>
           <div class="bg-orange-50 dark:bg-orange-900/20 px-4 py-2 rounded-xl flex items-center gap-2 border border-orange-100 dark:border-orange-800">
             <LucideZap class="w-4 h-4 text-orange-500" />
-            <span class="text-xs font-black text-orange-700 dark:text-orange-400 uppercase tracking-tighter">{{ $t('dashboard.stats.active_tasks_count', { count: 31 }) }}</span>
+            <span class="text-xs font-black text-orange-700 dark:text-orange-400 uppercase tracking-tighter">{{ $t('dashboard.stats.active_tasks_count', { count: statsSummary?.active_tasks || 0 }) }}</span>
           </div>
         </div>
       </template>
@@ -34,8 +34,8 @@
           <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">{{ $t('dashboard.stats.inbound_pipeline') }}</p>
           <LucideArrowRightCircle class="w-5 h-5 text-slate-300" />
         </div>
-        <p class="text-3xl font-black text-slate-900 dark:text-white">{{ $t('dashboard.stats.units', { count: '1,248' }) }}</p>
-        <p class="text-xs font-bold text-green-500 mt-2">{{ $t('dashboard.stats.growth', { percent: 12 }) }}</p>
+        <p class="text-3xl font-black text-slate-900 dark:text-white">{{ statsSummary?.daily_received || 0 }}</p>
+        <p class="text-xs font-bold text-green-500 mt-2">{{ $t('dashboard.stats.growth', { percent: 0 }) }}</p>
       </div>
 
       <!-- Loan Operations -->
@@ -44,8 +44,8 @@
           <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">{{ $t('dashboard.stats.loans') }}</p>
           <LucidePackageCheck class="w-5 h-5 text-orange-400" />
         </div>
-        <p class="text-3xl font-black text-slate-900 dark:text-white">{{ $t('dashboard.stats.active', { count: 42 }) }}</p>
-        <p class="text-xs font-bold text-red-500 mt-2">{{ $t('dashboard.stats.overdue', { count: 8 }) }}</p>
+        <p class="text-3xl font-black text-slate-900 dark:text-white">{{ statsSummary?.active_tasks || 0 }}</p>
+        <p class="text-xs font-bold text-red-500 mt-2">{{ $t('dashboard.stats.overdue', { count: 0 }) }}</p>
       </div>
 
       <!-- WH Capacity -->
@@ -53,13 +53,13 @@
         <div class="relative w-16 h-16 flex items-center justify-center">
           <svg class="w-full h-full transform -rotate-90">
             <circle cx="32" cy="32" r="28" fill="transparent" stroke="currentColor" stroke-width="6" class="text-slate-100 dark:text-slate-800" />
-            <circle cx="32" cy="32" r="28" fill="transparent" stroke="currentColor" stroke-width="6" stroke-dasharray="176" stroke-dashoffset="49" class="text-primary-500" />
+            <circle cx="32" cy="32" r="28" fill="transparent" stroke="currentColor" stroke-width="6" stroke-dasharray="176" :stroke-dashoffset="176 - (176 * Math.min(((statsSummary?.total_storage_size || 0) / (25 * 1024 * 1024 * 1024 * 1024)), 1))" class="text-primary-500" />
           </svg>
-          <span class="absolute text-[10px] font-black">72%</span>
+          <span class="absolute text-[10px] font-black">{{ Math.round(Math.min(((statsSummary?.total_storage_size || 0) / (25 * 1024 * 1024 * 1024 * 1024)) * 100, 100)) }}%</span>
         </div>
         <div>
           <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{{ $t('dashboard.stats.warehouse_capacity') }}</p>
-          <p class="text-lg font-black text-slate-900 dark:text-white">18.4TB / 25TB</p>
+          <p class="text-lg font-black text-slate-900 dark:text-white">{{ formatBytes(statsSummary?.total_storage_size || 0) }} / 25TB</p>
         </div>
       </div>
 
@@ -104,22 +104,27 @@
             </tr>
           </thead>
           <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
-            <tr v-for="item in queueItems" :key="item.id" class="hover:bg-slate-50/50 dark:hover:bg-slate-900/50 transition-colors">
-              <td class="px-8 py-6 font-black text-sm text-slate-800 dark:text-slate-200">{{ item.id }}</td>
+            <tr v-for="item in dashboardData?.tasks" :key="item.id" class="hover:bg-slate-50/50 dark:hover:bg-slate-900/50 transition-colors">
+              <td class="px-8 py-6 font-black text-sm text-slate-800 dark:text-slate-200">{{ item.id.substring(0, 8) }}...</td>
               <td class="px-8 py-6">
-                <p class="text-sm font-black text-slate-700 dark:text-slate-300">{{ item.client }}</p>
-                <p class="text-[10px] text-slate-400 font-bold uppercase">{{ item.dept }}</p>
+                <p class="text-sm font-black text-slate-700 dark:text-slate-300">{{ $t('common.system_entity') || 'System Entity' }}</p>
+                <p class="text-[10px] text-slate-400 font-bold uppercase">{{ item.entity_type }}</p>
               </td>
-              <td class="px-8 py-6 text-sm font-bold text-slate-500">{{ item.type }}</td>
+              <td class="px-8 py-6 text-sm font-bold text-slate-500">{{ item.entity_type }}</td>
               <td class="px-8 py-6">
-                <span :class="`px-3 py-1 rounded-lg text-[9px] font-black uppercase ${item.slaBg}`">
-                  {{ item.sla }}
+                <span :class="`px-3 py-1 rounded-lg text-[9px] font-black uppercase ${item.level > 1 ? 'bg-red-100 text-red-600' : 'bg-orange-100 text-orange-600'}`">
+                  {{ $t('dashboard.queue.level') }} {{ item.level }}
                 </span>
               </td>
               <td class="px-8 py-6 text-right">
-                <button :class="`px-5 py-2.5 rounded-xl text-xs font-black transition-all ${item.btnClass}`">
-                  {{ item.btnLabel }}
+                <button class="px-5 py-2.5 rounded-xl text-xs font-black transition-all bg-[#1E3A5F] text-white hover:bg-[#152943]">
+                  {{ $t('dashboard.user.tasks.items.process') }}
                 </button>
+              </td>
+            </tr>
+            <tr v-if="!dashboardData?.tasks?.length">
+              <td colspan="5" class="px-8 py-10 text-center text-slate-400 font-bold text-xs uppercase tracking-widest">
+                {{ $t('dashboard.manager.queue.no_pending') }}
               </td>
             </tr>
           </tbody>
@@ -133,16 +138,21 @@
       <div class="xl:col-span-2 glass rounded-2xl p-8" v-motion-slide-visible-bottom>
         <h3 class="font-black text-xl text-[#1E3A5F] dark:text-white mb-8">{{ $t('dashboard.activity.title_today') }}</h3>
         <div class="space-y-8">
-          <div v-for="(act, index) in activities" :key="index" class="flex gap-6 relative">
-            <div :class="`w-3 h-3 rounded-full mt-1 flex-shrink-0 ${act.dot}`"></div>
+          <div v-for="(act, index) in dashboardData?.activities" :key="index" class="flex gap-6 relative">
+            <div :class="`w-3 h-3 rounded-full mt-1 flex-shrink-0 ${getActivityStyles(act.action).dot}`"></div>
             <div>
-              <p class="text-sm font-bold text-slate-700 dark:text-slate-200 leading-relaxed" v-html="act.text"></p>
+              <p class="text-sm font-bold text-slate-700 dark:text-slate-200 leading-relaxed">
+                <span class="font-black">{{ act.action }}</span> {{ act.entity_type }} ({{ act.entity_id?.substring(0, 8) }}...)
+              </p>
               <div class="flex items-center gap-3 mt-1">
-                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-tighter" v-html="act.sub"></p>
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">By {{ act.user_name }}</p>
                 <span class="w-1 h-1 rounded-full bg-slate-200"></span>
-                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">{{ act.time }}</p>
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">{{ timeAgo(act.created_at) }}</p>
               </div>
             </div>
+          </div>
+          <div v-if="!dashboardData?.activities?.length" class="text-center py-10 text-slate-400 font-bold text-xs uppercase tracking-widest">
+            {{ $t('dashboard.user.activity.no_activity') }}
           </div>
         </div>
       </div>
@@ -151,7 +161,7 @@
       <div class="glass rounded-2xl p-8" v-motion-slide-visible-bottom>
         <div class="flex items-center justify-between mb-8">
           <h3 class="font-black text-xl text-[#1E3A5F] dark:text-white">{{ $t('dashboard.alerts.title') }}</h3>
-          <span class="bg-red-500 text-white text-[9px] font-black uppercase px-2 py-1 rounded-md">{{ $t('dashboard.alerts.action_required', { count: 6 }) }}</span>
+          <span class="bg-red-500 text-white text-[9px] font-black uppercase px-2 py-1 rounded-md">{{ $t('dashboard.alerts.action_required', { count: statsSummary?.active_tasks || 0 }) }}</span>
         </div>
         <div class="space-y-4">
           <div v-for="alert in alerts" :key="alert.title" :class="`p-5 rounded-2xl border-l-4 ${alert.bg} ${alert.border}`">
@@ -169,7 +179,7 @@
             <LucideRefreshCcw class="w-5 h-5 text-slate-400 animate-spin-slow" />
             <div>
               <p class="text-sm font-black text-slate-700 dark:text-slate-300">{{ $t('dashboard.alerts.sync_status') }}</p>
-              <p class="text-[11px] text-slate-400 font-bold leading-relaxed">{{ $t('dashboard.alerts.sync_desc', { count: 12 }) }}</p>
+              <p class="text-[11px] text-slate-400 font-bold leading-relaxed">{{ $t('dashboard.infrastructure.sync_desc_ok') }}</p>
             </div>
           </div>
         </div>
@@ -214,39 +224,50 @@ import {
   LucideUsers,
   LucideHelpCircle,
   LucideRefreshCcw,
-  LucidePlus
+  LucidePlus,
+  LucideActivity,
+  LucideEdit,
+  LucideTrash,
+  LucideUpload
 } from 'lucide-vue-next'
 import { useAuthStore } from '~/stores/auth'
+import { useApi } from '~/composables/useApi'
 import PageHeader from '~/components/PageHeader.vue'
+import { formatBytes, timeAgo } from '~/utils/format'
 
 const auth = useAuthStore()
+const { $api } = useApi()
 const { t } = useI18n()
 const user = computed(() => auth.user)
+const config = useRuntimeConfig()
 
-const queueTabs = [
-  { label: t('dashboard.queue.tabs.all'), count: 31, active: true },
-  { label: t('dashboard.queue.tabs.receive'), count: 12, active: false },
-  { label: t('dashboard.queue.tabs.scan'), count: 8, active: false },
-  { label: t('dashboard.queue.tabs.metadata'), count: 6, active: false },
-  { label: t('dashboard.queue.tabs.loan_prep'), count: 5, active: false },
-]
+// Data Fetching
+const { data: dashboardData, refresh: refreshDashboard } = await useAsyncData('dashboard-summary', async () => {
+  const res = await $api(`${config.public.apiBase}/dashboard/summary`)
+  return res.data
+})
 
-const queueItems = [
-  { id: '#REQ-2023-0891', client: 'Legal Department', dept: 'Confidential Contracts', type: t('dashboard.queue.items.bulk_scan'), sla: t('dashboard.queue.items.overdue_2h'), slaBg: 'bg-red-100 text-red-600', btnLabel: t('dashboard.queue.items.start_scanning'), btnClass: 'bg-[#1E3A5F] text-white hover:bg-[#152943]' },
-  { id: '#PKG-4501-A', client: 'Corporate Finance', dept: 'Physical Invoices', type: t('dashboard.queue.items.receive'), sla: t('dashboard.queue.items.due_45m'), slaBg: 'bg-orange-100 text-orange-600', btnLabel: t('dashboard.queue.items.receive_pkg'), btnClass: 'bg-blue-100 text-blue-700 hover:bg-blue-200' },
-  { id: '#MTD-8821-C', client: 'Human Resources', dept: 'Employee Records', type: t('dashboard.queue.items.indexing'), sla: t('dashboard.queue.items.on_schedule'), slaBg: 'bg-slate-100 text-slate-500', btnLabel: t('dashboard.queue.items.apply_metadata'), btnClass: 'bg-blue-100 text-blue-700 hover:bg-blue-200' },
-]
+const statsSummary = computed(() => dashboardData.value?.stats)
 
-const activities = [
-  { text: t('dashboard.activity.items.ocr_completed', { id: '772' }), sub: t('dashboard.activity.items.ocr_sub', { count: '14,201' }), time: t('dashboard.activity.items.mins_ago', { count: 2 }), dot: 'bg-blue-500' },
-  { text: t('dashboard.activity.items.box_received', { name: 'Budi S.', id: 'BX-902' }), sub: t('dashboard.activity.items.box_sub', { loc: 'D-12' }), time: t('dashboard.activity.items.mins_ago', { count: 15 }), dot: 'bg-green-500' },
-  { text: t('dashboard.activity.items.loan_pending', { id: 'LR-202' }), sub: t('dashboard.activity.items.loan_sub', { name: 'Diana', dept: 'Marketing' }), time: t('dashboard.activity.items.mins_ago', { count: 45 }), dot: 'bg-orange-500' },
-  { text: t('dashboard.activity.items.security_login'), sub: t('dashboard.activity.items.security_sub', { ip: '192.168.1.45' }), time: t('dashboard.activity.items.hour_ago'), dot: 'bg-slate-300' },
-]
+const queueTabs = computed(() => [
+  { label: t('dashboard.queue.tabs.all'), count: statsSummary.value?.active_tasks || 0, active: true },
+  { label: t('dashboard.queue.tabs.receive'), count: 0, active: false },
+  { label: t('dashboard.queue.tabs.scan'), count: 0, active: false },
+  { label: t('dashboard.queue.tabs.metadata'), count: 0, active: false },
+])
+
+const getActivityStyles = (action) => {
+  switch (action) {
+    case 'CREATE': return { dot: 'bg-green-500', icon: LucidePlus, color: 'text-green-500', bg: 'bg-green-50 dark:bg-green-900/20' }
+    case 'UPDATE': return { dot: 'bg-primary-500', icon: LucideEdit, color: 'text-primary-500', bg: 'bg-primary-50 dark:bg-primary-900/20' }
+    case 'DELETE': return { dot: 'bg-red-500', icon: LucideTrash, color: 'text-red-500', bg: 'bg-red-50 dark:bg-red-900/20' }
+    case 'UPLOAD': return { dot: 'bg-teal-500', icon: LucideUpload, color: 'text-teal-500', bg: 'bg-teal-50 dark:bg-teal-900/20' }
+    default: return { dot: 'bg-slate-300', icon: LucideActivity, color: 'text-slate-500', bg: 'bg-slate-50 dark:bg-slate-900/20' }
+  }
+}
 
 const alerts = [
-  { title: 'Overdue Retention Review', desc: '128 records are past disposal date. Action required by Legal compliance.', icon: LucideAlertCircle, bg: 'bg-red-50 dark:bg-red-900/10', border: 'border-red-500', iconColor: 'text-red-500', titleColor: 'text-red-900 dark:text-red-200', descColor: 'text-red-700 dark:text-red-400' },
-  { title: 'Storage Threshold Warning', desc: "Cloud Bucket 'DMS-Primary' is at 92% capacity. Consider scaling.", icon: LucideDatabase, bg: 'bg-orange-50 dark:bg-orange-900/10', border: 'border-orange-500', iconColor: 'text-orange-500', titleColor: 'text-orange-900 dark:text-orange-200', descColor: 'text-orange-700 dark:text-orange-400' },
+  { title: 'Overdue Retention Review', desc: 'Retention policies require auditing.', icon: LucideAlertCircle, bg: 'bg-red-50 dark:bg-red-900/10', border: 'border-red-500', iconColor: 'text-red-500', titleColor: 'text-red-900 dark:text-red-200', descColor: 'text-red-700 dark:text-red-400' },
 ]
 
 const tools = [
@@ -258,13 +279,26 @@ const tools = [
   { label: t('dashboard.tools.it_support'), icon: LucideHelpCircle },
 ]
 
-const footerStats = [
-  { label: t('dashboard.footer_stats.throughput'), value: '4.2k pgs/hr' },
+const footerStats = computed(() => [
+  { label: t('dashboard.footer_stats.throughput'), value: statsSummary.value?.daily_scanned + ' pgs' },
   { label: t('dashboard.footer_stats.turnaround'), value: '5.8 hrs' },
   { label: t('dashboard.footer_stats.ocr_accuracy'), value: '99.2%' },
   { label: t('dashboard.footer_stats.sla_satisfaction'), value: '94.8%' },
-]
+])
+
+// Polling for updates
+let timer
+onMounted(() => {
+  timer = setInterval(() => {
+    refreshDashboard()
+  }, 30000)
+})
+
+onUnmounted(() => {
+  if (timer) clearInterval(timer)
+})
 </script>
+
 
 <style scoped>
 .animate-spin-slow {

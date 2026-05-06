@@ -35,10 +35,10 @@
           <LucideInbox class="w-5 h-5 text-green-500" />
         </div>
         <div>
-          <p class="text-3xl font-black text-slate-900 dark:text-white">128</p>
+          <p class="text-3xl font-black text-slate-900 dark:text-white">{{ stats?.daily_received || 0 }}</p>
           <div class="flex items-center gap-1 text-[10px] font-black text-green-500 mt-1 uppercase tracking-tighter">
             <LucideTrendingUp class="w-3 h-3" />
-            {{ $t('dashboard.stats.vs_yesterday', { percent: 12 }) }}
+            {{ $t('dashboard.stats.vs_yesterday', { percent: 0 }) }}
           </div>
         </div>
       </div>
@@ -50,10 +50,10 @@
           <LucideScan class="w-5 h-5 text-blue-500" />
         </div>
         <div>
-          <p class="text-3xl font-black text-slate-900 dark:text-white">94</p>
+          <p class="text-3xl font-black text-slate-900 dark:text-white">{{ stats?.daily_scanned || 0 }}</p>
           <div class="flex items-center gap-1 text-[10px] font-black text-green-500 mt-1 uppercase tracking-tighter">
             <LucideTrendingUp class="w-3 h-3" />
-            {{ $t('dashboard.stats.vs_yesterday', { percent: 5 }) }}
+            {{ $t('dashboard.stats.vs_yesterday', { percent: 0 }) }}
           </div>
         </div>
       </div>
@@ -65,10 +65,10 @@
           <LucideFileCheck class="w-5 h-5 text-primary-500" />
         </div>
         <div>
-          <p class="text-3xl font-black text-slate-900 dark:text-white">82</p>
+          <p class="text-3xl font-black text-slate-900 dark:text-white">{{ stats?.daily_processed || 0 }}</p>
           <div class="flex items-center gap-1 text-[10px] font-black text-green-500 mt-1 uppercase tracking-tighter">
             <LucideTrendingUp class="w-3 h-3" />
-            {{ $t('dashboard.stats.vs_yesterday', { percent: 8 }) }}
+            {{ $t('dashboard.stats.vs_yesterday', { percent: 0 }) }}
           </div>
         </div>
       </div>
@@ -80,9 +80,9 @@
           <LucideLayers class="w-5 h-5 text-teal-500" />
         </div>
         <div>
-          <p class="text-2xl font-black text-slate-900 dark:text-white">7.2TB / 10TB</p>
+          <p class="text-xl font-black text-slate-900 dark:text-white">{{ formatBytes(stats?.total_storage_size || 0) }} / 10TB</p>
           <div class="h-1.5 w-full bg-slate-100 dark:bg-slate-800 rounded-full mt-3 overflow-hidden">
-            <div class="h-full bg-teal-500 rounded-full" style="width: 72%"></div>
+            <div class="h-full bg-teal-500 rounded-full" :style="`width: ${Math.min(((stats?.total_storage_size || 0) / (10 * 1024 * 1024 * 1024 * 1024)) * 100, 100)}%`"></div>
           </div>
         </div>
       </div>
@@ -94,7 +94,7 @@
           <LucideClipboardList class="w-5 h-5 text-teal-50" />
         </div>
         <div>
-          <p class="text-4xl font-black">31</p>
+          <p class="text-4xl font-black">{{ stats?.active_tasks || 0 }}</p>
           <p class="text-[10px] font-bold text-teal-50 mt-1">{{ $t('dashboard.stats.immediate_attention') }}</p>
         </div>
       </div>
@@ -119,21 +119,26 @@
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-50 dark:divide-slate-900">
-              <tr v-for="task in taskQueue" :key="task.id" class="hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-colors">
+              <tr v-for="task in dashboardData?.tasks" :key="task.id" class="hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-colors">
                 <td class="px-8 py-6">
-                  <p class="font-black text-sm text-[#1E3A5F] dark:text-slate-200">{{ task.id }}</p>
-                  <p class="text-[10px] text-slate-400 font-bold mt-0.5">{{ task.desc }}</p>
+                  <p class="font-black text-sm text-[#1E3A5F] dark:text-slate-200">{{ task.id.substring(0, 8) }}...</p>
+                  <p class="text-[10px] text-slate-400 font-bold mt-0.5">{{ task.entity_type }}</p>
                 </td>
                 <td class="px-8 py-6">
-                  <span class="text-sm font-bold text-slate-600 dark:text-slate-400">{{ task.type }}</span>
+                  <span class="text-sm font-bold text-slate-600 dark:text-slate-400">{{ task.entity_type }}</span>
                 </td>
                 <td class="px-8 py-6">
                   <span class="text-xs font-black text-primary-600 uppercase tracking-tighter">{{ task.status }}</span>
                 </td>
                 <td class="px-8 py-6 text-right">
-                  <span :class="`px-3 py-1 rounded-lg text-[9px] font-black uppercase ${task.urgencyBg}`">
-                    {{ task.urgency }}
+                  <span :class="`px-3 py-1 rounded-lg text-[9px] font-black uppercase ${task.level > 1 ? 'bg-red-50 text-red-500' : 'bg-orange-50 text-orange-500'}`">
+                    {{ $t('dashboard.queue.level') }} {{ task.level }}
                   </span>
+                </td>
+              </tr>
+              <tr v-if="!dashboardData?.tasks?.length">
+                <td colspan="4" class="px-8 py-10 text-center text-slate-400 font-bold text-xs uppercase tracking-widest">
+                  {{ $t('dashboard.queue.no_tasks') }}
                 </td>
               </tr>
             </tbody>
@@ -145,16 +150,19 @@
       <div class="glass rounded-2xl p-8 flex flex-col" v-motion-slide-visible-bottom>
         <h3 class="font-black text-lg text-[#1E3A5F] dark:text-white mb-10 text-center">{{ $t('dashboard.activity.title_recent') }}</h3>
         <div class="space-y-10 flex-1">
-          <div v-for="(act, index) in activities" :key="index" class="flex gap-6 relative">
-            <div v-if="index !== activities.length - 1" class="absolute left-3.5 top-8 w-0.5 h-10 bg-slate-100 dark:bg-slate-800"></div>
-            <div :class="`w-7 h-7 rounded-full flex-shrink-0 flex items-center justify-center z-10 border-4 border-white dark:border-slate-900 ${act.bg}`">
-              <component :is="act.icon" :class="`w-3 h-3 ${act.color}`" />
+          <div v-for="(act, index) in dashboardData?.activities" :key="index" class="flex gap-6 relative">
+            <div v-if="index !== dashboardData.activities.length - 1" class="absolute left-3.5 top-8 w-0.5 h-10 bg-slate-100 dark:bg-slate-800"></div>
+            <div :class="`w-7 h-7 rounded-full flex-shrink-0 flex items-center justify-center z-10 border-4 border-white dark:border-slate-900 ${getActivityStyles(act.action).bg}`">
+              <component :is="getActivityStyles(act.action).icon" :class="`w-3 h-3 ${getActivityStyles(act.action).color}`" />
             </div>
             <div>
-              <p class="text-sm font-bold text-[#1E3A5F] dark:text-slate-200">{{ act.title }}</p>
-              <p class="text-xs text-slate-400 mt-1 leading-relaxed">{{ act.desc }}</p>
-              <p class="text-[10px] text-slate-300 dark:text-slate-500 font-black uppercase mt-1.5">{{ act.time }}</p>
+              <p class="text-sm font-bold text-[#1E3A5F] dark:text-slate-200">{{ act.action }} {{ act.entity_type }}</p>
+              <p class="text-xs text-slate-400 mt-1 leading-relaxed">{{ $t('dashboard.activity.by', { name: act.user_name }) }}</p>
+              <p class="text-[10px] text-slate-300 dark:text-slate-500 font-black uppercase mt-1.5">{{ timeAgo(act.created_at) }}</p>
             </div>
+          </div>
+          <div v-if="!dashboardData?.activities?.length" class="text-center py-10 text-slate-400 font-bold text-xs uppercase tracking-widest">
+             {{ $t('dashboard.activity.no_activity') }}
           </div>
         </div>
         <button class="w-full mt-10 py-3.5 bg-slate-50 dark:bg-slate-800/50 rounded-xl text-[10px] font-black uppercase tracking-widest text-slate-400 hover:bg-slate-100 transition-all">
@@ -167,25 +175,29 @@
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6" v-motion-slide-visible-bottom>
       <!-- Scanner -->
       <div class="glass p-6 rounded-2xl flex items-center gap-5 group hover:border-green-500/30 transition-all">
-        <div class="w-14 h-14 rounded-2xl bg-green-50 dark:bg-green-900/20 flex items-center justify-center text-green-500">
+        <div :class="`w-14 h-14 rounded-2xl flex items-center justify-center transition-all ${isScannerActive ? 'bg-green-50 dark:bg-green-900/20 text-green-500' : 'bg-slate-50 dark:bg-slate-900/20 text-slate-400'}`">
           <LucidePrinter class="w-7 h-7" />
         </div>
         <div>
           <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">{{ $t('dashboard.infrastructure.scanner') }}</p>
-          <p class="text-sm font-black text-slate-800 dark:text-white">Canon DR-M260</p>
-          <p class="text-[10px] font-bold text-green-500 uppercase">{{ $t('dashboard.infrastructure.connected') }}</p>
+          <p class="text-sm font-black text-slate-800 dark:text-white">{{ scannerNode?.name || $t('dashboard.infrastructure.no_scanner') }}</p>
+          <p :class="`text-[10px] font-bold uppercase ${isScannerActive ? 'text-green-500' : 'text-slate-400'}`">
+            {{ isScannerActive ? $t('dashboard.infrastructure.connected') : $t('dashboard.infrastructure.offline') }}
+          </p>
         </div>
       </div>
 
       <!-- OCR Engine -->
       <div class="glass p-6 rounded-2xl flex items-center gap-5 group hover:border-primary-500/30 transition-all">
-        <div class="w-14 h-14 rounded-2xl bg-primary-50 dark:bg-primary-900/20 flex items-center justify-center text-primary-500">
+        <div :class="`w-14 h-14 rounded-2xl flex items-center justify-center transition-all ${isOCRActive ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-500' : 'bg-slate-50 dark:bg-slate-900/20 text-slate-400'}`">
           <LucideCpu class="w-7 h-7" />
         </div>
         <div>
           <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">{{ $t('dashboard.infrastructure.ocr_engine') }}</p>
-          <p class="text-sm font-black text-slate-800 dark:text-white">Abbyy Finereader</p>
-          <p class="text-[10px] font-bold text-green-500 uppercase">{{ $t('dashboard.infrastructure.active_accuracy', { accuracy: 99.2 }) }}</p>
+          <p class="text-sm font-black text-slate-800 dark:text-white">{{ ocrNode?.name || 'PaddleOCR' }}</p>
+          <p :class="`text-[10px] font-bold uppercase ${isOCRActive ? 'text-green-500' : 'text-slate-400'}`">
+             {{ isOCRActive ? $t('dashboard.infrastructure.active') : $t('dashboard.infrastructure.offline') }}
+          </p>
         </div>
       </div>
 
@@ -196,7 +208,7 @@
         </div>
         <div>
           <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">{{ $t('dashboard.infrastructure.database') }}</p>
-          <p class="text-sm font-black text-slate-800 dark:text-white">Oracle Cloud</p>
+          <p class="text-sm font-black text-slate-800 dark:text-white">PostgreSQL Cluster</p>
           <p class="text-[10px] font-bold text-green-500 uppercase">{{ $t('dashboard.infrastructure.synchronized') }}</p>
         </div>
       </div>
@@ -221,14 +233,22 @@ import {
   LucideCpu,
   LucideDatabase,
   LucideFileStack,
-  LucidePlus
+  LucidePlus,
+  LucideActivity,
+  LucideTrash,
+  LucideEdit,
+  LucideUpload
 } from 'lucide-vue-next'
 import { useAuthStore } from '~/stores/auth'
+import { useApi } from '~/composables/useApi'
 import PageHeader from '~/components/PageHeader.vue'
+import { formatBytes, timeAgo } from '~/utils/format'
 
 const auth = useAuthStore()
+const { $api } = useApi()
 const { t } = useI18n()
 const user = computed(() => auth.user)
+const config = useRuntimeConfig()
 
 const currentDate = computed(() => {
   const d = new Date();
@@ -238,17 +258,47 @@ const currentDate = computed(() => {
   return `${day}.${month}.${year}`;
 })
 
-const taskQueue = [
-  { id: 'MFST-2023-0941', desc: 'Finance Dept (Legal Vouchers)', type: t('dashboard.queue.items.bulk_scan'), status: t('dashboard.queue.items.on_schedule'), urgency: 'HIGH', urgencyBg: 'bg-red-50 text-red-500' },
-  { id: 'MFST-2023-0942', desc: 'HR Services (Employee Files)', type: t('dashboard.queue.items.indexing'), status: t('dashboard.queue.items.on_schedule'), urgency: 'MEDIUM', urgencyBg: 'bg-orange-50 text-orange-500' },
-  { id: 'MFST-2023-0899', desc: 'Procurement (Vendor Contracts)', type: t('dashboard.queue.items.receive'), status: t('dashboard.queue.items.on_schedule'), urgency: 'LOW', urgencyBg: 'bg-slate-50 text-slate-400' },
-  { id: 'MFST-2023-0945', desc: 'Board Records (Annual 2022)', type: t('dashboard.queue.items.bulk_scan'), status: t('dashboard.queue.items.on_schedule'), urgency: 'HIGH', urgencyBg: 'bg-red-50 text-red-500' },
-]
+// Data Fetching
+const { data: dashboardData, refresh: refreshDashboard } = await useAsyncData('dashboard-summary', async () => {
+  const res = await $api(`${config.public.apiBase}/dashboard/summary`)
+  return res.data
+})
 
-const activities = [
-  { title: t('dashboard.activity.items.ocr_completed', { id: '2023-0948' }), desc: t('dashboard.activity.items.ocr_sub', { count: 42 }), time: t('dashboard.activity.items.mins_ago', { count: 12 }), icon: LucideFileStack, color: 'text-primary-500', bg: 'bg-primary-50 dark:bg-primary-900/20' },
-  { title: t('retention.approaching.title'), desc: '340 documents from Finance Dept are reaching 10-year retention limit.', time: t('dashboard.activity.items.mins_ago', { count: 45 }), icon: LucideAlertCircle, color: 'text-red-500', bg: 'bg-red-50 dark:bg-red-900/20' },
-  { title: t('dashboard.infrastructure.database'), desc: 'Zone A-04 marked as 95% full after bulk deposit MFST-0881.', time: t('dashboard.activity.items.hour_ago'), icon: LucideLayers, color: 'text-teal-500', bg: 'bg-teal-50 dark:bg-teal-900/20' },
-  { title: t('dashboard.activity.items.security_login'), desc: t('dashboard.activity.items.security_sub', { ip: '10.20.44.12' }), time: '4 hours ago', icon: LucideUser, color: 'text-green-500', bg: 'bg-green-50 dark:bg-green-900/20' },
-]
+const { data: integrationData, refresh: refreshIntegration } = await useAsyncData('integration-status', async () => {
+  const res = await $api(`${config.public.apiBase}/master/integration/status`)
+  return res.data
+})
+
+const stats = computed(() => dashboardData.value?.stats)
+
+// Integration Node Helpers
+const scannerNode = computed(() => integrationData.value?.nodes?.find(n => n.service_type === 'SCANNER_LOCAL' || n.service_type === 'SCANNER_NETWORK'))
+const isScannerActive = computed(() => scannerNode.value?.is_active)
+
+const ocrNode = computed(() => integrationData.value?.nodes?.find(n => n.service_type === 'OCR'))
+const isOCRActive = computed(() => ocrNode.value?.is_active)
+
+const getActivityStyles = (action) => {
+  switch (action) {
+    case 'CREATE': return { icon: LucidePlus, color: 'text-green-500', bg: 'bg-green-50 dark:bg-green-900/20' }
+    case 'UPDATE': return { icon: LucideEdit, color: 'text-primary-500', bg: 'bg-primary-50 dark:bg-primary-900/20' }
+    case 'DELETE': return { icon: LucideTrash, color: 'text-red-500', bg: 'bg-red-50 dark:bg-red-900/20' }
+    case 'UPLOAD': return { icon: LucideUpload, color: 'text-teal-500', bg: 'bg-teal-50 dark:bg-teal-900/20' }
+    default: return { icon: LucideActivity, color: 'text-slate-500', bg: 'bg-slate-50 dark:bg-slate-900/20' }
+  }
+}
+
+// Polling for updates
+let timer
+onMounted(() => {
+  timer = setInterval(() => {
+    refreshDashboard()
+    refreshIntegration()
+  }, 30000)
+})
+
+onUnmounted(() => {
+  if (timer) clearInterval(timer)
+})
 </script>
+

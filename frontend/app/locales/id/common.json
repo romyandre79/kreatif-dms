@@ -8,7 +8,9 @@
       "returned": "DIKEMBALIKAN"
     },
     "loading": "Memuat data...",
-    "no_data": "Data tidak ditemukan"
+    "no_data": "Data tidak ditemukan",
+    "system": "Sistem",
+    "system_entity": "Entitas Sistem"
   },
   "error": {
     "page_not_found": "Halaman tidak ditemukan",
