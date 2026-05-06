@@ -42,12 +42,17 @@
                        :class="openSubmenus.includes(item.key) ? 'bg-primary-500/10 text-primary-500' : 'bg-slate-100 dark:bg-slate-800 text-slate-400 group-hover:text-primary-500'">
                     <component :is="getIcon(item.icon || item.key)" class="w-4 h-4" />
                   </div>
-                  <span class="text-[11px] font-black uppercase tracking-tight text-slate-600 dark:text-slate-300 group-hover:text-primary-500 transition-colors">
-                    {{ t('layout.menu.' + item.key) }}
-                  </span>
+                  <div class="flex-1 flex items-center justify-between min-w-0">
+                    <span class="text-[11px] font-black uppercase tracking-tight text-slate-600 dark:text-slate-300 group-hover:text-primary-500 transition-colors text-left">
+                      {{ t('layout.menu.' + item.key) }}
+                    </span>
+                    <div class="flex items-center gap-2 ml-4">
+                      <span v-if="item.badge" class="px-1.5 py-0.5 rounded-full bg-red-500 text-white text-[9px] font-black">{{ item.badge }}</span>
+                      <LucideChevronRight class="w-4 h-4 text-slate-400 transition-transform duration-300" 
+                                          :class="{ 'rotate-90 text-primary-500': openSubmenus.includes(item.key) }" />
+                    </div>
+                  </div>
                 </div>
-                <LucideChevronRight class="w-3.5 h-3.5 text-slate-400 transition-transform duration-300"
-                                    :class="{ 'rotate-90 text-primary-500': openSubmenus.includes(item.key) }" />
               </button>
               
               <Transition name="expand">
@@ -58,7 +63,10 @@
                            class="flex items-center gap-4 px-9 py-3 rounded-xl transition-all duration-300 group relative overflow-hidden"
                            :class="route.path === child.path ? 'bg-primary-500/5 text-primary-500' : 'text-slate-400 hover:text-primary-500'">
                     <div v-if="route.path === child.path" class="absolute left-0 top-0 bottom-0 w-1 bg-primary-500 rounded-full"></div>
-                    <span class="text-[10px] font-black uppercase tracking-tight">{{ t('layout.menu.' + child.key) }}</span>
+                    <div class="flex-1 flex items-center justify-between min-w-0">
+                      <span class="text-[10px] font-black uppercase tracking-tight truncate text-left">{{ t('layout.menu.' + child.key) }}</span>
+                      <span v-if="child.badge" class="px-1.5 py-0.5 rounded-md bg-white/10 text-white/50 text-[8px] font-black">{{ child.badge }}</span>
+                    </div>
                   </NuxtLink>
                 </div>
               </Transition>
@@ -74,7 +82,10 @@
                    :class="route.path === item.path ? 'bg-white/20' : 'bg-slate-100 dark:bg-slate-800 text-slate-400 group-hover:text-primary-500'">
                 <component :is="getIcon(item.icon || item.key)" class="w-4 h-4" />
               </div>
-              <span class="text-[11px] font-black uppercase tracking-tight">{{ t('layout.menu.' + item.key) }}</span>
+              <div class="flex-1 flex items-center justify-between min-w-0">
+                <span class="text-[11px] font-black uppercase tracking-tight truncate text-left">{{ t('layout.menu.' + item.key) }}</span>
+                <span v-if="item.badge" :class="`px-1.5 py-0.5 rounded-full text-[9px] font-black ${route.path === item.path ? 'bg-white/20 text-white' : 'bg-red-500 text-white'}`">{{ item.badge }}</span>
+              </div>
             </NuxtLink>
           </div>
         </nav>
@@ -206,7 +217,7 @@ import {
   LucideChevronDown, LucideChevronRight, LucideMenu, LucideBell,
   LucideLogOut, LucideUser, LucideFileText, LucideBox, LucideTrash2,
   LucideBarChart3, LucideActivity, LucideShieldAlert, LucideCheckCircle2,
-  LucideAlertCircle, LucideInfo, LucideUploadCloud, LucideInbox,
+  LucideAlertCircle, LucideInfo, LucideUploadCloud, LucideUpload, LucideInbox,
   LucidePieChart, LucideMap, LucideQrCode, LucideShoppingBag,
   LucideLogIn, LucideClock, LucideFileJson, LucideClipboardList,
   LucideScanLine, LucideGitCompare, LucideHardDrive, LucideBuilding2,
@@ -287,7 +298,13 @@ const iconMap = {
   'roles': LucideShieldAlert,
   'users': LucideUserCog,
   'admin_pin': LucideLock,
-  'LucideLock': LucideLock
+  'LucideLock': LucideLock,
+  'Dashboard': LucideLayoutDashboard,
+  'Search': LucideSearch,
+  'Submit': LucideUpload,
+  'Loans': LucideFileText,
+  'Tracking': LucideQrCode,
+  'LucideBell': LucideBell
 }
 
 const getIcon = (key) => iconMap[key] || LucideFileText

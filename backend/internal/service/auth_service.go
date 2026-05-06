@@ -256,6 +256,7 @@ type MenuItem struct {
 	Key      string     `json:"key"`
 	Path     string     `json:"path,omitempty"`
 	Icon     string     `json:"icon,omitempty"`
+	Badge    string     `json:"badge,omitempty"`
 	Children []MenuItem `json:"children,omitempty"`
 }
 
@@ -294,7 +295,7 @@ func (s *AuthService) GetMenu(ctx context.Context, userID uuid.UUID) ([]MenuItem
 		// Categories (parent_id is null/empty) are always included if they have allowed children,
 		// or we can just include them and prune later. 
 		// For now, let's include if allowed or if it's a category.
-		if !allowedModules[m.ID] && m.ParentID.String == "" && m.Path.String != "" {
+		if !allowedModules[m.ID] && m.Path.String != "" {
 			continue
 		}
 
@@ -304,6 +305,23 @@ func (s *AuthService) GetMenu(ctx context.Context, userID uuid.UUID) ([]MenuItem
 			Icon:     m.Icon.String,
 			Children: []MenuItem{},
 		}
+
+		// Mock badges for Manager role as per design
+		if user.RoleName.String == "manajer" {
+			switch m.ID {
+			case "cat_approval":
+				item.Badge = "5"
+			case "sub_docs":
+				item.Badge = "2"
+			case "sub_loans":
+				item.Badge = "2"
+			case "sub_ext":
+				item.Badge = "1"
+			case "notifications":
+				item.Badge = "8"
+			}
+		}
+
 		// Special case: for categories, use their name as the key if preferred, 
 		// but using ID is safer for i18n.
 		menuItems[m.ID] = item

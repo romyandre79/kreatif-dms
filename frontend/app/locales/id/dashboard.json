@@ -29,6 +29,8 @@
         "status": "STATUS",
         "urgency": "URGENSI"
       },
+      "no_tasks": "Tidak ada tugas yang tersedia",
+      "level": "LEVEL",
       "items": {
         "bulk_scan": "Pemindaian Massal",
         "indexing": "Pengindeksan",
@@ -75,7 +77,9 @@
         "storage_warning_title": "Peringatan Kapasitas Penyimpanan",
         "storage_warning_desc": "Kapasitas Cloud Bucket mencapai 92%."
       },
-      "title": "Aktivitas Terbaru"
+      "title": "Aktivitas Terbaru",
+      "no_activity": "Tidak ada aktivitas terbaru",
+      "by": "Oleh {name}"
     },
     "infrastructure": {
       "scanner": "STATUS PEMINDAI",
@@ -83,7 +87,11 @@
       "ocr_engine": "MESIN OCR",
       "active_accuracy": "AKTIF - AKURASI {accuracy}%",
       "database": "BASIS DATA",
-      "synchronized": "TERSINKRONISASI"
+      "synchronized": "TERSINKRONISASI",
+      "no_scanner": "Tidak Ada Scanner",
+      "offline": "OFFLINE",
+      "active": "AKTIF",
+      "sync_desc_ok": "Sistem tersinkronisasi"
     },
     "manager": {
       "alert_title": "Persetujuan Mendesak Diperlukan",
@@ -113,7 +121,8 @@
           "inv_8821": "Tagihan Vendor - PT Sentosa",
           "doc_xp_012": "Kontrak Eksekutif - Proyek X",
           "pr_990_2": "Permintaan Pembelian Alat"
-        }
+        },
+        "no_pending": "Tidak ada persetujuan tertunda"
       },
       "compliance": {
         "title": "KEPATUHAN SLA",
@@ -147,7 +156,8 @@
           "tr_2201": "Laporan Pajak 2023",
           "rq_882": "Rekuisisi 882",
           "po_991": "Pesanan Pembelian 991"
-        }
+        },
+        "no_decisions": "Tidak ada keputusan terbaru"
       }
     },
     "user": {
@@ -174,10 +184,11 @@
           "phys_val": "Validasi Fisik",
           "today": "Hari ini",
           "tomorrow": "Besok",
-          "execute": "EKSEKUSI",
-          "process": "PROSES",
-          "verify": "VERIFIKASI"
-        }
+          "verify": "Verifikasi",
+          "execute": "Eksekusi",
+          "process": "Proses"
+        },
+        "no_tasks": "Tidak ada tugas tertunda"
       },
       "quick_actions": {
         "title": "Aksi Cepat",
@@ -197,10 +208,9 @@
           "ten_mins": "10 menit lalu",
           "one_hour": "1 jam lalu",
           "three_hours": "3 jam lalu",
-          "details": "DETAIL",
-          "view": "LIHAT",
           "sign_now": "TTD SEKARANG"
-        }
+        },
+        "no_activity": "Tidak ada catatan aktivitas"
       },
       "system_update": {
         "title": "Pembaruan Sistem",
@@ -218,7 +228,8 @@
           "expected_return": "EST. KEMBALI",
           "status": "STATUS",
           "action": "AKSI"
-        }
+        },
+        "no_records": "Catatan pinjaman tidak ditemukan"
       }
     },
     "tools": {
