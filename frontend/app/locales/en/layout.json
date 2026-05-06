@@ -91,7 +91,21 @@
       "cat_retention": "Retention",
       "cat_reports": "Reports",
       "cat_config": "Configuration",
-      "cat_admin": "Administration"
+      "cat_admin": "Administration",
+      "cat_approval": "Approval Management",
+      "cat_loans": "Loans",
+      "cat_submissions": "Document Submissions",
+      "sub_docs": "Document Submissions",
+      "sub_loans": "Document Loans",
+      "sub_ext": "Loan Extensions",
+      "loan_req": "Request Loan",
+      "loan_my": "My Loans",
+      "loan_soft": "Softcopy Request",
+      "loan_hist": "Loan History",
+      "sub_new": "Submit Document",
+      "sub_status": "Submission Status",
+      "inbound_pre": "Inbound Pre-Registration",
+      "notifications_menu": "Notifications"
     }
   }
 }
