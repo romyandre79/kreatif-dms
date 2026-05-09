@@ -1520,6 +1520,20 @@ func (q *Queries) UpdateCompany(ctx context.Context, arg UpdateCompanyParams) (C
 	return i, err
 }
 
+const updateCompanyLogo = `-- name: UpdateCompanyLogo :exec
+UPDATE companies SET logo_url = $2 WHERE id = $1
+`
+
+type UpdateCompanyLogoParams struct {
+	ID      uuid.UUID   `json:"id"`
+	LogoUrl pgtype.Text `json:"logo_url"`
+}
+
+func (q *Queries) UpdateCompanyLogo(ctx context.Context, arg UpdateCompanyLogoParams) error {
+	_, err := q.db.Exec(ctx, updateCompanyLogo, arg.ID, arg.LogoUrl)
+	return err
+}
+
 const updateDepartment = `-- name: UpdateDepartment :one
 UPDATE departments SET name = $2, head_id = $3, branch_id = $4
 WHERE id = $1

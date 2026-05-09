@@ -197,99 +197,113 @@
       <!-- Paper Container -->
       <div class="max-w-4xl mx-auto bg-white dark:bg-slate-900 shadow-2xl p-16 relative min-h-[1120px] flex flex-col">
         <!-- Header -->
-        <div class="flex justify-between items-start mb-12">
+        <div class="flex justify-between items-start mb-8">
           <div class="space-y-1">
-            <h2 class="text-2xl font-black text-[#1E3A5F] dark:text-white tracking-widest">{{ $t('manifest.header_title') }}</h2>
-            <p class="text-lg font-bold text-slate-800 dark:text-slate-200 uppercase">{{ manifestData?.company_name }}</p>
-            <p class="text-xs font-black text-slate-400 uppercase tracking-[0.2em]">{{ $t('manifest.header_subtitle') }}</p>
+            <h2 class="text-3xl font-black text-[#1E3A5F] dark:text-white tracking-tight uppercase">Document Manifest</h2>
+            <p class="text-xl font-bold text-[#1E3A5F] opacity-80 uppercase">{{ manifestData?.company_name }}</p>
+            <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Document Management System</p>
           </div>
-          <div v-if="manifestData?.company_logo" class="w-16 h-16 bg-white dark:bg-slate-800 rounded-lg overflow-hidden flex items-center justify-center border border-slate-100 dark:border-slate-800">
-            <img :src="manifestData.company_logo" class="w-full h-full object-contain" alt="Logo" />
+          <div class="w-16 h-16 bg-[#F3EED9] rounded-lg flex items-center justify-center border border-[#E5DDB8] overflow-hidden">
+            <img v-if="manifestData?.company_logo" :src="manifestData.company_logo" class="w-full h-full object-contain" alt="Logo" />
+            <LucideBuilding2 v-else class="w-8 h-8 text-[#B5A66B]" />
           </div>
-          <div v-else class="w-16 h-16 bg-slate-50 dark:bg-slate-800 rounded-lg flex items-center justify-center text-slate-300 font-black italic text-[10px]">Logo</div>
         </div>
 
-        <div class="w-full h-px bg-slate-200 dark:bg-slate-800 mb-12"></div>
+        <div class="w-full h-[2px] bg-slate-800 mb-10"></div>
 
         <!-- Metadata Section -->
-        <div class="grid grid-cols-2 gap-12 mb-16">
-          <div class="grid grid-cols-2 gap-y-6">
+        <div class="grid grid-cols-[1fr_200px] gap-12 mb-16 items-start">
+          <div class="grid grid-cols-2 gap-x-12 gap-y-8">
             <div class="space-y-1">
-              <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">{{ $t('manifest.manifest_id') }}</p>
+              <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Manifest ID</p>
               <p class="text-sm font-black text-[#1E3A5F] dark:text-white uppercase">{{ manifestData?.id }}</p>
             </div>
             <div class="space-y-1">
-              <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">{{ $t('manifest.generated_date') }}</p>
+              <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Generated Date</p>
               <p class="text-sm font-bold text-slate-700 dark:text-slate-300">{{ manifestData?.date }}</p>
             </div>
             <div class="space-y-1">
-              <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">{{ $t('manifest.submitter') }}</p>
+              <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Submitter</p>
               <p class="text-sm font-bold text-slate-700 dark:text-slate-300">{{ manifestData?.submitter }}</p>
             </div>
             <div class="space-y-1">
-              <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">{{ $t('manifest.approver') }}</p>
+              <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Approver</p>
               <p class="text-sm font-bold text-slate-700 dark:text-slate-300">{{ manifestData?.manager_name }}</p>
             </div>
             <div class="space-y-1 pt-4 col-span-2">
-              <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">{{ $t('manifest.total_docs') }}</p>
-              <p class="text-2xl font-black text-[#1E3A5F] dark:text-white">{{ manifestData?.qty }} File(s)</p>
+              <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total Documents</p>
+              <p class="text-3xl font-black text-[#1E3A5F] dark:text-white">{{ manifestData?.qty }} File(s)</p>
             </div>
           </div>
-          <div class="flex flex-col items-center justify-center">
-            <div class="w-32 h-32 border-2 border-slate-100 dark:border-slate-800 rounded-2xl flex items-center justify-center mb-2">
-              <LucideQrCode class="w-24 h-24 text-slate-800 dark:text-white" />
+          <div class="flex flex-col items-center">
+            <div class="w-32 h-32 border border-slate-100 dark:border-slate-800 rounded-2xl flex items-center justify-center mb-2 shadow-sm">
+              <LucideQrCode class="w-24 h-24 text-slate-900 dark:text-white" />
             </div>
-            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">{{ manifestData?.id }}</p>
+            <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest">{{ manifestData?.id }}</p>
           </div>
         </div>
 
         <!-- Listing Table -->
         <div class="space-y-4 mb-16 flex-grow">
           <div class="flex items-center gap-3">
-            <div class="w-1 h-4 bg-[#1E3A5F]"></div>
-            <h3 class="text-xs font-black text-[#1E3A5F] dark:text-white uppercase tracking-widest">{{ $t('manifest.listing_title') }}</h3>
+            <div class="w-1 h-5 bg-[#1E3A5F]"></div>
+            <h3 class="text-sm font-black text-[#1E3A5F] dark:text-white uppercase tracking-widest">Document Listing</h3>
           </div>
-          <table class="w-full text-left border-collapse">
+          <table class="w-full text-left border-collapse border border-slate-200">
             <thead>
-              <tr class="bg-slate-50 dark:bg-slate-800 border-y border-slate-200 dark:border-slate-700">
-                <th class="p-3 text-[9px] font-black text-slate-400 uppercase tracking-tight">{{ $t('manifest.table.no') }}</th>
-                <th class="p-3 text-[9px] font-black text-slate-400 uppercase tracking-tight">{{ $t('manifest.table.reg_id') }}</th>
-                <th class="p-3 text-[9px] font-black text-slate-400 uppercase tracking-tight">{{ $t('manifest.table.title') }}</th>
-                <th class="p-3 text-[9px] font-black text-slate-400 uppercase tracking-tight">{{ $t('manifest.table.category') }}</th>
-                <th class="p-3 text-[9px] font-black text-slate-400 uppercase tracking-tight">{{ $t('manifest.table.qty') }}</th>
-                <th class="p-3 text-[9px] font-black text-slate-400 uppercase tracking-tight">{{ $t('manifest.table.urgency') }}</th>
+              <tr class="bg-[#F1F5F9] border-b border-slate-200">
+                <th class="p-3 text-[9px] font-black text-[#1E3A5F] uppercase tracking-tight border-r border-slate-200">No.</th>
+                <th class="p-3 text-[9px] font-black text-[#1E3A5F] uppercase tracking-tight border-r border-slate-200">Reg ID</th>
+                <th class="p-3 text-[9px] font-black text-[#1E3A5F] uppercase tracking-tight border-r border-slate-200">Document Title</th>
+                <th class="p-3 text-[9px] font-black text-[#1E3A5F] uppercase tracking-tight border-r border-slate-200">Category</th>
+                <th class="p-3 text-[9px] font-black text-[#1E3A5F] uppercase tracking-tight border-r border-slate-200">Qty</th>
+                <th class="p-3 text-[9px] font-black text-[#1E3A5F] uppercase tracking-tight">Urgency</th>
               </tr>
             </thead>
-            <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+            <tbody class="divide-y divide-slate-200">
               <template v-if="activeTab === 'manual'">
                 <tr>
-                  <td class="p-3 text-[10px] font-bold">1</td>
-                  <td class="p-3 text-[10px] font-black text-[#1E3A5F]">{{ manifestData?.id }}</td>
-                  <td class="p-3 text-[10px] font-bold">{{ manifestData?.title }}</td>
-                  <td class="p-3 text-[10px] font-bold">{{ manifestData?.type }}</td>
-                  <td class="p-3 text-[10px] font-bold">1</td>
+                  <td class="p-3 text-[10px] font-bold border-r border-slate-200 text-center">1</td>
+                  <td class="p-3 text-[10px] font-black text-[#1E3A5F] border-r border-slate-200">{{ manifestData?.id }}</td>
+                  <td class="p-3 text-[10px] font-bold border-r border-slate-200">{{ manifestData?.title }}</td>
+                  <td class="p-3 text-[10px] font-bold border-r border-slate-200">{{ manifestData?.type }}</td>
+                  <td class="p-3 text-[10px] font-bold border-r border-slate-200 text-center">1</td>
                   <td class="p-3 text-[10px] font-bold">{{ manifestData?.urgency }}</td>
                 </tr>
               </template>
               <template v-else>
-                <tr><td class="p-3 text-[10px] font-bold">1</td><td class="p-3 text-[10px] font-black text-[#1E3A5F]">REG-2026-0234</td><td class="p-3 text-[10px] font-bold">{{ $t('upload.mock.manifest.item_1') }}</td><td class="p-3 text-[10px] font-bold">{{ $t('documents.mock.finance') }}</td><td class="p-3 text-[10px] font-bold">2</td><td class="p-3 text-[10px] font-bold">{{ $t('upload.form.urgency_levels.normal') }}</td></tr>
-                <tr class="bg-red-50/30"><td class="p-3 text-[10px] font-bold text-red-500">2</td><td class="p-3 text-[10px] font-black text-red-500">REG-2026-0235</td><td class="p-3 text-[10px] font-black text-red-500">{{ $t('upload.mock.manifest.item_2') }}</td><td class="p-3 text-[10px] font-black text-red-500">{{ $t('documents.mock.legal') }}</td><td class="p-3 text-[10px] font-black text-red-500">1</td><td class="p-3 text-[10px] font-black text-red-500">{{ $t('upload.form.urgency_levels.high') }}</td></tr>
-                <tr><td class="p-3 text-[10px] font-bold">3</td><td class="p-3 text-[10px] font-black text-[#1E3A5F]">REG-2026-0236</td><td class="p-3 text-[10px] font-bold">{{ $t('upload.mock.manifest.item_3') }}</td><td class="p-3 text-[10px] font-bold">{{ $t('documents.mock.hr') }}</td><td class="p-3 text-[10px] font-bold">4</td><td class="p-3 text-[10px] font-bold">{{ $t('upload.form.urgency_levels.normal') }}</td></tr>
+                <tr><td class="p-3 text-[10px] font-bold border-r border-slate-200 text-center">1</td><td class="p-3 text-[10px] font-black text-[#1E3A5F] border-r border-slate-200">REG-2026-0234</td><td class="p-3 text-[10px] font-bold border-r border-slate-200">Q1 Financial Report Final</td><td class="p-3 text-[10px] font-bold border-r border-slate-200">Finance</td><td class="p-3 text-[10px] font-bold border-r border-slate-200 text-center">2</td><td class="p-3 text-[10px] font-bold">Normal</td></tr>
+                <tr class="bg-red-50 text-red-500 font-bold"><td class="p-3 text-[10px] border-r border-slate-200 text-center">2</td><td class="p-3 text-[10px] border-r border-slate-200">REG-2026-0235</td><td class="p-3 text-[10px] border-r border-slate-200">Confidential Merger Agreement</td><td class="p-3 text-[10px] border-r border-slate-200">Legal</td><td class="p-3 text-[10px] border-r border-slate-200 text-center">1</td><td class="p-3 text-[10px]">High Urgency</td></tr>
+                <tr><td class="p-3 text-[10px] font-bold border-r border-slate-200 text-center">3</td><td class="p-3 text-[10px] font-black text-[#1E3A5F] border-r border-slate-200">REG-2026-0236</td><td class="p-3 text-[10px] font-bold border-r border-slate-200">Employee Payroll Summary Feb</td><td class="p-3 text-[10px] font-bold border-r border-slate-200">HR</td><td class="p-3 text-[10px] font-bold border-r border-slate-200 text-center">4</td><td class="p-3 text-[10px] font-bold">Normal</td></tr>
               </template>
             </tbody>
           </table>
         </div>
 
         <!-- Delivery Instructions -->
-        <div v-if="manifestData?.delivery_instructions" class="space-y-6">
-          <h3 class="text-xs font-black text-slate-800 dark:text-white uppercase tracking-widest">{{ $t('manifest.delivery_title') }}</h3>
-          <p class="text-[11px] font-medium text-slate-500 leading-relaxed">{{ manifestData.delivery_instructions }}</p>
-          <div class="p-4 bg-blue-50/50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-800 rounded-xl">
-            <p class="text-[11px] font-black text-[#1E3A5F] dark:text-blue-400">{{ $t('manifest.delivery_location') }}</p>
+        <div class="space-y-6">
+          <h3 class="text-sm font-black text-[#1E3A5F] dark:text-white uppercase tracking-widest">Delivery Instructions</h3>
+          
+          <!-- Custom Instructions from Company Master -->
+          <div v-if="manifestData?.delivery_instructions" class="space-y-3">
+             <p v-for="(line, idx) in manifestData.delivery_instructions.split('\n')" :key="idx" class="text-[11px] font-medium text-slate-600 leading-relaxed flex items-start gap-3">
+                <span class="w-1 h-1 rounded-full bg-slate-400 mt-1.5 flex-shrink-0"></span>
+                {{ line }}
+             </p>
           </div>
-          <p class="text-[11px] font-medium text-slate-500 italic">{{ $t('manifest.delivery_qr_hint') }}</p>
-          <div class="p-4 bg-orange-50/50 dark:bg-orange-900/10 border border-orange-100 dark:border-orange-800 rounded-xl">
-            <p class="text-[11px] font-black text-orange-600 dark:text-orange-400 leading-relaxed">{{ $t('manifest.warning') }}</p>
+
+          <!-- Fixed Delivery Location -->
+          <div class="p-5 bg-[#F1F5F9] border border-slate-200 rounded-xl">
+            <p class="text-[11px] font-black text-[#1E3A5F] dark:text-blue-400">
+               {{ $t('manifest.delivery_location') }}
+            </p>
+          </div>
+
+          <!-- Important Note -->
+          <div class="p-5 bg-[#FFFBEB] border border-[#FEF3C7] rounded-xl">
+            <p class="text-[11px] font-bold text-[#92400E] leading-relaxed">
+               {{ $t('manifest.warning') }}
+            </p>
           </div>
         </div>
 
@@ -297,10 +311,14 @@
         <div class="mt-20 flex justify-between items-end border-t border-slate-100 pt-6">
           <div class="space-y-1">
             <p class="text-[9px] font-bold text-slate-400">{{ $t('manifest.footer_info') }}</p>
-            <p class="text-[9px] font-bold text-slate-400">{{ $t('manifest.verified_on', { date: '07/03/2026 14:22:10' }) }}</p>
+            <p class="text-[9px] font-bold text-slate-400">{{ $t('manifest.verified_on', { date: manifestData?.date }) }}</p>
           </div>
-          <p class="text-[9px] font-bold text-slate-400 uppercase">{{ $t('manifest.page', { current: 1, total: 3 }) }}</p>
-          <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">{{ $t('manifest.version') }}</p>
+          <p class="text-[9px] font-bold text-slate-400 uppercase">
+            {{ $t('manifest.page', { current: 1, total: Math.ceil((manifestData?.qty || 1) / systemSettings.manifest_items_per_page) }) }}
+          </p>
+          <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">
+            {{ systemSettings.app_name }} {{ systemSettings.app_version }}
+          </p>
         </div>
       </div>
 
@@ -344,13 +362,30 @@ const isBulkReviewMode = ref(false)
 const showProgressModal = ref(false)
 const uploadProgress = ref(0)
 const manifestData = ref(null)
+const systemSettings = ref({
+  app_name: 'Kreatif DMS',
+  app_version: 'V3.1.2',
+  manifest_items_per_page: 15
+})
 
 const formatDate = (date) => {
+  if (!date) return '-'
   const d = new Date(date);
   const day = String(d.getDate()).padStart(2, '0');
   const month = String(d.getMonth() + 1).padStart(2, '0');
   const year = d.getFullYear();
-  return `${day}.${month}.${year}`;
+  return `${day}/${month}/${year}`;
+}
+
+const formatDateTime = (date) => {
+  if (!date) return '-'
+  const d = new Date(date);
+  const day = String(d.getDate()).padStart(2, '0');
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const year = d.getFullYear();
+  const hours = String(d.getHours()).padStart(2, '0');
+  const minutes = String(d.getMinutes()).padStart(2, '0');
+  return `${day}/${month}/${year} ${hours}:${minutes}`;
 }
 
 const unwrap = (val) => {
@@ -389,6 +424,25 @@ const fetchProfile = async () => {
     if (res && res.data) userProfile.value = res.data
   } catch (err) {
     console.error('Failed to fetch profile:', err)
+  }
+}
+
+const fetchSettings = async () => {
+  try {
+    const config = useRuntimeConfig()
+    const auth = useAuthStore()
+    const res = await $fetch(`${config.public.apiBase}/master/settings/general`, {
+      headers: { Authorization: `Bearer ${auth.accessToken}` }
+    })
+    if (res && res.data) {
+      res.data.forEach(s => {
+        if (s.key === 'app_version') systemSettings.value.app_version = s.value
+        if (s.key === 'app_name') systemSettings.value.app_name = s.value
+        if (s.key === 'manifest_items_per_page') systemSettings.value.manifest_items_per_page = parseInt(s.value) || 15
+      })
+    }
+  } catch (err) {
+    console.error('Failed to fetch system settings:', err)
   }
 }
 
@@ -434,6 +488,7 @@ onMounted(() => {
   fetchDocTypes()
   fetchProfile()
   fetchRecents()
+  fetchSettings()
 })
 
 const form = reactive({ 
@@ -535,7 +590,7 @@ const prepareManifest = (doc) => {
     title: doc.title,
     type: docTypes.value.find(t => t.id === doc.type_id)?.name || 'Document',
     category: doc.sensitivity || 'Internal',
-    date: new Date(doc.created_at).toLocaleString(),
+    date: formatDateTime(doc.created_at),
     submitter: userProfile.value?.full_name || 'System User',
     department: unwrap(userProfile.value?.department_name) || 'General',
     company_name: unwrap(userProfile.value?.company_name) || 'PT. KREATIF DMS',
@@ -590,11 +645,13 @@ const resetForm = () => {
 .dark .custom-scrollbar::-webkit-scrollbar-thumb { background: #1E293B; }
 
 @media print {
-  .no-print, nav, aside, .fixed, .z-20 { display: none !important; }
+  .no-print, nav, aside, .z-20 { display: none !important; }
   .max-w-4xl { max-width: 100% !important; width: 100% !important; margin: 0 !important; padding: 0 !important; }
   body { background: white !important; }
+  .fixed.inset-0 { position: static !important; background: white !important; padding: 0 !important; }
   .glass { background: white !important; border: none !important; box-shadow: none !important; }
   .shadow-2xl { box-shadow: none !important; }
   .p-16 { padding: 2rem !important; }
+  * { color: black !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 }
 </style>

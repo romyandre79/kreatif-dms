@@ -57,7 +57,7 @@ func (h *MasterHandler) CreateCompany(c fiber.Ctx) error {
 		return response.Error(c, fiber.StatusBadRequest, "Invalid request body", err.Error())
 	}
 
-	company, err := h.svc.CreateCompany(c.Context(), req.Name, req.EntityID, req.NpwpStatus, req.Location, req.Status, req.Address)
+	company, err := h.svc.CreateCompany(c.Context(), req.Name, req.EntityID, req.NpwpStatus, req.Location, req.Status, req.Address, req.DeliveryInstructions)
 	if err != nil {
 		return response.Error(c, fiber.StatusInternalServerError, "Failed to create company", err.Error())
 	}
@@ -75,8 +75,9 @@ func (h *MasterHandler) UpdateCompany(c fiber.Ctx) error {
 		EntityID   string `json:"entity_id"`
 		NpwpStatus string `json:"npwp_status"`
 		Location   string `json:"location"`
-		Status     string `json:"status"`
-		Address    string `json:"address"`
+		Status               string `json:"status"`
+		Address              string `json:"address"`
+		DeliveryInstructions string `json:"delivery_instructions"`
 	}
 	id, err := uuid.Parse(c.Params("id"))
 	if err != nil {
@@ -87,7 +88,7 @@ func (h *MasterHandler) UpdateCompany(c fiber.Ctx) error {
 		return response.Error(c, fiber.StatusBadRequest, "Invalid request body", err.Error())
 	}
 
-	company, err := h.svc.UpdateCompany(c.Context(), id, req.Name, req.EntityID, req.NpwpStatus, req.Location, req.Status, req.Address)
+	company, err := h.svc.UpdateCompany(c.Context(), id, req.Name, req.EntityID, req.NpwpStatus, req.Location, req.Status, req.Address, req.DeliveryInstructions)
 	if err != nil {
 		return response.Error(c, fiber.StatusInternalServerError, "Failed to update company", err.Error())
 	}
@@ -114,6 +115,31 @@ func (h *MasterHandler) DeleteCompany(c fiber.Ctx) error {
 	h.svc.LogActivity(c.Context(), userID, "DELETE", "company", &id, nil, c.IP())
 
 	return response.Success(c, fiber.StatusOK, "Company deleted", nil)
+}
+
+func (h *MasterHandler) UploadCompanyLogo(c fiber.Ctx) error {
+	id, err := uuid.Parse(c.Params("id"))
+	if err != nil {
+		return response.Error(c, fiber.StatusBadRequest, "Invalid company ID", err.Error())
+	}
+
+	file, err := c.FormFile("logo")
+	if err != nil {
+		return response.Error(c, fiber.StatusBadRequest, "Logo file is required", err.Error())
+	}
+
+	f, err := file.Open()
+	if err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to open file", err.Error())
+	}
+	defer f.Close()
+
+	logoURL, err := h.svc.UploadCompanyLogo(c.Context(), id, f, file.Filename)
+	if err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to upload logo", err.Error())
+	}
+
+	return response.Success(c, fiber.StatusOK, "Logo uploaded", logoURL)
 }
 
 func (h *MasterHandler) ExportCompanies(c fiber.Ctx) error {
@@ -1358,21 +1384,23 @@ type TestIntegrationNodeRequest struct {
 }
 
 type CreateCompanyRequest struct {
-	Name       string `json:"name"`
-	EntityID   string `json:"entity_id"`
-	NpwpStatus string `json:"npwp_status"`
-	Location   string `json:"location"`
-	Status     string `json:"status"`
-	Address    string `json:"address"`
+	Name                 string `json:"name"`
+	EntityID             string `json:"entity_id"`
+	NpwpStatus           string `json:"npwp_status"`
+	Location             string `json:"location"`
+	Status               string `json:"status"`
+	Address              string `json:"address"`
+	DeliveryInstructions string `json:"delivery_instructions"`
 }
 
 type UpdateCompanyRequest struct {
-	Name       string `json:"name"`
-	EntityID   string `json:"entity_id"`
-	NpwpStatus string `json:"npwp_status"`
-	Location   string `json:"location"`
-	Status     string `json:"status"`
-	Address    string `json:"address"`
+	Name                 string `json:"name"`
+	EntityID             string `json:"entity_id"`
+	NpwpStatus           string `json:"npwp_status"`
+	Location             string `json:"location"`
+	Status               string `json:"status"`
+	Address              string `json:"address"`
+	DeliveryInstructions string `json:"delivery_instructions"`
 }
 
 type CreateBranchRequest struct {

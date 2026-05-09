@@ -269,6 +269,7 @@ func main() {
 	masterGroup.Get("/companies", masterHandler.ListCompanies)
 	masterGroup.Post("/companies", masterHandler.CreateCompany)
 	masterGroup.Put("/companies/:id", masterHandler.UpdateCompany)
+	masterGroup.Post("/companies/:id/logo", masterHandler.UploadCompanyLogo)
 	masterGroup.Delete("/companies/:id", masterHandler.DeleteCompany)
 	masterGroup.Get("/companies/export", masterHandler.ExportCompanies)
 	masterGroup.Post("/companies/import", masterHandler.ImportCompanies)

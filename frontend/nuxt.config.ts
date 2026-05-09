@@ -76,6 +76,7 @@ export default defineNuxtConfig({
       apiBase: process.env.NUXT_PUBLIC_API_BASE || 'http://localhost:8080/api/v1',
       ocrUrl: process.env.NUXT_PUBLIC_OCR_URL || 'http://localhost:8000',
       appName: process.env.NUXT_PUBLIC_APP_NAME || 'Kreatif DMS',
+      appVersion: process.env.NUXT_PUBLIC_APP_VERSION || 'V3.1.2',
       copyright: process.env.NUXT_PUBLIC_COPYRIGHT || 'PT Prisma Data Abadi',
     }
   },

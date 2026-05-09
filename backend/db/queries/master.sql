@@ -25,6 +25,9 @@ RETURNING *;
 -- name: DeleteCompany :exec
 DELETE FROM companies WHERE id = $1;
 
+-- name: UpdateCompanyLogo :exec
+UPDATE companies SET logo_url = $2 WHERE id = $1;
+
 -- Branches
 -- name: ListBranches :many
 SELECT * FROM branches WHERE company_id = $1 ORDER BY name;

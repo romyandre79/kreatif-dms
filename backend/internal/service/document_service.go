@@ -63,8 +63,19 @@ func (s *DocumentService) UploadDocument(ctx context.Context, p UploadDocumentPa
 	// 1. Generate unique file path
 	objectName := fmt.Sprintf("%s/%s", p.DepartmentID, p.FileName)
 
-	// 2. Upload to MinIO (Encryption disabled for local dev/KMS not configured)
-	_, err := s.storage.Upload(ctx, objectName, p.Content, p.FileSize, p.MimeType, false)
+	// 2. Check encryption setting from system_settings
+	encryptEnabled := false
+	encSetting, err := s.repo.GetSystemSetting(ctx, repository.GetSystemSettingParams{
+		Category: "storage",
+		Key:      "encryption_enabled",
+	})
+	if err == nil && encSetting.Value.String == "true" {
+		encryptEnabled = true
+		log.Printf("[DocumentService] AES-256 Encryption (SSE-S3) is ENABLED for this upload")
+	}
+
+	// 3. Upload to MinIO
+	_, err = s.storage.Upload(ctx, objectName, p.Content, p.FileSize, p.MimeType, encryptEnabled)
 	if err != nil {
 		log.Printf("[DocumentService] Error uploading to storage: %v", err)
 		return repository.Document{}, err

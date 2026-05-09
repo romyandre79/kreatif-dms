@@ -127,6 +127,33 @@ func (s *MasterService) DeleteCompany(ctx context.Context, id uuid.UUID) error {
 	return s.repo.DeleteCompany(ctx, id)
 }
 
+func (s *MasterService) UploadCompanyLogo(ctx context.Context, id uuid.UUID, file io.Reader, fileName string) (string, error) {
+	// 1. Check encryption setting
+	encryptEnabled := false
+	encSetting, err := s.repo.GetSystemSetting(ctx, repository.GetSystemSettingParams{
+		Category: "storage",
+		Key:      "encryption_enabled",
+	})
+	if err == nil && encSetting.Value.String == "true" {
+		encryptEnabled = true
+	}
+
+	// 2. Upload to storage (MinIO)
+	objectPath := fmt.Sprintf("companies/%s/logo/%s", id, fileName)
+	_, err = s.storageSvc.Upload(ctx, objectPath, file, -1, "image/png", encryptEnabled)
+	if err != nil {
+		return "", err
+	}
+
+	// 3. Update DB
+	err = s.repo.UpdateCompanyLogo(ctx, repository.UpdateCompanyLogoParams{
+		ID:      id,
+		LogoUrl: pgtype.Text{String: objectPath, Valid: true},
+	})
+	
+	return objectPath, err
+}
+
 func (s *MasterService) ExportCompanies(ctx context.Context) ([]byte, string, error) {
 	companies, err := s.repo.ListCompanies(ctx)
 	if err != nil {
