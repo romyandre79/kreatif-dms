@@ -15,29 +15,18 @@ func NewDashboardService(repo *repository.Queries) *DashboardService {
 }
 
 func (s *DashboardService) GetAnnouncements(ctx context.Context) (map[string]interface{}, error) {
-	settings, err := s.repo.GetSystemSettingsByCategory(ctx, "dashboard")
+	ann, err := s.repo.GetActiveAnnouncement(ctx)
 	if err != nil {
-		return nil, err
+		return map[string]interface{}{"active": false}, nil
 	}
 
-	announcement := map[string]interface{}{
-		"active": false,
-	}
-
-	for _, setting := range settings {
-		switch setting.Key {
-		case "announcement_title":
-			announcement["title"] = setting.Value.String
-		case "announcement_message":
-			announcement["message"] = setting.Value.String
-		case "announcement_notes":
-			announcement["notes"] = setting.Value.String
-		case "announcement_active":
-			announcement["active"] = setting.Value.String == "true"
-		}
-	}
-
-	return announcement, nil
+	return map[string]interface{}{
+		"id":      ann.ID,
+		"title":   ann.Title,
+		"message": ann.Message,
+		"notes":   ann.Notes.String,
+		"active":  ann.IsActive,
+	}, nil
 }
 
 func (s *DashboardService) GetSummary(ctx context.Context) (interface{}, error) {

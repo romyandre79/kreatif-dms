@@ -27,6 +27,9 @@ export const timeAgo = (date: string | Date) => {
 
 export const parseMarkdown = (text: string) => {
   if (!text) return ''
+  // If it looks like HTML (from Quill), return as is
+  if (text.trim().startsWith('<')) return text
+
   return text
     .replace(/\\n/g, '\n') // Handle literal \n from DB
     .replace(/^### (.*$)/gim, '<h3 class="text-lg font-black mt-4 mb-2 text-[#1E3A5F] dark:text-white">$1</h3>')

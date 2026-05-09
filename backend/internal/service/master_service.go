@@ -830,6 +830,41 @@ func (s *MasterService) UpdateSetting(ctx context.Context, category, key, value,
 	})
 }
 
+// Announcements Management
+func (s *MasterService) ListAnnouncements(ctx context.Context) ([]repository.Announcement, error) {
+	return s.repo.ListAnnouncements(ctx)
+}
+
+func (s *MasterService) CreateAnnouncement(ctx context.Context, title, message, notes string, isActive bool, userID uuid.UUID) (repository.Announcement, error) {
+	if isActive {
+		_ = s.repo.DeactivateAllAnnouncements(ctx)
+	}
+	return s.repo.CreateAnnouncement(ctx, repository.CreateAnnouncementParams{
+		Title:     title,
+		Message:   message,
+		Notes:     pgtype.Text{String: notes, Valid: true},
+		IsActive:  isActive,
+		CreatedBy: pgtype.UUID{Bytes: userID, Valid: true},
+	})
+}
+
+func (s *MasterService) UpdateAnnouncement(ctx context.Context, id uuid.UUID, title, message, notes string, isActive bool) (repository.Announcement, error) {
+	if isActive {
+		_ = s.repo.DeactivateAllAnnouncements(ctx)
+	}
+	return s.repo.UpdateAnnouncement(ctx, repository.UpdateAnnouncementParams{
+		ID:       id,
+		Title:    title,
+		Message:  message,
+		Notes:    pgtype.Text{String: notes, Valid: true},
+		IsActive: isActive,
+	})
+}
+
+func (s *MasterService) DeleteAnnouncement(ctx context.Context, id uuid.UUID) error {
+	return s.repo.DeleteAnnouncement(ctx, id)
+}
+
 // Warehouse Topology
 type TopologyNode struct {
 	ID       string         `json:"id"`

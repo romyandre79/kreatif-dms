@@ -1102,6 +1102,83 @@ func (h *MasterHandler) UpdateSetting(c fiber.Ctx) error {
 	return response.Success(c, fiber.StatusOK, "Setting updated", setting)
 }
 
+// Announcements Management
+func (h *MasterHandler) ListAnnouncements(c fiber.Ctx) error {
+	announcements, err := h.svc.ListAnnouncements(c.Context())
+	if err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to list announcements", err.Error())
+	}
+	return response.Success(c, fiber.StatusOK, "Announcements listed", announcements)
+}
+
+func (h *MasterHandler) CreateAnnouncement(c fiber.Ctx) error {
+	var req struct {
+		Title    string `json:"title"`
+		Message  string `json:"message"`
+		Notes    string `json:"notes"`
+		IsActive bool   `json:"is_active"`
+	}
+	if err := c.Bind().JSON(&req); err != nil {
+		return response.Error(c, fiber.StatusBadRequest, "Invalid request body", err.Error())
+	}
+
+	userID := c.Locals("user_id").(uuid.UUID)
+	ann, err := h.svc.CreateAnnouncement(c.Context(), req.Title, req.Message, req.Notes, req.IsActive, userID)
+	if err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to create announcement", err.Error())
+	}
+
+	// Log Activity
+	h.svc.LogActivity(c.Context(), userID, "CREATE", "announcement", &ann.ID, req, c.IP())
+
+	return response.Success(c, fiber.StatusCreated, "Announcement created", ann)
+}
+
+func (h *MasterHandler) UpdateAnnouncement(c fiber.Ctx) error {
+	id, err := uuid.Parse(c.Params("id"))
+	if err != nil {
+		return response.Error(c, fiber.StatusBadRequest, "Invalid announcement ID", err.Error())
+	}
+
+	var req struct {
+		Title    string `json:"title"`
+		Message  string `json:"message"`
+		Notes    string `json:"notes"`
+		IsActive bool   `json:"is_active"`
+	}
+	if err := c.Bind().JSON(&req); err != nil {
+		return response.Error(c, fiber.StatusBadRequest, "Invalid request body", err.Error())
+	}
+
+	ann, err := h.svc.UpdateAnnouncement(c.Context(), id, req.Title, req.Message, req.Notes, req.IsActive)
+	if err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to update announcement", err.Error())
+	}
+
+	// Log Activity
+	userID := c.Locals("user_id").(uuid.UUID)
+	h.svc.LogActivity(c.Context(), userID, "UPDATE", "announcement", &id, req, c.IP())
+
+	return response.Success(c, fiber.StatusOK, "Announcement updated", ann)
+}
+
+func (h *MasterHandler) DeleteAnnouncement(c fiber.Ctx) error {
+	id, err := uuid.Parse(c.Params("id"))
+	if err != nil {
+		return response.Error(c, fiber.StatusBadRequest, "Invalid announcement ID", err.Error())
+	}
+
+	if err := h.svc.DeleteAnnouncement(c.Context(), id); err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to delete announcement", err.Error())
+	}
+
+	// Log Activity
+	userID := c.Locals("user_id").(uuid.UUID)
+	h.svc.LogActivity(c.Context(), userID, "DELETE", "announcement", &id, nil, c.IP())
+
+	return response.Success(c, fiber.StatusOK, "Announcement deleted", nil)
+}
+
 func (h *MasterHandler) GetIntegrationStatus(c fiber.Ctx) error {
 	nodes, err := h.svc.GetIntegrationStatus(c.Context())
 	if err != nil {

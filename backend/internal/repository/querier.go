@@ -17,6 +17,7 @@ type Querier interface {
 	CountOCRJobs(ctx context.Context) (int64, error)
 	CountSsoSyncLogs(ctx context.Context) (int64, error)
 	CreateActivityLog(ctx context.Context, arg CreateActivityLogParams) (ActivityLog, error)
+	CreateAnnouncement(ctx context.Context, arg CreateAnnouncementParams) (Announcement, error)
 	CreateBatch(ctx context.Context, arg CreateBatchParams) (ProcessingBatch, error)
 	CreateBox(ctx context.Context, arg CreateBoxParams) (Box, error)
 	CreateBranch(ctx context.Context, arg CreateBranchParams) (Branch, error)
@@ -35,6 +36,8 @@ type Querier interface {
 	CreateSsoSyncLog(ctx context.Context, arg CreateSsoSyncLogParams) (SsoSyncLog, error)
 	CreateSystemModule(ctx context.Context, arg CreateSystemModuleParams) (SystemModule, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
+	DeactivateAllAnnouncements(ctx context.Context) error
+	DeleteAnnouncement(ctx context.Context, id uuid.UUID) error
 	DeleteBox(ctx context.Context, id uuid.UUID) error
 	DeleteBranch(ctx context.Context, id uuid.UUID) error
 	DeleteCompany(ctx context.Context, id uuid.UUID) error
@@ -47,7 +50,9 @@ type Querier interface {
 	DeleteRole(ctx context.Context, id int32) error
 	DeleteSystemModule(ctx context.Context, id string) error
 	DeleteUser(ctx context.Context, id uuid.UUID) error
+	GetActiveAnnouncement(ctx context.Context) (Announcement, error)
 	GetActivityLogsByEntity(ctx context.Context, arg GetActivityLogsByEntityParams) ([]GetActivityLogsByEntityRow, error)
+	GetAnnouncement(ctx context.Context, id uuid.UUID) (Announcement, error)
 	GetBatch(ctx context.Context, id uuid.UUID) (ProcessingBatch, error)
 	GetBox(ctx context.Context, id uuid.UUID) (Box, error)
 	GetBranch(ctx context.Context, id uuid.UUID) (Branch, error)
@@ -89,6 +94,8 @@ type Querier interface {
 	ListAllDepartments(ctx context.Context) ([]ListAllDepartmentsRow, error)
 	ListAllOrdnersGlobal(ctx context.Context) ([]ListAllOrdnersGlobalRow, error)
 	ListAllRacksGlobal(ctx context.Context) ([]ListAllRacksGlobalRow, error)
+	// Announcements
+	ListAnnouncements(ctx context.Context) ([]Announcement, error)
 	// Boxes
 	ListBoxes(ctx context.Context, rackID uuid.UUID) ([]Box, error)
 	// Branches
@@ -122,6 +129,7 @@ type Querier interface {
 	ListUsers(ctx context.Context) ([]ListUsersRow, error)
 	MarkAllAsRead(ctx context.Context, userID uuid.UUID) error
 	MarkAsRead(ctx context.Context, arg MarkAsReadParams) error
+	UpdateAnnouncement(ctx context.Context, arg UpdateAnnouncementParams) (Announcement, error)
 	UpdateBatchProgress(ctx context.Context, id uuid.UUID) error
 	UpdateBox(ctx context.Context, arg UpdateBoxParams) (Box, error)
 	UpdateBranch(ctx context.Context, arg UpdateBranchParams) (Branch, error)

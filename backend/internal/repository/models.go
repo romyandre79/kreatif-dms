@@ -23,6 +23,17 @@ type ActivityLog struct {
 	CreatedAt  pgtype.Timestamptz `json:"created_at"`
 }
 
+type Announcement struct {
+	ID        uuid.UUID          `json:"id"`
+	Title     string             `json:"title"`
+	Message   string             `json:"message"`
+	Notes     pgtype.Text        `json:"notes"`
+	IsActive  bool               `json:"is_active"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
+	CreatedBy pgtype.UUID        `json:"created_by"`
+}
+
 type ApprovalWorkflow struct {
 	ID              uuid.UUID          `json:"id"`
 	EntityType      string             `json:"entity_type"`

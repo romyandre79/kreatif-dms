@@ -324,6 +324,12 @@ func main() {
 	masterGroup.Get("/settings/:category", masterHandler.GetSettings)
 	masterGroup.Post("/settings/:category", masterHandler.UpdateSetting)
 	
+	// Announcements
+	masterGroup.Get("/announcements", masterHandler.ListAnnouncements)
+	masterGroup.Post("/announcements", masterHandler.CreateAnnouncement)
+	masterGroup.Put("/announcements/:id", masterHandler.UpdateAnnouncement)
+	masterGroup.Delete("/announcements/:id", masterHandler.DeleteAnnouncement)
+	
 	// Watermark Settings
 	masterGroup.Get("/settings/watermark", masterHandler.GetWatermarkSettings)
 	masterGroup.Post("/settings/watermark", masterHandler.UpdateWatermarkSettings)
