@@ -246,9 +246,10 @@ func main() {
 	docGroup.Get("/", docHandler.List)
 	docGroup.Get("/history", docHandler.ListOCRHistory)
 	docGroup.Post("/", docHandler.Upload)
+	docGroup.Get("/search", docHandler.Search)
+	docGroup.Get("/:id", docHandler.GetByID)
 	docGroup.Get("/:id/preview", docHandler.Preview)
 	docGroup.Get("/:id/ocr", docHandler.GetOCRData)
-	docGroup.Get("/search", docHandler.Search)
 
 	// Batch Routes
 	batchGroup := api.Group("/batches")

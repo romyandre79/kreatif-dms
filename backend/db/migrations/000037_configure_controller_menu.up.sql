@@ -18,7 +18,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO system_modules (id, name, category, path, icon, allowed_actions, sort_order, parent_id) VALUES
 -- Registration
 ('inbound_pre', 'Inbound Pre-Registration', 'Registration', '/registration/pre', 'LucideInbox', ARRAY['VIEW', 'CREATE', 'EDIT'], 11, 'cat_registration'),
-('submit', 'New Document Input', 'Registration', '/registration/new', 'LucidePlusCircle', ARRAY['VIEW', 'CREATE'], 12, 'cat_registration'),
+('submit', 'New Document Input', 'Registration', '/documents/upload', 'LucidePlusCircle', ARRAY['VIEW', 'CREATE'], 12, 'cat_registration'),
 ('legacy_mig', 'Legacy Data Migration', 'Registration', '/registration/migration', 'LucideUploadCloud', ARRAY['VIEW', 'CREATE'], 13, 'cat_registration'),
 ('staging', 'Staging Area', 'Registration', '/registration/staging', 'LucideLayers', ARRAY['VIEW', 'CREATE'], 14, 'cat_registration'),
 

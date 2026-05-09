@@ -19,22 +19,22 @@
     <!-- Stats Grid -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
       <!-- My Submissions -->
-      <div v-motion-slide-visible-bottom class="glass p-8 rounded-[2rem] relative overflow-hidden group shadow-sm hover:shadow-xl transition-all duration-500">
+      <div v-motion-slide-visible-bottom class="glass p-4 rounded-lg relative overflow-hidden group shadow-sm hover:shadow-xl transition-all duration-500">
         <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-6">{{ $t('dashboard.user.stats.my_submissions') }}</p>
         <div class="flex items-end justify-between">
-          <p class="text-5xl font-black text-[#1E3A5F] dark:text-white tracking-tighter">{{ statsSummary?.daily_received || 24 }}</p>
+          <p class="text-5xl font-black text-[#1E3A5F] dark:text-white tracking-tighter">{{ statsSummary?.daily_received || 0 }}</p>
           <div class="flex items-center gap-1.5 text-[#2D9B7B] text-[10px] font-black bg-[#2D9B7B]/10 px-3 py-1.5 rounded-xl uppercase tracking-tighter mb-1">
             <LucideTrendingUp class="w-3.5 h-3.5" />
-            +12%
+            +0%
           </div>
         </div>
       </div>
 
       <!-- Pending Approvals -->
-      <div v-motion-slide-visible-bottom class="glass p-8 rounded-[2rem] relative overflow-hidden group shadow-sm hover:shadow-xl transition-all duration-500">
+      <div v-motion-slide-visible-bottom class="glass p-4 rounded-lg relative overflow-hidden group shadow-sm hover:shadow-xl transition-all duration-500">
         <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-6">{{ $t('dashboard.user.stats.pending_approvals') }}</p>
         <div class="flex items-center justify-between">
-          <p class="text-5xl font-black text-[#1E3A5F] dark:text-white tracking-tighter">{{ statsSummary?.active_tasks || 3 }}</p>
+          <p class="text-5xl font-black text-[#1E3A5F] dark:text-white tracking-tighter">{{ statsSummary?.active_tasks || 0 }}</p>
           <div class="bg-orange-50 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 px-4 py-2 rounded-xl text-[9px] font-black uppercase leading-tight tracking-widest text-center">
             ACTION<br>REQUIRED
           </div>
@@ -42,10 +42,10 @@
       </div>
 
       <!-- Active Loans -->
-      <div v-motion-slide-visible-bottom class="glass p-8 rounded-[2rem] relative overflow-hidden group shadow-sm hover:shadow-xl transition-all duration-500">
+      <div v-motion-slide-visible-bottom class="glass p-4 rounded-lg relative overflow-hidden group shadow-sm hover:shadow-xl transition-all duration-500">
         <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-6">{{ $t('dashboard.user.stats.active_loans') }}</p>
         <div class="flex items-center justify-between">
-          <p class="text-5xl font-black text-[#1E3A5F] dark:text-white tracking-tighter">2</p>
+          <p class="text-5xl font-black text-[#1E3A5F] dark:text-white tracking-tighter">{{ statsSummary?.active_loans || 0 }}</p>
           <div class="bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest">
             ACTIVE
           </div>
@@ -53,10 +53,10 @@
       </div>
 
       <!-- Search History -->
-      <div v-motion-slide-visible-bottom class="glass p-8 rounded-[2rem] relative overflow-hidden group shadow-sm hover:shadow-xl transition-all duration-500">
+      <div v-motion-slide-visible-bottom class="glass p-4 rounded-lg relative overflow-hidden group shadow-sm hover:shadow-xl transition-all duration-500">
         <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-6">{{ $t('dashboard.user.stats.search_history') }}</p>
         <div class="flex items-end justify-between">
-          <p class="text-5xl font-black text-[#1E3A5F] dark:text-white tracking-tighter">47</p>
+          <p class="text-5xl font-black text-[#1E3A5F] dark:text-white tracking-tighter">{{ statsSummary?.search_count || 0 }}</p>
           <p class="text-slate-400 text-[11px] font-bold mb-2 uppercase tracking-widest">Today</p>
         </div>
       </div>
@@ -65,7 +65,7 @@
     <!-- Middle Grid -->
     <div class="grid grid-cols-1 xl:grid-cols-3 gap-8">
       <!-- Items Requiring My Action -->
-      <div class="xl:col-span-2 glass rounded-[2.5rem] overflow-hidden shadow-sm" v-motion-slide-visible-bottom>
+      <div class="xl:col-span-2 glass rounded-lg overflow-hidden shadow-sm" v-motion-slide-visible-bottom>
         <div class="px-8 py-7 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
           <h3 class="font-black text-lg text-[#1E3A5F] dark:text-white">{{ $t('dashboard.user.tasks.title') }}</h3>
           <button class="text-primary-600 dark:text-primary-400 text-xs font-black uppercase tracking-widest hover:underline">{{ $t('dashboard.queue.view_all_tasks') }}</button>
@@ -97,7 +97,10 @@
                   </div>
                 </td>
                 <td class="px-8 py-6 text-right">
-                  <button class="px-6 py-2.5 rounded-xl text-xs font-black transition-all bg-slate-100 text-slate-600 hover:bg-[#1E3A5F] hover:text-white shadow-sm">
+                  <button 
+                    @click="handleTaskAction(task)"
+                    class="px-6 py-2.5 rounded-xl text-xs font-black transition-all bg-slate-100 text-slate-600 hover:bg-[#1E3A5F] hover:text-white shadow-sm"
+                  >
                     {{ task.level > 1 ? $t('dashboard.user.tasks.items.execute') : (task.entity_type.includes('Scan') ? $t('dashboard.user.tasks.items.process') : $t('dashboard.user.tasks.items.verify')) }}
                   </button>
                 </td>
@@ -113,14 +116,19 @@
       </div>
 
       <!-- Quick Actions -->
-      <div class="glass rounded-[2.5rem] p-10 flex flex-col" v-motion-slide-visible-bottom>
+      <div class="glass rounded-lg p-4 flex flex-col" v-motion-slide-visible-bottom>
         <h3 class="font-black text-lg text-[#1E3A5F] dark:text-white mb-10">{{ $t('dashboard.user.quick_actions.title') }}</h3>
         <div class="grid grid-cols-2 gap-6 flex-1">
-          <button v-for="action in quickActions" :key="action.label" class="flex flex-col items-center justify-center p-8 bg-slate-50 dark:bg-slate-900/50 rounded-3xl hover:bg-white dark:hover:bg-slate-800 transition-all border-2 border-transparent hover:border-primary-100 dark:hover:border-primary-900/30 group shadow-sm hover:shadow-xl">
+          <button 
+            v-for="action in quickActions" 
+            :key="action.label" 
+            @click="navigateTo(action.path)"
+            class="flex flex-col items-center justify-center p-4 bg-slate-50 dark:bg-slate-900/50 rounded-3xl hover:bg-white dark:hover:bg-slate-800 transition-all border-2 border-transparent hover:border-primary-100 dark:hover:border-primary-900/30 group shadow-sm hover:shadow-xl"
+          >
             <div class="w-16 h-16 rounded-2xl bg-white dark:bg-slate-800 flex items-center justify-center mb-5 text-primary-500 shadow-lg shadow-primary-500/5 group-hover:scale-110 transition-transform">
               <component :is="action.icon" class="w-8 h-8" />
             </div>
-            <span class="text-[11px] font-black uppercase tracking-[0.1em] text-[#1E3A5F] dark:text-slate-300">{{ action.label }}</span>
+            <span class="text-[11px] font-black uppercase tracking-[0.1em] text-[#1E3A5F] dark:text-slate-300 text-center">{{ action.label }}</span>
           </button>
         </div>
       </div>
@@ -129,11 +137,11 @@
     <!-- Bottom Grid -->
     <div class="grid grid-cols-1 xl:grid-cols-3 gap-8">
       <!-- Recent Activities -->
-      <div class="xl:col-span-2 glass rounded-[2.5rem] p-10 shadow-sm" v-motion-slide-visible-bottom>
+      <div class="xl:col-span-2 glass rounded-lg p-4 shadow-sm" v-motion-slide-visible-bottom>
         <h3 class="font-black text-lg text-[#1E3A5F] dark:text-white mb-10">{{ $t('dashboard.user.activity.title') }}</h3>
         <div class="space-y-10">
           <div v-for="(activity, index) in dashboardData?.activities" :key="index" class="flex gap-8 relative">
-            <div v-if="index !== (dashboardData?.activities?.length || 0) - 1" class="absolute left-[11px] top-10 w-0.5 h-10 bg-slate-100 dark:bg-slate-800"></div>
+            <div v-if="index !== (dashboardData?.activities?.length || 0) - 1" class="absolute left-[11px] top-4 w-0.5 h-10 bg-slate-100 dark:bg-slate-800"></div>
             <div :class="`w-6 h-6 rounded-full flex-shrink-0 flex items-center justify-center z-10 ring-4 ring-white dark:ring-[#0A0F1C] ${getActivityStyles(activity.action).dot}`">
               <div class="w-2.5 h-2.5 rounded-full bg-white dark:bg-[#0A0F1C]"></div>
             </div>
@@ -144,7 +152,12 @@
                 </p>
                 <p class="text-xs text-slate-400 font-black uppercase mt-2 tracking-tighter">{{ timeAgo(activity.created_at) }}</p>
               </div>
-              <button class="text-slate-300 hover:text-primary-500 text-[10px] font-black uppercase tracking-widest transition-colors">{{ $t('dashboard.user.activity.items.view') }}</button>
+              <button 
+                @click="navigateTo(`/documents/${activity.entity_id}`)"
+                class="text-slate-300 hover:text-primary-500 text-[10px] font-black uppercase tracking-widest transition-colors"
+              >
+                {{ $t('dashboard.user.activity.items.view') }}
+              </button>
             </div>
           </div>
           <div v-if="!dashboardData?.activities?.length" class="text-center py-10 text-slate-400 font-bold text-xs uppercase tracking-widest">
@@ -154,29 +167,32 @@
       </div>
 
       <!-- System Update Banner -->
-      <div class="bg-gradient-to-br from-[#1E3A5F] to-[#152943] rounded-[2.5rem] p-10 text-white relative overflow-hidden group shadow-2xl shadow-blue-900/40 flex flex-col justify-between" v-motion-slide-visible-bottom>
+      <div v-if="dashboardData?.announcement?.active" class="bg-gradient-to-br from-[#1E3A5F] to-[#152943] rounded-lg p-4 text-white relative overflow-hidden group shadow-2xl shadow-blue-900/40 flex flex-col justify-between" v-motion-slide-visible-bottom>
         <div class="relative z-10">
           <div class="w-14 h-14 bg-white/10 rounded-2xl flex items-center justify-center mb-8 ring-1 ring-white/20">
              <LucideInfo class="w-7 h-7 text-white" />
           </div>
-          <h3 class="font-black text-2xl mb-4 leading-tight">{{ $t('dashboard.user.system_update.title') }}</h3>
+          <h3 class="font-black text-2xl mb-4 leading-tight">{{ dashboardData.announcement.title }}</h3>
           <p class="text-blue-100/70 text-sm font-medium leading-relaxed mb-10">
-            {{ $t('dashboard.user.system_update.desc') }}
+            {{ dashboardData.announcement.message }}
           </p>
         </div>
         <div class="relative z-10">
-          <button class="w-full py-4 bg-white text-[#1E3A5F] rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-blue-50 transition-all shadow-xl shadow-black/20">
+          <button 
+            @click="isNotesOpen = true"
+            class="w-full py-4 bg-white text-[#1E3A5F] rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-blue-50 transition-all shadow-xl shadow-black/20"
+          >
             {{ $t('dashboard.user.system_update.btn_notes') }}
           </button>
         </div>
         <!-- Decorative bubbles -->
         <div class="absolute -right-10 -bottom-10 w-64 h-64 bg-white/5 rounded-full blur-3xl group-hover:scale-125 transition-transform duration-1000"></div>
-        <div class="absolute -left-10 -top-10 w-32 h-32 bg-primary-500/10 rounded-full blur-2xl"></div>
+        <div class="absolute -left-10 -top-4 w-32 h-32 bg-primary-500/10 rounded-full blur-2xl"></div>
       </div>
     </div>
 
     <!-- Loan History Table -->
-    <div class="glass rounded-[2.5rem] overflow-hidden shadow-sm" v-motion-slide-visible-bottom>
+    <div class="glass rounded-lg overflow-hidden shadow-sm" v-motion-slide-visible-bottom>
       <div class="px-10 py-8 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/20 dark:bg-slate-900/20">
         <h3 class="font-black text-lg text-[#1E3A5F] dark:text-white">{{ $t('dashboard.user.loan_history.title') }}</h3>
         <div class="flex gap-3">
@@ -197,18 +213,18 @@
             </tr>
           </thead>
           <tbody class="divide-y divide-slate-100/50 dark:divide-slate-800/50">
-            <tr v-for="loan in mockLoans" :key="loan.id" class="group hover:bg-slate-50/50 dark:hover:bg-slate-900/50 transition-colors">
-              <td class="px-10 py-6 font-bold text-sm text-slate-400 tracking-tighter">{{ loan.id }}</td>
+            <tr v-for="loan in dashboardData?.loans" :key="loan.id" class="group hover:bg-slate-50/50 dark:hover:bg-slate-900/50 transition-colors">
+              <td class="px-10 py-6 font-bold text-sm text-slate-400 tracking-tighter">{{ loan.id.substring(0, 8) }}...</td>
               <td class="px-10 py-6">
                 <div class="flex items-center gap-3">
                   <LucideFileText class="w-4 h-4 text-slate-400" />
-                  <span class="text-sm font-bold text-[#1E3A5F] dark:text-slate-200">{{ loan.title }}</span>
+                  <span class="text-sm font-bold text-[#1E3A5F] dark:text-slate-200">{{ loan.document_title }}</span>
                 </div>
               </td>
-              <td class="px-10 py-6 text-sm font-bold text-slate-500">{{ loan.date }}</td>
-              <td class="px-10 py-6 text-sm font-bold" :class="loan.status === 'OVERDUE' ? 'text-red-500' : 'text-slate-500'">{{ loan.return }}</td>
+              <td class="px-10 py-6 text-sm font-bold text-slate-500">{{ new Date(loan.borrow_date).toLocaleDateString() }}</td>
+              <td class="px-10 py-6 text-sm font-bold" :class="loan.status === 'OVERDUE' ? 'text-red-500' : 'text-slate-500'">{{ new Date(loan.due_date).toLocaleDateString() }}</td>
               <td class="px-10 py-6">
-                <span :class="`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest ${loan.status === 'ACTIVE' ? 'bg-green-50 text-green-600' : loan.status === 'RETURNED' ? 'bg-blue-50 text-blue-600' : 'bg-red-50 text-red-600'}`">
+                <span :class="`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest ${loan.status === 'active' ? 'bg-green-50 text-green-600' : loan.status === 'returned' ? 'bg-blue-50 text-blue-600' : 'bg-red-50 text-red-600'}`">
                   {{ loan.status }}
                 </span>
               </td>
@@ -216,7 +232,7 @@
                 <button class="p-2 text-slate-300 hover:text-[#1E3A5F] transition-colors"><LucideMoreVertical class="w-5 h-5" /></button>
               </td>
             </tr>
-            <tr v-if="!mockLoans.length">
+            <tr v-if="!dashboardData?.loans?.length">
               <td colspan="6" class="px-10 py-10 text-center text-slate-400 font-bold text-xs uppercase tracking-widest">
                 {{ $t('dashboard.user.loan_history.no_records') }}
               </td>
@@ -225,6 +241,24 @@
         </table>
       </div>
     </div>
+
+    <!-- Release Notes Modal -->
+    <Modal 
+      v-model="isNotesOpen" 
+      :title="dashboardData?.announcement?.title || 'Release Notes'"
+    >
+      <div class="prose prose-slate dark:prose-invert max-w-none">
+        <div v-html="parseMarkdown(dashboardData?.announcement?.notes || '')"></div>
+      </div>
+      <template #footer>
+        <button 
+          @click="isNotesOpen = false"
+          class="px-6 py-2 bg-[#1E3A5F] text-white rounded-xl font-black text-xs uppercase tracking-widest hover:bg-[#152943] transition-all"
+        >
+          {{ $t('common.close') || 'Tutup' }}
+        </button>
+      </template>
+    </Modal>
   </div>
 </template>
 
@@ -247,17 +281,19 @@ import {
 import { useAuthStore } from '~/stores/auth'
 import { useApi } from '~/composables/useApi'
 import PageHeader from '~/components/PageHeader.vue'
-import { timeAgo } from '~/utils/format'
+import Modal from '~/components/Modal.vue'
+import { timeAgo, parseMarkdown } from '~/utils/format'
 
 const { t } = useI18n()
 const auth = useAuthStore()
 const { $api } = useApi()
 const user = computed(() => auth.user)
 const config = useRuntimeConfig()
+const isNotesOpen = ref(false)
 
 // Data Fetching
 const { data: dashboardData, refresh: refreshDashboard } = await useAsyncData('dashboard-summary', async () => {
-  const res = await $api(`${config.public.apiBase}/dashboard/summary`)
+  const res = await $api('/dashboard/summary')
   return res.data
 })
 
@@ -274,17 +310,22 @@ const getActivityStyles = (action) => {
 }
 
 const quickActions = [
-  { label: t('dashboard.user.quick_actions.items.submit'), icon: LucideUpload },
-  { label: t('dashboard.user.quick_actions.items.loan'), icon: LucideBookOpen },
-  { label: t('dashboard.user.quick_actions.items.search'), icon: LucideSearch },
-  { label: t('dashboard.user.quick_actions.items.track'), icon: LucideLocateFixed },
+  { label: t('dashboard.user.quick_actions.items.submit'), icon: LucideUpload, path: '/documents/upload' },
+  { label: t('dashboard.user.quick_actions.items.loan'), icon: LucideBookOpen, path: '/loans/request' },
+  { label: t('dashboard.user.quick_actions.items.search'), icon: LucideSearch, path: '/documents' },
+  { label: t('dashboard.user.quick_actions.items.track'), icon: LucideLocateFixed, path: '/documents' },
 ]
 
-const mockLoans = [
-  { id: 'LN-2823-45', title: 'Financial Audit Q3 2023', date: 'Sep 20, 2023', return: 'Sep 30, 2023', status: 'ACTIVE' },
-  { id: 'LN-2823-44', title: 'Legal Agreement - PT ABC', date: 'Sep 15, 2023', return: 'Sep 18, 2023', status: 'RETURNED' },
-  { id: 'LN-2823-41', title: 'Operations Manual v2', date: 'Sep 05, 2023', return: 'Sep 12, 2023', status: 'OVERDUE' },
-]
+
+const handleTaskAction = (task) => {
+  if (task.entity_type.includes('Scan')) {
+    navigateTo('/stock/scan')
+  } else if (task.entity_type.includes('Loan')) {
+    navigateTo('/approvals/loans')
+  } else {
+    navigateTo('/approvals/submissions')
+  }
+}
 
 // Polling for updates
 let timer

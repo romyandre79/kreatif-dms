@@ -10,7 +10,8 @@
     "loading": "Loading data...",
     "no_data": "Data not found",
     "system": "System",
-    "system_entity": "System Entity"
+    "system_entity": "System Entity",
+    "close": "Close"
   },
   "error": {
     "page_not_found": "Page not found",

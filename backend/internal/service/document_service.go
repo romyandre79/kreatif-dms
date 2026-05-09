@@ -50,6 +50,11 @@ type UploadDocumentParams struct {
 	BranchID     uuid.UUID
 	DepartmentID uuid.UUID
 	BatchID      uuid.UUID
+	TypeID       uuid.UUID
+	Sensitivity  string
+	Urgency      string
+	DocumentDate string
+	PageCount    int
 }
 
 func (s *DocumentService) UploadDocument(ctx context.Context, p UploadDocumentParams) (repository.Document, error) {
@@ -67,9 +72,18 @@ func (s *DocumentService) UploadDocument(ctx context.Context, p UploadDocumentPa
 
 	log.Printf("[DocumentService] Storage upload successful, creating DB record for %s", p.FileName)
 
+	// Prepare metadata JSON
+	metadata := map[string]interface{}{
+		"urgency":       p.Urgency,
+		"document_date": p.DocumentDate,
+		"page_count":    p.PageCount,
+	}
+	metadataBytes, _ := json.Marshal(metadata)
+
 	// 3. Save to DB
 	doc, err := s.repo.CreateDocument(ctx, repository.CreateDocumentParams{
 		Title:        p.Title,
+		Description:  pgtype.Text{String: p.Description, Valid: p.Description != ""},
 		FileName:     p.FileName,
 		FilePath:     objectName,
 		FileSize:     p.FileSize,
@@ -80,6 +94,8 @@ func (s *DocumentService) UploadDocument(ctx context.Context, p UploadDocumentPa
 		DepartmentID: p.DepartmentID,
 		Status:       "processing",
 		BatchID:      pgtype.UUID{Bytes: p.BatchID, Valid: p.BatchID != uuid.Nil},
+		Sensitivity:  pgtype.Text{String: strings.ToLower(p.Sensitivity), Valid: p.Sensitivity != ""},
+		Metadata:     metadataBytes,
 	})
 	if err != nil {
 		log.Printf("[DocumentService] Error creating document record in DB: %v", err)
@@ -240,6 +256,10 @@ func (s *DocumentService) ListOCRHistory(ctx context.Context, page, pageSize int
 	}
 
 	return rows, total, nil
+}
+
+func (s *DocumentService) GetDocument(ctx context.Context, id uuid.UUID) (repository.Document, error) {
+	return s.repo.GetDocument(ctx, id)
 }
 
 func (s *DocumentService) ListRecentDocuments(ctx context.Context, limit int) ([]repository.ListRecentDocumentsRow, error) {

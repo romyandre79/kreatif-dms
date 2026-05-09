@@ -171,6 +171,32 @@
       </div>
     </div>
 
+    <!-- System Update Banner -->
+    <div v-if="dashboardData?.announcement?.active" class="bg-gradient-to-br from-[#1E3A5F] to-[#152943] rounded-lg p-6 text-white relative overflow-hidden group shadow-2xl shadow-blue-900/40 flex items-center justify-between" v-motion-slide-visible-bottom>
+      <div class="relative z-10 flex items-center gap-8">
+        <div class="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center shrink-0 ring-1 ring-white/20">
+           <LucideInfo class="w-8 h-8 text-white" />
+        </div>
+        <div>
+          <h3 class="font-black text-xl mb-1 leading-tight">{{ dashboardData.announcement.title }}</h3>
+          <p class="text-blue-100/70 text-sm font-medium leading-relaxed max-w-2xl">
+            {{ dashboardData.announcement.message }}
+          </p>
+        </div>
+      </div>
+      <div class="relative z-10">
+        <button 
+          @click="isNotesOpen = true"
+          class="px-8 py-3 bg-white text-[#1E3A5F] rounded-xl font-black text-xs uppercase tracking-widest hover:bg-blue-50 transition-all shadow-xl shadow-black/20"
+        >
+          {{ $t('dashboard.user.system_update.btn_notes') }}
+        </button>
+      </div>
+      <!-- Decorative bubbles -->
+      <div class="absolute -right-10 -bottom-10 w-64 h-64 bg-white/5 rounded-full blur-3xl group-hover:scale-125 transition-transform duration-1000"></div>
+      <div class="absolute -left-10 -top-10 w-32 h-32 bg-primary-500/10 rounded-full blur-2xl"></div>
+    </div>
+
     <!-- Infrastructure Status -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6" v-motion-slide-visible-bottom>
       <!-- Scanner -->
@@ -213,6 +239,24 @@
         </div>
       </div>
     </div>
+
+    <!-- Release Notes Modal -->
+    <Modal 
+      v-model="isNotesOpen" 
+      :title="dashboardData?.announcement?.title || 'Release Notes'"
+    >
+      <div class="prose prose-slate dark:prose-invert max-w-none">
+        <div v-html="parseMarkdown(dashboardData?.announcement?.notes || '')"></div>
+      </div>
+      <template #footer>
+        <button 
+          @click="isNotesOpen = false"
+          class="px-6 py-2 bg-[#1E3A5F] text-white rounded-xl font-black text-xs uppercase tracking-widest hover:bg-[#152943] transition-all"
+        >
+          {{ $t('common.close') || 'Tutup' }}
+        </button>
+      </template>
+    </Modal>
   </div>
 </template>
 
@@ -237,18 +281,21 @@ import {
   LucideActivity,
   LucideTrash,
   LucideEdit,
-  LucideUpload
+  LucideUpload,
+  LucideInfo
 } from 'lucide-vue-next'
 import { useAuthStore } from '~/stores/auth'
 import { useApi } from '~/composables/useApi'
 import PageHeader from '~/components/PageHeader.vue'
-import { formatBytes, timeAgo } from '~/utils/format'
+import Modal from '~/components/Modal.vue'
+import { formatBytes, timeAgo, parseMarkdown } from '~/utils/format'
 
 const auth = useAuthStore()
 const { $api } = useApi()
 const { t } = useI18n()
 const user = computed(() => auth.user)
 const config = useRuntimeConfig()
+const isNotesOpen = ref(false)
 
 const currentDate = computed(() => {
   const d = new Date();
@@ -259,13 +306,13 @@ const currentDate = computed(() => {
 })
 
 // Data Fetching
-const { data: dashboardData, refresh: refreshDashboard } = await useAsyncData('dashboard-summary', async () => {
-  const res = await $api(`${config.public.apiBase}/dashboard/summary`)
+const { data: dashboardData, refresh: refreshDashboard } = await useAsyncData('admin-summary', async () => {
+  const res = await $api('/dashboard/summary')
   return res.data
 })
 
-const { data: integrationData, refresh: refreshIntegration } = await useAsyncData('integration-status', async () => {
-  const res = await $api(`${config.public.apiBase}/master/integration/status`)
+const { data: integrationData, refresh: refreshIntegration } = await useAsyncData('health-status', async () => {
+  const res = await $api('/master/integration/status')
   return res.data
 })
 

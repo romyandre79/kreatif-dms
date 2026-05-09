@@ -54,25 +54,28 @@ func (q *Queries) CreateBatch(ctx context.Context, arg CreateBatchParams) (Proce
 const createDocument = `-- name: CreateDocument :one
 INSERT INTO documents (
     title, description, file_name, file_path, file_size, mime_type, 
-    company_id, branch_id, department_id, owner_id, status, batch_id
+    company_id, branch_id, department_id, owner_id, status, batch_id,
+    sensitivity, metadata
 ) VALUES (
-    $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12
+    $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14
 ) RETURNING id, title, description, file_name, file_path, file_size, mime_type, checksum, company_id, branch_id, department_id, rack_id, box_id, ordner_id, owner_id, current_version, status, tags, metadata, extracted_text, is_ocr_processed, created_at, updated_at, batch_id, retention_years, retention_expiry_date, sensitivity, circulation_id, minio_bucket, es_indexed
 `
 
 type CreateDocumentParams struct {
-	Title        string      `json:"title"`
-	Description  pgtype.Text `json:"description"`
-	FileName     string      `json:"file_name"`
-	FilePath     string      `json:"file_path"`
-	FileSize     int64       `json:"file_size"`
-	MimeType     string      `json:"mime_type"`
-	CompanyID    uuid.UUID   `json:"company_id"`
-	BranchID     uuid.UUID   `json:"branch_id"`
-	DepartmentID uuid.UUID   `json:"department_id"`
-	OwnerID      uuid.UUID   `json:"owner_id"`
-	Status       string      `json:"status"`
-	BatchID      pgtype.UUID `json:"batch_id"`
+	Title        string          `json:"title"`
+	Description  pgtype.Text     `json:"description"`
+	FileName     string          `json:"file_name"`
+	FilePath     string          `json:"file_path"`
+	FileSize     int64           `json:"file_size"`
+	MimeType     string          `json:"mime_type"`
+	CompanyID    uuid.UUID       `json:"company_id"`
+	BranchID     uuid.UUID       `json:"branch_id"`
+	DepartmentID uuid.UUID       `json:"department_id"`
+	OwnerID      uuid.UUID       `json:"owner_id"`
+	Status       string          `json:"status"`
+	BatchID      pgtype.UUID     `json:"batch_id"`
+	Sensitivity  pgtype.Text     `json:"sensitivity"`
+	Metadata     json.RawMessage `json:"metadata"`
 }
 
 func (q *Queries) CreateDocument(ctx context.Context, arg CreateDocumentParams) (Document, error) {
@@ -89,6 +92,8 @@ func (q *Queries) CreateDocument(ctx context.Context, arg CreateDocumentParams) 
 		arg.OwnerID,
 		arg.Status,
 		arg.BatchID,
+		arg.Sensitivity,
+		arg.Metadata,
 	)
 	var i Document
 	err := row.Scan(

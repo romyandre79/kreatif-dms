@@ -24,3 +24,16 @@ export const timeAgo = (date: string | Date) => {
   if (minutes > 0) return `${minutes} minutes ago`
   return 'Just now'
 }
+
+export const parseMarkdown = (text: string) => {
+  if (!text) return ''
+  return text
+    .replace(/\\n/g, '\n') // Handle literal \n from DB
+    .replace(/^### (.*$)/gim, '<h3 class="text-lg font-black mt-4 mb-2 text-[#1E3A5F] dark:text-white">$1</h3>')
+    .replace(/^## (.*$)/gim, '<h2 class="text-xl font-black mt-6 mb-3 text-[#1E3A5F] dark:text-white">$1</h2>')
+    .replace(/^# (.*$)/gim, '<h1 class="text-2xl font-black mt-8 mb-4 text-[#1E3A5F] dark:text-white">$1</h1>')
+    .replace(/\*\*(.*)\*\*/gim, '<b class="font-black">$1</b>')
+    .replace(/\*(.*)\*/gim, '<i>$1</i>')
+    .replace(/^- (.*$)/gim, '<li class="ml-4 list-disc text-slate-600 dark:text-slate-400">$1</li>')
+    .replace(/\n/gim, '<br>')
+}

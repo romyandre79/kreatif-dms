@@ -147,3 +147,200 @@ func (q *Queries) GetRecentActivities(ctx context.Context, limit int32) ([]GetRe
 	}
 	return items, nil
 }
+
+const getUserDailyStats = `-- name: GetUserDailyStats :one
+SELECT 
+    (SELECT COUNT(*) FROM documents WHERE owner_id = $1 AND created_at >= CURRENT_DATE) as daily_received,
+    (SELECT COUNT(*) FROM borrow_requests WHERE user_id = $1 AND status = 'active') as active_loans,
+    (SELECT COUNT(*) FROM approval_workflows WHERE approver_id = $1 AND status = 'pending') as active_tasks,
+    (SELECT COUNT(*) FROM activity_logs WHERE user_id = $1 AND action = 'SEARCH' AND created_at >= CURRENT_DATE) as search_count
+`
+
+type GetUserDailyStatsRow struct {
+	DailyReceived int64 `json:"daily_received"`
+	ActiveLoans   int64 `json:"active_loans"`
+	ActiveTasks   int64 `json:"active_tasks"`
+	SearchCount   int64 `json:"search_count"`
+}
+
+func (q *Queries) GetUserDailyStats(ctx context.Context, ownerID uuid.UUID) (GetUserDailyStatsRow, error) {
+	row := q.db.QueryRow(ctx, getUserDailyStats, ownerID)
+	var i GetUserDailyStatsRow
+	err := row.Scan(
+		&i.DailyReceived,
+		&i.ActiveLoans,
+		&i.ActiveTasks,
+		&i.SearchCount,
+	)
+	return i, err
+}
+
+const getUserLoanHistory = `-- name: GetUserLoanHistory :many
+SELECT 
+    br.id,
+    d.title as document_title,
+    br.borrow_date,
+    br.due_date,
+    br.status
+FROM borrow_requests br
+JOIN documents d ON br.document_id = d.id
+WHERE br.user_id = $1
+ORDER BY br.created_at DESC
+LIMIT $2
+`
+
+type GetUserLoanHistoryParams struct {
+	UserID uuid.UUID `json:"user_id"`
+	Limit  int32     `json:"limit"`
+}
+
+type GetUserLoanHistoryRow struct {
+	ID            uuid.UUID          `json:"id"`
+	DocumentTitle string             `json:"document_title"`
+	BorrowDate    pgtype.Timestamptz `json:"borrow_date"`
+	DueDate       pgtype.Timestamptz `json:"due_date"`
+	Status        string             `json:"status"`
+}
+
+func (q *Queries) GetUserLoanHistory(ctx context.Context, arg GetUserLoanHistoryParams) ([]GetUserLoanHistoryRow, error) {
+	rows, err := q.db.Query(ctx, getUserLoanHistory, arg.UserID, arg.Limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetUserLoanHistoryRow
+	for rows.Next() {
+		var i GetUserLoanHistoryRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.DocumentTitle,
+			&i.BorrowDate,
+			&i.DueDate,
+			&i.Status,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getUserPriorityTasks = `-- name: GetUserPriorityTasks :many
+SELECT 
+    id,
+    entity_type,
+    entity_id,
+    level,
+    status,
+    created_at
+FROM approval_workflows
+WHERE status = 'pending' AND (approver_id = $1)
+ORDER BY created_at ASC
+LIMIT $2
+`
+
+type GetUserPriorityTasksParams struct {
+	ApproverID uuid.UUID `json:"approver_id"`
+	Limit      int32     `json:"limit"`
+}
+
+type GetUserPriorityTasksRow struct {
+	ID         uuid.UUID          `json:"id"`
+	EntityType string             `json:"entity_type"`
+	EntityID   uuid.UUID          `json:"entity_id"`
+	Level      int32              `json:"level"`
+	Status     string             `json:"status"`
+	CreatedAt  pgtype.Timestamptz `json:"created_at"`
+}
+
+func (q *Queries) GetUserPriorityTasks(ctx context.Context, arg GetUserPriorityTasksParams) ([]GetUserPriorityTasksRow, error) {
+	rows, err := q.db.Query(ctx, getUserPriorityTasks, arg.ApproverID, arg.Limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetUserPriorityTasksRow
+	for rows.Next() {
+		var i GetUserPriorityTasksRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.EntityType,
+			&i.EntityID,
+			&i.Level,
+			&i.Status,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getUserRecentActivities = `-- name: GetUserRecentActivities :many
+SELECT 
+    a.id,
+    a.action,
+    a.entity_type,
+    a.entity_id,
+    a.details,
+    a.created_at,
+    u.full_name as user_name,
+    u.email as user_email
+FROM activity_logs a
+JOIN users u ON a.user_id = u.id
+WHERE a.user_id = $1
+ORDER BY a.created_at DESC
+LIMIT $2
+`
+
+type GetUserRecentActivitiesParams struct {
+	UserID uuid.UUID `json:"user_id"`
+	Limit  int32     `json:"limit"`
+}
+
+type GetUserRecentActivitiesRow struct {
+	ID         uuid.UUID          `json:"id"`
+	Action     string             `json:"action"`
+	EntityType string             `json:"entity_type"`
+	EntityID   pgtype.UUID        `json:"entity_id"`
+	Details    []byte             `json:"details"`
+	CreatedAt  pgtype.Timestamptz `json:"created_at"`
+	UserName   string             `json:"user_name"`
+	UserEmail  string             `json:"user_email"`
+}
+
+func (q *Queries) GetUserRecentActivities(ctx context.Context, arg GetUserRecentActivitiesParams) ([]GetUserRecentActivitiesRow, error) {
+	rows, err := q.db.Query(ctx, getUserRecentActivities, arg.UserID, arg.Limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetUserRecentActivitiesRow
+	for rows.Next() {
+		var i GetUserRecentActivitiesRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Action,
+			&i.EntityType,
+			&i.EntityID,
+			&i.Details,
+			&i.CreatedAt,
+			&i.UserName,
+			&i.UserEmail,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}

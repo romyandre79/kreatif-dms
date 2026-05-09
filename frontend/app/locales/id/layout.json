@@ -98,6 +98,7 @@
       "cat_retention": "Retensi",
       "cat_reports": "Laporan",
       "cat_config": "Konfigurasi",
+      "cat_admin": "Administrasi",
       "cat_approval": "Approval Management",
       "cat_loans": "Loans",
       "cat_submissions": "Document Submissions",
@@ -111,7 +112,8 @@
       "sub_new": "Submit Document",
       "sub_status": "Submission Status",
       "inbound_pre": "Inbound Pre-Registration",
-      "notifications": "Notifications"
+      "notifications": "Notifications",
+      "announcements": "Pengumuman Dashboard"
     }
   }
 }

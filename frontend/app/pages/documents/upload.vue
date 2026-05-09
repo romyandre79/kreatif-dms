@@ -54,13 +54,31 @@
         <div v-if="activeTab === 'manual'" class="glass rounded-3xl overflow-hidden shadow-xl shadow-slate-200/50 dark:shadow-none" v-motion-slide-visible-bottom>
           <div class="px-10 py-8 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50"><h2 class="font-black text-xl text-[#1E3A5F] dark:text-white">{{ $t('upload.form.title') }}</h2></div>
           <div class="p-10 space-y-8">
-            <div class="grid grid-cols-1 md:grid-cols-3 items-start gap-6"><label class="text-sm font-black text-[#1E3A5F] dark:text-slate-300 mt-3">{{ $t('upload.form.type') }}<span class="text-red-500 ml-1">*</span></label><div class="md:col-span-2 space-y-2"><div class="relative"><select v-model="form.type" :class="`w-full pl-5 pr-12 py-3.5 bg-white dark:bg-slate-900 border ${errors.type ? 'border-red-500 bg-red-50/10' : 'border-slate-200 dark:border-slate-800'} rounded-2xl text-sm font-bold appearance-none outline-none focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 transition-all cursor-pointer`"><option value="" disabled selected>{{ $t('upload.form.type_placeholder') }}</option><option>{{ $t('upload.form.options.types.invoice') }}</option><option>{{ $t('upload.form.options.types.contract') }}</option><option>{{ $t('upload.form.options.types.personnel') }}</option><option>{{ $t('upload.form.options.types.financial') }}</option></select><LucideChevronDown class="absolute right-5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" /></div><div v-if="errors.type" class="flex items-center gap-1.5 px-1"><LucideAlertCircle class="w-3 h-3 text-red-500" /><p class="text-[10px] font-black text-red-500 uppercase tracking-widest">{{ errors.type }}</p></div></div></div>
+            <div class="grid grid-cols-1 md:grid-cols-3 items-start gap-6"><label class="text-sm font-black text-[#1E3A5F] dark:text-slate-300 mt-3">{{ $t('upload.form.type') }}<span class="text-red-500 ml-1">*</span></label><div class="md:col-span-2 space-y-2"><div class="relative"><select v-model="form.type_id" :class="`w-full pl-5 pr-12 py-3.5 bg-white dark:bg-slate-900 border ${errors.type_id ? 'border-red-500 bg-red-50/10' : 'border-slate-200 dark:border-slate-800'} rounded-2xl text-sm font-bold appearance-none outline-none focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 transition-all cursor-pointer`"><option value="" disabled selected>{{ $t('upload.form.type_placeholder') }}</option><option v-for="t in docTypes" :key="t.id" :value="t.id">{{ t.name }}</option></select><LucideChevronDown class="absolute right-5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" /></div><div v-if="errors.type_id" class="flex items-center gap-1.5 px-1"><LucideAlertCircle class="w-3 h-3 text-red-500" /><p class="text-[10px] font-black text-red-500 uppercase tracking-widest">{{ errors.type_id }}</p></div></div></div>
             <div class="grid grid-cols-1 md:grid-cols-3 items-start gap-6"><label class="text-sm font-black text-[#1E3A5F] dark:text-slate-300 mt-3">{{ $t('upload.form.subject') }}<span class="text-red-500 ml-1">*</span></label><div class="md:col-span-2 space-y-2"><textarea v-model="form.title" :placeholder="$t('upload.form.subject_placeholder')" rows="2" :class="`w-full px-5 py-3.5 bg-white dark:bg-slate-900 border ${errors.title ? 'border-red-500 bg-red-50/10' : 'border-slate-200 dark:border-slate-800'} rounded-2xl text-sm font-bold outline-none focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 transition-all resize-none`"></textarea><div class="flex items-center justify-between px-1"><div v-if="errors.title" class="flex items-center gap-1.5"><p class="text-[10px] font-black text-red-500 uppercase tracking-widest">{{ errors.title }}</p></div><p :class="`text-[10px] font-black uppercase tracking-widest ml-auto ${form.title.length > 200 ? 'text-red-500' : 'text-slate-400'}`">{{ $t('upload.form.char_limit', { count: form.title.length }) }}</p></div></div></div>
             <div class="grid grid-cols-1 md:grid-cols-3 items-start gap-6"><label class="text-sm font-black text-[#1E3A5F] dark:text-slate-300 mt-3">{{ $t('upload.form.category') }}</label><div class="md:col-span-2 space-y-2"><div class="relative"><select v-model="form.category" :class="`w-full pl-5 pr-12 py-3.5 bg-white dark:bg-slate-900 border ${errors.category ? 'border-red-500 bg-red-50/10' : 'border-slate-200 dark:border-slate-800'} rounded-2xl text-sm font-bold appearance-none outline-none focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 transition-all cursor-pointer`"><option value="" disabled selected>{{ $t('upload.form.category_placeholder') }}</option><option>{{ $t('upload.form.options.categories.confidential') }}</option><option>{{ $t('upload.form.options.categories.internal') }}</option><option>{{ $t('upload.form.options.categories.public') }}</option></select><LucideChevronDown class="absolute right-5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" /></div></div></div>
             <div class="grid grid-cols-1 md:grid-cols-3 items-start gap-6"><label class="text-sm font-black text-[#1E3A5F] dark:text-slate-300 mt-3">{{ $t('upload.form.department') }}</label><div class="md:col-span-2 space-y-2"><div class="flex items-center justify-between px-5 py-3.5 bg-slate-50 dark:bg-slate-950/50 border border-slate-100 dark:border-slate-800 rounded-2xl"><span class="text-sm font-bold text-slate-500">Finance</span><LucideCheckCircle2 class="w-4 h-4 text-green-500" /></div><p class="text-[10px] font-black text-slate-400 uppercase tracking-widest italic px-1">{{ $t('upload.form.department_hint') }}</p></div></div>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8"><div class="space-y-3"><label class="text-sm font-black text-[#1E3A5F] dark:text-slate-300">{{ $t('upload.form.count') }}</label><div class="flex items-center border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden bg-white dark:bg-slate-900 transition-all"><button @click="form.count > 1 && form.count--" class="p-3.5 text-slate-400 hover:text-[#1E3A5F] transition-colors border-r border-slate-100 dark:border-slate-800"><LucideMinus class="w-4 h-4" /></button><input type="text" v-model.number="form.count" class="w-full text-center text-sm font-black bg-transparent outline-none" /><button @click="form.count++" class="p-3.5 text-slate-400 hover:text-[#1E3A5F] transition-colors border-l border-slate-100 dark:border-slate-800"><LucidePlus class="w-4 h-4" /></button></div></div><div class="md:col-span-2 space-y-3"><label class="text-sm font-black text-[#1E3A5F] dark:text-slate-300">{{ $t('upload.form.date') }}</label><div class="relative"><input type="text" v-model="form.date" class="w-full px-5 py-3.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl text-sm font-bold outline-none focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 transition-all"/><LucideCalendar class="absolute right-5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" /></div></div></div>
             <div class="grid grid-cols-1 md:grid-cols-3 items-start gap-6"><label class="text-sm font-black text-[#1E3A5F] dark:text-slate-300 mt-3">{{ $t('upload.form.notes') }}<span v-if="form.urgency === 'Urgent'" class="text-orange-500 text-[10px] block mt-0.5">(Justification required)</span></label><div class="md:col-span-2 space-y-2"><textarea v-model="form.notes" rows="4" :placeholder="form.urgency === 'Urgent' ? $t('upload.form.notes_urgent_placeholder') : $t('upload.form.notes_placeholder')" :class="`w-full px-5 py-4 bg-white dark:bg-slate-900 border ${errors.notes ? 'border-orange-500 bg-orange-50/10' : 'border-slate-200 dark:border-slate-800'} rounded-3xl text-sm font-bold outline-none focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 transition-all resize-none`"></textarea><p v-if="errors.notes" class="text-[10px] font-black text-orange-600 uppercase tracking-widest px-1">{{ errors.notes }}</p></div></div>
             <div class="space-y-6"><label class="text-sm font-black text-[#1E3A5F] dark:text-slate-300">{{ $t('upload.form.urgency') }}</label><div class="flex flex-wrap gap-8 px-1"><label v-for="level in [{key: 'Normal', label: $t('upload.form.urgency_levels.normal')}, {key: 'High', label: $t('upload.form.urgency_levels.high')}, {key: 'Urgent', label: $t('upload.form.urgency_levels.urgent')}]" :key="level.key" class="flex items-center gap-3 cursor-pointer group"><div class="relative flex items-center justify-center"><input type="radio" v-model="form.urgency" name="urgency" :value="level.key" class="peer appearance-none w-5 h-5 border-2 border-slate-200 dark:border-slate-700 rounded-full checked:border-primary-500 transition-all" /><div class="absolute w-2.5 h-2.5 rounded-full bg-primary-500 transform scale-0 peer-checked:scale-100 transition-transform"></div></div><span :class="`text-sm font-bold transition-colors ${form.urgency === level.key ? 'text-slate-900 dark:text-white' : 'text-slate-400 group-hover:text-slate-600'}`">{{ level.label }}</span></label></div><Transition enter-active-class="transition duration-300 ease-out" enter-from-class="transform -translate-y-4 opacity-0" enter-to-class="transform translate-y-0 opacity-100"><div v-if="form.urgency === 'Urgent'" class="flex items-center gap-4 p-4 bg-orange-50 dark:bg-orange-950/20 border border-orange-100 dark:border-orange-900/50 rounded-2xl"><LucideAlertTriangle class="w-5 h-5 text-orange-500 flex-shrink-0" /><p class="text-xs font-bold text-orange-700 dark:text-orange-400">{{ $t('upload.form.urgent_warning') }}</p></div></Transition></div>
+            <div class="w-full h-px bg-slate-100 dark:bg-slate-800 my-8"></div>
+            <div class="space-y-6">
+              <label class="text-sm font-black text-[#1E3A5F] dark:text-slate-300">{{ $t('upload.bulk.step2_title') }}<span class="text-red-500 ml-1">*</span></label>
+              <div class="group relative border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-3xl p-10 flex flex-col items-center text-center hover:border-primary-500/50 hover:bg-primary-50/5 transition-all cursor-pointer">
+                <input type="file" @change="onFileChange" class="absolute inset-0 opacity-0 cursor-pointer" />
+                <div v-if="!form.file" class="flex flex-col items-center">
+                  <div class="w-12 h-12 rounded-full bg-slate-50 dark:bg-slate-800 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform"><LucideUploadCloud class="w-6 h-6 text-slate-400 group-hover:text-primary-500" /></div>
+                  <h4 class="text-sm font-black text-[#1E3A5F] dark:text-white mb-1">{{ $t('upload.bulk.step2_dropzone') }}</h4>
+                  <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">PDF, JPG, PNG up to 10MB</p>
+                </div>
+                <div v-else class="flex flex-col items-center">
+                  <div class="w-12 h-12 rounded-full bg-green-50 dark:bg-green-900/20 flex items-center justify-center mb-4"><LucideCheckCircle2 class="w-6 h-6 text-green-500" /></div>
+                  <h4 class="text-sm font-black text-green-600 dark:text-green-400 mb-1">{{ form.file.name }}</h4>
+                  <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{{ (form.file.size / 1024 / 1024).toFixed(2) }} MB</p>
+                  <button @click.stop="form.file = null" class="mt-4 text-[10px] font-black text-red-500 uppercase tracking-widest hover:underline">{{ $t('upload.bulk.review.table.actions') }} (Delete)</button>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -286,30 +304,88 @@ const formatDate = (date) => {
   return `${day}.${month}.${year}`;
 }
 
-const form = reactive({ type: '', title: '', category: '', count: 1, date: formatDate(new Date()), notes: '', urgency: 'Normal' })
-const errors = reactive({ type: '', title: '', category: '', count: '', date: '', notes: '' })
+const { $api } = useApi()
 
-const bulkData = [
-  { type: t('upload.mock.bulk_data.invoice'), subject: t('upload.mock.bulk_data.subject_1'), category: t('documents.mock.finance'), date: '12.10.2023', hasError: false },
-  { type: t('upload.mock.bulk_data.contract'), subject: '', category: t('documents.mock.legal'), date: '15.10.2023', hasError: true, errorMsg: t('upload.mock.bulk_data.err_missing_subject') },
-  { type: t('upload.mock.bulk_data.memo'), subject: t('upload.mock.bulk_data.subject_3'), category: t('upload.form.options.categories.internal'), date: '14.10.2023', hasError: false },
-  { type: t('upload.mock.bulk_data.tax'), subject: t('upload.mock.bulk_data.subject_4'), category: 'Unknown', date: '10.10.2023', hasError: true, errorMsg: t('upload.mock.bulk_data.err_invalid_cat') },
-]
+const docTypes = ref([])
+const fetchDocTypes = async () => {
+  try {
+    const res = await $api('/master/document-types')
+    if (res && res.data) docTypes.value = res.data
+  } catch (err) {
+    console.error('Failed to fetch doc types:', err)
+  }
+}
+
+onMounted(() => {
+  fetchDocTypes()
+})
+
+const form = reactive({ 
+  type_id: '', 
+  title: '', 
+  category: 'internal', 
+  count: 1, 
+  date: formatDate(new Date()), 
+  notes: '', 
+  urgency: 'Normal',
+  file: null
+})
+
+const errors = reactive({ type_id: '', title: '', category: '', count: '', date: '', notes: '' })
+
+const onFileChange = (e) => {
+  form.file = e.target.files[0]
+}
 
 const validate = () => {
   if (activeTab.value === 'bulk') return true
   let isValid = true
-  if (!form.type) { errors.type = 'Required'; isValid = false }
+  errors.type_id = ''
+  errors.title = ''
+  
+  if (!form.type_id) { errors.type_id = 'Required'; isValid = false }
   if (!form.title) { errors.title = 'Required'; isValid = false }
   return isValid
 }
 
-const handleSubmit = () => {
+const handleSubmit = async () => {
   if (validate()) {
     if (activeTab.value === 'bulk' && !isBulkReviewMode.value) { isBulkReviewMode.value = true; return }
     if (isBulkReviewMode.value) { startBulkUpload(); return }
+    
+    if (!form.file) {
+      alert('Please select a file')
+      return
+    }
+
     submitting.value = true
-    setTimeout(() => { submitting.value = false; showBulkSuccessModal.value = true }, 1200)
+    const formData = new FormData()
+    formData.append('file', form.file)
+    formData.append('title', form.title)
+    formData.append('type_id', form.type_id)
+    formData.append('sensitivity', form.category)
+    formData.append('urgency', form.urgency)
+    formData.append('notes', form.notes)
+    formData.append('document_date', form.date)
+    formData.append('page_count', form.count)
+
+    try {
+      const res = await $api('/documents', {
+        method: 'POST',
+        body: formData
+      })
+
+      if (res && res.success) {
+        showBulkSuccessModal.value = true
+      } else {
+        alert('Failed to upload: ' + (res?.message || 'Unknown error'))
+      }
+    } catch (err) {
+      console.error(err)
+      alert('Upload error: ' + (err.data?.message || err.message))
+    } finally {
+      submitting.value = false
+    }
   }
 }
 

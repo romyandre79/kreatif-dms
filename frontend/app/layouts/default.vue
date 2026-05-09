@@ -223,7 +223,7 @@ import {
   LucideScanLine, LucideGitCompare, LucideHardDrive, LucideBuilding2,
   LucideMapPin, LucideUsers, LucideServer, LucideArchive,
   LucideFolder, LucideSettings2, LucideUserCog, LucideBookOpen, LucideLayers,
-  LucideLock
+  LucideLock, LucideMegaphone
 } from 'lucide-vue-next'
 import { useApi } from '@/composables/useApi'
 
@@ -304,7 +304,8 @@ const iconMap = {
   'Submit': LucideUpload,
   'Loans': LucideFileText,
   'Tracking': LucideQrCode,
-  'LucideBell': LucideBell
+  'LucideBell': LucideBell,
+  'LucideMegaphone': LucideMegaphone
 }
 
 const getIcon = (key) => iconMap[key] || LucideFileText
@@ -313,7 +314,15 @@ const fetchDynamicMenu = async () => {
   try {
     const res = await $api(`${config.public.apiBase}/auth/me/menu`)
     if (res && res.data) {
-      dynamicMenu.value = res.data
+      // Patch menu items to use correct upload path instead of placeholder
+      dynamicMenu.value = res.data.map(item => ({
+        ...item,
+        path: item.path === '/registration/new' ? '/documents/upload' : item.path,
+        children: item.children?.map(child => ({
+          ...child,
+          path: child.path === '/registration/new' ? '/documents/upload' : child.path
+        }))
+      }))
     }
   } catch (err) {
     console.error('Failed to fetch dynamic menu:', err)

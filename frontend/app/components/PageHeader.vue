@@ -1,5 +1,5 @@
 <template>
-  <div class="mb-10" v-motion-fade>
+  <div class="mb-2" v-motion-fade>
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
       <div class="space-y-1">
         <!-- Breadcrumbs (Dashboard context) -->

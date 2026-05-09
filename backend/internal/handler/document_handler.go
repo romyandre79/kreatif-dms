@@ -60,10 +60,25 @@ func (h *DocumentHandler) Upload(c fiber.Ctx) error {
 
 	// Read form values
 	title := c.FormValue("title")
+	description := c.FormValue("description")
+	if description == "" {
+		description = c.FormValue("notes")
+	}
+	
+	typeID, _ := uuid.Parse(c.FormValue("type_id"))
 	companyID, _ := uuid.Parse(c.FormValue("company_id"))
 	branchID, _ := uuid.Parse(c.FormValue("branch_id"))
 	departmentID, _ := uuid.Parse(c.FormValue("department_id"))
 	batchID, _ := uuid.Parse(c.FormValue("batch_id"))
+	
+	sensitivity := c.FormValue("sensitivity")
+	if sensitivity == "" {
+		sensitivity = c.FormValue("category") // fallback to category from UI
+	}
+	
+	urgency := c.FormValue("urgency")
+	documentDateStr := c.FormValue("document_date")
+	pageCount, _ := strconv.Atoi(c.FormValue("page_count"))
 	
 	ownerID := c.Locals("user_id").(uuid.UUID)
 
@@ -102,6 +117,7 @@ func (h *DocumentHandler) Upload(c fiber.Ctx) error {
 
 	doc, err := h.svc.UploadDocument(c.Context(), service.UploadDocumentParams{
 		Title:        title,
+		Description:  description,
 		FileName:     file.Filename,
 		FileSize:     file.Size,
 		MimeType:     file.Header.Get("Content-Type"),
@@ -111,6 +127,11 @@ func (h *DocumentHandler) Upload(c fiber.Ctx) error {
 		BranchID:     branchID,
 		DepartmentID: departmentID,
 		BatchID:      batchID,
+		TypeID:       typeID,
+		Sensitivity:  sensitivity,
+		Urgency:      urgency,
+		DocumentDate: documentDateStr,
+		PageCount:    pageCount,
 	})
 
 	if err != nil {
@@ -185,6 +206,20 @@ func (h *DocumentHandler) ListOCRHistory(c fiber.Ctx) error {
 		},
 	})
 }
+func (h *DocumentHandler) GetByID(c fiber.Ctx) error {
+	id, err := uuid.Parse(c.Params("id"))
+	if err != nil {
+		return response.Error(c, fiber.StatusBadRequest, "Invalid document ID", err.Error())
+	}
+
+	doc, err := h.svc.GetDocument(c.Context(), id)
+	if err != nil {
+		return response.Error(c, fiber.StatusNotFound, "Document not found", err.Error())
+	}
+
+	return response.Success(c, fiber.StatusOK, "Document retrieved", doc)
+}
+
 func (h *DocumentHandler) GetOCRData(c fiber.Ctx) error {
 	docID, err := uuid.Parse(c.Params("id"))
 	if err != nil {
