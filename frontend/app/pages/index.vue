@@ -78,7 +78,7 @@
         </div>
 
         <div v-motion-slide-visible-right class="relative">
-          <div class="glass p-2 rounded-[2.5rem] shadow-2xl shadow-primary-500/10 relative z-10 overflow-hidden group">
+          <div class="glass p-2 rounded-lg shadow-2xl shadow-primary-500/10 relative z-10 overflow-hidden group">
             <img 
               src="/kreatif_dms_hero.png" 
               alt="Kreatif DMS Dashboard" 

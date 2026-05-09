@@ -69,6 +69,46 @@
         "btn_cancel": "CANCEL",
         "footer": "Your PIN is used as a valid digital signature."
       }
+    },
+    "detail": {
+      "title": "Pre-Registration Review",
+      "back_to_queue": "Back to Queue",
+      "sections": {
+        "submission": "SUBMISSION DETAILS",
+        "attachments": "DOCUMENT ATTACHMENTS",
+        "manager_notes": "INTERNAL MANAGER NOTES (PRIVATE)",
+        "workflow": "WORKFLOW STATUS"
+      },
+      "fields": {
+        "submitted_by": "SUBMITTED BY",
+        "doc_info": "DOCUMENT INFORMATION",
+        "category": "CATEGORY",
+        "department": "DEPARTMENT",
+        "date": "SUBMISSION DATE",
+        "count": "DOCUMENT COUNT",
+        "notes": "NOTES"
+      },
+      "status": {
+        "pending": "PENDING YOUR APPROVAL",
+        "urgent": "URGENT"
+      },
+      "workflow": {
+        "submitted": "Submitted",
+        "pending_manager": "Pending Manager Approval",
+        "compliance": "Legal Compliance Review",
+        "archiving": "Final Archiving"
+      }
+    },
+    "list": {
+      "title": "All Pending Submissions",
+      "table": {
+        "reg_id": "REGISTRATION ID",
+        "submitted_by": "SUBMITTED BY",
+        "doc_info": "DOCUMENT INFO",
+        "date": "SUBMISSION DATE",
+        "urgency": "URGENCY",
+        "actions": "ACTIONS"
+      }
     }
   }
 }

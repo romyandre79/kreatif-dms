@@ -45,7 +45,7 @@
 
           <!-- Thumbnail List -->
           <div v-for="t in thumbnails" :key="t.page" 
-            class="relative group rounded-[2.5rem] p-4 transition-all duration-300 border-4 overflow-hidden"
+            class="relative group rounded-lg p-4 transition-all duration-300 border-4 overflow-hidden"
             :class="t.status === 'active' ? 'border-[#1E3A5F] bg-slate-50 dark:bg-slate-900 shadow-xl shadow-blue-900/10' : 'border-transparent hover:border-slate-100 dark:hover:border-slate-800'"
           >
             <div class="aspect-[3/4] bg-white dark:bg-slate-800 rounded-[1.5rem] overflow-hidden shadow-sm flex items-center justify-center p-2">
@@ -64,7 +64,7 @@
               </div>
             </div>
             <!-- Error Border for Page 03 -->
-            <div v-if="t.status === 'error'" class="absolute inset-0 border-2 border-red-500/30 rounded-[2.5rem] pointer-events-none"></div>
+            <div v-if="t.status === 'error'" class="absolute inset-0 border-2 border-red-500/30 rounded-lg pointer-events-none"></div>
           </div>
         </div>
       </div>
@@ -118,7 +118,7 @@
       <!-- Right Sidebar: Metadata & Actions -->
       <div class="lg:col-span-3 space-y-8">
         <!-- Metadata Sesi -->
-        <div class="glass p-8 rounded-[2.5rem] space-y-8" v-motion-slide-visible-bottom>
+        <div class="glass p-8 rounded-lg space-y-8" v-motion-slide-visible-bottom>
           <h3 class="text-xs font-black text-[#1E3A5F] dark:text-white uppercase tracking-[0.2em] border-b border-slate-50 dark:border-slate-800 pb-6">Metadata Sesi</h3>
           <div class="space-y-6">
             <div class="space-y-1">

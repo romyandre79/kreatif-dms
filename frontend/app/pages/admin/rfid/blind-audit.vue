@@ -67,7 +67,7 @@
 
       <!-- Active Location Card -->
       <div class="px-8 mb-8">
-        <div class="p-8 bg-blue-50 rounded-[2.5rem] flex items-center justify-between group cursor-pointer hover:bg-blue-100 transition-all">
+        <div class="p-8 bg-blue-50 rounded-lg flex items-center justify-between group cursor-pointer hover:bg-blue-100 transition-all">
           <div class="flex items-center gap-6">
             <div class="w-14 h-14 rounded-2xl bg-[#1E3A5F] flex items-center justify-center text-white shadow-lg">
               <LucideScanQrCode class="w-7 h-7" />

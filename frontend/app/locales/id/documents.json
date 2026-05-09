@@ -63,6 +63,47 @@
         "result_3_name": "SOP Kebersihan Kantor",
         "result_3_snippet": "Standar operasional prosedur mengenai tata kelola kebersihan dan pemeliharaan gedung kantor pusat..."
       }
+    },
+    "detail": {
+      "btn_back": "Kembali",
+      "viewer": {
+        "page": "Halaman",
+        "no_preview": "Pratinjau tidak tersedia untuk jenis file ini"
+      },
+      "loading": "Memuat data dokumen...",
+      "actions": {
+        "available": "Tersedia",
+        "add_to_cart": "Tambah ke Keranjang",
+        "request_digital": "Request Digital",
+        "more": "Lainnya"
+      },
+      "metadata": {
+        "title": "Metadata Dokumen",
+        "labels": {
+          "doc_type": "Jenis Dokumen",
+          "company": "Perusahaan",
+          "department": "Departemen",
+          "year": "Tahun",
+          "date_issued": "Tanggal Terbit",
+          "retention": "Masa Simpan",
+          "version": "Versi"
+        },
+        "no_tags": "Tidak ada tag"
+      },
+      "location": {
+        "title": "Lokasi Fisik",
+        "building_room": "Gedung / Ruang",
+        "cabinet_shelf": "Lemari / Rak",
+        "scan": "Scan Lokasi"
+      },
+      "related": {
+        "title": "Dokumen Terkait"
+      },
+      "loan_history": {
+        "title": "Riwayat Peminjaman",
+        "returned": "Dikembalikan oleh {name} pada {date}",
+        "duration": "Durasi {days} hari"
+      }
     }
   }
 }

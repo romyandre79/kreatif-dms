@@ -26,7 +26,7 @@
     <div class="grid grid-cols-1 md:grid-cols-12 gap-8">
       <!-- Version A -->
       <div class="md:col-span-4 lg:col-span-4">
-        <div class="glass p-10 rounded-[2.5rem] border-l-8 border-blue-500/30 space-y-8" v-motion-slide-visible-bottom>
+        <div class="glass p-10 rounded-lg border-l-8 border-blue-500/30 space-y-8" v-motion-slide-visible-bottom>
           <div class="flex items-center justify-between">
             <span class="px-4 py-1.5 bg-blue-50 dark:bg-blue-900/30 text-blue-500 text-[10px] font-black uppercase tracking-widest rounded-lg">Version A (V2)</span>
             <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">24 May 2023 10:20 AM</span>
@@ -48,7 +48,7 @@
 
       <!-- Version B -->
       <div class="md:col-span-4 lg:col-span-4">
-        <div class="glass p-10 rounded-[2.5rem] border-l-8 border-indigo-500/30 space-y-8" v-motion-slide-visible-bottom :delay="100">
+        <div class="glass p-10 rounded-lg border-l-8 border-indigo-500/30 space-y-8" v-motion-slide-visible-bottom :delay="100">
           <div class="flex items-center justify-between">
             <span class="px-4 py-1.5 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-500 text-[10px] font-black uppercase tracking-widest rounded-lg">Version B (V3)</span>
             <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">12 June 2023 14:45 PM</span>
@@ -70,7 +70,7 @@
 
       <!-- Change Approval Status -->
       <div class="md:col-span-4 lg:col-span-4">
-        <div class="glass p-10 rounded-[2.5rem] space-y-8 h-full" v-motion-slide-visible-bottom :delay="200">
+        <div class="glass p-10 rounded-lg space-y-8 h-full" v-motion-slide-visible-bottom :delay="200">
           <h3 class="text-[11px] font-black text-[#1E3A5F] dark:text-white uppercase tracking-[0.2em]">Change Approval Status</h3>
           <div class="flex items-center gap-5 p-4 bg-green-50/50 dark:bg-green-900/20 rounded-3xl border border-green-100 dark:border-green-800">
             <LucideCheckCircle2 class="w-8 h-8 text-green-500" />
@@ -186,19 +186,19 @@
 
     <!-- Bottom Difference Summary -->
     <div class="grid grid-cols-1 md:grid-cols-4 gap-6" v-motion-slide-visible-bottom>
-      <div class="glass p-8 rounded-[2.5rem] flex flex-col justify-center gap-2">
+      <div class="glass p-8 rounded-lg flex flex-col justify-center gap-2">
         <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Text Growth</p>
         <p class="text-2xl font-black text-[#1E3A5F] dark:text-white tracking-tighter uppercase">+1,240 <span class="text-xs text-slate-400">words</span></p>
       </div>
-      <div class="glass p-8 rounded-[2.5rem] flex flex-col justify-center gap-2">
+      <div class="glass p-8 rounded-lg flex flex-col justify-center gap-2">
         <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Deletions</p>
         <p class="text-2xl font-black text-red-500 tracking-tighter uppercase">45 <span class="text-xs text-slate-400">lines</span></p>
       </div>
-      <div class="glass p-8 rounded-[2.5rem] flex flex-col justify-center gap-2">
+      <div class="glass p-8 rounded-lg flex flex-col justify-center gap-2">
         <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Additions</p>
         <p class="text-2xl font-black text-green-500 tracking-tighter uppercase">112 <span class="text-xs text-slate-400">lines</span></p>
       </div>
-      <div class="glass p-8 rounded-[2.5rem] flex flex-col justify-center gap-2">
+      <div class="glass p-8 rounded-lg flex flex-col justify-center gap-2">
         <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Complexity</p>
         <p class="text-2xl font-black text-blue-500 tracking-tighter uppercase">High <span class="text-xs text-slate-400">Risk</span></p>
       </div>

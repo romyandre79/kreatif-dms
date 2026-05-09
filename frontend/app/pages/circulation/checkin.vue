@@ -97,7 +97,7 @@
       <!-- Right Sidebar: Evidence & Actions -->
       <div class="col-span-4 space-y-8" v-motion-slide-right>
         <!-- Condition Evidence -->
-        <div class="glass p-8 rounded-[2.5rem] bg-white border border-slate-100 shadow-xl shadow-slate-200/50 space-y-8">
+        <div class="glass p-8 rounded-lg bg-white border border-slate-100 shadow-xl shadow-slate-200/50 space-y-8">
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-3 text-slate-400 uppercase tracking-widest text-[10px] font-black">
               <LucideCamera class="w-4 h-4 text-primary-500" />

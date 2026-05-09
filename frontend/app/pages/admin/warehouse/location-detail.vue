@@ -121,7 +121,7 @@
 
           <div class="space-y-6">
             <!-- Optimal Relocation Card -->
-            <div class="glass p-8 rounded-[2.5rem] border-l-8 border-blue-500 space-y-6 shadow-xl shadow-blue-500/5">
+            <div class="glass p-8 rounded-lg border-l-8 border-blue-500 space-y-6 shadow-xl shadow-blue-500/5">
               <div class="flex items-start gap-4">
                 <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-500 flex items-center justify-center shrink-0">
                   <LucideRepeat class="w-5 h-5" />
@@ -137,7 +137,7 @@
             </div>
 
             <!-- Retention Alert Card -->
-            <div class="glass p-8 rounded-[2.5rem] border-l-8 border-amber-500 space-y-4">
+            <div class="glass p-8 rounded-lg border-l-8 border-amber-500 space-y-4">
               <div class="flex items-start gap-4">
                 <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-500 flex items-center justify-center shrink-0">
                   <LucideCalendarClock class="w-5 h-5" />

@@ -76,7 +76,7 @@
             {{ $t('retention.upload_bast.preview.title') }}
           </div>
 
-          <div class="aspect-[3/4] bg-slate-50 rounded-[2.5rem] border border-slate-100 overflow-hidden relative group">
+          <div class="aspect-[3/4] bg-slate-50 rounded-lg border border-slate-100 overflow-hidden relative group">
             <div class="absolute inset-0 flex flex-col items-center justify-center p-12 text-center space-y-6">
               <div class="w-32 h-40 bg-white rounded-xl shadow-xl border border-slate-50 relative p-6 flex flex-col items-center justify-center gap-4">
                 <LucideFileText class="w-12 h-12 text-slate-100" />

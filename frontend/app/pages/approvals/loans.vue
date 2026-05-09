@@ -105,7 +105,7 @@
           </div>
         </div>
         
-        <div class="glass rounded-[2.5rem] overflow-hidden border border-slate-100 bg-white shadow-xl shadow-slate-200/50">
+        <div class="glass rounded-lg overflow-hidden border border-slate-100 bg-white shadow-xl shadow-slate-200/50">
           <table class="w-full text-left border-collapse">
             <thead>
               <tr class="bg-slate-50/50 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100">
@@ -169,7 +169,7 @@
       <!-- Request Summary Sidebar -->
       <aside class="lg:col-span-4" v-motion-slide-visible-right>
         <Transition name="fade" mode="out-in">
-          <div v-if="selectedRequest" :key="selectedRequest.no" class="glass rounded-[2.5rem] bg-white border border-slate-100 shadow-2xl shadow-slate-200/50 flex flex-col h-full overflow-hidden">
+          <div v-if="selectedRequest" :key="selectedRequest.no" class="glass rounded-lg bg-white border border-slate-100 shadow-2xl shadow-slate-200/50 flex flex-col h-full overflow-hidden">
             <!-- Summary Header -->
             <div class="px-10 py-8 border-b border-slate-50 bg-slate-50/30 flex items-center justify-between">
               <div class="flex items-center gap-3">
@@ -320,7 +320,7 @@
           </div>
           
           <!-- Empty State -->
-          <div v-else class="h-full glass rounded-[2.5rem] bg-white border border-slate-100 flex flex-col items-center justify-center text-center p-10 space-y-6">
+          <div v-else class="h-full glass rounded-lg bg-white border border-slate-100 flex flex-col items-center justify-center text-center p-10 space-y-6">
             <div class="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center text-slate-200">
               <LucideFileStack class="w-10 h-10" />
             </div>

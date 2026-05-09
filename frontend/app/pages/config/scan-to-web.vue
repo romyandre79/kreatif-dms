@@ -23,7 +23,7 @@
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-10">
       <!-- Left Column: Controls -->
       <div class="lg:col-span-4 space-y-8">
-        <div class="glass p-8 rounded-[2.5rem] space-y-8 border border-white/10 shadow-sm bg-white/50 dark:bg-slate-900/50 backdrop-blur-xl">
+        <div class="glass p-8 rounded-lg space-y-8 border border-white/10 shadow-sm bg-white/50 dark:bg-slate-900/50 backdrop-blur-xl">
           <div class="flex items-center gap-4 border-b border-slate-100 dark:border-slate-800 pb-6">
             <div class="w-10 h-10 rounded-xl bg-primary-500/10 flex items-center justify-center">
               <LucidePrinter class="w-5 h-5 text-primary-500" />

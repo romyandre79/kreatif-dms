@@ -22,7 +22,7 @@
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-10">
       <div class="lg:col-span-2 space-y-8">
         <!-- Label Configuration -->
-        <div class="glass p-10 rounded-[2.5rem] space-y-10">
+        <div class="glass p-10 rounded-lg space-y-10">
           <div class="flex items-center gap-3">
             <div class="w-10 h-10 rounded-xl bg-primary-50 dark:bg-primary-900/20 text-primary-500 flex items-center justify-center shadow-sm">
               <LucideSettings2 class="w-5 h-5" />
@@ -83,7 +83,7 @@
         </div>
 
         <!-- Data Source -->
-        <div class="glass p-10 rounded-[2.5rem] space-y-6">
+        <div class="glass p-10 rounded-lg space-y-6">
           <div class="flex items-center gap-3">
             <div class="w-10 h-10 rounded-xl bg-primary-50 dark:bg-primary-900/20 text-primary-500 flex items-center justify-center shadow-sm">
               <LucideDatabase class="w-5 h-5" />
@@ -104,7 +104,7 @@
 
       <!-- Label Preview Column -->
       <div class="space-y-8">
-        <div class="glass p-10 rounded-[2.5rem] space-y-10" v-motion-slide-right>
+        <div class="glass p-10 rounded-lg space-y-10" v-motion-slide-right>
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-3">
               <LucideEye class="w-5 h-5 text-primary-500" />
@@ -161,7 +161,7 @@
         <h3 class="text-lg font-black text-[#1E3A5F] dark:text-white uppercase tracking-tight">{{ $t('registration.migration.print_qr.history.title') }}</h3>
         <button class="text-[10px] font-black text-primary-500 uppercase tracking-widest hover:underline">{{ $t('registration.migration.print_qr.history.view_all') }}</button>
       </div>
-      <div class="glass rounded-[2.5rem] overflow-hidden">
+      <div class="glass rounded-lg overflow-hidden">
         <div class="overflow-x-auto">
           <table class="w-full text-left border-collapse">
             <thead>

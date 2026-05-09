@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/kreatif/dms-backend/internal/repository"
 )
 
@@ -12,6 +13,10 @@ type DashboardService struct {
 
 func NewDashboardService(repo *repository.Queries) *DashboardService {
 	return &DashboardService{repo: repo}
+}
+
+func (s *DashboardService) GetRepo() *repository.Queries {
+	return s.repo
 }
 
 func (s *DashboardService) GetAnnouncements(ctx context.Context) (map[string]interface{}, error) {
@@ -90,4 +95,47 @@ func (s *DashboardService) GetRecentActivities(ctx context.Context, limit int32)
 
 func (s *DashboardService) GetPriorityTasks(ctx context.Context, limit int32) ([]repository.GetPriorityTasksRow, error) {
 	return s.repo.GetPriorityTasks(ctx, limit)
+}
+func (s *DashboardService) GetManagerSummary(ctx context.Context, userID uuid.UUID, deptID uuid.UUID) (interface{}, error) {
+	stats, err := s.repo.GetManagerDailyStats(ctx, repository.GetManagerDailyStatsParams{
+		DepartmentID: deptID,
+		ApproverID:   userID,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	activities, err := s.repo.GetDepartmentRecentActivities(ctx, repository.GetDepartmentRecentActivitiesParams{
+		DepartmentID: pgtype.UUID{Bytes: [16]byte(deptID), Valid: true},
+		Limit:        10,
+	})
+	if err != nil {
+		activities = []repository.GetDepartmentRecentActivitiesRow{}
+	}
+
+	tasks, err := s.repo.GetUserPriorityTasks(ctx, repository.GetUserPriorityTasksParams{
+		ApproverID: userID,
+		Limit:      10,
+	})
+	if err != nil {
+		tasks = []repository.GetUserPriorityTasksRow{}
+	}
+
+	topSubmitters, err := s.repo.GetDepartmentTopSubmitters(ctx, repository.GetDepartmentTopSubmittersParams{
+		DepartmentID: pgtype.UUID{Bytes: [16]byte(deptID), Valid: true},
+		Limit:        5,
+	})
+	if err != nil {
+		topSubmitters = []repository.GetDepartmentTopSubmittersRow{}
+	}
+
+	announcement, _ := s.GetAnnouncements(ctx)
+
+	return map[string]interface{}{
+		"stats":          stats,
+		"activities":     activities,
+		"tasks":          tasks,
+		"top_submitters": topSubmitters,
+		"announcement":   announcement,
+	}, nil
 }

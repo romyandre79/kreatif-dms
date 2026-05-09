@@ -126,7 +126,7 @@
             { id: 'cert', type: 'urgent', color: 'border-red-500', btn: 'btn_renew' },
             { id: 'kb', type: 'patch', color: 'border-amber-500', btn: 'btn_patch' },
             { id: 'ssh', type: 'hardening', color: 'border-blue-500', btn: 'btn_auto' }
-          ]" :key="t.id" class="p-8 bg-white dark:bg-slate-900 rounded-[2.5rem] border-l-8 border-slate-100 dark:border-slate-800 transition-all hover:border-[#1E3A5F] shadow-sm relative group overflow-hidden">
+          ]" :key="t.id" class="p-8 bg-white dark:bg-slate-900 rounded-lg border-l-8 border-slate-100 dark:border-slate-800 transition-all hover:border-[#1E3A5F] shadow-sm relative group overflow-hidden">
             <div :class="`absolute top-0 left-0 w-1.5 h-full ${t.color}`"></div>
             <div class="flex items-center justify-between mb-4">
               <span :class="`text-[8px] font-black uppercase tracking-widest ${t.type === 'urgent' ? 'text-red-500' : t.type === 'patch' ? 'text-amber-500' : 'text-blue-500'}`">{{ $t(`compliance.remediation.${t.type}`) }}</span>
@@ -143,7 +143,7 @@
         </div>
 
         <!-- Manual Card -->
-        <div class="bg-[#1E3A5F] p-8 rounded-[2.5rem] text-white space-y-6 relative overflow-hidden group shadow-2xl shadow-blue-900/40">
+        <div class="bg-[#1E3A5F] p-8 rounded-lg text-white space-y-6 relative overflow-hidden group shadow-2xl shadow-blue-900/40">
           <LucideFileText class="absolute top-0 right-0 w-32 h-32 text-white/5 -rotate-12 translate-x-10 -translate-y-10 group-hover:scale-110 transition-transform" />
           <div class="space-y-2">
             <h4 class="text-[11px] font-black uppercase tracking-widest opacity-60">{{ $t('compliance.manual.title') }}</h4>

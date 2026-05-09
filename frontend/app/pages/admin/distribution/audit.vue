@@ -21,7 +21,7 @@
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
       <!-- Left: Success Card -->
       <div class="lg:col-span-8">
-        <div class="glass p-10 rounded-[2.5rem] relative overflow-hidden group border-2 border-green-500/10" v-motion-slide-visible-bottom>
+        <div class="glass p-10 rounded-lg relative overflow-hidden group border-2 border-green-500/10" v-motion-slide-visible-bottom>
           <div class="flex items-start gap-8">
             <div class="w-20 h-20 rounded-[2rem] bg-green-50 dark:bg-green-900/20 flex items-center justify-center text-green-500 shadow-inner">
               <LucideCheckCircle2 class="w-10 h-10" />
@@ -57,7 +57,7 @@
 
       <!-- Right: Link Scenario Info -->
       <div class="lg:col-span-4">
-        <div class="glass p-10 rounded-[2.5rem] space-y-8 h-full flex flex-col" v-motion-slide-visible-bottom :delay="100">
+        <div class="glass p-10 rounded-lg space-y-8 h-full flex flex-col" v-motion-slide-visible-bottom :delay="100">
           <div class="flex items-center justify-between">
             <h3 class="text-xs font-black text-[#1E3A5F] dark:text-white uppercase tracking-widest flex items-center gap-2">
               Link Scenario Info

@@ -55,7 +55,7 @@
 
       <!-- Right Column: Loan Summary -->
       <div class="lg:col-span-4 space-y-6" v-motion-slide-visible-bottom>
-        <div class="glass rounded-[2.5rem] p-8 space-y-8 bg-white border border-slate-100 shadow-xl shadow-slate-200/50">
+        <div class="glass rounded-lg p-8 space-y-8 bg-white border border-slate-100 shadow-xl shadow-slate-200/50">
           <h2 class="text-xl font-black text-[#1E3A5F] uppercase tracking-tight">{{ $t('loans.cart.summary.title') }}</h2>
           
           <div class="space-y-6">

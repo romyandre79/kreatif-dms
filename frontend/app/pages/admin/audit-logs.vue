@@ -185,7 +185,7 @@
               <LucideTerminal class="w-4 h-4 text-blue-500" />
               Technical Identity
             </h4>
-            <div class="grid grid-cols-2 gap-8 p-8 bg-slate-50 dark:bg-slate-800/50 rounded-[2.5rem] border border-slate-100 dark:border-slate-800">
+            <div class="grid grid-cols-2 gap-8 p-8 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-100 dark:border-slate-800">
                <div class="space-y-1">
                  <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Entity Type</p>
                  <p class="text-[13px] font-black text-[#1E3A5F] dark:text-white uppercase">{{ selectedLog.entity_type }}</p>
@@ -213,7 +213,7 @@
               <LucideCode class="w-4 h-4 text-blue-500" />
               Captured Payload
             </h4>
-            <div class="p-8 bg-slate-900 rounded-[2.5rem] shadow-inner overflow-hidden border border-slate-800">
+            <div class="p-8 bg-slate-900 rounded-lg shadow-inner overflow-hidden border border-slate-800">
                <div v-if="parsedDetails" class="space-y-4">
                  <div v-for="(val, key) in parsedDetails" :key="key" class="flex flex-col gap-1 border-b border-white/5 pb-2 last:border-0">
                    <span class="text-[8px] font-black text-blue-500 uppercase tracking-widest">{{ key }}</span>
@@ -225,7 +225,7 @@
           </section>
 
           <!-- System Evidence -->
-          <div class="p-10 bg-blue-50 dark:bg-blue-900/10 border-l-8 border-blue-500 rounded-[2.5rem] space-y-6">
+          <div class="p-10 bg-blue-50 dark:bg-blue-900/10 border-l-8 border-blue-500 rounded-lg space-y-6">
             <div class="flex items-center gap-4">
               <LucideShieldCheck class="w-6 h-6 text-blue-500" />
               <h5 class="text-[11px] font-black text-[#1E3A5F] dark:text-white uppercase tracking-widest">Immutable Evidence</h5>
@@ -372,7 +372,7 @@ const getActionBadge = (action) => {
 }
 
 const getActionSummaryClass = (action) => {
-  const base = "p-8 rounded-[2.5rem] border flex items-center gap-6 "
+  const base = "p-8 rounded-lg border flex items-center gap-6 "
   switch (action) {
     case 'CREATE': return base + "bg-green-50 dark:bg-green-900/10 border-green-100 dark:border-green-800 text-green-600 dark:text-green-400"
     case 'UPDATE': return base + "bg-blue-50 dark:bg-blue-900/10 border-blue-100 dark:border-blue-800 text-blue-600 dark:text-blue-400"

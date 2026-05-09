@@ -27,7 +27,7 @@
     <!-- Summary Cards -->
     <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6">
       <div v-for="(stat, i) in topStats" :key="i" 
-        class="glass p-8 rounded-[2.5rem] space-y-6 relative overflow-hidden group"
+        class="glass p-8 rounded-lg space-y-6 relative overflow-hidden group"
         v-motion-slide-visible-bottom
         :delay="i * 100"
       >

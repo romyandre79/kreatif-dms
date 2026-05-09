@@ -55,6 +55,21 @@ func (h *DashboardHandler) GetSummary(c fiber.Ctx) error {
 		})
 	}
 
+	// For managers, return department summary
+	if role == "manajer" {
+		// Get user's department
+		user, err := h.svc.GetRepo().GetUserByID(c.Context(), userID)
+		if err != nil || !user.DepartmentID.Valid {
+			return response.Error(c, fiber.StatusInternalServerError, "Failed to identify manager's department", "")
+		}
+
+		data, err := h.svc.GetManagerSummary(c.Context(), userID, user.DepartmentID.Bytes)
+		if err != nil {
+			return response.Error(c, fiber.StatusInternalServerError, "Failed to get manager dashboard summary", err.Error())
+		}
+		return response.Success(c, fiber.StatusOK, "Manager dashboard summary retrieved", data)
+	}
+
 	// For other roles, return user-specific summary
 	data, err := h.svc.GetUserSummary(c.Context(), userID)
 	if err != nil {

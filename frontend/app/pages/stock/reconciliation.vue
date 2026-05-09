@@ -48,7 +48,7 @@
       </div>
 
       <!-- Inventory Table Section -->
-      <div class="glass rounded-[2.5rem] overflow-hidden" v-motion-slide-visible-bottom>
+      <div class="glass rounded-lg overflow-hidden" v-motion-slide-visible-bottom>
         <div class="p-8 border-b border-slate-100 dark:border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-6 bg-white/30">
           <h3 class="text-lg font-black text-[#1E3A5F] dark:text-white uppercase tracking-tight">{{ $t('stock.reconciliation.table.title') }}</h3>
           <div class="flex items-center bg-slate-100 dark:bg-slate-800 p-1 rounded-xl">
@@ -117,7 +117,7 @@
 
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-10">
         <div class="lg:col-span-2 space-y-8">
-          <div class="glass p-10 rounded-[2.5rem] space-y-10">
+          <div class="glass p-10 rounded-lg space-y-10">
             <div class="flex items-center justify-between">
               <div class="flex items-center gap-3">
                 <div class="w-10 h-10 rounded-xl bg-slate-50 dark:bg-slate-800 text-[#1E3A5F] dark:text-white flex items-center justify-center shadow-sm">
@@ -179,7 +179,7 @@
         </div>
 
         <div class="space-y-8">
-          <div class="glass p-10 rounded-[2.5rem] space-y-10" v-motion-slide-right>
+          <div class="glass p-10 rounded-lg space-y-10" v-motion-slide-right>
             <div class="flex items-center gap-3">
               <LucidePenTool class="w-5 h-5 text-primary-500" />
               <h3 class="text-sm font-black text-[#1E3A5F] dark:text-white uppercase tracking-widest">{{ $t('stock.resolution.details.title') }}</h3>
@@ -231,7 +231,7 @@
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-10">
         <div class="lg:col-span-2 space-y-8">
           <!-- Unresolved Missing Items -->
-          <div class="glass p-10 rounded-[2.5rem] space-y-8">
+          <div class="glass p-10 rounded-lg space-y-8">
             <div class="flex items-center justify-between">
               <div class="flex items-center gap-4 bg-amber-50 dark:bg-amber-900/10 px-6 py-3 rounded-2xl border border-amber-100 dark:border-amber-800">
                 <LucideAlertTriangle class="w-5 h-5 text-amber-500" />
@@ -281,7 +281,7 @@
           </div>
 
           <!-- Digital Signature / PIN -->
-          <div class="glass p-10 rounded-[2.5rem] space-y-10">
+          <div class="glass p-10 rounded-lg space-y-10">
             <div class="flex items-center gap-4">
               <LucidePenTool class="w-6 h-6 text-primary-500" />
               <h3 class="text-sm font-black text-[#1E3A5F] dark:text-white uppercase tracking-widest">{{ $t('stock.signature.title') }}</h3>
@@ -304,7 +304,7 @@
 
         <!-- Sidebar: Finalization Actions -->
         <div class="space-y-8">
-          <div class="glass p-10 rounded-[2.5rem] space-y-10" v-motion-slide-right>
+          <div class="glass p-10 rounded-lg space-y-10" v-motion-slide-right>
             <div class="p-8 bg-blue-50/50 dark:bg-blue-900/10 rounded-[2rem] border border-blue-100 dark:border-blue-800 space-y-3">
               <div class="flex items-center gap-3 text-primary-500">
                 <LucideInfo class="w-5 h-5" />

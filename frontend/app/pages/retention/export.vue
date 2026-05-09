@@ -58,7 +58,7 @@
         </p>
 
         <div class="grid grid-cols-3 gap-6">
-          <div class="p-8 bg-slate-50/50 border border-slate-100 rounded-[2.5rem] space-y-6 hover:bg-white hover:shadow-xl hover:shadow-slate-200/30 transition-all group">
+          <div class="p-8 bg-slate-50/50 border border-slate-100 rounded-lg space-y-6 hover:bg-white hover:shadow-xl hover:shadow-slate-200/30 transition-all group">
             <div class="flex items-center justify-between text-slate-300 group-hover:text-primary-500 transition-colors">
               <p class="text-[9px] font-black uppercase tracking-widest">{{ $t('retention.export.checklist.litigation_title') }}</p>
               <LucideGavel class="w-4 h-4" />
@@ -69,7 +69,7 @@
             </div>
           </div>
 
-          <div class="p-8 bg-slate-50/50 border border-slate-100 rounded-[2.5rem] space-y-6 hover:bg-white hover:shadow-xl hover:shadow-slate-200/30 transition-all group">
+          <div class="p-8 bg-slate-50/50 border border-slate-100 rounded-lg space-y-6 hover:bg-white hover:shadow-xl hover:shadow-slate-200/30 transition-all group">
             <div class="flex items-center justify-between text-slate-300 group-hover:text-emerald-500 transition-colors">
               <p class="text-[9px] font-black uppercase tracking-widest">{{ $t('retention.export.checklist.financial_title') }}</p>
               <LucideBanknote class="w-4 h-4" />
@@ -80,7 +80,7 @@
             </div>
           </div>
 
-          <div class="p-8 bg-slate-50/50 border border-slate-100 rounded-[2.5rem] space-y-6 hover:bg-white hover:shadow-xl hover:shadow-slate-200/30 transition-all group">
+          <div class="p-8 bg-slate-50/50 border border-slate-100 rounded-lg space-y-6 hover:bg-white hover:shadow-xl hover:shadow-slate-200/30 transition-all group">
             <div class="flex items-center justify-between text-slate-300 group-hover:text-purple-500 transition-colors">
               <p class="text-[9px] font-black uppercase tracking-widest">{{ $t('retention.export.checklist.internal_title') }}</p>
               <LucideSearch class="w-4 h-4" />

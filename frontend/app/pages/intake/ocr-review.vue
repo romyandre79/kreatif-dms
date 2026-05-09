@@ -24,7 +24,7 @@
         { id: 'confidence', val: '92.4%', color: 'text-green-500', icon: LucideZap, progress: true },
         { id: 'lang', val: 'Indonesian (ID)', color: 'text-blue-500', icon: LucideGlobe },
         { id: 'duplicate', val: 'LOW RISK', sub: 'Matching content < 5%', color: 'text-green-500', icon: LucideCopyCheck, badge: true }
-      ]" :key="s.id" class="glass p-8 rounded-[2.5rem] space-y-4 shadow-sm border border-slate-50 dark:border-slate-800">
+      ]" :key="s.id" class="glass p-8 rounded-lg space-y-4 shadow-sm border border-slate-50 dark:border-slate-800">
         <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest">{{ $t(`intake.ocr_review.stats.${s.id}`) }}</p>
         <div class="flex items-center gap-4">
           <div :class="`w-8 h-8 rounded-lg flex items-center justify-center bg-slate-50 dark:bg-slate-800 ${s.color}`">
@@ -219,7 +219,7 @@
         </div>
 
         <!-- Historical Data Card -->
-        <div class="p-8 bg-blue-50/50 dark:bg-blue-900/10 rounded-[2.5rem] border border-blue-100 dark:border-blue-800 flex items-center gap-6 group">
+        <div class="p-8 bg-blue-50/50 dark:bg-blue-900/10 rounded-lg border border-blue-100 dark:border-blue-800 flex items-center gap-6 group">
           <div class="w-14 h-14 rounded-2xl bg-white dark:bg-slate-800 flex items-center justify-center text-blue-500 shadow-sm border border-slate-100 dark:border-slate-800">
             <LucideHistory class="w-6 h-6" />
           </div>

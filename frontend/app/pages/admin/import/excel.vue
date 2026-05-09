@@ -151,7 +151,7 @@
         </span>
       </div>
 
-      <div class="p-10 bg-white dark:bg-slate-900 rounded-[2.5rem] border border-slate-100 dark:border-slate-800 shadow-xl space-y-10 relative overflow-hidden">
+      <div class="p-10 bg-white dark:bg-slate-900 rounded-lg border border-slate-100 dark:border-slate-800 shadow-xl space-y-10 relative overflow-hidden">
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-10">
           <div class="flex-grow space-y-6">
             <div class="flex items-center gap-6">

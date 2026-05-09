@@ -31,7 +31,7 @@
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
       <div class="lg:col-span-2 space-y-8">
         <!-- Upload Zone -->
-        <div class="glass rounded-[2.5rem] p-12 border-2 border-dashed border-slate-200 dark:border-slate-800 flex flex-col items-center text-center group hover:border-primary-500/50 hover:bg-primary-50/5 transition-all cursor-pointer" v-motion-slide-visible-bottom>
+        <div class="glass rounded-lg p-12 border-2 border-dashed border-slate-200 dark:border-slate-800 flex flex-col items-center text-center group hover:border-primary-500/50 hover:bg-primary-50/5 transition-all cursor-pointer" v-motion-slide-visible-bottom>
           <div class="w-20 h-20 rounded-[2rem] bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform shadow-inner">
             <LucideFileUp class="w-10 h-10 text-[#1E3A5F] dark:text-primary-400" />
           </div>
@@ -54,7 +54,7 @@
         </div>
 
         <!-- Table -->
-        <div class="glass rounded-[2.5rem] overflow-hidden shadow-xl shadow-slate-200/50 dark:shadow-none" v-motion-slide-visible-bottom>
+        <div class="glass rounded-lg overflow-hidden shadow-xl shadow-slate-200/50 dark:shadow-none" v-motion-slide-visible-bottom>
           <div class="px-10 py-8 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-900/50">
             <h3 class="font-black text-xl text-[#1E3A5F] dark:text-white uppercase tracking-tight">{{ $t('registration.staging.table.title') }}</h3>
             <div class="flex items-center gap-4">
@@ -145,7 +145,7 @@
       <!-- Right Sidebar -->
       <div class="space-y-8">
         <!-- Priority Card -->
-        <div class="glass p-10 rounded-[2.5rem] relative overflow-hidden group" v-motion-slide-visible-bottom>
+        <div class="glass p-10 rounded-lg relative overflow-hidden group" v-motion-slide-visible-bottom>
           <div class="absolute top-0 right-0 p-8 opacity-5">
             <LucideZap class="w-24 h-24 text-[#1E3A5F]" />
           </div>

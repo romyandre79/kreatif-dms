@@ -109,7 +109,7 @@
 
       <!-- Right Column: Summary -->
       <div class="lg:col-span-4 space-y-6" v-motion-slide-visible-bottom>
-        <div class="glass rounded-[2.5rem] overflow-hidden bg-white border border-slate-100 shadow-2xl shadow-slate-200/50 flex flex-col">
+        <div class="glass rounded-lg overflow-hidden bg-white border border-slate-100 shadow-2xl shadow-slate-200/50 flex flex-col">
           <div class="bg-[#1E3A5F] px-8 py-6">
             <h2 class="text-lg font-black text-white uppercase tracking-tight">{{ $t('loans.checkout.summary.title') }}</h2>
           </div>

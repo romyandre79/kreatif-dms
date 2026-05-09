@@ -265,6 +265,173 @@ func (q *Queries) GetDocument(ctx context.Context, id uuid.UUID) (Document, erro
 	return i, err
 }
 
+const getDocumentLoanHistory = `-- name: GetDocumentLoanHistory :many
+SELECT 
+    br.id,
+    u.full_name as user_name,
+    u.department_id,
+    dept.name as department_name,
+    br.borrow_date,
+    br.return_date,
+    br.status,
+    COALESCE(br.reason, '')::text as reason
+FROM borrow_requests br
+JOIN users u ON br.user_id = u.id
+LEFT JOIN departments dept ON u.department_id = dept.id
+WHERE br.document_id = $1
+ORDER BY br.created_at DESC
+`
+
+type GetDocumentLoanHistoryRow struct {
+	ID             uuid.UUID          `json:"id"`
+	UserName       string             `json:"user_name"`
+	DepartmentID   pgtype.UUID        `json:"department_id"`
+	DepartmentName pgtype.Text        `json:"department_name"`
+	BorrowDate     pgtype.Timestamptz `json:"borrow_date"`
+	ReturnDate     pgtype.Timestamptz `json:"return_date"`
+	Status         string             `json:"status"`
+	Reason         string             `json:"reason"`
+}
+
+func (q *Queries) GetDocumentLoanHistory(ctx context.Context, documentID uuid.UUID) ([]GetDocumentLoanHistoryRow, error) {
+	rows, err := q.db.Query(ctx, getDocumentLoanHistory, documentID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetDocumentLoanHistoryRow
+	for rows.Next() {
+		var i GetDocumentLoanHistoryRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.UserName,
+			&i.DepartmentID,
+			&i.DepartmentName,
+			&i.BorrowDate,
+			&i.ReturnDate,
+			&i.Status,
+			&i.Reason,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getDocumentWithDetails = `-- name: GetDocumentWithDetails :one
+SELECT 
+    d.id, d.title, d.description, d.file_name, d.file_path, d.file_size, d.mime_type, d.checksum, d.company_id, d.branch_id, d.department_id, d.rack_id, d.box_id, d.ordner_id, d.owner_id, d.current_version, d.status, d.tags, d.metadata, d.extracted_text, d.is_ocr_processed, d.created_at, d.updated_at, d.batch_id, d.retention_years, d.retention_expiry_date, d.sensitivity, d.circulation_id, d.minio_bucket, d.es_indexed,
+    dt.name as type_name,
+    c.name as company_name,
+    b.name as branch_name,
+    dept.name as department_name,
+    r.name as rack_name,
+    bx.name as box_name,
+    o.name as ordner_name,
+    u.full_name as owner_name
+FROM documents d
+LEFT JOIN document_types dt ON d.type_id = dt.id
+LEFT JOIN companies c ON d.company_id = c.id
+LEFT JOIN branches b ON d.branch_id = b.id
+LEFT JOIN departments dept ON d.department_id = dept.id
+LEFT JOIN racks r ON d.rack_id = r.id
+LEFT JOIN boxes bx ON d.box_id = bx.id
+LEFT JOIN ordners o ON d.ordner_id = o.id
+LEFT JOIN users u ON d.owner_id = u.id
+WHERE d.id = $1 LIMIT 1
+`
+
+type GetDocumentWithDetailsRow struct {
+	ID                  uuid.UUID          `json:"id"`
+	Title               string             `json:"title"`
+	Description         pgtype.Text        `json:"description"`
+	FileName            string             `json:"file_name"`
+	FilePath            string             `json:"file_path"`
+	FileSize            int64              `json:"file_size"`
+	MimeType            string             `json:"mime_type"`
+	Checksum            pgtype.Text        `json:"checksum"`
+	CompanyID           uuid.UUID          `json:"company_id"`
+	BranchID            uuid.UUID          `json:"branch_id"`
+	DepartmentID        uuid.UUID          `json:"department_id"`
+	RackID              pgtype.UUID        `json:"rack_id"`
+	BoxID               pgtype.UUID        `json:"box_id"`
+	OrdnerID            pgtype.UUID        `json:"ordner_id"`
+	OwnerID             uuid.UUID          `json:"owner_id"`
+	CurrentVersion      int32              `json:"current_version"`
+	Status              string             `json:"status"`
+	Tags                []string           `json:"tags"`
+	Metadata            json.RawMessage    `json:"metadata"`
+	ExtractedText       pgtype.Text        `json:"extracted_text"`
+	IsOcrProcessed      pgtype.Bool        `json:"is_ocr_processed"`
+	CreatedAt           pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt           pgtype.Timestamptz `json:"updated_at"`
+	BatchID             pgtype.UUID        `json:"batch_id"`
+	RetentionYears      pgtype.Int4        `json:"retention_years"`
+	RetentionExpiryDate pgtype.Date        `json:"retention_expiry_date"`
+	Sensitivity         pgtype.Text        `json:"sensitivity"`
+	CirculationID       pgtype.UUID        `json:"circulation_id"`
+	MinioBucket         pgtype.Text        `json:"minio_bucket"`
+	EsIndexed           pgtype.Bool        `json:"es_indexed"`
+	TypeName            pgtype.Text        `json:"type_name"`
+	CompanyName         pgtype.Text        `json:"company_name"`
+	BranchName          pgtype.Text        `json:"branch_name"`
+	DepartmentName      pgtype.Text        `json:"department_name"`
+	RackName            pgtype.Text        `json:"rack_name"`
+	BoxName             pgtype.Text        `json:"box_name"`
+	OrdnerName          pgtype.Text        `json:"ordner_name"`
+	OwnerName           pgtype.Text        `json:"owner_name"`
+}
+
+func (q *Queries) GetDocumentWithDetails(ctx context.Context, id uuid.UUID) (GetDocumentWithDetailsRow, error) {
+	row := q.db.QueryRow(ctx, getDocumentWithDetails, id)
+	var i GetDocumentWithDetailsRow
+	err := row.Scan(
+		&i.ID,
+		&i.Title,
+		&i.Description,
+		&i.FileName,
+		&i.FilePath,
+		&i.FileSize,
+		&i.MimeType,
+		&i.Checksum,
+		&i.CompanyID,
+		&i.BranchID,
+		&i.DepartmentID,
+		&i.RackID,
+		&i.BoxID,
+		&i.OrdnerID,
+		&i.OwnerID,
+		&i.CurrentVersion,
+		&i.Status,
+		&i.Tags,
+		&i.Metadata,
+		&i.ExtractedText,
+		&i.IsOcrProcessed,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.BatchID,
+		&i.RetentionYears,
+		&i.RetentionExpiryDate,
+		&i.Sensitivity,
+		&i.CirculationID,
+		&i.MinioBucket,
+		&i.EsIndexed,
+		&i.TypeName,
+		&i.CompanyName,
+		&i.BranchName,
+		&i.DepartmentName,
+		&i.RackName,
+		&i.BoxName,
+		&i.OrdnerName,
+		&i.OwnerName,
+	)
+	return i, err
+}
+
 const getDocumentsByBatch = `-- name: GetDocumentsByBatch :many
 SELECT id, title, description, file_name, file_path, file_size, mime_type, checksum, company_id, branch_id, department_id, rack_id, box_id, ordner_id, owner_id, current_version, status, tags, metadata, extracted_text, is_ocr_processed, created_at, updated_at, batch_id, retention_years, retention_expiry_date, sensitivity, circulation_id, minio_bucket, es_indexed FROM documents WHERE batch_id = $1
 `

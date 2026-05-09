@@ -122,7 +122,7 @@
           <LucideHistory class="w-4 h-4 text-slate-300" />
         </div>
         <div class="glass rounded-[3rem] h-[500px] border border-slate-50 dark:border-slate-800 flex items-center justify-center">
-          <div class="p-10 bg-white dark:bg-slate-900 rounded-[2.5rem] shadow-2xl border border-slate-100 dark:border-slate-800 flex flex-col items-center gap-6 group hover:scale-105 transition-all">
+          <div class="p-10 bg-white dark:bg-slate-900 rounded-lg shadow-2xl border border-slate-100 dark:border-slate-800 flex flex-col items-center gap-6 group hover:scale-105 transition-all">
             <div class="w-20 h-20 rounded-[1.5rem] bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-slate-200 group-hover:text-blue-500 transition-colors">
               <LucideLock class="w-10 h-10" />
             </div>

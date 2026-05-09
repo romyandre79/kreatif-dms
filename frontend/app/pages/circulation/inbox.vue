@@ -59,7 +59,7 @@
           </div>
 
           <!-- Status Card -->
-          <div class="p-8 bg-slate-50 dark:bg-slate-800/50 rounded-[2.5rem] border border-slate-100 dark:border-slate-800 flex items-center gap-6">
+          <div class="p-8 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-100 dark:border-slate-800 flex items-center gap-6">
             <div class="w-12 h-12 rounded-xl bg-[#1E3A5F] text-white flex items-center justify-center shadow-lg shadow-blue-900/20"><LucideShieldCheck class="w-6 h-6" /></div>
             <div class="space-y-1">
               <p class="text-[9px] font-black text-[#1E3A5F] dark:text-white uppercase tracking-widest">{{ $t('circulation.inbox.details.status_update') }}</p>

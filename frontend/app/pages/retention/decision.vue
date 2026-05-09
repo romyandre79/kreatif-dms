@@ -88,7 +88,7 @@
               </label>
               <div class="grid grid-cols-2 gap-6">
                 <label @click="decision = 'extended'" 
-                       :class="`p-8 border-2 rounded-[2.5rem] cursor-pointer transition-all flex items-center gap-6 ${decision === 'extended' ? 'border-[#1E3A5F] bg-blue-50/20' : 'border-slate-50 bg-slate-50/50 hover:border-slate-100'}`">
+                       :class="`p-8 border-2 rounded-lg cursor-pointer transition-all flex items-center gap-6 ${decision === 'extended' ? 'border-[#1E3A5F] bg-blue-50/20' : 'border-slate-50 bg-slate-50/50 hover:border-slate-100'}`">
                   <div :class="`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${decision === 'extended' ? 'border-[#1E3A5F]' : 'border-slate-200'}`">
                     <div v-if="decision === 'extended'" class="w-2 h-2 bg-[#1E3A5F] rounded-full"></div>
                   </div>
@@ -99,7 +99,7 @@
                 </label>
 
                 <label @click="decision = 'destroy'" 
-                       :class="`p-8 border-2 rounded-[2.5rem] cursor-pointer transition-all flex items-center gap-6 ${decision === 'destroy' ? 'border-[#1E3A5F] bg-blue-50/20' : 'border-slate-50 bg-slate-50/50 hover:border-slate-100'}`">
+                       :class="`p-8 border-2 rounded-lg cursor-pointer transition-all flex items-center gap-6 ${decision === 'destroy' ? 'border-[#1E3A5F] bg-blue-50/20' : 'border-slate-50 bg-slate-50/50 hover:border-slate-100'}`">
                   <div :class="`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${decision === 'destroy' ? 'border-[#1E3A5F]' : 'border-slate-200'}`">
                     <div v-if="decision === 'destroy'" class="w-2 h-2 bg-[#1E3A5F] rounded-full"></div>
                   </div>
@@ -112,7 +112,7 @@
             </div>
 
             <!-- Info Box -->
-            <div class="p-8 bg-slate-50/80 border border-slate-100 rounded-[2.5rem] flex items-start gap-6">
+            <div class="p-8 bg-slate-50/80 border border-slate-100 rounded-lg flex items-start gap-6">
               <LucideInfo class="w-5 h-5 text-primary-500 shrink-0 mt-0.5" />
               <p class="text-xs font-bold text-slate-500 leading-loose uppercase tracking-tight">
                 {{ $t('retention.decision.form.info_text') }}
@@ -134,7 +134,7 @@
             <!-- Upload Area -->
             <div class="space-y-4">
               <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest">{{ $t('retention.decision.form.upload_label') }}</label>
-              <div class="aspect-[4/1] border-2 border-dashed border-slate-100 rounded-[2.5rem] flex flex-col items-center justify-center text-center p-8 space-y-3 bg-slate-50/30 group hover:border-primary-200 transition-all cursor-pointer">
+              <div class="aspect-[4/1] border-2 border-dashed border-slate-100 rounded-lg flex flex-col items-center justify-center text-center p-8 space-y-3 bg-slate-50/30 group hover:border-primary-200 transition-all cursor-pointer">
                 <div class="w-12 h-12 bg-white rounded-2xl flex items-center justify-center shadow-sm text-slate-300 group-hover:text-primary-500 transition-colors">
                   <LucideUploadCloud class="w-6 h-6" />
                 </div>
@@ -161,19 +161,19 @@
         <div class="space-y-6 pt-4">
           <h3 class="text-xs font-black text-[#1E3A5F] uppercase tracking-[0.2em] px-2">{{ $t('retention.decision.form.summary_title') }}</h3>
           <div class="grid grid-cols-4 gap-6">
-            <div class="p-8 bg-white border border-slate-100 rounded-[2.5rem] shadow-xl shadow-slate-200/30 space-y-1">
+            <div class="p-8 bg-white border border-slate-100 rounded-lg shadow-xl shadow-slate-200/30 space-y-1">
               <p class="text-[9px] font-black text-slate-300 uppercase tracking-widest">{{ $t('retention.decision.form.stats.items') }}</p>
               <p class="text-xl font-black text-[#1E3A5F]">1,240</p>
             </div>
-            <div class="p-8 bg-white border border-slate-100 rounded-[2.5rem] shadow-xl shadow-slate-200/30 space-y-1">
+            <div class="p-8 bg-white border border-slate-100 rounded-lg shadow-xl shadow-slate-200/30 space-y-1">
               <p class="text-[9px] font-black text-slate-300 uppercase tracking-widest">{{ $t('retention.decision.form.stats.volume') }}</p>
               <p class="text-xl font-black text-[#1E3A5F]">45.2 m³</p>
             </div>
-            <div class="p-8 bg-white border border-slate-100 rounded-[2.5rem] shadow-xl shadow-slate-200/30 space-y-1">
+            <div class="p-8 bg-white border border-slate-100 rounded-lg shadow-xl shadow-slate-200/30 space-y-1">
               <p class="text-[9px] font-black text-slate-300 uppercase tracking-widest">{{ $t('retention.decision.form.stats.source') }}</p>
               <p class="text-xl font-black text-[#1E3A5F] uppercase">Finance</p>
             </div>
-            <div class="p-8 bg-white border border-slate-100 rounded-[2.5rem] shadow-xl shadow-slate-200/30 space-y-1">
+            <div class="p-8 bg-white border border-slate-100 rounded-lg shadow-xl shadow-slate-200/30 space-y-1">
               <p class="text-[9px] font-black text-slate-300 uppercase tracking-widest">{{ $t('retention.decision.form.stats.risk') }}</p>
               <p class="text-xl font-black text-orange-500 uppercase">Medium</p>
             </div>

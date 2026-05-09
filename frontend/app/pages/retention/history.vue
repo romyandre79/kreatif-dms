@@ -31,7 +31,7 @@
 
     <!-- Stats -->
     <div class="grid grid-cols-4 gap-8" v-motion-fade>
-      <div v-for="stat in stats" :key="stat.label" class="glass p-8 rounded-[2.5rem] bg-white border border-slate-100 shadow-xl shadow-slate-200/50 space-y-4">
+      <div v-for="stat in stats" :key="stat.label" class="glass p-8 rounded-lg bg-white border border-slate-100 shadow-xl shadow-slate-200/50 space-y-4">
         <p class="text-[9px] font-black text-slate-300 uppercase tracking-widest">{{ stat.label }}</p>
         <div class="flex items-end justify-between">
           <p class="text-3xl font-black text-[#1E3A5F]">{{ stat.value }}</p>

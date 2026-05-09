@@ -118,7 +118,7 @@
 
         <div class="space-y-12">
           <!-- Action Summary -->
-          <div class="p-8 bg-red-50 dark:bg-red-900/10 border border-red-100 dark:border-red-800 rounded-[2.5rem] flex items-center gap-6">
+          <div class="p-8 bg-red-50 dark:bg-red-900/10 border border-red-100 dark:border-red-800 rounded-lg flex items-center gap-6">
             <div class="w-12 h-12 bg-white dark:bg-slate-800 rounded-2xl flex items-center justify-center text-red-500 shadow-sm">
               <LucideTrash2 class="w-6 h-6" />
             </div>
@@ -199,7 +199,7 @@
           </section>
 
           <!-- Blockchain Evidence -->
-          <div class="p-10 bg-blue-50 dark:bg-blue-900/10 border-l-8 border-blue-500 rounded-[2.5rem] space-y-6" v-motion-slide-visible-bottom>
+          <div class="p-10 bg-blue-50 dark:bg-blue-900/10 border-l-8 border-blue-500 rounded-lg space-y-6" v-motion-slide-visible-bottom>
             <div class="flex items-center gap-4">
               <LucideShieldCheck class="w-6 h-6 text-blue-500" />
               <h5 class="text-[11px] font-black text-[#1E3A5F] dark:text-white uppercase tracking-widest">Blockchain Hash Evidence</h5>

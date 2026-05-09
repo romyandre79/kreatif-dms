@@ -8,7 +8,7 @@
           <p class="text-slate-500 font-medium">{{ $t('loans.fast_track.step1.subtitle') }}</p>
         </div>
 
-        <div class="glass rounded-[2.5rem] p-10 space-y-8 bg-white border border-slate-100 shadow-2xl shadow-slate-200/50">
+        <div class="glass rounded-lg p-10 space-y-8 bg-white border border-slate-100 shadow-2xl shadow-slate-200/50">
           <div class="space-y-6">
             <!-- Jenis Keperluan -->
             <div class="space-y-3">
@@ -104,7 +104,7 @@
                 <span class="text-[10px] font-black text-emerald-600 bg-emerald-50 px-4 py-1.5 rounded-full border border-emerald-100 uppercase tracking-widest">{{ $t('loans.fast_track.step2.sections.mandatory.selected_count', { count: 3 }) }}</span>
               </div>
               
-              <div class="glass rounded-[2.5rem] overflow-hidden border border-slate-100 bg-white shadow-xl shadow-slate-200/50">
+              <div class="glass rounded-lg overflow-hidden border border-slate-100 bg-white shadow-xl shadow-slate-200/50">
                 <table class="w-full text-left">
                   <thead>
                     <tr class="bg-slate-50/50 border-b border-slate-100 text-[9px] font-black text-slate-400 uppercase tracking-widest">
@@ -147,7 +147,7 @@
                 <div class="w-1.5 h-8 bg-orange-500 rounded-full"></div>
                 <h2 class="text-xl font-black text-[#1E3A5F] uppercase tracking-tight">{{ $t('loans.fast_track.step2.sections.recommended.title') }}</h2>
               </div>
-              <div class="glass rounded-[2.5rem] overflow-hidden border border-slate-100 bg-white shadow-xl shadow-slate-200/50">
+              <div class="glass rounded-lg overflow-hidden border border-slate-100 bg-white shadow-xl shadow-slate-200/50">
                 <table class="w-full text-left">
                   <thead>
                     <tr class="bg-slate-50/50 border-b border-slate-100 text-[9px] font-black text-slate-400 uppercase tracking-widest">
@@ -196,7 +196,7 @@
                   {{ $t('loans.fast_track.step2.sections.sensitive.badge') }}
                 </span>
               </div>
-              <div class="glass rounded-[2.5rem] overflow-hidden border border-slate-100 bg-white shadow-xl shadow-slate-200/50">
+              <div class="glass rounded-lg overflow-hidden border border-slate-100 bg-white shadow-xl shadow-slate-200/50">
                 <table class="w-full text-left">
                   <thead>
                     <tr class="bg-slate-50/50 border-b border-slate-100 text-[9px] font-black text-slate-400 uppercase tracking-widest">
@@ -236,7 +236,7 @@
 
           <!-- Summary Panel -->
           <div class="lg:col-span-4 space-y-8 sticky top-8">
-            <div class="glass rounded-[2.5rem] overflow-hidden bg-white border border-slate-100 shadow-2xl shadow-slate-200/50 flex flex-col">
+            <div class="glass rounded-lg overflow-hidden bg-white border border-slate-100 shadow-2xl shadow-slate-200/50 flex flex-col">
               <div class="bg-slate-50 px-8 py-6 border-b border-slate-100">
                 <h2 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">{{ $t('loans.fast_track.step2.summary.title') }}</h2>
               </div>

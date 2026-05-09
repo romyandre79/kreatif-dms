@@ -10,6 +10,28 @@ INSERT INTO documents (
 -- name: GetDocument :one
 SELECT * FROM documents WHERE id = $1 LIMIT 1;
 
+-- name: GetDocumentWithDetails :one
+SELECT 
+    d.*,
+    dt.name as type_name,
+    c.name as company_name,
+    b.name as branch_name,
+    dept.name as department_name,
+    r.name as rack_name,
+    bx.name as box_name,
+    o.name as ordner_name,
+    u.full_name as owner_name
+FROM documents d
+LEFT JOIN document_types dt ON d.type_id = dt.id
+LEFT JOIN companies c ON d.company_id = c.id
+LEFT JOIN branches b ON d.branch_id = b.id
+LEFT JOIN departments dept ON d.department_id = dept.id
+LEFT JOIN racks r ON d.rack_id = r.id
+LEFT JOIN boxes bx ON d.box_id = bx.id
+LEFT JOIN ordners o ON d.ordner_id = o.id
+LEFT JOIN users u ON d.owner_id = u.id
+WHERE d.id = $1 LIMIT 1;
+
 -- name: ListDocumentsByDepartment :many
 SELECT * FROM documents 
 WHERE department_id = $1 
@@ -97,3 +119,22 @@ FROM documents
 WHERE owner_id = $1
 ORDER BY created_at DESC
 LIMIT $2 OFFSET $3;
+-- name: GetDocumentLoanHistory :many
+SELECT 
+    br.id,
+    u.full_name as user_name,
+    u.department_id,
+    dept.name as department_name,
+    br.borrow_date,
+    br.return_date,
+    br.status,
+    COALESCE(br.reason, '')::text as reason
+FROM borrow_requests br
+JOIN users u ON br.user_id = u.id
+LEFT JOIN departments dept ON u.department_id = dept.id
+WHERE br.document_id = $1
+ORDER BY br.created_at DESC;
+-- name: UpdateDocumentStatus :exec
+UPDATE documents 
+SET status = $2, updated_at = NOW() 
+WHERE id = $1;

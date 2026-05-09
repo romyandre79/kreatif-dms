@@ -13,7 +13,7 @@
         <LucideQrCode class="absolute -top-10 -right-10 w-64 h-64 text-slate-50 dark:text-slate-800/20 rotate-12 -z-10" />
 
         <div class="w-full lg:w-1/3 space-y-8">
-          <div class="aspect-square bg-blue-50 dark:bg-blue-900/10 rounded-[2.5rem] flex items-center justify-center relative overflow-hidden group">
+          <div class="aspect-square bg-blue-50 dark:bg-blue-900/10 rounded-lg flex items-center justify-center relative overflow-hidden group">
             <div class="absolute inset-0 bg-primary-500/5 animate-pulse"></div>
             <LucideScanBarcode class="w-24 h-24 text-primary-500 group-hover:scale-110 transition-transform duration-700" />
             <div class="absolute inset-x-8 top-1/2 h-0.5 bg-primary-400 shadow-[0_0_15px_rgba(59,130,246,0.8)] animate-scanner"></div>
@@ -195,7 +195,7 @@
           </div>
           <button class="text-[10px] font-black text-primary-500 uppercase tracking-widest hover:underline">{{ $t('stock.scan_execution.active_session.history.view_all') }}</button>
         </div>
-        <div class="bg-white dark:bg-slate-900 rounded-[2.5rem] border border-slate-100 dark:border-slate-800 shadow-sm divide-y divide-slate-50 dark:divide-slate-800/50 overflow-hidden">
+        <div class="bg-white dark:bg-slate-900 rounded-lg border border-slate-100 dark:border-slate-800 shadow-sm divide-y divide-slate-50 dark:divide-slate-800/50 overflow-hidden">
           <div v-for="(item, i) in historyItems" :key="i" class="p-8 flex items-center justify-between hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-all group">
             <div class="flex items-center gap-6">
               <div class="w-10 h-10 rounded-full bg-green-50 dark:bg-green-900/10 text-green-500 flex items-center justify-center group-hover:scale-110 transition-transform"><LucideCheckCircle2 class="w-5 h-5" /></div>

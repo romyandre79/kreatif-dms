@@ -69,6 +69,46 @@
         "btn_cancel": "BATALKAN",
         "footer": "PIN Anda digunakan sebagai tanda tangan digital yang sah."
       }
+    },
+    "detail": {
+      "title": "Tinjauan Pra-Registrasi",
+      "back_to_queue": "Kembali ke Antrean",
+      "sections": {
+        "submission": "DETAIL PENGAJUAN",
+        "attachments": "LAMPIRAN DOKUMEN",
+        "manager_notes": "CATATAN INTERNAL MANAJER (PRIVATE)",
+        "workflow": "STATUS WORKFLOW"
+      },
+      "fields": {
+        "submitted_by": "DIAJUKAN OLEH",
+        "doc_info": "INFORMASI DOKUMEN",
+        "category": "KATEGORI",
+        "department": "DEPARTEMEN",
+        "date": "TANGGAL PENGAJUAN",
+        "count": "JUMLAH DOKUMEN",
+        "notes": "CATATAN"
+      },
+      "status": {
+        "pending": "MENUNGGU PERSETUJUAN ANDA",
+        "urgent": "URGENT"
+      },
+      "workflow": {
+        "submitted": "Diajukan",
+        "pending_manager": "Menunggu Persetujuan Manajer",
+        "compliance": "Review Kepatuhan Hukum",
+        "archiving": "Pengarsipan Akhir"
+      }
+    },
+    "list": {
+      "title": "Seluruh Antrean Persetujuan",
+      "table": {
+        "reg_id": "ID REGISTRASI",
+        "submitted_by": "DIAJUKAN OLEH",
+        "doc_info": "INFO DOKUMEN",
+        "date": "TANGGAL PENGAJUAN",
+        "urgency": "URGENSI",
+        "actions": "AKSI"
+      }
     }
   }
 }

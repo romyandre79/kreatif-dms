@@ -66,7 +66,7 @@
 
         <!-- Verification Preview -->
         <div class="glass p-10 rounded-[4rem] shadow-sm border border-slate-50 dark:border-slate-800 bg-slate-900 overflow-hidden relative group">
-          <div class="aspect-video bg-slate-800 rounded-[2.5rem] flex items-center justify-center relative overflow-hidden">
+          <div class="aspect-video bg-slate-800 rounded-lg flex items-center justify-center relative overflow-hidden">
             <!-- Digital Twin Lines -->
             <div class="absolute inset-0 opacity-10 pointer-events-none">
               <div class="absolute top-0 left-0 w-full h-full grid grid-cols-12 gap-1">

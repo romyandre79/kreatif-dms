@@ -108,7 +108,7 @@
     <Transition name="modal-scale">
       <div v-if="showModal" class="fixed inset-0 z-[110] flex items-center justify-center p-4">
         <div class="absolute inset-0 bg-slate-950/60 backdrop-blur-md" @click="showModal = false"></div>
-        <div class="relative w-full max-w-2xl bg-white dark:bg-slate-900 max-h-[90vh] shadow-2xl rounded-[2.5rem] flex flex-col overflow-hidden border border-white/20 dark:border-slate-800">
+        <div class="relative w-full max-w-2xl bg-white dark:bg-slate-900 max-h-[90vh] shadow-2xl rounded-lg flex flex-col overflow-hidden border border-white/20 dark:border-slate-800">
           <header class="p-8 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-800/30">
             <div class="flex items-center gap-4">
               <div class="w-12 h-12 rounded-2xl bg-primary-500/10 flex items-center justify-center text-primary-500">

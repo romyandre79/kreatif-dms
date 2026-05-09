@@ -88,7 +88,7 @@
       <Teleport to="body">
       <Transition name="fade">
         <div v-if="showModal" class="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-10 bg-slate-950/60 backdrop-blur-md">
-          <div class="bg-white dark:bg-[#0D121F] w-full max-w-6xl max-h-[92vh] rounded-[2.5rem] shadow-2xl border border-white/10 flex flex-col overflow-hidden">
+          <div class="bg-white dark:bg-[#0D121F] w-full max-w-6xl max-h-[92vh] rounded-lg shadow-2xl border border-white/10 flex flex-col overflow-hidden">
             <!-- Modal Header -->
             <div class="p-6 sm:p-8 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-900/30 rounded-t-[2.5rem]">
               <div class="flex items-center gap-4">

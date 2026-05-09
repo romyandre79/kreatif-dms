@@ -198,7 +198,7 @@
             </div>
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-10">
               <div class="lg:col-span-2 space-y-8">
-                <div class="glass p-10 rounded-[2.5rem] space-y-8">
+                <div class="glass p-10 rounded-lg space-y-8">
                   <h4 class="text-sm font-black text-[#1E3A5F] dark:text-white uppercase">{{ $t('registration.migration.duplicate_check.similar.title') }}</h4>
                   <div v-for="rec in similarRecords" :key="rec.id" class="p-8 bg-slate-50 border border-slate-100 rounded-[2rem] flex items-center justify-between group transition-all">
                     <div class="flex items-center gap-8">
@@ -226,7 +226,7 @@
             </div>
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-10">
               <div class="lg:col-span-2 space-y-8">
-                <div class="glass p-10 rounded-[2.5rem] space-y-10">
+                <div class="glass p-10 rounded-lg space-y-10">
                   <h4 class="text-sm font-black text-[#1E3A5F] dark:text-white uppercase">{{ $t('registration.migration.location_assignment.strategy.title') }}</h4>
                   <div class="grid grid-cols-2 gap-8">
                     <div class="p-8 bg-slate-50 dark:bg-slate-900/50 rounded-[2rem] space-y-2">
@@ -235,7 +235,7 @@
                     </div>
                   </div>
                 </div>
-                <div class="glass rounded-[2.5rem] overflow-hidden">
+                <div class="glass rounded-lg overflow-hidden">
                   <table class="w-full text-left">
                     <tbody class="divide-y divide-slate-50 dark:divide-slate-800/50">
                       <tr v-for="loc in locations" :key="loc.id">
@@ -248,7 +248,7 @@
                 </div>
               </div>
               <div class="space-y-8">
-                <div class="bg-[#1E3A5F] p-10 rounded-[2.5rem] text-white flex flex-col items-center">
+                <div class="bg-[#1E3A5F] p-10 rounded-lg text-white flex flex-col items-center">
                   <div class="w-32 h-32 rounded-full border-8 border-white/10 flex items-center justify-center text-3xl font-black">78%</div>
                 </div>
               </div>
@@ -266,7 +266,7 @@
             </div>
             <div class="p-16 grid grid-cols-1 lg:grid-cols-3 gap-16">
               <div class="lg:col-span-2 space-y-12">
-                <div class="p-10 bg-slate-50 dark:bg-slate-800/50 rounded-[2.5rem] space-y-8">
+                <div class="p-10 bg-slate-50 dark:bg-slate-800/50 rounded-lg space-y-8">
                   <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest">{{ $t('registration.migration.success.renaming.final') }}</p>
                   <div class="flex items-center justify-between p-5 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-700 rounded-2xl shadow-sm">
                     <span class="text-sm font-black text-primary-500">DMS-INV-2024-00892-CORP.pdf</span>
@@ -290,7 +290,7 @@
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-10">
               <div class="lg:col-span-2 space-y-8">
                 <!-- Label Configuration -->
-                <div class="glass p-10 rounded-[2.5rem] space-y-10">
+                <div class="glass p-10 rounded-lg space-y-10">
                   <div class="flex items-center gap-3">
                     <div class="w-10 h-10 rounded-xl bg-primary-50 dark:bg-primary-900/20 text-primary-500 flex items-center justify-center shadow-sm">
                       <LucideSettings2 class="w-5 h-5" />
@@ -351,7 +351,7 @@
                 </div>
 
                 <!-- Data Source -->
-                <div class="glass p-10 rounded-[2.5rem] space-y-6">
+                <div class="glass p-10 rounded-lg space-y-6">
                   <div class="flex items-center gap-3">
                     <div class="w-10 h-10 rounded-xl bg-primary-50 dark:bg-primary-900/20 text-primary-500 flex items-center justify-center shadow-sm">
                       <LucideDatabase class="w-5 h-5" />
@@ -372,7 +372,7 @@
 
               <!-- Label Preview Column -->
               <div class="space-y-8">
-                <div class="glass p-10 rounded-[2.5rem] space-y-10">
+                <div class="glass p-10 rounded-lg space-y-10">
                   <div class="flex items-center justify-between">
                     <div class="flex items-center gap-3">
                       <LucideEye class="w-5 h-5 text-primary-500" />
@@ -429,7 +429,7 @@
                 <h3 class="text-lg font-black text-[#1E3A5F] dark:text-white uppercase tracking-tight">{{ $t('registration.migration.print_qr.history.title') }}</h3>
                 <button class="text-[10px] font-black text-primary-500 uppercase tracking-widest hover:underline">{{ $t('registration.migration.print_qr.history.view_all') }}</button>
               </div>
-              <div class="glass rounded-[2.5rem] overflow-hidden">
+              <div class="glass rounded-lg overflow-hidden">
                 <table class="w-full text-left">
                   <thead class="text-[9px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 dark:border-slate-800">
                     <tr>

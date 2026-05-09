@@ -111,7 +111,7 @@
 
     <!-- Right Sidebar: Metrics & Risk -->
     <aside class="w-80 bg-white dark:bg-slate-900 border-l border-slate-200 dark:border-slate-800 flex flex-col p-8 overflow-y-auto custom-scrollbar space-y-8">
-      <div v-for="metric in metrics" :key="metric.label" class="p-8 rounded-[2.5rem] border border-slate-50 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm space-y-6">
+      <div v-for="metric in metrics" :key="metric.label" class="p-8 rounded-lg border border-slate-50 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm space-y-6">
         <div class="flex justify-between items-start">
           <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest max-w-[120px]">{{ metric.label }}</p>
           <span v-if="metric.badge" :class="`px-2 py-0.5 rounded-lg text-[8px] font-black uppercase tracking-widest ${metric.badgeClass}`">

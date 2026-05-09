@@ -197,7 +197,13 @@ func main() {
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"},
 		AllowCredentials: true,
 	}))
-	app.Use(helmet.New())
+	app.Use(helmet.New(helmet.Config{
+		XSSProtection:      "1; mode=block",
+		ContentTypeNosniff: "nosniff",
+		XFrameOptions:      "SAMEORIGIN", // We will override this for the preview route if needed, or set to empty
+		PermissionPolicy:   "geolocation=(self), microphone=()",
+		CrossOriginResourcePolicy: "cross-origin", // Allow cross-origin images/PDFs
+	}))
 	app.Use(compress.New(compress.Config{
 		Level: compress.LevelBestSpeed,
 	}))
@@ -249,7 +255,12 @@ func main() {
 	docGroup.Get("/search", docHandler.Search)
 	docGroup.Get("/:id", docHandler.GetByID)
 	docGroup.Get("/:id/preview", docHandler.Preview)
+	docGroup.Get("/:id/loans", docHandler.GetLoans)
 	docGroup.Get("/:id/ocr", docHandler.GetOCRData)
+	docGroup.Post("/:id/approve", docHandler.Approve)
+	docGroup.Post("/:id/reject", docHandler.Reject)
+	docGroup.Post("/bulk-approve", docHandler.BulkApprove)
+	docGroup.Post("/bulk-reject", docHandler.BulkReject)
 
 	// Batch Routes
 	batchGroup := api.Group("/batches")

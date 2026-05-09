@@ -85,7 +85,7 @@
 
       <!-- Main Content -->
       <div class="flex-1">
-        <div class="bg-white dark:bg-[#0D121F] rounded-[2.5rem] shadow-sm border border-slate-100 dark:border-slate-800 overflow-hidden" v-motion-slide-visible-bottom>
+        <div class="bg-white dark:bg-[#0D121F] rounded-lg shadow-sm border border-slate-100 dark:border-slate-800 overflow-hidden" v-motion-slide-visible-bottom>
           <div class="p-10 border-b border-slate-100 dark:border-slate-800">
             <div class="flex items-start justify-between mb-8">
               <div>

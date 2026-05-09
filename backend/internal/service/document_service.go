@@ -188,9 +188,19 @@ func (s *DocumentService) GetWatermarkedPDF(ctx context.Context, docID uuid.UUID
 	watermarkText := strings.ReplaceAll(wmText, "{user}", strings.ToUpper(userFullName))
 	watermarkText = strings.ReplaceAll(watermarkText, "{date}", time.Now().Format("2006-01-02"))
 
-	if doc.MimeType != "application/pdf" {
-		log.Printf("[DocumentService] Applying image watermark for: %s (MimeType: %s, Type: %s)", docID, doc.MimeType, wmType)
-		watermarkedContent, err := s.applyImageWatermark(content, watermarkText, doc.MimeType, wmOpacity)
+	// 4. Apply Watermark based on MimeType (with fallback for octet-stream)
+	effectiveMimeType := doc.MimeType
+	if effectiveMimeType == "application/octet-stream" {
+		if strings.HasSuffix(strings.ToLower(doc.FileName), ".pdf") {
+			effectiveMimeType = "application/pdf"
+		} else if strings.HasSuffix(strings.ToLower(doc.FileName), ".jpg") || strings.HasSuffix(strings.ToLower(doc.FileName), ".jpeg") || strings.HasSuffix(strings.ToLower(doc.FileName), ".png") {
+			effectiveMimeType = "image/jpeg" // trigger image watermarking
+		}
+	}
+
+	if effectiveMimeType != "application/pdf" {
+		log.Printf("[DocumentService] Applying image watermark for: %s (MimeType: %s, Type: %s)", docID, effectiveMimeType, wmType)
+		watermarkedContent, err := s.applyImageWatermark(content, watermarkText, effectiveMimeType, wmOpacity)
 		if err != nil {
 			log.Printf("[DocumentService] Warning: Failed to apply image watermark, returning raw: %v", err)
 			return content, doc.MimeType, nil
@@ -269,8 +279,8 @@ func (s *DocumentService) ListOCRHistory(ctx context.Context, page, pageSize int
 	return rows, total, nil
 }
 
-func (s *DocumentService) GetDocument(ctx context.Context, id uuid.UUID) (repository.Document, error) {
-	return s.repo.GetDocument(ctx, id)
+func (s *DocumentService) GetDocument(ctx context.Context, id uuid.UUID) (repository.GetDocumentWithDetailsRow, error) {
+	return s.repo.GetDocumentWithDetails(ctx, id)
 }
 
 func (s *DocumentService) ListRecentDocuments(ctx context.Context, limit int) ([]repository.ListRecentDocumentsRow, error) {
@@ -358,4 +368,55 @@ func (s *DocumentService) applyImageWatermark(content []byte, text string, mimeT
 	}
 
 	return buf.Bytes(), nil
+}
+func (s *DocumentService) GetLoanHistory(ctx context.Context, docID uuid.UUID) ([]repository.GetDocumentLoanHistoryRow, error) {
+	return s.repo.GetDocumentLoanHistory(ctx, docID)
+}
+func (s *DocumentService) ApproveDocument(ctx context.Context, docID uuid.UUID, notes string) error {
+	// 1. Update workflow status
+	if err := s.repo.ApproveTask(ctx, repository.ApproveTaskParams{
+		EntityID:      docID,
+		DecisionNotes: pgtype.Text{String: notes, Valid: notes != ""},
+	}); err != nil {
+		return err
+	}
+
+	// 2. Update document status to active
+	return s.repo.UpdateDocumentStatus(ctx, repository.UpdateDocumentStatusParams{
+		ID:     docID,
+		Status: "active",
+	})
+}
+
+func (s *DocumentService) RejectDocument(ctx context.Context, docID uuid.UUID, notes string) error {
+	// 1. Update workflow status
+	if err := s.repo.RejectTask(ctx, repository.RejectTaskParams{
+		EntityID:      docID,
+		DecisionNotes: pgtype.Text{String: notes, Valid: notes != ""},
+	}); err != nil {
+		return err
+	}
+
+	// 2. Update document status to rejected
+	return s.repo.UpdateDocumentStatus(ctx, repository.UpdateDocumentStatusParams{
+		ID:     docID,
+		Status: "rejected",
+	})
+}
+func (s *DocumentService) BulkApproveDocuments(ctx context.Context, ids []uuid.UUID) error {
+	for _, id := range ids {
+		if err := s.ApproveDocument(ctx, id, "Bulk approved"); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (s *DocumentService) BulkRejectDocuments(ctx context.Context, ids []uuid.UUID) error {
+	for _, id := range ids {
+		if err := s.RejectDocument(ctx, id, "Bulk rejected"); err != nil {
+			return err
+		}
+	}
+	return nil
 }

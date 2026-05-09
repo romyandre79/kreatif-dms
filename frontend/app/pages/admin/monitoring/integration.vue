@@ -25,7 +25,7 @@
         { id: 'latency', val: '12ms', color: 'border-blue-500', icon: LucideClock, iconColor: 'text-blue-500' },
         { id: 'alerts', val: '02', color: 'border-red-500', icon: LucideAlertTriangle, iconColor: 'text-red-500' },
         { id: 'sync', val: '1.2k', color: 'border-[#1E3A5F]', icon: LucideRotateCw, iconColor: 'text-[#1E3A5F]' }
-      ]" :key="s.id" :class="`glass p-8 rounded-[2.5rem] border-l-4 ${s.color} space-y-4 shadow-sm`">
+      ]" :key="s.id" :class="`glass p-8 rounded-lg border-l-4 ${s.color} space-y-4 shadow-sm`">
         <div class="flex items-center justify-between">
           <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest">{{ $t(`admin.monitoring.integration.stats.${s.id}`) }}</p>
           <component :is="s.icon" :class="`w-5 h-5 ${s.iconColor}`" />

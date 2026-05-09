@@ -24,7 +24,7 @@
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-10">
         <div class="lg:col-span-2 space-y-8">
           <!-- Verification Checklist -->
-          <div class="glass p-10 rounded-[2.5rem] space-y-10">
+          <div class="glass p-10 rounded-lg space-y-10">
             <div class="flex items-center gap-3">
               <div class="w-10 h-10 rounded-xl bg-primary-50 dark:bg-primary-900/20 text-primary-500 flex items-center justify-center shadow-sm">
                 <LucideCheckSquare class="w-5 h-5" />
@@ -68,7 +68,7 @@
 
         <!-- Assigned Location Sidebar -->
         <div class="space-y-8">
-          <div class="glass p-10 rounded-[2.5rem] space-y-10" v-motion-slide-right>
+          <div class="glass p-10 rounded-lg space-y-10" v-motion-slide-right>
             <div class="flex items-center gap-3">
               <LucideMapPin class="w-5 h-5 text-primary-500" />
               <h3 class="text-sm font-black text-[#1E3A5F] dark:text-white uppercase tracking-widest">{{ $t('warehouse.structure.assigned.title') }}</h3>
@@ -170,7 +170,7 @@
 
         <div class="lg:col-span-2 space-y-8">
           <!-- Scanner Visual -->
-          <div class="bg-slate-900 rounded-[2.5rem] aspect-video relative overflow-hidden group shadow-2xl">
+          <div class="bg-slate-900 rounded-lg aspect-video relative overflow-hidden group shadow-2xl">
             <img src="https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?q=80&w=1000&auto=format&fit=crop" class="w-full h-full object-cover opacity-40 grayscale group-hover:grayscale-0 group-hover:opacity-60 transition-all duration-700" />
             
             <div class="absolute inset-0 flex items-center justify-center">
@@ -191,7 +191,7 @@
           </div>
 
           <!-- Summary & Confirm -->
-          <div class="glass p-10 rounded-[2.5rem] flex items-center justify-between" v-motion-slide-visible-bottom>
+          <div class="glass p-10 rounded-lg flex items-center justify-between" v-motion-slide-visible-bottom>
             <div class="space-y-1">
               <h4 class="text-lg font-black text-[#1E3A5F] dark:text-white uppercase tracking-tight">{{ $t('warehouse.scan.summary.title') }}</h4>
               <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">{{ $t('warehouse.scan.summary.ready') }}</p>

@@ -1,16 +1,36 @@
--- Add Module
-INSERT INTO system_modules (id, name, parent_id, path, icon, sort_order, category)
-VALUES ('config_params', 'Parameter Sistem', 'Configuration', '/config/params', 'LucideSettings2', 99, 'admin')
-ON CONFLICT (id) DO NOTHING;
+-- Fix 000046_add_params_module.up.sql
+-- Add Module with all required columns
+INSERT INTO system_modules (id, name, category, path, icon, allowed_actions, sort_order, parent_id)
+VALUES (
+    'config_params', 
+    'Parameter Sistem', 
+    'Configuration', 
+    '/config/params', 
+    'LucideSettings2', 
+    ARRAY['VIEW', 'CREATE', 'EDIT', 'DELETE', 'EXPORT', 'DOWNLOAD', 'PRINT'], 
+    99, 
+    'cat_config'
+)
+ON CONFLICT (id) DO UPDATE SET 
+    parent_id = 'cat_config',
+    allowed_actions = ARRAY['VIEW', 'CREATE', 'EDIT', 'DELETE', 'EXPORT', 'DOWNLOAD', 'PRINT'];
 
--- Add Permissions for admin
-INSERT INTO role_permissions (role_id, module_id, action)
-VALUES 
-    ('admin', 'config_params', 'read'),
-    ('admin', 'config_params', 'update'),
-    ('superadmin', 'config_params', 'read'),
-    ('superadmin', 'config_params', 'update')
-ON CONFLICT DO NOTHING;
+-- Add Permissions for admin and superadmin
+DO $$
+DECLARE
+    role_rec RECORD;
+    act TEXT;
+BEGIN
+    FOR role_rec IN SELECT id FROM roles WHERE name IN ('admin', 'superadmin')
+    LOOP
+        FOREACH act IN ARRAY ARRAY['VIEW', 'CREATE', 'EDIT', 'DELETE', 'EXPORT', 'DOWNLOAD', 'PRINT']
+        LOOP
+            INSERT INTO role_permissions (role_id, module_id, action)
+            VALUES (role_rec.id, 'config_params', act)
+            ON CONFLICT DO NOTHING;
+        END LOOP;
+    END LOOP;
+END $$;
 
 -- Seed initial parameters if not exists
 INSERT INTO system_settings (category, key, value, value_type, description)

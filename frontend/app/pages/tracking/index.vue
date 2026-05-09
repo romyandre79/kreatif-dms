@@ -21,7 +21,7 @@
     </div>
 
     <!-- Header Card -->
-    <div class="glass rounded-[2.5rem] bg-white border border-slate-100 p-10 shadow-xl shadow-slate-200/50 space-y-10" v-motion-fade>
+    <div class="glass rounded-lg bg-white border border-slate-100 p-10 shadow-xl shadow-slate-200/50 space-y-10" v-motion-fade>
       <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div class="space-y-3">
           <div class="flex items-center gap-4">
@@ -76,7 +76,7 @@
     </div>
 
     <!-- Tracking Progress Section -->
-    <div class="glass rounded-[2.5rem] bg-white border border-slate-100 shadow-xl shadow-slate-200/50 overflow-hidden" v-motion-slide-visible-bottom>
+    <div class="glass rounded-lg bg-white border border-slate-100 shadow-xl shadow-slate-200/50 overflow-hidden" v-motion-slide-visible-bottom>
       <div class="px-10 py-8 border-b border-slate-50">
         <h2 class="text-lg font-black text-[#1E3A5F] uppercase tracking-tight">{{ $t('loans.tracking.progress.title') }}</h2>
       </div>

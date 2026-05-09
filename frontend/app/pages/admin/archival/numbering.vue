@@ -152,7 +152,7 @@
     <!-- Metadata Verification Summary -->
     <div class="space-y-6">
       <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-widest px-4">{{ $t('admin.archival.numbering.summary.title') }}</h4>
-      <div class="bg-slate-50/50 dark:bg-slate-950/50 p-8 rounded-[2.5rem] border border-slate-100 dark:border-slate-800 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8">
+      <div class="bg-slate-50/50 dark:bg-slate-950/50 p-8 rounded-lg border border-slate-100 dark:border-slate-800 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8">
         <div v-for="(v, k) in { entity: 'AKD Corp', division: 'IT Services', type: 'Hardware Inv', date: '24 Oct 2024', user: 'Admin_Cent', revision: 'v1.0 (Final)' }" :key="k" class="space-y-1">
           <p class="text-[8px] font-black text-slate-400 uppercase tracking-widest">{{ $t(`admin.archival.numbering.summary.cols.${k}`) }}</p>
           <p class="text-[11px] font-black text-slate-600 dark:text-slate-300 uppercase tracking-tight">{{ v }}</p>

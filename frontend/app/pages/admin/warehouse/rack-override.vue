@@ -115,7 +115,7 @@
             </div>
 
             <!-- Recommendation Engine Toggle -->
-            <div class="flex items-center justify-between p-8 rounded-[2.5rem] bg-slate-50/30 dark:bg-slate-900/30 border border-slate-100 dark:border-slate-800">
+            <div class="flex items-center justify-between p-8 rounded-lg bg-slate-50/30 dark:bg-slate-900/30 border border-slate-100 dark:border-slate-800">
               <div class="space-y-1">
                 <h4 class="text-xs font-black text-[#1E3A5F] dark:text-white uppercase tracking-tight">{{ $t('warehouse.override.config.engine') }}</h4>
                 <p class="text-[9px] font-bold text-slate-400 uppercase max-w-sm">{{ $t('warehouse.override.config.engine_desc') }}</p>

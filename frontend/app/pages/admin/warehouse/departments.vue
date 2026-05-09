@@ -14,7 +14,7 @@
           { name: 'Human Resources', status: 'locked', count: 8 },
           { name: 'Procurement', status: 'standard', count: 45 },
           { name: 'IT Infrastructure', status: 'standard', count: 5 }
-        ]" :key="d.name" :class="`glass p-8 rounded-[2.5rem] space-y-4 shadow-sm cursor-pointer transition-all border-l-8 ${d.active ? 'border-blue-500 bg-slate-50/50 scale-105' : 'border-transparent hover:bg-slate-50/30'}`">
+        ]" :key="d.name" :class="`glass p-8 rounded-lg space-y-4 shadow-sm cursor-pointer transition-all border-l-8 ${d.active ? 'border-blue-500 bg-slate-50/50 scale-105' : 'border-transparent hover:bg-slate-50/30'}`">
           <div class="flex items-center justify-between">
             <h4 class="text-sm font-black text-[#1E3A5F] dark:text-white uppercase tracking-tight leading-tight max-w-[150px]">{{ d.name }}</h4>
             <span :class="`px-3 py-1 rounded text-[8px] font-black uppercase tracking-widest ${d.status === 'active' ? 'bg-blue-50 text-blue-500' : d.status === 'reserved' ? 'bg-blue-50 text-blue-500' : d.status === 'locked' ? 'bg-red-50 text-red-500' : 'bg-slate-50 text-slate-400'}`">
@@ -141,7 +141,7 @@
             { id: 'FINANCE-R0D', date: '12 Dec', desc: 'Temporary Audit Space Allocation [Zone D]', color: 'border-blue-800 bg-[#1E3A5F]' },
             { id: 'LEGAL-M01', permanent: true, desc: 'Master Deed Storage (High-Sec Vault)', color: 'border-blue-500 bg-blue-500 shadow-xl shadow-blue-500/20' },
             { id: 'GEN-A02', date: '02 Jan', desc: 'Peak Season Buffer Allocation', color: 'border-amber-500 bg-amber-500' }
-          ]" :key="s.id" :class="`p-8 rounded-[2.5rem] border-l-8 text-white space-y-3 ${s.color}`">
+          ]" :key="s.id" :class="`p-8 rounded-lg border-l-8 text-white space-y-3 ${s.color}`">
             <div class="flex items-center justify-between">
               <h5 class="text-[11px] font-black tracking-widest uppercase">{{ s.id }}</h5>
               <span class="text-[8px] font-black uppercase tracking-widest opacity-60">{{ s.permanent ? $t('warehouse.departments.schedule.permanent') : $t('warehouse.departments.schedule.expires', { date: s.date }) }}</span>

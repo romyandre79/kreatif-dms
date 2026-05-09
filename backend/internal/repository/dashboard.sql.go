@@ -42,6 +42,137 @@ func (q *Queries) GetDailyStats(ctx context.Context) (GetDailyStatsRow, error) {
 	return i, err
 }
 
+const getDepartmentRecentActivities = `-- name: GetDepartmentRecentActivities :many
+SELECT 
+    a.id,
+    a.action,
+    a.entity_type,
+    a.entity_id,
+    a.details,
+    a.created_at,
+    u.full_name as user_name,
+    u.email as user_email
+FROM activity_logs a
+JOIN users u ON a.user_id = u.id
+WHERE u.department_id = $1
+ORDER BY a.created_at DESC
+LIMIT $2
+`
+
+type GetDepartmentRecentActivitiesParams struct {
+	DepartmentID pgtype.UUID `json:"department_id"`
+	Limit        int32       `json:"limit"`
+}
+
+type GetDepartmentRecentActivitiesRow struct {
+	ID         uuid.UUID          `json:"id"`
+	Action     string             `json:"action"`
+	EntityType string             `json:"entity_type"`
+	EntityID   pgtype.UUID        `json:"entity_id"`
+	Details    []byte             `json:"details"`
+	CreatedAt  pgtype.Timestamptz `json:"created_at"`
+	UserName   string             `json:"user_name"`
+	UserEmail  string             `json:"user_email"`
+}
+
+func (q *Queries) GetDepartmentRecentActivities(ctx context.Context, arg GetDepartmentRecentActivitiesParams) ([]GetDepartmentRecentActivitiesRow, error) {
+	rows, err := q.db.Query(ctx, getDepartmentRecentActivities, arg.DepartmentID, arg.Limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetDepartmentRecentActivitiesRow
+	for rows.Next() {
+		var i GetDepartmentRecentActivitiesRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Action,
+			&i.EntityType,
+			&i.EntityID,
+			&i.Details,
+			&i.CreatedAt,
+			&i.UserName,
+			&i.UserEmail,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getDepartmentTopSubmitters = `-- name: GetDepartmentTopSubmitters :many
+SELECT 
+    u.full_name as name,
+    u.avatar_url as avatar,
+    COUNT(d.id) as count
+FROM users u
+LEFT JOIN documents d ON u.id = d.owner_id
+WHERE u.department_id = $1
+GROUP BY u.id, u.full_name, u.avatar_url
+ORDER BY count DESC
+LIMIT $2
+`
+
+type GetDepartmentTopSubmittersParams struct {
+	DepartmentID pgtype.UUID `json:"department_id"`
+	Limit        int32       `json:"limit"`
+}
+
+type GetDepartmentTopSubmittersRow struct {
+	Name   string      `json:"name"`
+	Avatar pgtype.Text `json:"avatar"`
+	Count  int64       `json:"count"`
+}
+
+func (q *Queries) GetDepartmentTopSubmitters(ctx context.Context, arg GetDepartmentTopSubmittersParams) ([]GetDepartmentTopSubmittersRow, error) {
+	rows, err := q.db.Query(ctx, getDepartmentTopSubmitters, arg.DepartmentID, arg.Limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetDepartmentTopSubmittersRow
+	for rows.Next() {
+		var i GetDepartmentTopSubmittersRow
+		if err := rows.Scan(&i.Name, &i.Avatar, &i.Count); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getManagerDailyStats = `-- name: GetManagerDailyStats :one
+SELECT 
+    (SELECT COUNT(*) FROM documents d WHERE d.department_id = $1 AND d.created_at >= CURRENT_DATE) as daily_received,
+    (SELECT COUNT(*) FROM approval_workflows aw1 WHERE aw1.approver_id = $2 AND aw1.status = 'pending') as active_tasks,
+    (SELECT COUNT(*) FROM approval_workflows aw2 WHERE aw2.approver_id = $2 AND aw2.status IN ('approved', 'rejected') AND aw2.decided_at >= CURRENT_DATE) as daily_processed
+`
+
+type GetManagerDailyStatsParams struct {
+	DepartmentID uuid.UUID `json:"department_id"`
+	ApproverID   uuid.UUID `json:"approver_id"`
+}
+
+type GetManagerDailyStatsRow struct {
+	DailyReceived  int64 `json:"daily_received"`
+	ActiveTasks    int64 `json:"active_tasks"`
+	DailyProcessed int64 `json:"daily_processed"`
+}
+
+func (q *Queries) GetManagerDailyStats(ctx context.Context, arg GetManagerDailyStatsParams) (GetManagerDailyStatsRow, error) {
+	row := q.db.QueryRow(ctx, getManagerDailyStats, arg.DepartmentID, arg.ApproverID)
+	var i GetManagerDailyStatsRow
+	err := row.Scan(&i.DailyReceived, &i.ActiveTasks, &i.DailyProcessed)
+	return i, err
+}
+
 const getPriorityTasks = `-- name: GetPriorityTasks :many
 SELECT 
     id,
