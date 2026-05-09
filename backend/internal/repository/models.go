@@ -125,14 +125,16 @@ type Branch struct {
 }
 
 type Company struct {
-	ID         uuid.UUID          `json:"id"`
-	Name       string             `json:"name"`
-	Address    pgtype.Text        `json:"address"`
-	CreatedAt  pgtype.Timestamptz `json:"created_at"`
-	EntityID   pgtype.Text        `json:"entity_id"`
-	NpwpStatus pgtype.Text        `json:"npwp_status"`
-	Location   pgtype.Text        `json:"location"`
-	Status     pgtype.Text        `json:"status"`
+	ID                   uuid.UUID          `json:"id"`
+	Name                 string             `json:"name"`
+	Address              pgtype.Text        `json:"address"`
+	CreatedAt            pgtype.Timestamptz `json:"created_at"`
+	EntityID             pgtype.Text        `json:"entity_id"`
+	NpwpStatus           pgtype.Text        `json:"npwp_status"`
+	Location             pgtype.Text        `json:"location"`
+	Status               pgtype.Text        `json:"status"`
+	LogoUrl              pgtype.Text        `json:"logo_url"`
+	DeliveryInstructions pgtype.Text        `json:"delivery_instructions"`
 }
 
 type ComplianceCheck struct {

@@ -59,10 +59,14 @@ SELECT
     b.id as branch_id,
     b.name as branch_name,
     c.id as company_id,
-    c.name as company_name
+    c.name as company_name,
+    c.logo_url as company_logo,
+    c.delivery_instructions as delivery_instructions,
+    u2.full_name as manager_name
 FROM users u
 LEFT JOIN roles r ON u.role_id = r.id
 LEFT JOIN departments d ON u.department_id = d.id
+LEFT JOIN users u2 ON d.head_id = u2.id
 LEFT JOIN branches b ON d.branch_id = b.id
 LEFT JOIN companies c ON b.company_id = c.id
 WHERE u.id = $1 LIMIT 1;

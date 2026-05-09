@@ -88,3 +88,12 @@ SELECT
 FROM documents
 ORDER BY created_at DESC
 LIMIT $1 OFFSET $2;
+
+-- name: ListRecentDocumentsByOwner :many
+SELECT 
+    id, title, status, created_at, mime_type, file_size, metadata,
+    COALESCE(description, '')::text as category
+FROM documents
+WHERE owner_id = $1
+ORDER BY created_at DESC
+LIMIT $2 OFFSET $3;

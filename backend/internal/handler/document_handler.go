@@ -175,8 +175,18 @@ func (h *DocumentHandler) Preview(c fiber.Ctx) error {
 }
 func (h *DocumentHandler) List(c fiber.Ctx) error {
 	limit, _ := strconv.Atoi(c.Query("limit", "10"))
+	mine := c.Query("mine") == "true"
 	
-	docs, err := h.svc.ListRecentDocuments(c.Context(), limit)
+	var docs interface{}
+	var err error
+	
+	if mine {
+		userID := c.Locals("user_id").(uuid.UUID)
+		docs, err = h.svc.ListRecentDocumentsByOwner(c.Context(), userID, limit)
+	} else {
+		docs, err = h.svc.ListRecentDocuments(c.Context(), limit)
+	}
+	
 	if err != nil {
 		return response.Error(c, fiber.StatusInternalServerError, "Failed to list documents", err.Error())
 	}

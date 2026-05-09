@@ -117,6 +117,7 @@ type Querier interface {
 	// Racks
 	ListRacks(ctx context.Context, departmentID uuid.UUID) ([]Rack, error)
 	ListRecentDocuments(ctx context.Context, arg ListRecentDocumentsParams) ([]ListRecentDocumentsRow, error)
+	ListRecentDocumentsByOwner(ctx context.Context, arg ListRecentDocumentsByOwnerParams) ([]ListRecentDocumentsByOwnerRow, error)
 	// Retention Policies
 	ListRetentionPolicies(ctx context.Context) ([]RetentionPolicy, error)
 	// RFID Tags

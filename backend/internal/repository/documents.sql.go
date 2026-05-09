@@ -542,6 +542,62 @@ func (q *Queries) ListRecentDocuments(ctx context.Context, arg ListRecentDocumen
 	return items, nil
 }
 
+const listRecentDocumentsByOwner = `-- name: ListRecentDocumentsByOwner :many
+SELECT 
+    id, title, status, created_at, mime_type, file_size, metadata,
+    COALESCE(description, '')::text as category
+FROM documents
+WHERE owner_id = $1
+ORDER BY created_at DESC
+LIMIT $2 OFFSET $3
+`
+
+type ListRecentDocumentsByOwnerParams struct {
+	OwnerID uuid.UUID `json:"owner_id"`
+	Limit   int32     `json:"limit"`
+	Offset  int32     `json:"offset"`
+}
+
+type ListRecentDocumentsByOwnerRow struct {
+	ID        uuid.UUID          `json:"id"`
+	Title     string             `json:"title"`
+	Status    string             `json:"status"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
+	MimeType  string             `json:"mime_type"`
+	FileSize  int64              `json:"file_size"`
+	Metadata  json.RawMessage    `json:"metadata"`
+	Category  string             `json:"category"`
+}
+
+func (q *Queries) ListRecentDocumentsByOwner(ctx context.Context, arg ListRecentDocumentsByOwnerParams) ([]ListRecentDocumentsByOwnerRow, error) {
+	rows, err := q.db.Query(ctx, listRecentDocumentsByOwner, arg.OwnerID, arg.Limit, arg.Offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListRecentDocumentsByOwnerRow
+	for rows.Next() {
+		var i ListRecentDocumentsByOwnerRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Title,
+			&i.Status,
+			&i.CreatedAt,
+			&i.MimeType,
+			&i.FileSize,
+			&i.Metadata,
+			&i.Category,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const updateBatchProgress = `-- name: UpdateBatchProgress :exec
 UPDATE processing_batches 
 SET processed_files = processed_files + 1, 

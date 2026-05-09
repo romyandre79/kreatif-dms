@@ -260,6 +260,11 @@ func main() {
 	// Master Data Routes
 	masterGroup := api.Group("/master")
 	masterGroup.Use(middleware.AuthMiddleware(cfg.JWTSecret))
+	
+	// Accessible to all authenticated users
+	masterGroup.Get("/document-types", masterHandler.ListDocumentTypes)
+
+	// Restricted to Admin/Superadmin
 	masterGroup.Use(middleware.RoleMiddleware("admin", "superadmin"))
 	masterGroup.Get("/companies", masterHandler.ListCompanies)
 	masterGroup.Post("/companies", masterHandler.CreateCompany)
@@ -304,7 +309,6 @@ func main() {
 	masterGroup.Get("/ordners/export", masterHandler.ExportOrdners)
 	masterGroup.Post("/ordners/import", masterHandler.ImportOrdners)
 
-	masterGroup.Get("/document-types", masterHandler.ListDocumentTypes)
 	masterGroup.Post("/document-types", masterHandler.CreateDocumentType)
 	masterGroup.Put("/document-types/:id", masterHandler.UpdateDocumentType)
 	masterGroup.Delete("/document-types/:id", masterHandler.DeleteDocumentType)

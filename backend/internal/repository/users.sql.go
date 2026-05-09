@@ -86,41 +86,48 @@ SELECT
     b.id as branch_id,
     b.name as branch_name,
     c.id as company_id,
-    c.name as company_name
+    c.name as company_name,
+    c.logo_url as company_logo,
+    c.delivery_instructions as delivery_instructions,
+    u2.full_name as manager_name
 FROM users u
 LEFT JOIN roles r ON u.role_id = r.id
 LEFT JOIN departments d ON u.department_id = d.id
+LEFT JOIN users u2 ON d.head_id = u2.id
 LEFT JOIN branches b ON d.branch_id = b.id
 LEFT JOIN companies c ON b.company_id = c.id
 WHERE u.id = $1 LIMIT 1
 `
 
 type GetProfileByIDRow struct {
-	ID                uuid.UUID          `json:"id"`
-	Email             string             `json:"email"`
-	PasswordHash      string             `json:"password_hash"`
-	FullName          string             `json:"full_name"`
-	RoleID            int32              `json:"role_id"`
-	DepartmentID      pgtype.UUID        `json:"department_id"`
-	IsActive          bool               `json:"is_active"`
-	CreatedAt         pgtype.Timestamptz `json:"created_at"`
-	UpdatedAt         pgtype.Timestamptz `json:"updated_at"`
-	Status            string             `json:"status"`
-	AvatarUrl         pgtype.Text        `json:"avatar_url"`
-	SignatureUrl      pgtype.Text        `json:"signature_url"`
-	Pin               pgtype.Text        `json:"pin"`
-	PinStatus         pgtype.Text        `json:"pin_status"`
-	PinFailedAttempts pgtype.Int4        `json:"pin_failed_attempts"`
-	PinLockedUntil    pgtype.Timestamptz `json:"pin_locked_until"`
-	PinUpdatedAt      pgtype.Timestamptz `json:"pin_updated_at"`
-	IsMfaEnabled      pgtype.Bool        `json:"is_mfa_enabled"`
-	MfaSecret         pgtype.Text        `json:"mfa_secret"`
-	RoleName          pgtype.Text        `json:"role_name"`
-	DepartmentName    pgtype.Text        `json:"department_name"`
-	BranchID          pgtype.UUID        `json:"branch_id"`
-	BranchName        pgtype.Text        `json:"branch_name"`
-	CompanyID         pgtype.UUID        `json:"company_id"`
-	CompanyName       pgtype.Text        `json:"company_name"`
+	ID                   uuid.UUID          `json:"id"`
+	Email                string             `json:"email"`
+	PasswordHash         string             `json:"password_hash"`
+	FullName             string             `json:"full_name"`
+	RoleID               int32              `json:"role_id"`
+	DepartmentID         pgtype.UUID        `json:"department_id"`
+	IsActive             bool               `json:"is_active"`
+	CreatedAt            pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt            pgtype.Timestamptz `json:"updated_at"`
+	Status               string             `json:"status"`
+	AvatarUrl            pgtype.Text        `json:"avatar_url"`
+	SignatureUrl         pgtype.Text        `json:"signature_url"`
+	Pin                  pgtype.Text        `json:"pin"`
+	PinStatus            pgtype.Text        `json:"pin_status"`
+	PinFailedAttempts    pgtype.Int4        `json:"pin_failed_attempts"`
+	PinLockedUntil       pgtype.Timestamptz `json:"pin_locked_until"`
+	PinUpdatedAt         pgtype.Timestamptz `json:"pin_updated_at"`
+	IsMfaEnabled         pgtype.Bool        `json:"is_mfa_enabled"`
+	MfaSecret            pgtype.Text        `json:"mfa_secret"`
+	RoleName             pgtype.Text        `json:"role_name"`
+	DepartmentName       pgtype.Text        `json:"department_name"`
+	BranchID             pgtype.UUID        `json:"branch_id"`
+	BranchName           pgtype.Text        `json:"branch_name"`
+	CompanyID            pgtype.UUID        `json:"company_id"`
+	CompanyName          pgtype.Text        `json:"company_name"`
+	CompanyLogo          pgtype.Text        `json:"company_logo"`
+	DeliveryInstructions pgtype.Text        `json:"delivery_instructions"`
+	ManagerName          pgtype.Text        `json:"manager_name"`
 }
 
 func (q *Queries) GetProfileByID(ctx context.Context, id uuid.UUID) (GetProfileByIDRow, error) {
@@ -152,6 +159,9 @@ func (q *Queries) GetProfileByID(ctx context.Context, id uuid.UUID) (GetProfileB
 		&i.BranchName,
 		&i.CompanyID,
 		&i.CompanyName,
+		&i.CompanyLogo,
+		&i.DeliveryInstructions,
+		&i.ManagerName,
 	)
 	return i, err
 }

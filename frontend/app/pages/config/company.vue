@@ -61,6 +61,7 @@
                     <th class="p-4">Nama / Deskripsi</th>
                     <th class="p-4" v-if="activeEntity === 'pt'">NPWP Status</th>
                     <th class="p-4">Lokasi / Detail</th>
+                    <th class="p-4">Instruksi Pengiriman</th>
                     <th class="p-4">Status</th>
                     <th class="p-4 pr-10 text-right">Action</th>
                   </tr>
@@ -115,6 +116,12 @@
                         <input type="text" v-model="row.location" class="w-full bg-white dark:bg-slate-800 border border-slate-200 rounded-xl px-4 py-2 text-xs font-bold" />
                       </div>
                       <p v-else class="text-sm font-bold text-slate-500 uppercase tracking-tight">{{ (row.location === 'null' || !row.location) ? '-' : row.location }}</p>
+                    </td>
+                    <td class="p-4">
+                      <div v-if="row.editing">
+                        <textarea v-model="row.delivery_instructions" class="w-full bg-white dark:bg-slate-800 border border-slate-200 rounded-xl px-4 py-2 text-xs font-bold" rows="2"></textarea>
+                      </div>
+                      <p v-else class="text-xs font-bold text-slate-500 line-clamp-2">{{ (row.delivery_instructions === 'null' || !row.delivery_instructions) ? '-' : row.delivery_instructions }}</p>
                     </td>
                     <td class="p-4">
                       <div v-if="row.editing">
@@ -393,6 +400,7 @@ const addRow = () => {
     name: '',
     npwp_status: 'PENDING',
     location: '',
+    delivery_instructions: '',
     status: 'Editing',
     editing: true,
     isNew: true
@@ -438,7 +446,8 @@ const saveRow = async (row) => {
         npwp_status: row.npwp_status,
         location: row.location,
         status: row.status,
-        address: ''
+        address: '',
+        delivery_instructions: row.delivery_instructions
       }
     })
 

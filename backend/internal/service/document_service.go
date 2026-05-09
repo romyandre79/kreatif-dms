@@ -269,6 +269,14 @@ func (s *DocumentService) ListRecentDocuments(ctx context.Context, limit int) ([
 	})
 }
 
+func (s *DocumentService) ListRecentDocumentsByOwner(ctx context.Context, ownerID uuid.UUID, limit int) ([]repository.ListRecentDocumentsByOwnerRow, error) {
+	return s.repo.ListRecentDocumentsByOwner(ctx, repository.ListRecentDocumentsByOwnerParams{
+		OwnerID: ownerID,
+		Limit:   int32(limit),
+		Offset:  0,
+	})
+}
+
 func (s *DocumentService) GetOCRJob(ctx context.Context, docID uuid.UUID) (repository.OcrJob, error) {
 	return s.repo.GetOCRJobByEntity(ctx, repository.GetOCRJobByEntityParams{
 		EntityType: "document",
