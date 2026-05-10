@@ -53,22 +53,22 @@ func (p *TaskProcessor) ProcessDocumentOCR(ctx context.Context, t *asynq.Task) e
 	})
 
 	// 2. Download from storage
-	reader, err := p.storage.Download(ctx, doc.FilePath)
+	reader, err := p.storage.Download(ctx, doc.FilePath.String)
 	if err != nil {
-		log.Printf("[TaskProcessor] Error downloading file %s: %v", doc.FilePath, err)
+		log.Printf("[TaskProcessor] Error downloading file %s: %v", doc.FilePath.String, err)
 		return err
 	}
 	defer reader.Close()
 
 	content, err := io.ReadAll(reader)
 	if err != nil {
-		log.Printf("[TaskProcessor] Error reading file content %s: %v", doc.FileName, err)
+		log.Printf("[TaskProcessor] Error reading file content %s: %v", doc.FileName.String, err)
 		return err
 	}
 
 	// 3. Process OCR
 	ocrStart := time.Now()
-	ocrRes, err := p.ai.ProcessOCR(ctx, doc.FileName, content)
+	ocrRes, err := p.ai.ProcessOCR(ctx, doc.FileName.String, content)
 	if err != nil {
 		log.Printf("[TaskProcessor] Error processing OCR for doc %s: %v", doc.ID, err)
 		return err
@@ -104,7 +104,7 @@ func (p *TaskProcessor) ProcessDocumentOCR(ctx context.Context, t *asynq.Task) e
 	_, err = p.repo.CreateOCRJob(ctx, repository.CreateOCRJobParams{
 		EntityType:       "document",
 		EntityID:         doc.ID,
-		SourceFilePath:   pgtype.Text{String: doc.FilePath, Valid: true},
+		SourceFilePath:   doc.FilePath,
 		RawText:          pgtype.Text{String: rawText, Valid: true},
 		WordCount:        pgtype.Int4{Int32: int32(len(ocrRes.Words)), Valid: true},
 		ConfidenceAvg:    confNumeric,

@@ -102,7 +102,7 @@
                     class="px-6 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-[10px] font-black uppercase tracking-widest text-[#1E3A5F] dark:text-white hover:bg-slate-50 transition-all flex items-center gap-2 group/btn shadow-sm"
                   >
                     {{ 
-                      task.entity_type === 'document_rejection' ? 'Edit' : 
+                      (task.entity_type === 'document_rejection' || task.entity_type === 'document_draft') ? 'Edit' : 
                       (task.level > 1 ? $t('dashboard.user.tasks.items.execute') : 
                       (task.entity_type.includes('Scan') ? $t('dashboard.user.tasks.items.process') : $t('dashboard.user.tasks.items.verify'))) 
                     }}
@@ -323,7 +323,7 @@ const quickActions = [
 
 
 const handleTaskAction = (task) => {
-  if (task.entity_type === 'document_rejection') {
+  if (task.entity_type === 'document_rejection' || task.entity_type === 'document_draft') {
     navigateTo(`/documents/upload?id=${task.entity_id}`)
   } else if (task.entity_type.includes('Scan')) {
     navigateTo('/stock/scan')
@@ -337,6 +337,7 @@ const handleTaskAction = (task) => {
 const formatTaskType = (type) => {
   switch (type) {
     case 'document_rejection': return 'Revisi Dokumen'
+    case 'document_draft': return 'Draft Dokumen'
     case 'document_upload': return 'Persetujuan Dokumen'
     case 'bulk_scan': return 'Pemindaian Massal'
     case 'loan_request': return 'Permohonan Pinjaman'

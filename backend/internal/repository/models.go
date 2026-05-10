@@ -217,10 +217,10 @@ type Document struct {
 	ID                  uuid.UUID          `json:"id"`
 	Title               string             `json:"title"`
 	Description         pgtype.Text        `json:"description"`
-	FileName            string             `json:"file_name"`
-	FilePath            string             `json:"file_path"`
-	FileSize            int64              `json:"file_size"`
-	MimeType            string             `json:"mime_type"`
+	FileName            pgtype.Text        `json:"file_name"`
+	FilePath            pgtype.Text        `json:"file_path"`
+	FileSize            pgtype.Int8        `json:"file_size"`
+	MimeType            pgtype.Text        `json:"mime_type"`
 	Checksum            pgtype.Text        `json:"checksum"`
 	CompanyID           uuid.UUID          `json:"company_id"`
 	BranchID            uuid.UUID          `json:"branch_id"`

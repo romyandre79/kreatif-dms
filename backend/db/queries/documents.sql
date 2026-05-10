@@ -116,19 +116,27 @@ SELECT COUNT(*) FROM ocr_jobs;
 
 -- name: ListRecentDocuments :many
 SELECT 
-    id, title, status, created_at, mime_type, file_size, metadata,
-    COALESCE(description, '')::text as category
-FROM documents
-ORDER BY created_at DESC
+    d.id, d.title, d.status, d.created_at, d.mime_type, d.file_size, d.metadata,
+    dt.name as type_name,
+    dept.name as department_name,
+    COALESCE(d.description, '')::text as category
+FROM documents d
+LEFT JOIN document_types dt ON d.type_id = dt.id
+LEFT JOIN departments dept ON d.department_id = dept.id
+ORDER BY d.created_at DESC
 LIMIT $1 OFFSET $2;
 
 -- name: ListRecentDocumentsByOwner :many
 SELECT 
-    id, title, status, created_at, mime_type, file_size, metadata,
-    COALESCE(description, '')::text as category
-FROM documents
-WHERE owner_id = $1
-ORDER BY created_at DESC
+    d.id, d.title, d.status, d.created_at, d.mime_type, d.file_size, d.metadata,
+    dt.name as type_name,
+    dept.name as department_name,
+    COALESCE(d.description, '')::text as category
+FROM documents d
+LEFT JOIN document_types dt ON d.type_id = dt.id
+LEFT JOIN departments dept ON d.department_id = dept.id
+WHERE d.owner_id = $1
+ORDER BY d.created_at DESC
 LIMIT $2 OFFSET $3;
 -- name: GetDocumentLoanHistory :many
 SELECT 
@@ -170,7 +178,7 @@ SET title = $2,
     file_path = COALESCE(NULLIF(@file_path::text, ''), file_path),
     file_size = CASE WHEN @file_size::bigint > 0 THEN @file_size::bigint ELSE file_size END,
     mime_type = COALESCE(NULLIF(@mime_type::text, ''), mime_type),
-    status = 'pending',
+    status = COALESCE(NULLIF(@status::text, ''), 'pending'),
     updated_at = NOW() 
 WHERE id = $1 
 RETURNING *;

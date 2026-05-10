@@ -267,19 +267,76 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { 
   LucideSearch, LucideChevronDown, LucideChevronRight, LucideFolder, LucideFolderOpen, LucideFileText, 
   LucideEye, LucideShoppingCart, LucideFilter, LucideArrowRight, LucideX
 } from 'lucide-vue-next'
+import { useApi } from '~/composables/useApi'
+import { formatDate } from '~/utils/format'
 
 const { t } = useI18n()
-
+const { $api } = useApi()
 const route = useRoute()
 const query = computed(() => route.query.q)
 
 const searchResults = ref([])
+const documents = ref([])
+const isLoading = ref(false)
+
+const getStatusStyles = (status) => {
+  const s = status?.toLowerCase() || ''
+  if (s === 'active' || s === 'available') return { label: 'Tersedia', color: 'bg-green-500' }
+  if (s === 'pending' || s === 'processing') return { label: 'Diproses', color: 'bg-orange-500' }
+  if (s === 'rejected') return { label: 'Ditolak', color: 'bg-red-500' }
+  if (s === 'on_loan') return { label: 'Dipinjam', color: 'bg-blue-500' }
+  if (s === 'draft') return { label: 'Draf', color: 'bg-slate-400' }
+  return { label: status, color: 'bg-slate-300' }
+}
+
+const getTypeStyles = (mimeType) => {
+  const m = mimeType?.toLowerCase() || ''
+  if (m.includes('pdf')) return { bg: 'bg-red-50', color: 'text-red-500', typeBg: 'bg-red-50 text-red-600 border border-red-100' }
+  if (m.includes('image')) return { bg: 'bg-blue-50', color: 'text-blue-500', typeBg: 'bg-blue-50 text-blue-600 border border-blue-100' }
+  if (m.includes('excel') || m.includes('sheet')) return { bg: 'bg-green-50', color: 'text-green-500', typeBg: 'bg-green-50 text-green-600 border border-green-100' }
+  return { bg: 'bg-slate-50', color: 'text-slate-500', typeBg: 'bg-slate-50 text-slate-600 border border-slate-100' }
+}
+
+const fetchDocuments = async () => {
+  isLoading.value = true
+  try {
+    const res = await $api('/documents?limit=50')
+    if (res && res.data) {
+      documents.value = res.data.map(doc => {
+        const statusStyle = getStatusStyles(doc.status)
+        const typeStyle = getTypeStyles(doc.mime_type)
+        return {
+          id: doc.id.substring(0, 8).toUpperCase(),
+          original_id: doc.id,
+          name: doc.title,
+          type: doc.type_name || 'Dokumen',
+          typeColor: typeStyle.typeBg,
+          date: formatDate(doc.created_at),
+          dept: doc.department_name || '-',
+          status: statusStyle.label,
+          statusColor: statusStyle.color,
+          iconBg: typeStyle.bg,
+          iconColor: typeStyle.color,
+          selected: false
+        }
+      })
+    }
+  } catch (err) {
+    console.error('Failed to fetch documents:', err)
+  } finally {
+    isLoading.value = false
+  }
+}
+
+onMounted(() => {
+  fetchDocuments()
+})
 
 const updateSearchResults = (q) => {
   if (!q) {
@@ -323,75 +380,17 @@ watch(query, (newVal) => {
 const folderTree = ref([
   {
     id: 1,
-    name: t('documents.mock.root_folder'),
+    name: 'SEMUA ARSIP',
     expanded: true,
     children: [
       {
         id: 2,
-        name: t('documents.mock.accounting'),
+        name: 'DEPARTEMEN',
         expanded: true,
-        count: 42,
-        children: [
-          { id: 3, name: '2024' },
-          { id: 4, name: '2025' },
-          { 
-            id: 5, 
-            name: '2026', 
-            expanded: true,
-            children: [
-              { id: 6, name: t('documents.mock.january') },
-              { id: 7, name: t('documents.mock.february'), active: true }
-            ]
-          }
-        ]
-      },
-      { id: 8, name: t('documents.mock.finance'), expanded: false, children: [] },
-      { id: 9, name: t('documents.mock.hr') },
-      { id: 10, name: t('documents.mock.it') },
-      { id: 11, name: t('documents.mock.legal') }
+        count: documents.value.length,
+        children: []
+      }
     ]
-  }
-])
-
-const documents = ref([
-  {
-    id: 'LGL-AKR-001-2026-005',
-    name: t('documents.mock.docs.vendor_contract'),
-    type: t('documents.mock.docs.type_contract'),
-    typeColor: 'bg-purple-50 text-purple-600 border border-purple-100',
-    date: '15 Feb 2026',
-    dept: t('documents.mock.legal'),
-    status: t('documents.filters.available'),
-    statusColor: 'bg-green-500',
-    iconBg: 'bg-red-50',
-    iconColor: 'text-red-500',
-    selected: true
-  },
-  {
-    id: 'FIN-INV-2026-842',
-    name: t('documents.mock.docs.rent_invoice'),
-    type: t('documents.mock.docs.type_invoice'),
-    typeColor: 'bg-blue-50 text-blue-600 border border-blue-100',
-    date: '12 Feb 2026',
-    dept: t('documents.mock.finance'),
-    status: t('documents.filters.on_loan'),
-    statusColor: 'bg-red-500',
-    iconBg: 'bg-blue-50',
-    iconColor: 'text-blue-500',
-    selected: false
-  },
-  {
-    id: 'FIN-TAX-2025-101',
-    name: t('documents.mock.docs.tax_report'),
-    type: t('documents.mock.docs.type_report'),
-    typeColor: 'bg-orange-50 text-orange-600 border border-orange-100',
-    date: '10 Feb 2026',
-    dept: t('documents.mock.tax'),
-    status: t('documents.filters.available'),
-    statusColor: 'bg-green-500',
-    iconBg: 'bg-orange-50',
-    iconColor: 'text-orange-500',
-    selected: false
   }
 ])
 
@@ -404,7 +403,7 @@ const toggleFolder = (node) => {
 }
 
 const viewDocument = (doc) => {
-  navigateTo(`/documents/${doc.id}`)
+  navigateTo(`/documents/${doc.original_id || doc.id}`)
 }
 </script>
 

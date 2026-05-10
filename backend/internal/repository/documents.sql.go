@@ -64,10 +64,10 @@ INSERT INTO documents (
 type CreateDocumentParams struct {
 	Title        string          `json:"title"`
 	Description  pgtype.Text     `json:"description"`
-	FileName     string          `json:"file_name"`
-	FilePath     string          `json:"file_path"`
-	FileSize     int64           `json:"file_size"`
-	MimeType     string          `json:"mime_type"`
+	FileName     pgtype.Text     `json:"file_name"`
+	FilePath     pgtype.Text     `json:"file_path"`
+	FileSize     pgtype.Int8     `json:"file_size"`
+	MimeType     pgtype.Text     `json:"mime_type"`
 	CompanyID    uuid.UUID       `json:"company_id"`
 	BranchID     uuid.UUID       `json:"branch_id"`
 	DepartmentID uuid.UUID       `json:"department_id"`
@@ -237,10 +237,10 @@ type GetDocumentRow struct {
 	ID                  uuid.UUID          `json:"id"`
 	Title               string             `json:"title"`
 	Description         pgtype.Text        `json:"description"`
-	FileName            string             `json:"file_name"`
-	FilePath            string             `json:"file_path"`
-	FileSize            int64              `json:"file_size"`
-	MimeType            string             `json:"mime_type"`
+	FileName            pgtype.Text        `json:"file_name"`
+	FilePath            pgtype.Text        `json:"file_path"`
+	FileSize            pgtype.Int8        `json:"file_size"`
+	MimeType            pgtype.Text        `json:"mime_type"`
 	Checksum            pgtype.Text        `json:"checksum"`
 	CompanyID           uuid.UUID          `json:"company_id"`
 	BranchID            uuid.UUID          `json:"branch_id"`
@@ -400,10 +400,10 @@ type GetDocumentWithDetailsRow struct {
 	ID                  uuid.UUID          `json:"id"`
 	Title               string             `json:"title"`
 	Description         pgtype.Text        `json:"description"`
-	FileName            string             `json:"file_name"`
-	FilePath            string             `json:"file_path"`
-	FileSize            int64              `json:"file_size"`
-	MimeType            string             `json:"mime_type"`
+	FileName            pgtype.Text        `json:"file_name"`
+	FilePath            pgtype.Text        `json:"file_path"`
+	FileSize            pgtype.Int8        `json:"file_size"`
+	MimeType            pgtype.Text        `json:"mime_type"`
 	Checksum            pgtype.Text        `json:"checksum"`
 	CompanyID           uuid.UUID          `json:"company_id"`
 	BranchID            uuid.UUID          `json:"branch_id"`
@@ -678,7 +678,7 @@ type ListOCRJobsRow struct {
 	ConfidenceAvg    pgtype.Numeric     `json:"confidence_avg"`
 	PreviewPath      pgtype.Text        `json:"preview_path"`
 	CreatedAt        pgtype.Timestamptz `json:"created_at"`
-	Filename         string             `json:"filename"`
+	Filename         pgtype.Text        `json:"filename"`
 	FileSize         int64              `json:"file_size"`
 	OwnerName        pgtype.Text        `json:"owner_name"`
 }
@@ -716,10 +716,14 @@ func (q *Queries) ListOCRJobs(ctx context.Context, arg ListOCRJobsParams) ([]Lis
 
 const listRecentDocuments = `-- name: ListRecentDocuments :many
 SELECT 
-    id, title, status, created_at, mime_type, file_size, metadata,
-    COALESCE(description, '')::text as category
-FROM documents
-ORDER BY created_at DESC
+    d.id, d.title, d.status, d.created_at, d.mime_type, d.file_size, d.metadata,
+    dt.name as type_name,
+    dept.name as department_name,
+    COALESCE(d.description, '')::text as category
+FROM documents d
+LEFT JOIN document_types dt ON d.type_id = dt.id
+LEFT JOIN departments dept ON d.department_id = dept.id
+ORDER BY d.created_at DESC
 LIMIT $1 OFFSET $2
 `
 
@@ -729,14 +733,16 @@ type ListRecentDocumentsParams struct {
 }
 
 type ListRecentDocumentsRow struct {
-	ID        uuid.UUID          `json:"id"`
-	Title     string             `json:"title"`
-	Status    string             `json:"status"`
-	CreatedAt pgtype.Timestamptz `json:"created_at"`
-	MimeType  string             `json:"mime_type"`
-	FileSize  int64              `json:"file_size"`
-	Metadata  json.RawMessage    `json:"metadata"`
-	Category  string             `json:"category"`
+	ID             uuid.UUID          `json:"id"`
+	Title          string             `json:"title"`
+	Status         string             `json:"status"`
+	CreatedAt      pgtype.Timestamptz `json:"created_at"`
+	MimeType       pgtype.Text        `json:"mime_type"`
+	FileSize       pgtype.Int8        `json:"file_size"`
+	Metadata       json.RawMessage    `json:"metadata"`
+	TypeName       pgtype.Text        `json:"type_name"`
+	DepartmentName pgtype.Text        `json:"department_name"`
+	Category       string             `json:"category"`
 }
 
 func (q *Queries) ListRecentDocuments(ctx context.Context, arg ListRecentDocumentsParams) ([]ListRecentDocumentsRow, error) {
@@ -756,6 +762,8 @@ func (q *Queries) ListRecentDocuments(ctx context.Context, arg ListRecentDocumen
 			&i.MimeType,
 			&i.FileSize,
 			&i.Metadata,
+			&i.TypeName,
+			&i.DepartmentName,
 			&i.Category,
 		); err != nil {
 			return nil, err
@@ -770,11 +778,15 @@ func (q *Queries) ListRecentDocuments(ctx context.Context, arg ListRecentDocumen
 
 const listRecentDocumentsByOwner = `-- name: ListRecentDocumentsByOwner :many
 SELECT 
-    id, title, status, created_at, mime_type, file_size, metadata,
-    COALESCE(description, '')::text as category
-FROM documents
-WHERE owner_id = $1
-ORDER BY created_at DESC
+    d.id, d.title, d.status, d.created_at, d.mime_type, d.file_size, d.metadata,
+    dt.name as type_name,
+    dept.name as department_name,
+    COALESCE(d.description, '')::text as category
+FROM documents d
+LEFT JOIN document_types dt ON d.type_id = dt.id
+LEFT JOIN departments dept ON d.department_id = dept.id
+WHERE d.owner_id = $1
+ORDER BY d.created_at DESC
 LIMIT $2 OFFSET $3
 `
 
@@ -785,14 +797,16 @@ type ListRecentDocumentsByOwnerParams struct {
 }
 
 type ListRecentDocumentsByOwnerRow struct {
-	ID        uuid.UUID          `json:"id"`
-	Title     string             `json:"title"`
-	Status    string             `json:"status"`
-	CreatedAt pgtype.Timestamptz `json:"created_at"`
-	MimeType  string             `json:"mime_type"`
-	FileSize  int64              `json:"file_size"`
-	Metadata  json.RawMessage    `json:"metadata"`
-	Category  string             `json:"category"`
+	ID             uuid.UUID          `json:"id"`
+	Title          string             `json:"title"`
+	Status         string             `json:"status"`
+	CreatedAt      pgtype.Timestamptz `json:"created_at"`
+	MimeType       pgtype.Text        `json:"mime_type"`
+	FileSize       pgtype.Int8        `json:"file_size"`
+	Metadata       json.RawMessage    `json:"metadata"`
+	TypeName       pgtype.Text        `json:"type_name"`
+	DepartmentName pgtype.Text        `json:"department_name"`
+	Category       string             `json:"category"`
 }
 
 func (q *Queries) ListRecentDocumentsByOwner(ctx context.Context, arg ListRecentDocumentsByOwnerParams) ([]ListRecentDocumentsByOwnerRow, error) {
@@ -812,6 +826,8 @@ func (q *Queries) ListRecentDocumentsByOwner(ctx context.Context, arg ListRecent
 			&i.MimeType,
 			&i.FileSize,
 			&i.Metadata,
+			&i.TypeName,
+			&i.DepartmentName,
 			&i.Category,
 		); err != nil {
 			return nil, err
@@ -848,7 +864,7 @@ SET title = $2,
     file_path = COALESCE(NULLIF($8::text, ''), file_path),
     file_size = CASE WHEN $9::bigint > 0 THEN $9::bigint ELSE file_size END,
     mime_type = COALESCE(NULLIF($10::text, ''), mime_type),
-    status = 'pending',
+    status = COALESCE(NULLIF($11::text, ''), 'pending'),
     updated_at = NOW() 
 WHERE id = $1 
 RETURNING id, title, description, file_name, file_path, file_size, mime_type, checksum, company_id, branch_id, department_id, rack_id, box_id, ordner_id, owner_id, current_version, status, tags, metadata, extracted_text, is_ocr_processed, created_at, updated_at, batch_id, retention_years, retention_expiry_date, sensitivity, circulation_id, minio_bucket, es_indexed, type_id
@@ -865,6 +881,7 @@ type UpdateDocumentParams struct {
 	FilePath    string          `json:"file_path"`
 	FileSize    int64           `json:"file_size"`
 	MimeType    string          `json:"mime_type"`
+	Status      string          `json:"status"`
 }
 
 func (q *Queries) UpdateDocument(ctx context.Context, arg UpdateDocumentParams) (Document, error) {
@@ -879,6 +896,7 @@ func (q *Queries) UpdateDocument(ctx context.Context, arg UpdateDocumentParams) 
 		arg.FilePath,
 		arg.FileSize,
 		arg.MimeType,
+		arg.Status,
 	)
 	var i Document
 	err := row.Scan(

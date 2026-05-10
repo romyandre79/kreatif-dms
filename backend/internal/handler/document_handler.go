@@ -57,7 +57,8 @@ func (h *DocumentHandler) Search(c fiber.Ctx) error {
 
 func (h *DocumentHandler) Upload(c fiber.Ctx) error {
 	file, err := c.FormFile("file")
-	if err != nil {
+	status := c.FormValue("status")
+	if err != nil && status != "draft" {
 		return response.Error(c, fiber.StatusBadRequest, "File is required", err.Error())
 	}
 
@@ -112,19 +113,30 @@ func (h *DocumentHandler) Upload(c fiber.Ctx) error {
 		return response.Error(c, fiber.StatusBadRequest, "Missing required location data", "Please ensure your profile is complete or select Company, Branch, and Department manually.")
 	}
 
-	f, err := file.Open()
-	if err != nil {
-		return response.Error(c, fiber.StatusInternalServerError, "Failed to open file", err.Error())
+	var fileContent io.Reader
+	var fileName string
+	var fileSize int64
+	var mimeType string
+
+	if file != nil {
+		f, err := file.Open()
+		if err != nil {
+			return response.Error(c, fiber.StatusInternalServerError, "Failed to open file", err.Error())
+		}
+		defer f.Close()
+		fileContent = f
+		fileName = file.Filename
+		fileSize = file.Size
+		mimeType = file.Header.Get("Content-Type")
 	}
-	defer f.Close()
 
 	doc, err := h.svc.UploadDocument(c.Context(), service.UploadDocumentParams{
 		Title:        title,
 		Description:  description,
-		FileName:     file.Filename,
-		FileSize:     file.Size,
-		MimeType:     file.Header.Get("Content-Type"),
-		Content:      f,
+		FileName:     fileName,
+		FileSize:     fileSize,
+		MimeType:     mimeType,
+		Content:      fileContent,
 		OwnerID:      ownerID,
 		CompanyID:    companyID,
 		BranchID:     branchID,
@@ -135,6 +147,7 @@ func (h *DocumentHandler) Upload(c fiber.Ctx) error {
 		Urgency:      urgency,
 		DocumentDate: documentDateStr,
 		PageCount:    pageCount,
+		Status:       status,
 	})
 
 	if err != nil {
@@ -403,6 +416,7 @@ func (h *DocumentHandler) Update(c fiber.Ctx) error {
 		FileName:     fileName,
 		FileSize:     fileSize,
 		MimeType:     mimeType,
+		Status:       c.FormValue("status"),
 	})
 	if err != nil {
 		return response.Error(c, fiber.StatusInternalServerError, "Failed to update document", err.Error())
