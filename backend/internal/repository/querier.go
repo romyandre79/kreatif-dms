@@ -13,10 +13,13 @@ import (
 
 type Querier interface {
 	AddRolePermission(ctx context.Context, arg AddRolePermissionParams) error
+	ApproveTask(ctx context.Context, arg ApproveTaskParams) error
 	ClearRolePermissions(ctx context.Context, roleID int32) error
 	CountOCRJobs(ctx context.Context) (int64, error)
 	CountSsoSyncLogs(ctx context.Context) (int64, error)
 	CreateActivityLog(ctx context.Context, arg CreateActivityLogParams) (ActivityLog, error)
+	CreateAnnouncement(ctx context.Context, arg CreateAnnouncementParams) (Announcement, error)
+	CreateApprovalTask(ctx context.Context, arg CreateApprovalTaskParams) (ApprovalWorkflow, error)
 	CreateBatch(ctx context.Context, arg CreateBatchParams) (ProcessingBatch, error)
 	CreateBox(ctx context.Context, arg CreateBoxParams) (Box, error)
 	CreateBranch(ctx context.Context, arg CreateBranchParams) (Branch, error)
@@ -35,6 +38,8 @@ type Querier interface {
 	CreateSsoSyncLog(ctx context.Context, arg CreateSsoSyncLogParams) (SsoSyncLog, error)
 	CreateSystemModule(ctx context.Context, arg CreateSystemModuleParams) (SystemModule, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
+	DeactivateAllAnnouncements(ctx context.Context) error
+	DeleteAnnouncement(ctx context.Context, id uuid.UUID) error
 	DeleteBox(ctx context.Context, id uuid.UUID) error
 	DeleteBranch(ctx context.Context, id uuid.UUID) error
 	DeleteCompany(ctx context.Context, id uuid.UUID) error
@@ -47,22 +52,30 @@ type Querier interface {
 	DeleteRole(ctx context.Context, id int32) error
 	DeleteSystemModule(ctx context.Context, id string) error
 	DeleteUser(ctx context.Context, id uuid.UUID) error
+	GetActiveAnnouncement(ctx context.Context) (Announcement, error)
 	GetActivityLogsByEntity(ctx context.Context, arg GetActivityLogsByEntityParams) ([]GetActivityLogsByEntityRow, error)
+	GetAnnouncement(ctx context.Context, id uuid.UUID) (Announcement, error)
 	GetBatch(ctx context.Context, id uuid.UUID) (ProcessingBatch, error)
 	GetBox(ctx context.Context, id uuid.UUID) (Box, error)
 	GetBranch(ctx context.Context, id uuid.UUID) (Branch, error)
 	GetCompany(ctx context.Context, id uuid.UUID) (Company, error)
 	GetDailyStats(ctx context.Context) (GetDailyStatsRow, error)
 	GetDepartment(ctx context.Context, id uuid.UUID) (Department, error)
-	GetDocument(ctx context.Context, id uuid.UUID) (Document, error)
+	GetDocument(ctx context.Context, id uuid.UUID) (GetDocumentRow, error)
+	GetDocumentLoanHistory(ctx context.Context, documentID uuid.UUID) ([]GetDocumentLoanHistoryRow, error)
 	GetDocumentType(ctx context.Context, id uuid.UUID) (DocumentType, error)
+	GetDocumentWithDetails(ctx context.Context, id uuid.UUID) (GetDocumentWithDetailsRow, error)
 	GetDocumentsByBatch(ctx context.Context, batchID pgtype.UUID) ([]Document, error)
 	GetIntegrationNode(ctx context.Context, id uuid.UUID) (IntegrationNode, error)
 	GetIntegrationNodeByEndpoint(ctx context.Context, arg GetIntegrationNodeByEndpointParams) (IntegrationNode, error)
 	GetIntegrationNodeByType(ctx context.Context, serviceType string) (IntegrationNode, error)
 	GetLastSsoSyncLog(ctx context.Context) (SsoSyncLog, error)
+	GetManagerDailyStats(ctx context.Context, headID pgtype.UUID) (GetManagerDailyStatsRow, error)
+	GetManagerRecentActivities(ctx context.Context, arg GetManagerRecentActivitiesParams) ([]GetManagerRecentActivitiesRow, error)
+	GetManagerTopSubmitters(ctx context.Context, arg GetManagerTopSubmittersParams) ([]GetManagerTopSubmittersRow, error)
 	GetOCRJobByEntity(ctx context.Context, arg GetOCRJobByEntityParams) (OcrJob, error)
 	GetOrdner(ctx context.Context, id uuid.UUID) (Ordner, error)
+	GetPendingCountsByType(ctx context.Context, approverID uuid.UUID) ([]GetPendingCountsByTypeRow, error)
 	GetPriorityTasks(ctx context.Context, limit int32) ([]GetPriorityTasksRow, error)
 	GetProfileByID(ctx context.Context, id uuid.UUID) (GetProfileByIDRow, error)
 	GetRack(ctx context.Context, id uuid.UUID) (Rack, error)
@@ -78,6 +91,10 @@ type Querier interface {
 	GetUnreadCount(ctx context.Context, userID uuid.UUID) (int64, error)
 	GetUserByEmail(ctx context.Context, email string) (GetUserByEmailRow, error)
 	GetUserByID(ctx context.Context, id uuid.UUID) (GetUserByIDRow, error)
+	GetUserDailyStats(ctx context.Context, ownerID uuid.UUID) (GetUserDailyStatsRow, error)
+	GetUserLoanHistory(ctx context.Context, arg GetUserLoanHistoryParams) ([]GetUserLoanHistoryRow, error)
+	GetUserPriorityTasks(ctx context.Context, arg GetUserPriorityTasksParams) ([]GetUserPriorityTasksRow, error)
+	GetUserRecentActivities(ctx context.Context, arg GetUserRecentActivitiesParams) ([]GetUserRecentActivitiesRow, error)
 	GetWarehouseTopology(ctx context.Context) ([]GetWarehouseTopologyRow, error)
 	ListActivityLogs(ctx context.Context, arg ListActivityLogsParams) ([]ListActivityLogsRow, error)
 	ListAllBoxesGlobal(ctx context.Context) ([]ListAllBoxesGlobalRow, error)
@@ -85,6 +102,8 @@ type Querier interface {
 	ListAllDepartments(ctx context.Context) ([]ListAllDepartmentsRow, error)
 	ListAllOrdnersGlobal(ctx context.Context) ([]ListAllOrdnersGlobalRow, error)
 	ListAllRacksGlobal(ctx context.Context) ([]ListAllRacksGlobalRow, error)
+	// Announcements
+	ListAnnouncements(ctx context.Context) ([]Announcement, error)
 	// Boxes
 	ListBoxes(ctx context.Context, rackID uuid.UUID) ([]Box, error)
 	// Branches
@@ -106,6 +125,7 @@ type Querier interface {
 	// Racks
 	ListRacks(ctx context.Context, departmentID uuid.UUID) ([]Rack, error)
 	ListRecentDocuments(ctx context.Context, arg ListRecentDocumentsParams) ([]ListRecentDocumentsRow, error)
+	ListRecentDocumentsByOwner(ctx context.Context, arg ListRecentDocumentsByOwnerParams) ([]ListRecentDocumentsByOwnerRow, error)
 	// Retention Policies
 	ListRetentionPolicies(ctx context.Context) ([]RetentionPolicy, error)
 	// RFID Tags
@@ -118,13 +138,17 @@ type Querier interface {
 	ListUsers(ctx context.Context) ([]ListUsersRow, error)
 	MarkAllAsRead(ctx context.Context, userID uuid.UUID) error
 	MarkAsRead(ctx context.Context, arg MarkAsReadParams) error
+	RejectTask(ctx context.Context, arg RejectTaskParams) error
+	UpdateAnnouncement(ctx context.Context, arg UpdateAnnouncementParams) (Announcement, error)
 	UpdateBatchProgress(ctx context.Context, id uuid.UUID) error
 	UpdateBox(ctx context.Context, arg UpdateBoxParams) (Box, error)
 	UpdateBranch(ctx context.Context, arg UpdateBranchParams) (Branch, error)
 	UpdateCompany(ctx context.Context, arg UpdateCompanyParams) (Company, error)
+	UpdateCompanyLogo(ctx context.Context, arg UpdateCompanyLogoParams) error
 	UpdateDepartment(ctx context.Context, arg UpdateDepartmentParams) (Department, error)
 	UpdateDocumentMetadata(ctx context.Context, arg UpdateDocumentMetadataParams) error
 	UpdateDocumentOCR(ctx context.Context, arg UpdateDocumentOCRParams) error
+	UpdateDocumentStatus(ctx context.Context, arg UpdateDocumentStatusParams) error
 	UpdateDocumentType(ctx context.Context, arg UpdateDocumentTypeParams) (DocumentType, error)
 	UpdateIntegrationNodeConfig(ctx context.Context, arg UpdateIntegrationNodeConfigParams) (IntegrationNode, error)
 	UpdateIntegrationNodeStatus(ctx context.Context, arg UpdateIntegrationNodeStatusParams) (IntegrationNode, error)

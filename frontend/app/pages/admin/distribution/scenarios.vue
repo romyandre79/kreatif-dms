@@ -21,7 +21,7 @@
       <!-- Scenario A -->
       <div 
         @click="selectedScenario = 'A'"
-        class="glass p-10 rounded-[2.5rem] relative cursor-pointer transition-all duration-500 border-2"
+        class="glass p-10 rounded-lg relative cursor-pointer transition-all duration-500 border-2"
         :class="selectedScenario === 'A' ? 'border-[#1E3A5F] shadow-2xl shadow-blue-900/10' : 'border-transparent hover:border-slate-200 dark:hover:border-slate-800'"
         v-motion-slide-visible-bottom
       >
@@ -93,7 +93,7 @@
       <!-- Scenario B -->
       <div 
         @click="selectedScenario = 'B'"
-        class="glass p-10 rounded-[2.5rem] relative cursor-pointer transition-all duration-500 border-2"
+        class="glass p-10 rounded-lg relative cursor-pointer transition-all duration-500 border-2"
         :class="selectedScenario === 'B' ? 'border-blue-500 shadow-2xl shadow-blue-900/10' : 'border-transparent opacity-60 hover:opacity-100'"
         v-motion-slide-visible-bottom
         :delay="100"

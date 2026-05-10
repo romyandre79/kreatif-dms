@@ -12,7 +12,7 @@
       <div class="space-y-4">
         <div v-for="req in queue" :key="req.no" 
              @click="selectedRequest = req"
-             :class="`group p-6 bg-white rounded-[2rem] border transition-all cursor-pointer shadow-xl shadow-slate-200/20 ${selectedRequest?.no === req.no ? 'border-primary-500 ring-4 ring-primary-500/10' : 'border-slate-100 hover:border-slate-200'}`">
+             :class="`group p-6 bg-white rounded-lg border transition-all cursor-pointer shadow-xl shadow-slate-200/20 ${selectedRequest?.no === req.no ? 'border-primary-500 ring-4 ring-primary-500/10' : 'border-slate-100 hover:border-slate-200'}`">
           <div class="flex items-center justify-between mb-4">
             <p class="text-[11px] font-black text-primary-600 uppercase tracking-tight">{{ req.no }}</p>
             <span class="text-[9px] font-black text-emerald-500 uppercase tracking-widest bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-100">{{ $t('circulation.checkout.status_ready') }}</span>
@@ -63,7 +63,7 @@
           </div>
         </div>
 
-        <div class="p-8 bg-blue-50/50 border border-blue-100 rounded-[2.5rem] space-y-6">
+        <div class="p-8 bg-blue-50/50 border border-blue-100 rounded-lg space-y-6">
           <p class="text-[11px] font-black text-blue-700 uppercase tracking-widest">{{ $t('circulation.checkout.checklist_title') }}</p>
           <div class="space-y-4">
             <label class="flex items-center gap-4 cursor-pointer group">
@@ -124,12 +124,12 @@
     <!-- Right Sidebar: Scan & Signature -->
     <div class="col-span-3 space-y-8" v-motion-slide-right>
       <!-- Scan & Confirm -->
-      <div class="glass p-8 rounded-[2.5rem] bg-white border border-slate-100 shadow-xl shadow-slate-200/50 space-y-6">
+      <div class="glass p-8 rounded-lg bg-white border border-slate-100 shadow-xl shadow-slate-200/50 space-y-6">
         <div class="flex items-center gap-3 text-slate-400 uppercase tracking-widest text-[10px] font-black">
           <LucideScanBarcode class="w-4 h-4 text-primary-500" />
           {{ $t('circulation.checkout.scan_confirm') }}
         </div>
-        <div class="aspect-video border-2 border-dashed border-slate-100 rounded-[2rem] flex flex-col items-center justify-center text-center p-6 space-y-3 bg-slate-50/50 group hover:border-primary-200 transition-all cursor-pointer">
+        <div class="aspect-video border-2 border-dashed border-slate-100 rounded-lg flex flex-col items-center justify-center text-center p-6 space-y-3 bg-slate-50/50 group hover:border-primary-200 transition-all cursor-pointer">
           <div class="w-12 h-12 bg-white rounded-2xl flex items-center justify-center shadow-sm text-slate-300 group-hover:text-primary-500 transition-colors">
             <LucideQrCode class="w-6 h-6" />
           </div>
@@ -141,14 +141,14 @@
       </div>
 
       <!-- Signature & Completion -->
-      <div class="glass p-8 rounded-[2.5rem] bg-white border border-slate-100 shadow-xl shadow-slate-200/50 space-y-8">
+      <div class="glass p-8 rounded-lg bg-white border border-slate-100 shadow-xl shadow-slate-200/50 space-y-8">
         <div class="flex items-center gap-3 text-slate-400 uppercase tracking-widest text-[10px] font-black">
           <LucidePenTool class="w-4 h-4 text-primary-500" />
           {{ $t('circulation.checkout.signature_title') }}
         </div>
         
         <!-- Signature Pad Placeholder -->
-        <div class="relative aspect-square bg-slate-50 border border-slate-100 rounded-[2.5rem] overflow-hidden flex flex-col items-center justify-center group">
+        <div class="relative aspect-square bg-slate-50 border border-slate-100 rounded-lg overflow-hidden flex flex-col items-center justify-center group">
           <LucideSignature class="w-16 h-16 text-slate-100 group-hover:text-slate-200 transition-colors" />
           <p class="text-[10px] font-black text-slate-200 uppercase tracking-[0.2em] mt-4">{{ $t('circulation.checkout.signature_area') }}</p>
           <button class="absolute bottom-6 right-6 text-[9px] font-black text-primary-500 uppercase tracking-widest bg-white px-3 py-1.5 rounded-lg border border-primary-100 shadow-sm">{{ $t('circulation.checkout.btn_clear') }}</button>

@@ -14,7 +14,7 @@
 
     <!-- Stats Grid -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
-      <div class="glass p-8 rounded-[2.5rem] space-y-4 shadow-sm border-t-8 border-blue-500">
+      <div class="glass p-8 rounded-lg space-y-4 shadow-sm border-t-8 border-blue-500">
         <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest">{{ $t('deployment.readiness.stats.overall') }}</p>
         <div class="flex items-center gap-4">
           <p class="text-4xl font-black text-[#1E3A5F] dark:text-white tracking-tighter">92%</p>
@@ -24,14 +24,14 @@
       <div v-for="s in [
         { id: 'app', val: 'Stable', color: 'text-green-500', icon: LucideCheckCircle2 },
         { id: 'db', val: 'Healthy', color: 'text-green-500', icon: LucideDatabase }
-      ]" :key="s.id" class="glass p-8 rounded-[2.5rem] space-y-4 shadow-sm">
+      ]" :key="s.id" class="glass p-8 rounded-lg space-y-4 shadow-sm">
         <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest">{{ $t(`deployment.readiness.stats.${s.id}`) }}</p>
         <div class="flex items-center gap-3">
           <component :is="s.icon" :class="`w-5 h-5 ${s.color}`" />
           <p :class="`text-xl font-black ${s.color} uppercase tracking-tight`">{{ s.val }}</p>
         </div>
       </div>
-      <div class="glass p-8 rounded-[2.5rem] space-y-4 shadow-sm">
+      <div class="glass p-8 rounded-lg space-y-4 shadow-sm">
         <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest">{{ $t('deployment.readiness.stats.storage') }}</p>
         <div class="space-y-2">
           <p class="text-xl font-black text-[#1E3A5F] dark:text-white tracking-tight">14.2 TB <span class="text-[10px] text-slate-400">Free</span></p>
@@ -40,7 +40,7 @@
           </div>
         </div>
       </div>
-      <div class="glass p-8 rounded-[2.5rem] space-y-4 shadow-sm">
+      <div class="glass p-8 rounded-lg space-y-4 shadow-sm">
         <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest">{{ $t('deployment.readiness.stats.network') }}</p>
         <div class="flex items-center gap-3">
           <LucideAlertTriangle class="w-5 h-5 text-amber-500" />
@@ -59,7 +59,7 @@
           </div>
           
           <div class="grid grid-cols-2 md:grid-cols-3 gap-8">
-            <div v-for="node in ['app', 'db', 'file', 'scanner', 'printer', 'ad']" :key="node" class="p-8 bg-slate-50/50 dark:bg-slate-900/50 rounded-[2.5rem] border border-slate-100 dark:border-slate-800 flex flex-col items-center justify-center text-center space-y-4 hover:scale-105 transition-all cursor-pointer group">
+            <div v-for="node in ['app', 'db', 'file', 'scanner', 'printer', 'ad']" :key="node" class="p-8 bg-slate-50/50 dark:bg-slate-900/50 rounded-lg border border-slate-100 dark:border-slate-800 flex flex-col items-center justify-center text-center space-y-4 hover:scale-105 transition-all cursor-pointer group">
               <div class="w-12 h-12 rounded-2xl bg-white dark:bg-slate-800 flex items-center justify-center text-[#1E3A5F] dark:text-white shadow-sm border border-slate-100 dark:border-slate-800 group-hover:bg-[#1E3A5F] group-hover:text-white transition-all">
                 <component :is="node === 'app' ? LucideServer : node === 'db' ? LucideDatabase : node === 'file' ? LucideHardDrive : node === 'scanner' ? LucideScanLine : node === 'printer' ? LucidePrinter : LucideUsers" class="w-6 h-6" />
               </div>

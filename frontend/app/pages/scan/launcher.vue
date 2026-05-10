@@ -27,7 +27,7 @@
           </div>
 
           <!-- Device Info Card -->
-          <div class="p-8 bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-[2rem] space-y-6">
+          <div class="p-8 bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-lg space-y-6">
             <div class="w-14 h-14 rounded-2xl bg-white dark:bg-slate-800 flex items-center justify-center text-[#1E3A5F] dark:text-blue-400 shadow-sm border border-slate-50 dark:border-slate-700">
               <LucidePrinter class="w-7 h-7" />
             </div>
@@ -155,7 +155,7 @@
 
     <!-- Idle State Footer Area -->
     <div class="p-20 bg-slate-50/30 dark:bg-slate-900/30 rounded-[4rem] border-2 border-dashed border-slate-100 dark:border-slate-800 flex flex-col items-center justify-center space-y-6 opacity-60 hover:opacity-100 transition-opacity" v-motion-slide-visible-bottom :delay="200">
-      <div class="w-20 h-20 rounded-[2rem] bg-white dark:bg-slate-800 flex items-center justify-center text-slate-300 shadow-sm">
+      <div class="w-20 h-20 rounded-lg bg-white dark:bg-slate-800 flex items-center justify-center text-slate-300 shadow-sm">
         <LucideCpu class="w-10 h-10" />
       </div>
       <div class="text-center space-y-1">

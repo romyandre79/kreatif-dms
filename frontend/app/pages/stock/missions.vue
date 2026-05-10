@@ -19,7 +19,7 @@
 
     <!-- Stats Grid -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-      <div class="glass p-8 rounded-[2rem] flex items-center justify-between group hover:border-primary-500/30 transition-all">
+      <div class="glass p-8 rounded-lg flex items-center justify-between group hover:border-primary-500/30 transition-all">
         <div class="space-y-1">
           <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">{{ $t('stock.missions.stats.pending') }}</p>
           <div class="flex items-baseline gap-3">
@@ -30,7 +30,7 @@
         <div class="w-12 h-12 rounded-2xl bg-orange-50 dark:bg-orange-900/20 text-orange-500 flex items-center justify-center"><LucideClipboardList class="w-6 h-6" /></div>
       </div>
       
-      <div class="glass p-8 rounded-[2rem] flex items-center justify-between group hover:border-primary-500/30 transition-all">
+      <div class="glass p-8 rounded-lg flex items-center justify-between group hover:border-primary-500/30 transition-all">
         <div class="space-y-1">
           <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">{{ $t('stock.missions.stats.active') }}</p>
           <div class="flex items-baseline gap-3">
@@ -41,7 +41,7 @@
         <div class="w-12 h-12 rounded-2xl bg-blue-50 dark:bg-blue-900/20 text-blue-500 flex items-center justify-center"><LucideUsers class="w-6 h-6" /></div>
       </div>
 
-      <div class="glass p-8 rounded-[2rem] flex items-center justify-between group hover:border-primary-500/30 transition-all">
+      <div class="glass p-8 rounded-lg flex items-center justify-between group hover:border-primary-500/30 transition-all">
         <div class="space-y-1">
           <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">{{ $t('stock.missions.stats.rate') }}</p>
           <div class="flex items-baseline gap-3">
@@ -54,7 +54,7 @@
     </div>
 
     <!-- Main Table Section -->
-    <div class="glass rounded-[2.5rem] overflow-hidden" v-motion-slide-visible-bottom>
+    <div class="glass rounded-lg overflow-hidden" v-motion-slide-visible-bottom>
       <div class="p-8 border-b border-slate-100 dark:border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-6 bg-white/30">
         <div class="relative flex-grow max-w-md">
           <LucideSearch class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
@@ -137,7 +137,7 @@
     </div>
 
     <!-- Tip Box -->
-    <div class="p-10 bg-primary-50/30 dark:bg-primary-900/10 border border-primary-100/50 dark:border-primary-800/30 rounded-[2.5rem] flex gap-8" v-motion-slide-visible-bottom>
+    <div class="p-10 bg-primary-50/30 dark:bg-primary-900/10 border border-primary-100/50 dark:border-primary-800/30 rounded-lg flex gap-8" v-motion-slide-visible-bottom>
       <div class="w-14 h-14 rounded-2xl bg-white dark:bg-slate-800 text-primary-500 flex items-center justify-center shadow-sm shrink-0">
         <LucideInfo class="w-7 h-7" />
       </div>

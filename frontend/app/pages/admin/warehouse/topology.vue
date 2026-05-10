@@ -111,7 +111,7 @@
                 <!-- Connector Line (Simplified mockup) -->
                 <div class="absolute top-1/2 left-1/2 w-[300px] h-0.5 bg-slate-200 -z-10 origin-left" :style="{ transform: `rotate(${i * 90 + 45}deg)` }"></div>
                 
-                <div class="glass p-8 rounded-[2.5rem] border-2 border-white shadow-2xl flex flex-col items-center text-center space-y-4 group-hover:-translate-y-4 transition-all duration-500">
+                <div class="glass p-8 rounded-lg border-2 border-white shadow-2xl flex flex-col items-center text-center space-y-4 group-hover:-translate-y-4 transition-all duration-500">
                   <div class="w-14 h-14 rounded-2xl bg-slate-50 flex items-center justify-center text-[#1E3A5F] shadow-inner mb-2">
                     <LucideWarehouse class="w-8 h-8" />
                   </div>
@@ -126,7 +126,7 @@
           </div>
 
           <!-- Map Info Overlay -->
-          <div class="absolute bottom-10 right-10 z-10 glass p-8 rounded-[2.5rem] w-80 space-y-6 shadow-2xl border border-white">
+          <div class="absolute bottom-10 right-10 z-10 glass p-8 rounded-lg w-80 space-y-6 shadow-2xl border border-white">
             <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-widest">{{ $t('warehouse.topology.map.selected') }}</h4>
             <div class="flex items-center gap-6">
               <div class="w-16 h-16 rounded-2xl bg-red-50 flex items-center justify-center text-red-500 shadow-inner">

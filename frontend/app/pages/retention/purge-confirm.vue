@@ -26,11 +26,11 @@
 
     <!-- Main Execution Card -->
     <div class="glass p-12 rounded-[3.5rem] bg-white border border-slate-100 shadow-2xl shadow-slate-200/50 flex gap-12 items-center" v-motion-slide-visible-bottom>
-      <div class="w-1/3 aspect-[4/3] bg-slate-100 rounded-[2.5rem] relative overflow-hidden group">
+      <div class="w-1/3 aspect-[4/3] bg-slate-100 rounded-lg relative overflow-hidden group">
         <img src="https://images.unsplash.com/photo-1568667256549-094345857637?auto=format&fit=crop&q=80&w=400" 
              class="w-full h-full object-cover opacity-60 mix-blend-multiply group-hover:scale-110 transition-transform duration-1000" />
         <div class="absolute inset-0 flex items-center justify-center">
-          <div class="w-20 h-20 bg-white/90 backdrop-blur-sm rounded-[1.5rem] shadow-2xl flex items-center justify-center text-slate-400">
+          <div class="w-20 h-20 bg-white/90 backdrop-blur-sm rounded-lg shadow-2xl flex items-center justify-center text-slate-400">
             <LucideFolderMinus class="w-10 h-10" />
           </div>
         </div>

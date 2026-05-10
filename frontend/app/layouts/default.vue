@@ -129,7 +129,7 @@
             
             <Transition name="fade">
               <div v-if="showNotifications" 
-                   class="absolute right-0 mt-3 w-80 bg-white dark:bg-[#0D121F] border border-slate-200 dark:border-slate-800 rounded-[1.5rem] shadow-2xl overflow-hidden z-[100]">
+                   class="absolute right-0 mt-3 w-80 bg-white dark:bg-[#0D121F] border border-slate-200 dark:border-slate-800 rounded-lg shadow-2xl overflow-hidden z-[100]">
                 <div class="p-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-900/50">
                   <h3 class="text-xs font-black text-[#1E3A5F] dark:text-white uppercase tracking-widest">Notifications</h3>
                   <button @click="handleMarkAllRead" class="text-[10px] font-bold text-primary-500 hover:underline">Mark all read</button>
@@ -173,7 +173,7 @@
 
             <Transition name="fade">
               <div v-if="showUserMenu" 
-                   class="absolute right-0 mt-3 w-56 bg-white dark:bg-[#0D121F] border border-slate-200 dark:border-slate-800 rounded-[1.5rem] shadow-2xl overflow-hidden z-[100]">
+                   class="absolute right-0 mt-3 w-56 bg-white dark:bg-[#0D121F] border border-slate-200 dark:border-slate-800 rounded-lg shadow-2xl overflow-hidden z-[100]">
                 <div class="p-4 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50">
                   <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 text-left">Manage Account</p>
                   <p class="text-[11px] font-bold text-slate-700 dark:text-slate-300 line-clamp-1 text-left">{{ auth.user?.email }}</p>
@@ -223,7 +223,7 @@ import {
   LucideScanLine, LucideGitCompare, LucideHardDrive, LucideBuilding2,
   LucideMapPin, LucideUsers, LucideServer, LucideArchive,
   LucideFolder, LucideSettings2, LucideUserCog, LucideBookOpen, LucideLayers,
-  LucideLock
+  LucideLock, LucideMegaphone
 } from 'lucide-vue-next'
 import { useApi } from '@/composables/useApi'
 
@@ -304,7 +304,8 @@ const iconMap = {
   'Submit': LucideUpload,
   'Loans': LucideFileText,
   'Tracking': LucideQrCode,
-  'LucideBell': LucideBell
+  'LucideBell': LucideBell,
+  'LucideMegaphone': LucideMegaphone
 }
 
 const getIcon = (key) => iconMap[key] || LucideFileText
@@ -313,7 +314,15 @@ const fetchDynamicMenu = async () => {
   try {
     const res = await $api(`${config.public.apiBase}/auth/me/menu`)
     if (res && res.data) {
-      dynamicMenu.value = res.data
+      // Patch menu items to use correct upload path instead of placeholder
+      dynamicMenu.value = res.data.map(item => ({
+        ...item,
+        path: item.path === '/registration/new' ? '/documents/upload' : item.path,
+        children: item.children?.map(child => ({
+          ...child,
+          path: child.path === '/registration/new' ? '/documents/upload' : child.path
+        }))
+      }))
     }
   } catch (err) {
     console.error('Failed to fetch dynamic menu:', err)

@@ -13,7 +13,7 @@
         <LucideQrCode class="absolute -top-10 -right-10 w-64 h-64 text-slate-50 dark:text-slate-800/20 rotate-12 -z-10" />
 
         <div class="w-full lg:w-1/3 space-y-8">
-          <div class="aspect-square bg-blue-50 dark:bg-blue-900/10 rounded-[2.5rem] flex items-center justify-center relative overflow-hidden group">
+          <div class="aspect-square bg-blue-50 dark:bg-blue-900/10 rounded-lg flex items-center justify-center relative overflow-hidden group">
             <div class="absolute inset-0 bg-primary-500/5 animate-pulse"></div>
             <LucideScanBarcode class="w-24 h-24 text-primary-500 group-hover:scale-110 transition-transform duration-700" />
             <div class="absolute inset-x-8 top-1/2 h-0.5 bg-primary-400 shadow-[0_0_15px_rgba(59,130,246,0.8)] animate-scanner"></div>
@@ -62,11 +62,11 @@
           </div>
 
           <div class="flex flex-col sm:flex-row gap-4 pt-4">
-            <button @click="state = 'blind_audit'" class="flex-grow flex items-center justify-center gap-3 py-5 bg-primary-500 text-white rounded-[1.5rem] text-xs font-black uppercase tracking-widest shadow-2xl shadow-primary-500/40 hover:bg-primary-600 transition-all active:scale-95 group">
+            <button @click="state = 'blind_audit'" class="flex-grow flex items-center justify-center gap-3 py-5 bg-primary-500 text-white rounded-lg text-xs font-black uppercase tracking-widest shadow-2xl shadow-primary-500/40 hover:bg-primary-600 transition-all active:scale-95 group">
               <LucidePlayCircle class="w-5 h-5 group-hover:scale-110 transition-transform" />
               {{ $t('stock.scan_execution.active_mission.btn_start') }}
             </button>
-            <button class="px-10 py-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 rounded-[1.5rem] text-xs font-black uppercase tracking-widest hover:bg-slate-50 transition-all">
+            <button class="px-10 py-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 rounded-lg text-xs font-black uppercase tracking-widest hover:bg-slate-50 transition-all">
               {{ $t('stock.scan_execution.active_mission.btn_details') }}
             </button>
           </div>
@@ -74,7 +74,7 @@
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-        <div v-for="(stat, i) in ['last_scan', 'verification', 'team']" :key="i" class="bg-white dark:bg-slate-900 p-8 rounded-[2rem] border border-slate-100 dark:border-slate-800 shadow-sm space-y-4 group hover:shadow-xl transition-all">
+        <div v-for="(stat, i) in ['last_scan', 'verification', 'team']" :key="i" class="bg-white dark:bg-slate-900 p-8 rounded-lg border border-slate-100 dark:border-slate-800 shadow-sm space-y-4 group hover:shadow-xl transition-all">
           <div class="w-10 h-10 rounded-xl bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-slate-400 group-hover:text-primary-500 transition-colors">
             <LucideHistory v-if="stat === 'last_scan'" class="w-5 h-5" />
             <LucideShieldCheck v-else-if="stat === 'verification'" class="w-5 h-5" />
@@ -182,7 +182,7 @@
         <span class="px-4 py-1.5 bg-white/20 rounded-lg text-[9px] font-black uppercase tracking-widest border border-white/30">{{ $t('stock.scan_execution.active_session.last_scan.verified') }}</span>
       </div>
 
-      <button @click="showMisplacedAlert = true" class="w-full py-6 bg-primary-500 text-white rounded-[2rem] text-sm font-black uppercase tracking-widest shadow-2xl shadow-primary-500/40 hover:bg-primary-600 transition-all flex items-center justify-center gap-4 group active:scale-95">
+      <button @click="showMisplacedAlert = true" class="w-full py-6 bg-primary-500 text-white rounded-lg text-sm font-black uppercase tracking-widest shadow-2xl shadow-primary-500/40 hover:bg-primary-600 transition-all flex items-center justify-center gap-4 group active:scale-95">
         <LucideScanBarcode class="w-6 h-6 group-hover:scale-110 transition-transform" />
         {{ $t('stock.scan_execution.active_session.btn_continue') }}
       </button>
@@ -195,7 +195,7 @@
           </div>
           <button class="text-[10px] font-black text-primary-500 uppercase tracking-widest hover:underline">{{ $t('stock.scan_execution.active_session.history.view_all') }}</button>
         </div>
-        <div class="bg-white dark:bg-slate-900 rounded-[2.5rem] border border-slate-100 dark:border-slate-800 shadow-sm divide-y divide-slate-50 dark:divide-slate-800/50 overflow-hidden">
+        <div class="bg-white dark:bg-slate-900 rounded-lg border border-slate-100 dark:border-slate-800 shadow-sm divide-y divide-slate-50 dark:divide-slate-800/50 overflow-hidden">
           <div v-for="(item, i) in historyItems" :key="i" class="p-8 flex items-center justify-between hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-all group">
             <div class="flex items-center gap-6">
               <div class="w-10 h-10 rounded-full bg-green-50 dark:bg-green-900/10 text-green-500 flex items-center justify-center group-hover:scale-110 transition-transform"><LucideCheckCircle2 class="w-5 h-5" /></div>
@@ -282,11 +282,11 @@
             </div>
 
             <div class="space-y-4">
-              <button @click="showMisplacedAlert = false" class="w-full py-5 bg-primary-500 text-white rounded-[1.5rem] text-xs font-black uppercase tracking-widest shadow-xl shadow-primary-500/30 hover:bg-primary-600 transition-all flex items-center justify-center gap-3 active:scale-95">
+              <button @click="showMisplacedAlert = false" class="w-full py-5 bg-primary-500 text-white rounded-lg text-xs font-black uppercase tracking-widest shadow-xl shadow-primary-500/30 hover:bg-primary-600 transition-all flex items-center justify-center gap-3 active:scale-95">
                 <LucideCheckCircle2 class="w-5 h-5" />
                 {{ $t('stock.scan_execution.misplaced_alert.btn_acknowledge') }}
               </button>
-              <button @click="navigateTo('/stock/reconciliation')" class="w-full py-5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 rounded-[1.5rem] text-xs font-black uppercase tracking-widest hover:bg-slate-50 transition-all flex items-center justify-center gap-3">
+              <button @click="navigateTo('/stock/reconciliation')" class="w-full py-5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 rounded-lg text-xs font-black uppercase tracking-widest hover:bg-slate-50 transition-all flex items-center justify-center gap-3">
                 <LucideTarget class="w-5 h-5" />
                 {{ $t('stock.scan_execution.misplaced_alert.btn_reconcile') }}
               </button>

@@ -237,7 +237,7 @@
     <Transition name="fade">
       <div v-if="showTypeModal" class="fixed inset-0 z-[101] flex items-center justify-center p-4 lg:pl-[280px]">
         <div class="absolute inset-0 bg-slate-950/40 backdrop-blur-sm" @click="showTypeModal = false"></div>
-        <div class="relative bg-white dark:bg-slate-900 w-full max-w-2xl rounded-[2.5rem] shadow-2xl p-10 border border-slate-200 dark:border-slate-800" v-motion-pop>
+        <div class="relative bg-white dark:bg-slate-900 w-full max-w-2xl rounded-lg shadow-2xl p-10 border border-slate-200 dark:border-slate-800" v-motion-pop>
           <div class="text-center space-y-2 mb-10">
             <h3 class="text-2xl font-black text-[#1E3A5F] dark:text-white uppercase tracking-tight">Select Service Type</h3>
             <p class="text-slate-400 font-bold text-xs uppercase tracking-widest">Choose the type of integration you want to add</p>
@@ -266,7 +266,7 @@
     <Transition name="fade">
       <div v-if="showModal" class="fixed inset-0 z-[100] flex items-center justify-center p-4 lg:pl-[280px]">
         <div class="absolute inset-0 bg-slate-950/60 backdrop-blur-sm" @click="showModal = false"></div>
-        <div class="relative bg-white dark:bg-slate-950 w-full max-w-6xl rounded-[2.5rem] shadow-2xl overflow-hidden border border-slate-200 dark:border-slate-800" v-motion-pop>
+        <div class="relative bg-white dark:bg-slate-950 w-full max-w-6xl rounded-lg shadow-2xl overflow-hidden border border-slate-200 dark:border-slate-800" v-motion-pop>
           <!-- Modal Header -->
           <div class="px-10 py-8 bg-slate-50 dark:bg-slate-900/50 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
             <div class="space-y-1">
@@ -403,7 +403,7 @@
     <Transition name="fade">
       <div v-if="showLogsModal" class="fixed inset-0 z-[110] flex items-center justify-center p-4 lg:pl-[280px]">
         <div class="absolute inset-0 bg-slate-950/60 backdrop-blur-sm" @click="showLogsModal = false"></div>
-        <div class="relative bg-white dark:bg-slate-900 w-full max-w-4xl rounded-[2.5rem] shadow-2xl overflow-hidden border border-slate-200 dark:border-slate-800" v-motion-pop>
+        <div class="relative bg-white dark:bg-slate-900 w-full max-w-4xl rounded-lg shadow-2xl overflow-hidden border border-slate-200 dark:border-slate-800" v-motion-pop>
           <div class="px-10 py-8 bg-slate-50 dark:bg-slate-950/50 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
             <div class="space-y-1">
               <h3 class="text-xl font-black text-[#1E3A5F] dark:text-white uppercase tracking-tight">Sync & Connection Logs</h3>

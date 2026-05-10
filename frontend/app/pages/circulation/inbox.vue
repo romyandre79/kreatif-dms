@@ -17,7 +17,7 @@
       </div>
 
       <div class="flex-grow overflow-y-auto p-10 space-y-4 custom-scrollbar">
-        <div v-for="task in tasks" :key="task.id" :class="`p-8 rounded-[2rem] border transition-all cursor-pointer group hover:scale-[1.01] active:scale-[0.99] ${selectedTask?.id === task.id ? 'bg-white dark:bg-slate-900 border-[#1E3A5F] shadow-2xl shadow-blue-900/10' : 'bg-white/50 dark:bg-slate-900/30 border-slate-100 dark:border-slate-800 hover:border-slate-200'}`" @click="selectedTask = task">
+        <div v-for="task in tasks" :key="task.id" :class="`p-8 rounded-lg border transition-all cursor-pointer group hover:scale-[1.01] active:scale-[0.99] ${selectedTask?.id === task.id ? 'bg-white dark:bg-slate-900 border-[#1E3A5F] shadow-2xl shadow-blue-900/10' : 'bg-white/50 dark:bg-slate-900/30 border-slate-100 dark:border-slate-800 hover:border-slate-200'}`" @click="selectedTask = task">
           <div class="flex items-center gap-6">
             <div :class="`w-14 h-14 rounded-2xl flex items-center justify-center text-xl transition-transform group-hover:rotate-6 ${selectedTask?.id === task.id ? 'bg-[#1E3A5F] text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-400'}`">
               <LucideFileText v-if="task.type === 'doc'" class="w-6 h-6" />
@@ -59,7 +59,7 @@
           </div>
 
           <!-- Status Card -->
-          <div class="p-8 bg-slate-50 dark:bg-slate-800/50 rounded-[2.5rem] border border-slate-100 dark:border-slate-800 flex items-center gap-6">
+          <div class="p-8 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-100 dark:border-slate-800 flex items-center gap-6">
             <div class="w-12 h-12 rounded-xl bg-[#1E3A5F] text-white flex items-center justify-center shadow-lg shadow-blue-900/20"><LucideShieldCheck class="w-6 h-6" /></div>
             <div class="space-y-1">
               <p class="text-[9px] font-black text-[#1E3A5F] dark:text-white uppercase tracking-widest">{{ $t('circulation.inbox.details.status_update') }}</p>

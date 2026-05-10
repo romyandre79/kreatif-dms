@@ -86,7 +86,7 @@
                   <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{{ event.time }}</span>
                 </div>
 
-                <div class="p-8 bg-slate-50/50 dark:bg-slate-900/50 rounded-[2rem] border border-slate-100 dark:border-slate-800 space-y-4 group-hover:bg-white dark:group-hover:bg-slate-900 transition-all shadow-sm group-hover:shadow-xl group-hover:shadow-blue-900/5" :class="event.bg">
+                <div class="p-8 bg-slate-50/50 dark:bg-slate-900/50 rounded-lg border border-slate-100 dark:border-slate-800 space-y-4 group-hover:bg-white dark:group-hover:bg-slate-900 transition-all shadow-sm group-hover:shadow-xl group-hover:shadow-blue-900/5" :class="event.bg">
                   <h5 class="text-base font-black text-[#1E3A5F] dark:text-white tracking-tight">{{ event.title }}</h5>
                   <p class="text-xs font-bold text-slate-500 leading-relaxed max-w-2xl" v-html="event.desc"></p>
                   
@@ -111,7 +111,7 @@
 
     <!-- Right Sidebar: Metrics & Risk -->
     <aside class="w-80 bg-white dark:bg-slate-900 border-l border-slate-200 dark:border-slate-800 flex flex-col p-8 overflow-y-auto custom-scrollbar space-y-8">
-      <div v-for="metric in metrics" :key="metric.label" class="p-8 rounded-[2.5rem] border border-slate-50 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm space-y-6">
+      <div v-for="metric in metrics" :key="metric.label" class="p-8 rounded-lg border border-slate-50 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm space-y-6">
         <div class="flex justify-between items-start">
           <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest max-w-[120px]">{{ metric.label }}</p>
           <span v-if="metric.badge" :class="`px-2 py-0.5 rounded-lg text-[8px] font-black uppercase tracking-widest ${metric.badgeClass}`">

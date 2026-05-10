@@ -197,7 +197,13 @@ func main() {
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"},
 		AllowCredentials: true,
 	}))
-	app.Use(helmet.New())
+	app.Use(helmet.New(helmet.Config{
+		XSSProtection:      "1; mode=block",
+		ContentTypeNosniff: "nosniff",
+		XFrameOptions:      "SAMEORIGIN", // We will override this for the preview route if needed, or set to empty
+		PermissionPolicy:   "geolocation=(self), microphone=()",
+		CrossOriginResourcePolicy: "cross-origin", // Allow cross-origin images/PDFs
+	}))
 	app.Use(compress.New(compress.Config{
 		Level: compress.LevelBestSpeed,
 	}))
@@ -246,9 +252,15 @@ func main() {
 	docGroup.Get("/", docHandler.List)
 	docGroup.Get("/history", docHandler.ListOCRHistory)
 	docGroup.Post("/", docHandler.Upload)
-	docGroup.Get("/:id/preview", docHandler.Preview)
-	docGroup.Get("/:id/ocr", docHandler.GetOCRData)
 	docGroup.Get("/search", docHandler.Search)
+	docGroup.Get("/:id", docHandler.GetByID)
+	docGroup.Get("/:id/preview", docHandler.Preview)
+	docGroup.Get("/:id/loans", docHandler.GetLoans)
+	docGroup.Get("/:id/ocr", docHandler.GetOCRData)
+	docGroup.Post("/:id/approve", docHandler.Approve)
+	docGroup.Post("/:id/reject", docHandler.Reject)
+	docGroup.Post("/bulk-approve", docHandler.BulkApprove)
+	docGroup.Post("/bulk-reject", docHandler.BulkReject)
 
 	// Batch Routes
 	batchGroup := api.Group("/batches")
@@ -259,10 +271,16 @@ func main() {
 	// Master Data Routes
 	masterGroup := api.Group("/master")
 	masterGroup.Use(middleware.AuthMiddleware(cfg.JWTSecret))
+	
+	// Accessible to all authenticated users
+	masterGroup.Get("/document-types", masterHandler.ListDocumentTypes)
+
+	// Restricted to Admin/Superadmin
 	masterGroup.Use(middleware.RoleMiddleware("admin", "superadmin"))
 	masterGroup.Get("/companies", masterHandler.ListCompanies)
 	masterGroup.Post("/companies", masterHandler.CreateCompany)
 	masterGroup.Put("/companies/:id", masterHandler.UpdateCompany)
+	masterGroup.Post("/companies/:id/logo", masterHandler.UploadCompanyLogo)
 	masterGroup.Delete("/companies/:id", masterHandler.DeleteCompany)
 	masterGroup.Get("/companies/export", masterHandler.ExportCompanies)
 	masterGroup.Post("/companies/import", masterHandler.ImportCompanies)
@@ -303,7 +321,6 @@ func main() {
 	masterGroup.Get("/ordners/export", masterHandler.ExportOrdners)
 	masterGroup.Post("/ordners/import", masterHandler.ImportOrdners)
 
-	masterGroup.Get("/document-types", masterHandler.ListDocumentTypes)
 	masterGroup.Post("/document-types", masterHandler.CreateDocumentType)
 	masterGroup.Put("/document-types/:id", masterHandler.UpdateDocumentType)
 	masterGroup.Delete("/document-types/:id", masterHandler.DeleteDocumentType)
@@ -322,6 +339,12 @@ func main() {
 	masterGroup.Get("/retention", masterHandler.ListRetentionPolicies)
 	masterGroup.Get("/settings/:category", masterHandler.GetSettings)
 	masterGroup.Post("/settings/:category", masterHandler.UpdateSetting)
+	
+	// Announcements
+	masterGroup.Get("/announcements", masterHandler.ListAnnouncements)
+	masterGroup.Post("/announcements", masterHandler.CreateAnnouncement)
+	masterGroup.Put("/announcements/:id", masterHandler.UpdateAnnouncement)
+	masterGroup.Delete("/announcements/:id", masterHandler.DeleteAnnouncement)
 	
 	// Watermark Settings
 	masterGroup.Get("/settings/watermark", masterHandler.GetWatermarkSettings)

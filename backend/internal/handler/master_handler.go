@@ -57,7 +57,7 @@ func (h *MasterHandler) CreateCompany(c fiber.Ctx) error {
 		return response.Error(c, fiber.StatusBadRequest, "Invalid request body", err.Error())
 	}
 
-	company, err := h.svc.CreateCompany(c.Context(), req.Name, req.EntityID, req.NpwpStatus, req.Location, req.Status, req.Address)
+	company, err := h.svc.CreateCompany(c.Context(), req.Name, req.EntityID, req.NpwpStatus, req.Location, req.Status, req.Address, req.DeliveryInstructions)
 	if err != nil {
 		return response.Error(c, fiber.StatusInternalServerError, "Failed to create company", err.Error())
 	}
@@ -75,8 +75,9 @@ func (h *MasterHandler) UpdateCompany(c fiber.Ctx) error {
 		EntityID   string `json:"entity_id"`
 		NpwpStatus string `json:"npwp_status"`
 		Location   string `json:"location"`
-		Status     string `json:"status"`
-		Address    string `json:"address"`
+		Status               string `json:"status"`
+		Address              string `json:"address"`
+		DeliveryInstructions string `json:"delivery_instructions"`
 	}
 	id, err := uuid.Parse(c.Params("id"))
 	if err != nil {
@@ -87,7 +88,7 @@ func (h *MasterHandler) UpdateCompany(c fiber.Ctx) error {
 		return response.Error(c, fiber.StatusBadRequest, "Invalid request body", err.Error())
 	}
 
-	company, err := h.svc.UpdateCompany(c.Context(), id, req.Name, req.EntityID, req.NpwpStatus, req.Location, req.Status, req.Address)
+	company, err := h.svc.UpdateCompany(c.Context(), id, req.Name, req.EntityID, req.NpwpStatus, req.Location, req.Status, req.Address, req.DeliveryInstructions)
 	if err != nil {
 		return response.Error(c, fiber.StatusInternalServerError, "Failed to update company", err.Error())
 	}
@@ -114,6 +115,31 @@ func (h *MasterHandler) DeleteCompany(c fiber.Ctx) error {
 	h.svc.LogActivity(c.Context(), userID, "DELETE", "company", &id, nil, c.IP())
 
 	return response.Success(c, fiber.StatusOK, "Company deleted", nil)
+}
+
+func (h *MasterHandler) UploadCompanyLogo(c fiber.Ctx) error {
+	id, err := uuid.Parse(c.Params("id"))
+	if err != nil {
+		return response.Error(c, fiber.StatusBadRequest, "Invalid company ID", err.Error())
+	}
+
+	file, err := c.FormFile("logo")
+	if err != nil {
+		return response.Error(c, fiber.StatusBadRequest, "Logo file is required", err.Error())
+	}
+
+	f, err := file.Open()
+	if err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to open file", err.Error())
+	}
+	defer f.Close()
+
+	logoURL, err := h.svc.UploadCompanyLogo(c.Context(), id, f, file.Filename)
+	if err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to upload logo", err.Error())
+	}
+
+	return response.Success(c, fiber.StatusOK, "Logo uploaded", logoURL)
 }
 
 func (h *MasterHandler) ExportCompanies(c fiber.Ctx) error {
@@ -1102,6 +1128,83 @@ func (h *MasterHandler) UpdateSetting(c fiber.Ctx) error {
 	return response.Success(c, fiber.StatusOK, "Setting updated", setting)
 }
 
+// Announcements Management
+func (h *MasterHandler) ListAnnouncements(c fiber.Ctx) error {
+	announcements, err := h.svc.ListAnnouncements(c.Context())
+	if err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to list announcements", err.Error())
+	}
+	return response.Success(c, fiber.StatusOK, "Announcements listed", announcements)
+}
+
+func (h *MasterHandler) CreateAnnouncement(c fiber.Ctx) error {
+	var req struct {
+		Title    string `json:"title"`
+		Message  string `json:"message"`
+		Notes    string `json:"notes"`
+		IsActive bool   `json:"is_active"`
+	}
+	if err := c.Bind().JSON(&req); err != nil {
+		return response.Error(c, fiber.StatusBadRequest, "Invalid request body", err.Error())
+	}
+
+	userID := c.Locals("user_id").(uuid.UUID)
+	ann, err := h.svc.CreateAnnouncement(c.Context(), req.Title, req.Message, req.Notes, req.IsActive, userID)
+	if err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to create announcement", err.Error())
+	}
+
+	// Log Activity
+	h.svc.LogActivity(c.Context(), userID, "CREATE", "announcement", &ann.ID, req, c.IP())
+
+	return response.Success(c, fiber.StatusCreated, "Announcement created", ann)
+}
+
+func (h *MasterHandler) UpdateAnnouncement(c fiber.Ctx) error {
+	id, err := uuid.Parse(c.Params("id"))
+	if err != nil {
+		return response.Error(c, fiber.StatusBadRequest, "Invalid announcement ID", err.Error())
+	}
+
+	var req struct {
+		Title    string `json:"title"`
+		Message  string `json:"message"`
+		Notes    string `json:"notes"`
+		IsActive bool   `json:"is_active"`
+	}
+	if err := c.Bind().JSON(&req); err != nil {
+		return response.Error(c, fiber.StatusBadRequest, "Invalid request body", err.Error())
+	}
+
+	ann, err := h.svc.UpdateAnnouncement(c.Context(), id, req.Title, req.Message, req.Notes, req.IsActive)
+	if err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to update announcement", err.Error())
+	}
+
+	// Log Activity
+	userID := c.Locals("user_id").(uuid.UUID)
+	h.svc.LogActivity(c.Context(), userID, "UPDATE", "announcement", &id, req, c.IP())
+
+	return response.Success(c, fiber.StatusOK, "Announcement updated", ann)
+}
+
+func (h *MasterHandler) DeleteAnnouncement(c fiber.Ctx) error {
+	id, err := uuid.Parse(c.Params("id"))
+	if err != nil {
+		return response.Error(c, fiber.StatusBadRequest, "Invalid announcement ID", err.Error())
+	}
+
+	if err := h.svc.DeleteAnnouncement(c.Context(), id); err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to delete announcement", err.Error())
+	}
+
+	// Log Activity
+	userID := c.Locals("user_id").(uuid.UUID)
+	h.svc.LogActivity(c.Context(), userID, "DELETE", "announcement", &id, nil, c.IP())
+
+	return response.Success(c, fiber.StatusOK, "Announcement deleted", nil)
+}
+
 func (h *MasterHandler) GetIntegrationStatus(c fiber.Ctx) error {
 	nodes, err := h.svc.GetIntegrationStatus(c.Context())
 	if err != nil {
@@ -1281,21 +1384,23 @@ type TestIntegrationNodeRequest struct {
 }
 
 type CreateCompanyRequest struct {
-	Name       string `json:"name"`
-	EntityID   string `json:"entity_id"`
-	NpwpStatus string `json:"npwp_status"`
-	Location   string `json:"location"`
-	Status     string `json:"status"`
-	Address    string `json:"address"`
+	Name                 string `json:"name"`
+	EntityID             string `json:"entity_id"`
+	NpwpStatus           string `json:"npwp_status"`
+	Location             string `json:"location"`
+	Status               string `json:"status"`
+	Address              string `json:"address"`
+	DeliveryInstructions string `json:"delivery_instructions"`
 }
 
 type UpdateCompanyRequest struct {
-	Name       string `json:"name"`
-	EntityID   string `json:"entity_id"`
-	NpwpStatus string `json:"npwp_status"`
-	Location   string `json:"location"`
-	Status     string `json:"status"`
-	Address    string `json:"address"`
+	Name                 string `json:"name"`
+	EntityID             string `json:"entity_id"`
+	NpwpStatus           string `json:"npwp_status"`
+	Location             string `json:"location"`
+	Status               string `json:"status"`
+	Address              string `json:"address"`
+	DeliveryInstructions string `json:"delivery_instructions"`
 }
 
 type CreateBranchRequest struct {

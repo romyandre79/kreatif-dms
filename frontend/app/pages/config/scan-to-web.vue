@@ -23,7 +23,7 @@
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-10">
       <!-- Left Column: Controls -->
       <div class="lg:col-span-4 space-y-8">
-        <div class="glass p-8 rounded-[2.5rem] space-y-8 border border-white/10 shadow-sm bg-white/50 dark:bg-slate-900/50 backdrop-blur-xl">
+        <div class="glass p-8 rounded-lg space-y-8 border border-white/10 shadow-sm bg-white/50 dark:bg-slate-900/50 backdrop-blur-xl">
           <div class="flex items-center gap-4 border-b border-slate-100 dark:border-slate-800 pb-6">
             <div class="w-10 h-10 rounded-xl bg-primary-500/10 flex items-center justify-center">
               <LucidePrinter class="w-5 h-5 text-primary-500" />
@@ -103,7 +103,7 @@
             <!-- Action Button -->
             <button @click="startScan" 
                     :disabled="scanning || (driverType === 'local' && !selectedScannerID) || (driverType === 'network' && !networkEndpoint)"
-                    class="w-full py-5 bg-primary-500 text-white rounded-[1.5rem] text-sm font-black uppercase tracking-[0.2em] shadow-2xl shadow-primary-500/40 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 disabled:hover:scale-100 flex items-center justify-center gap-4">
+                    class="w-full py-5 bg-primary-500 text-white rounded-lg text-sm font-black uppercase tracking-[0.2em] shadow-2xl shadow-primary-500/40 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 disabled:hover:scale-100 flex items-center justify-center gap-4">
               <LucideLoader2 v-if="scanning" class="w-5 h-5 animate-spin" />
               <LucideZap v-else class="w-5 h-5" />
               {{ scanning ? 'Scanning...' : 'Start Scanning' }}

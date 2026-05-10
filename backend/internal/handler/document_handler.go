@@ -1,6 +1,8 @@
 package handler
 
 import (
+	"fmt"
+	"log"
 	"strconv"
 	"strings"
 	"github.com/gofiber/fiber/v3"
@@ -60,10 +62,25 @@ func (h *DocumentHandler) Upload(c fiber.Ctx) error {
 
 	// Read form values
 	title := c.FormValue("title")
+	description := c.FormValue("description")
+	if description == "" {
+		description = c.FormValue("notes")
+	}
+	
+	typeID, _ := uuid.Parse(c.FormValue("type_id"))
 	companyID, _ := uuid.Parse(c.FormValue("company_id"))
 	branchID, _ := uuid.Parse(c.FormValue("branch_id"))
 	departmentID, _ := uuid.Parse(c.FormValue("department_id"))
 	batchID, _ := uuid.Parse(c.FormValue("batch_id"))
+	
+	sensitivity := c.FormValue("sensitivity")
+	if sensitivity == "" {
+		sensitivity = c.FormValue("category") // fallback to category from UI
+	}
+	
+	urgency := c.FormValue("urgency")
+	documentDateStr := c.FormValue("document_date")
+	pageCount, _ := strconv.Atoi(c.FormValue("page_count"))
 	
 	ownerID := c.Locals("user_id").(uuid.UUID)
 
@@ -102,6 +119,7 @@ func (h *DocumentHandler) Upload(c fiber.Ctx) error {
 
 	doc, err := h.svc.UploadDocument(c.Context(), service.UploadDocumentParams{
 		Title:        title,
+		Description:  description,
 		FileName:     file.Filename,
 		FileSize:     file.Size,
 		MimeType:     file.Header.Get("Content-Type"),
@@ -111,6 +129,11 @@ func (h *DocumentHandler) Upload(c fiber.Ctx) error {
 		BranchID:     branchID,
 		DepartmentID: departmentID,
 		BatchID:      batchID,
+		TypeID:       typeID,
+		Sensitivity:  sensitivity,
+		Urgency:      urgency,
+		DocumentDate: documentDateStr,
+		PageCount:    pageCount,
 	})
 
 	if err != nil {
@@ -139,23 +162,56 @@ func (h *DocumentHandler) Preview(c fiber.Ctx) error {
 		userName = val.(string)
 	}
 
+	log.Printf("[DocumentHandler] Generating preview for doc: %s (User: %s)", docID, userName)
 	pdfData, mimeType, err := h.svc.GetWatermarkedPDF(c.Context(), docID, userName, "center")
 	if err != nil {
+		log.Printf("[DocumentHandler] Error generating preview: %v", err)
 		return response.Error(c, fiber.StatusInternalServerError, "Failed to generate preview", err.Error())
 	}
+
+	if len(pdfData) == 0 {
+		log.Printf("[DocumentHandler] Warning: Preview data is empty for doc: %s", docID)
+	}
+
+	log.Printf("[DocumentHandler] Preview generated successfully for doc: %s (Type: %s, Size: %d)", docID, mimeType, len(pdfData))
 
 	if mimeType == "" {
 		mimeType = "application/pdf"
 	}
 
 	c.Set("Content-Type", mimeType)
-	c.Set("Content-Disposition", "inline")
+	
+	disposition := "inline"
+	if c.Query("download") == "true" {
+		doc, err := h.svc.GetDocument(c.Context(), docID)
+		if err == nil {
+			disposition = fmt.Sprintf("attachment; filename=\"%s\"", doc.FileName)
+		} else {
+			disposition = "attachment; filename=\"document.pdf\""
+		}
+	}
+	c.Set("Content-Disposition", disposition)
+	
+	// Allow framing from any origin for previews (security is handled by the token)
+	c.Response().Header.Del("X-Frame-Options")
+	c.Set("Content-Security-Policy", "frame-ancestors *")
+	
 	return c.Send(pdfData)
 }
 func (h *DocumentHandler) List(c fiber.Ctx) error {
 	limit, _ := strconv.Atoi(c.Query("limit", "10"))
+	mine := c.Query("mine") == "true"
 	
-	docs, err := h.svc.ListRecentDocuments(c.Context(), limit)
+	var docs interface{}
+	var err error
+	
+	if mine {
+		userID := c.Locals("user_id").(uuid.UUID)
+		docs, err = h.svc.ListRecentDocumentsByOwner(c.Context(), userID, limit)
+	} else {
+		docs, err = h.svc.ListRecentDocuments(c.Context(), limit)
+	}
+	
 	if err != nil {
 		return response.Error(c, fiber.StatusInternalServerError, "Failed to list documents", err.Error())
 	}
@@ -185,6 +241,24 @@ func (h *DocumentHandler) ListOCRHistory(c fiber.Ctx) error {
 		},
 	})
 }
+func (h *DocumentHandler) GetByID(c fiber.Ctx) error {
+	idStr := c.Params("id")
+	docID, err := uuid.Parse(idStr)
+	if err != nil {
+		return response.Error(c, fiber.StatusBadRequest, "Invalid document ID", err.Error())
+	}
+
+	log.Printf("[DocumentHandler] Fetching document: %s", docID)
+	doc, err := h.svc.GetDocument(c.Context(), docID)
+	if err != nil {
+		log.Printf("[DocumentHandler] Error fetching document %s: %v", docID, err)
+		return response.Error(c, fiber.StatusNotFound, "Document not found", err.Error())
+	}
+
+	log.Printf("[DocumentHandler] Document %s found: %s (Mime: %s)", docID, doc.Title, doc.MimeType)
+	return response.Success(c, fiber.StatusOK, "Document found", doc)
+}
+
 func (h *DocumentHandler) GetOCRData(c fiber.Ctx) error {
 	docID, err := uuid.Parse(c.Params("id"))
 	if err != nil {
@@ -205,4 +279,82 @@ func (h *DocumentHandler) GetOCRData(c fiber.Ctx) error {
 		"preview_path":  job.PreviewPath.String,
 		"preview_paths": string(job.PreviewPaths),
 	})
+}
+func (h *DocumentHandler) GetLoans(c fiber.Ctx) error {
+	docID, err := uuid.Parse(c.Params("id"))
+	if err != nil {
+		return response.Error(c, fiber.StatusBadRequest, "Invalid document ID", err.Error())
+	}
+
+	loans, err := h.svc.GetLoanHistory(c.Context(), docID)
+	if err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to fetch loan history", err.Error())
+	}
+
+	return response.Success(c, fiber.StatusOK, "Loan history retrieved", loans)
+}
+func (h *DocumentHandler) Approve(c fiber.Ctx) error {
+	docID, err := uuid.Parse(c.Params("id"))
+	if err != nil {
+		return response.Error(c, fiber.StatusBadRequest, "Invalid document ID", err.Error())
+	}
+
+	var req struct {
+		Notes string `json:"notes"`
+	}
+	c.Bind().JSON(&req)
+
+	if err := h.svc.ApproveDocument(c.Context(), docID, req.Notes); err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to approve document", err.Error())
+	}
+
+	return response.Success(c, fiber.StatusOK, "Document approved", nil)
+}
+
+func (h *DocumentHandler) Reject(c fiber.Ctx) error {
+	docID, err := uuid.Parse(c.Params("id"))
+	if err != nil {
+		return response.Error(c, fiber.StatusBadRequest, "Invalid document ID", err.Error())
+	}
+
+	var req struct {
+		Reason string `json:"reason"`
+		Notes  string `json:"notes"`
+	}
+	c.Bind().JSON(&req)
+
+	if err := h.svc.RejectDocument(c.Context(), docID, req.Reason, req.Notes); err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to reject document", err.Error())
+	}
+
+	return response.Success(c, fiber.StatusOK, "Document rejected", nil)
+}
+func (h *DocumentHandler) BulkApprove(c fiber.Ctx) error {
+	var req struct {
+		IDs []uuid.UUID `json:"ids"`
+	}
+	if err := c.Bind().JSON(&req); err != nil {
+		return response.Error(c, fiber.StatusBadRequest, "Invalid request body", err.Error())
+	}
+
+	if err := h.svc.BulkApproveDocuments(c.Context(), req.IDs); err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to bulk approve", err.Error())
+	}
+
+	return response.Success(c, fiber.StatusOK, "Documents approved", nil)
+}
+
+func (h *DocumentHandler) BulkReject(c fiber.Ctx) error {
+	var req struct {
+		IDs []uuid.UUID `json:"ids"`
+	}
+	if err := c.Bind().JSON(&req); err != nil {
+		return response.Error(c, fiber.StatusBadRequest, "Invalid request body", err.Error())
+	}
+
+	if err := h.svc.BulkRejectDocuments(c.Context(), req.IDs); err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to bulk reject", err.Error())
+	}
+
+	return response.Success(c, fiber.StatusOK, "Documents rejected", nil)
 }

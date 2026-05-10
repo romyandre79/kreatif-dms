@@ -41,7 +41,7 @@
       <div class="space-y-4">
         <div v-for="req in queue" :key="req.no" 
              @click="selectedRequest = req"
-             :class="`group p-8 bg-white rounded-[2.5rem] border transition-all cursor-pointer flex items-center justify-between shadow-xl shadow-slate-200/30 ${selectedRequest?.no === req.no ? 'border-primary-500 ring-4 ring-primary-500/10' : 'border-slate-100 hover:border-slate-300'}`">
+             :class="`group p-8 bg-white rounded-lg border transition-all cursor-pointer flex items-center justify-between shadow-xl shadow-slate-200/30 ${selectedRequest?.no === req.no ? 'border-primary-500 ring-4 ring-primary-500/10' : 'border-slate-100 hover:border-slate-300'}`">
           <div class="flex items-center gap-8">
             <div class="flex items-center gap-4 min-w-[200px]">
               <div :class="`w-2 h-2 rounded-full ${req.priority === 'High' ? 'bg-red-500 animate-pulse' : 'bg-slate-300'}`"></div>
@@ -92,7 +92,7 @@
 
         <div class="flex-1 overflow-y-auto p-10 space-y-10 custom-scrollbar">
           <!-- Approval Summary Card -->
-          <div class="p-8 bg-slate-50/50 border border-slate-100 rounded-[2.5rem] space-y-8">
+          <div class="p-8 bg-slate-50/50 border border-slate-100 rounded-lg space-y-8">
             <div class="flex items-center justify-between">
               <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">{{ $t('circulation.pickup.detail.approved_summary') }}</p>
             </div>

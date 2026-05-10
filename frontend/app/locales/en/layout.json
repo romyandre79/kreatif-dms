@@ -105,7 +105,9 @@
       "sub_new": "Submit Document",
       "sub_status": "Submission Status",
       "inbound_pre": "Inbound Pre-Registration",
-      "notifications_menu": "Notifications"
+      "notifications_menu": "Notifications",
+      "notificaton": "Notifications",
+      "announcements": "System Announcements"
     }
   }
 }

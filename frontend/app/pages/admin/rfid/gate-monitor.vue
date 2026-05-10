@@ -140,15 +140,15 @@
         <h3 class="text-[11px] font-black text-[#1E3A5F] dark:text-white uppercase tracking-[0.2em]">Command & Control</h3>
         
         <div class="space-y-4">
-          <button class="w-full py-6 bg-[#1E3A5F] hover:bg-[#152943] text-white rounded-[2rem] shadow-xl shadow-blue-900/20 transition-all flex flex-col items-center gap-3 active:scale-95">
+          <button class="w-full py-6 bg-[#1E3A5F] hover:bg-[#152943] text-white rounded-lg shadow-xl shadow-blue-900/20 transition-all flex flex-col items-center gap-3 active:scale-95">
             <LucideCheckCircle class="w-6 h-6" />
             <span class="text-[10px] font-black uppercase tracking-[0.2em]">Acknowledge Alarm</span>
           </button>
-          <button class="w-full py-6 bg-red-500 hover:bg-red-600 text-white rounded-[2rem] shadow-xl shadow-red-900/20 transition-all flex flex-col items-center gap-3 active:scale-95 animate-pulse">
+          <button class="w-full py-6 bg-red-500 hover:bg-red-600 text-white rounded-lg shadow-xl shadow-red-900/20 transition-all flex flex-col items-center gap-3 active:scale-95 animate-pulse">
             <LucideLock class="w-6 h-6" />
             <span class="text-[10px] font-black uppercase tracking-[0.2em]">Lock User Access</span>
           </button>
-          <button class="w-full py-6 bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 text-[#1E3A5F] dark:text-white rounded-[2rem] transition-all flex flex-col items-center gap-3 hover:bg-slate-50">
+          <button class="w-full py-6 bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 text-[#1E3A5F] dark:text-white rounded-lg transition-all flex flex-col items-center gap-3 hover:bg-slate-50">
             <LucideBell class="w-6 h-6" />
             <span class="text-[10px] font-black uppercase tracking-[0.2em]">Notify Security</span>
           </button>

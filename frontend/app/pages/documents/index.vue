@@ -133,7 +133,7 @@
         <!-- SEARCH RESULTS VIEW -->
         <div v-if="query" class="space-y-4 max-w-5xl mx-auto">
           <div v-if="searchResults.length > 0" class="space-y-6">
-            <div v-for="res in searchResults" :key="res.id" class="bg-white p-8 rounded-[2rem] border border-slate-100 hover:border-primary-300 hover:shadow-xl hover:shadow-primary-900/5 transition-all group relative overflow-hidden">
+            <div v-for="res in searchResults" :key="res.id" class="bg-white p-8 rounded-lg border border-slate-100 hover:border-primary-300 hover:shadow-xl hover:shadow-primary-900/5 transition-all group relative overflow-hidden">
               <div class="flex items-start justify-between">
                 <div class="space-y-4 flex-1 pr-10">
                   <div class="space-y-1">
@@ -180,7 +180,7 @@
         </div>
 
         <!-- EXPLORER TABLE VIEW -->
-        <div v-else class="bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden">
+        <div v-else class="bg-white rounded-lg shadow-sm border border-slate-100 overflow-hidden">
           <table class="w-full text-left">
             <thead>
               <tr class="bg-slate-50/50 text-[10px] font-black text-slate-400 uppercase tracking-[0.15em] border-b border-slate-100">

@@ -85,7 +85,7 @@
         </div>
 
         <!-- Health Check -->
-        <div class="bg-blue-50/50 dark:bg-blue-900/10 p-8 rounded-[2.5rem] border border-blue-100 dark:border-blue-800 space-y-6">
+        <div class="bg-blue-50/50 dark:bg-blue-900/10 p-8 rounded-lg border border-blue-100 dark:border-blue-800 space-y-6">
           <div class="flex items-center justify-between">
             <h4 class="text-[10px] font-black text-[#1E3A5F] dark:text-white uppercase tracking-widest">{{ $t('admin.backup.settings.health.title') }}</h4>
             <LucideShieldCheck class="w-4 h-4 text-[#1E3A5F]" />
@@ -162,7 +162,7 @@
 
         <!-- Redundancy & Encryption Info -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
-          <div class="p-8 bg-slate-50/50 dark:bg-slate-900/50 rounded-[2.5rem] border border-slate-100 dark:border-slate-800 space-y-4 shadow-inner relative overflow-hidden group">
+          <div class="p-8 bg-slate-50/50 dark:bg-slate-900/50 rounded-lg border border-slate-100 dark:border-slate-800 space-y-4 shadow-inner relative overflow-hidden group">
             <LucideGlobe class="absolute top-0 right-0 w-32 h-32 text-slate-200/30 -rotate-12 translate-x-10 -translate-y-10 group-hover:scale-110 transition-transform" />
             <div class="space-y-1">
               <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest">{{ $t('admin.backup.history.redundancy.title') }}</p>
@@ -173,7 +173,7 @@
               {{ $t('admin.backup.history.redundancy.desc') }}
             </div>
           </div>
-          <div class="p-8 bg-slate-50/50 dark:bg-slate-900/50 rounded-[2.5rem] border border-slate-100 dark:border-slate-800 space-y-4 shadow-inner relative overflow-hidden group">
+          <div class="p-8 bg-slate-50/50 dark:bg-slate-900/50 rounded-lg border border-slate-100 dark:border-slate-800 space-y-4 shadow-inner relative overflow-hidden group">
             <LucideLock class="absolute top-0 right-0 w-32 h-32 text-slate-200/30 -rotate-12 translate-x-10 -translate-y-10 group-hover:scale-110 transition-transform" />
             <div class="space-y-1">
               <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest">{{ $t('admin.backup.history.encryption.title') }}</p>
@@ -253,7 +253,7 @@
         </div>
 
         <!-- Maintenance Window -->
-        <div class="p-8 bg-amber-50 dark:bg-amber-900/10 rounded-[2.5rem] border border-amber-100 dark:border-amber-800 flex gap-5">
+        <div class="p-8 bg-amber-50 dark:bg-amber-900/10 rounded-lg border border-amber-100 dark:border-amber-800 flex gap-5">
           <LucideInfo class="w-6 h-6 text-amber-500 shrink-0" />
           <div class="space-y-1">
             <h5 class="text-[10px] font-black text-amber-600 uppercase tracking-widest">{{ $t('admin.backup.restore.maint.title') }}</h5>

@@ -122,7 +122,7 @@
 
           <!-- Preview Info Footer -->
           <div class="p-10 grid grid-cols-2 gap-8 border-t border-slate-50 dark:border-slate-800 bg-white/50 dark:bg-slate-900/50 backdrop-blur-md">
-            <div class="flex items-center gap-6 p-6 bg-slate-50/50 dark:bg-slate-800/50 rounded-[2rem] border border-slate-100 dark:border-slate-700">
+            <div class="flex items-center gap-6 p-6 bg-slate-50/50 dark:bg-slate-800/50 rounded-lg border border-slate-100 dark:border-slate-700">
               <div class="w-12 h-12 rounded-2xl bg-white dark:bg-slate-900 flex items-center justify-center text-blue-500 shadow-sm">
                 <LucideRss class="w-6 h-6" />
               </div>
@@ -131,7 +131,7 @@
                 <p class="text-[11px] font-black text-[#1E3A5F] dark:text-white uppercase">{{ $t('warehouse.generation.preview.freq_val') }}</p>
               </div>
             </div>
-            <div class="flex items-center gap-6 p-6 bg-slate-50/50 dark:bg-slate-800/50 rounded-[2rem] border border-slate-100 dark:border-slate-700">
+            <div class="flex items-center gap-6 p-6 bg-slate-50/50 dark:bg-slate-800/50 rounded-lg border border-slate-100 dark:border-slate-700">
               <div class="w-12 h-12 rounded-2xl bg-white dark:bg-slate-900 flex items-center justify-center text-[#1E3A5F] dark:text-white shadow-sm">
                 <LucideQrCode class="w-6 h-6" />
               </div>

@@ -1,7 +1,7 @@
 <template>
   <div class="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
     <!-- Page Header -->
-    <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-white dark:bg-[#0D121F] p-8 rounded-[2.5rem] border border-slate-200/60 dark:border-slate-800/40 shadow-sm relative overflow-hidden">
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-white dark:bg-[#0D121F] p-8 rounded-lg border border-slate-200/60 dark:border-slate-800/40 shadow-sm relative overflow-hidden">
       <div class="absolute top-0 right-0 p-8 opacity-10">
         <LucideScanLine class="w-32 h-32 text-primary-500" />
       </div>
@@ -48,7 +48,7 @@
     <!-- Stats Overview -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
       <div v-for="stat in stats" :key="stat.label" 
-           class="bg-white dark:bg-[#0D121F] p-6 rounded-[2rem] border border-slate-200/60 dark:border-slate-800/40 shadow-sm group hover:border-primary-500/30 transition-all duration-500">
+           class="bg-white dark:bg-[#0D121F] p-6 rounded-lg border border-slate-200/60 dark:border-slate-800/40 shadow-sm group hover:border-primary-500/30 transition-all duration-500">
         <div class="flex items-center gap-4">
           <div :class="['w-12 h-12 rounded-2xl flex items-center justify-center transition-transform group-hover:scale-110', stat.bg]">
             <component :is="stat.icon" :class="['w-5 h-5', stat.color]" />
@@ -63,7 +63,7 @@
 
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
       <!-- Recent History (Table) -->
-      <div class="lg:col-span-8 bg-white dark:bg-[#0D121F] rounded-[2.5rem] border border-slate-200/60 dark:border-slate-800/40 shadow-sm flex flex-col overflow-hidden">
+      <div class="lg:col-span-8 bg-white dark:bg-[#0D121F] rounded-lg border border-slate-200/60 dark:border-slate-800/40 shadow-sm flex flex-col overflow-hidden">
         <div class="p-8 border-b border-slate-100 dark:border-slate-800/60 bg-slate-50/30 dark:bg-slate-900/20 flex items-center justify-between">
           <div class="flex items-center gap-3">
             <LucideHistory class="w-5 h-5 text-primary-500" />
@@ -149,7 +149,7 @@
       </div>
 
       <!-- Live Console -->
-      <div class="lg:col-span-4 bg-[#0A0F1C] rounded-[2.5rem] border border-slate-800/50 shadow-2xl flex flex-col overflow-hidden h-[600px] ring-1 ring-white/5">
+      <div class="lg:col-span-4 bg-[#0A0F1C] rounded-lg border border-slate-800/50 shadow-2xl flex flex-col overflow-hidden h-[600px] ring-1 ring-white/5">
         <div class="p-6 border-b border-slate-800/50 bg-[#0D121F] flex items-center justify-between">
           <div class="flex items-center gap-3">
             <div class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>

@@ -56,7 +56,7 @@
       "step1_download": "UNDUH TEMPLATE EXCEL",
       "step1_info": "Harap jangan mengubah header kolom pada template agar proses validasi berjalan lancar.",
       "step2_title": "Unggah File Data",
-      "step2_dropzone": "Tarik file Excel Anda ke sini",
+      "step2_dropzone": "Tarik file Dokumen Anda ke sini",
       "step2_formats": "Mendukung format .xlsx dan .xls (Maks. 10MB)",
       "step2_browse": "TELUSURI FILE",
       "validation_rules_title": "Aturan Validasi Penting",
@@ -119,10 +119,22 @@
     "side": {
       "next_title": "Langkah Selanjutnya",
       "steps": [
-        { "title": "Registrasi Sistem", "desc": "Data dokumen didaftarkan secara digital." },
-        { "title": "Cetak Manifest", "desc": "Manifest fisik sebagai tanda terima pengiriman." },
-        { "title": "Pengiriman Fisik", "desc": "Kirim dokumen ke pusat pengolahan arsip." },
-        { "title": "Proses Digital", "desc": "Dokumen dipindai dan diindeks sepenuhnya." }
+        {
+          "title": "Registrasi Sistem",
+          "desc": "Data dokumen didaftarkan secara digital."
+        },
+        {
+          "title": "Cetak Manifest",
+          "desc": "Manifest fisik sebagai tanda terima pengiriman."
+        },
+        {
+          "title": "Pengiriman Fisik",
+          "desc": "Kirim dokumen ke pusat pengolahan arsip."
+        },
+        {
+          "title": "Proses Digital",
+          "desc": "Dokumen dipindai dan diindeks sepenuhnya."
+        }
       ],
       "tips_title": "Tips Pengarsipan",
       "tips": [
@@ -162,5 +174,34 @@
     "success_modal": {
       "print": "CETAK MANIFEST"
     }
+  },
+  "manifest": {
+    "title": "Document Manifest",
+    "header_title": "DOCUMENT MANIFEST",
+    "header_subtitle": "Document Management System",
+    "manifest_id": "Manifest ID",
+    "generated_date": "Generated Date",
+    "submitter": "Submitter",
+    "approver": "Approver",
+    "total_docs": "Total Documents",
+    "listing_title": "Document Listing",
+    "table": {
+      "no": "No.",
+      "reg_id": "Reg ID",
+      "title": "Document Title",
+      "category": "Category",
+      "qty": "Qty",
+      "urgency": "Urgency"
+    },
+    "delivery_title": "Delivery Instructions",
+    "delivery_location": "Central Document Office (CDO) - 4th Floor, Room 402, Headquarters.",
+    "warning": "Important: Manifests are only valid for 48 hours after approval. If physical submission is delayed beyond this window, please re-generate the manifest.",
+    "footer_info": "Generated via DMS Portal",
+    "verified_on": "Verified on: {date}",
+    "page": "Page {current} of {total}",
+    "version": "DMS V2.1",
+    "btn_back": "Back",
+    "btn_print": "Print Manifest",
+    "btn_download": "Download PDF"
   }
 }

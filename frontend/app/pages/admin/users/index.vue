@@ -133,7 +133,7 @@
 
           <form @submit.prevent="saveUser" class="flex-1 overflow-y-auto p-10 space-y-10 custom-scrollbar">
             <!-- Profile Photos -->
-            <div class="flex items-center gap-8 p-8 bg-slate-50 dark:bg-slate-800/50 rounded-[2.5rem] border border-slate-100 dark:border-slate-800">
+            <div class="flex items-center gap-8 p-8 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-100 dark:border-slate-800">
               <!-- Avatar -->
               <div class="relative group cursor-pointer" @click="$refs.avatarInput.click()">
                 <div class="w-24 h-24 rounded-full bg-white dark:bg-slate-900 flex items-center justify-center border-2 border-primary-500/20 group-hover:border-primary-500 transition-all overflow-hidden shadow-xl ring-4 ring-white dark:ring-slate-800">
@@ -240,7 +240,7 @@
                   {{ $t('admin.user_management.modal.section_prefs') }}
                 </h4>
               </div>
-              <div class="flex items-center justify-between p-8 bg-slate-50 dark:bg-slate-800 rounded-[2.5rem] border border-slate-100 dark:border-slate-800">
+              <div class="flex items-center justify-between p-8 bg-slate-50 dark:bg-slate-800 rounded-lg border border-slate-100 dark:border-slate-800">
                 <div class="space-y-1">
                   <div class="flex items-center gap-3">
                     <LucideShieldCheck class="w-5 h-5 text-primary-500" />

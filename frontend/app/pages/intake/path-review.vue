@@ -6,7 +6,7 @@
         <h1 class="text-4xl font-black text-[#1E3A5F] dark:text-white uppercase tracking-tight">{{ $t('intake.path_review.title') }}</h1>
         <p class="text-sm font-bold text-slate-500 uppercase tracking-tight">{{ $t('intake.path_review.subtitle') }}</p>
       </div>
-      <div class="glass p-6 px-10 rounded-[2.5rem] flex items-center gap-6 shadow-sm border border-slate-50 dark:border-slate-800">
+      <div class="glass p-6 px-10 rounded-lg flex items-center gap-6 shadow-sm border border-slate-50 dark:border-slate-800">
         <div class="space-y-1">
           <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">{{ $t('intake.path_review.health') }}</p>
           <p class="text-lg font-black text-[#1E3A5F] dark:text-white uppercase tracking-tighter">{{ $t('intake.path_review.health_val', { curr: '84.2', total: '100' }) }}</p>
@@ -93,7 +93,7 @@
 
                       <!-- Document -->
                       <div class="pl-16 space-y-6">
-                        <div class="flex items-center gap-6 p-8 bg-white dark:bg-slate-900 rounded-[2.5rem] border border-slate-100 dark:border-slate-800 shadow-xl shadow-slate-200/50 dark:shadow-black/50 relative">
+                        <div class="flex items-center gap-6 p-8 bg-white dark:bg-slate-900 rounded-lg border border-slate-100 dark:border-slate-800 shadow-xl shadow-slate-200/50 dark:shadow-black/50 relative">
                           <div class="absolute -left-[66px] top-1/2 w-16 h-0.5 bg-slate-100 dark:border-slate-800"></div>
                           <div class="w-12 h-12 bg-blue-50 text-blue-500 rounded-2xl flex items-center justify-center shadow-inner">
                             <LucideFileText class="w-6 h-6" />
@@ -184,7 +184,7 @@
         <LucideArrowLeft class="w-5 h-5 group-hover:scale-125 transition-transform" />
         {{ $t('intake.path_review.actions.back') }}
       </button>
-      <button class="px-16 py-6 bg-[#1E3A5F] text-white rounded-[2rem] text-sm font-black uppercase tracking-widest shadow-2xl shadow-blue-900/40 hover:bg-[#152943] transition-all flex items-center gap-6 active:scale-95 group">
+      <button class="px-16 py-6 bg-[#1E3A5F] text-white rounded-lg text-sm font-black uppercase tracking-widest shadow-2xl shadow-blue-900/40 hover:bg-[#152943] transition-all flex items-center gap-6 active:scale-95 group">
         {{ $t('intake.path_review.actions.commit') }}
         <div class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center group-hover:rotate-12 transition-transform">
           <LucideCheckCircle2 class="w-6 h-6" />

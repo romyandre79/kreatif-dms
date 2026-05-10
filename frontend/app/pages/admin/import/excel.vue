@@ -28,7 +28,7 @@
       <div class="lg:col-span-8 space-y-10">
         <!-- Upload Card -->
         <div class="glass p-12 rounded-[3rem] border-2 border-dashed border-slate-200 dark:border-slate-800 flex flex-col items-center justify-center text-center space-y-8 group hover:border-[#1E3A5F] transition-all">
-          <div class="w-24 h-24 bg-slate-50 dark:bg-slate-800 rounded-[2rem] flex items-center justify-center text-slate-300 group-hover:scale-110 transition-transform"><LucideUploadCloud class="w-10 h-10" /></div>
+          <div class="w-24 h-24 bg-slate-50 dark:bg-slate-800 rounded-lg flex items-center justify-center text-slate-300 group-hover:scale-110 transition-transform"><LucideUploadCloud class="w-10 h-10" /></div>
           <div class="space-y-2">
             <h3 class="text-xl font-black text-[#1E3A5F] dark:text-white uppercase tracking-tight">{{ $t('admin.import.excel.upload.title') }}</h3>
             <p class="text-xs font-bold text-slate-400 max-w-sm mx-auto leading-relaxed">{{ $t('admin.import.excel.upload.desc') }}</p>
@@ -151,7 +151,7 @@
         </span>
       </div>
 
-      <div class="p-10 bg-white dark:bg-slate-900 rounded-[2.5rem] border border-slate-100 dark:border-slate-800 shadow-xl space-y-10 relative overflow-hidden">
+      <div class="p-10 bg-white dark:bg-slate-900 rounded-lg border border-slate-100 dark:border-slate-800 shadow-xl space-y-10 relative overflow-hidden">
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-10">
           <div class="flex-grow space-y-6">
             <div class="flex items-center gap-6">

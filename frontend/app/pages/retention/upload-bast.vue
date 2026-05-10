@@ -18,7 +18,7 @@
           </div>
 
           <div class="aspect-square border-2 border-dashed border-slate-100 rounded-[3rem] flex flex-col items-center justify-center text-center p-12 space-y-6 bg-slate-50/30 group hover:border-primary-200 transition-all cursor-pointer">
-            <div class="w-20 h-20 bg-white rounded-[2rem] flex items-center justify-center shadow-sm text-slate-200 group-hover:text-primary-500 transition-colors">
+            <div class="w-20 h-20 bg-white rounded-lg flex items-center justify-center shadow-sm text-slate-200 group-hover:text-primary-500 transition-colors">
               <LucideUploadCloud class="w-10 h-10" />
             </div>
             <div class="space-y-2">
@@ -76,7 +76,7 @@
             {{ $t('retention.upload_bast.preview.title') }}
           </div>
 
-          <div class="aspect-[3/4] bg-slate-50 rounded-[2.5rem] border border-slate-100 overflow-hidden relative group">
+          <div class="aspect-[3/4] bg-slate-50 rounded-lg border border-slate-100 overflow-hidden relative group">
             <div class="absolute inset-0 flex flex-col items-center justify-center p-12 text-center space-y-6">
               <div class="w-32 h-40 bg-white rounded-xl shadow-xl border border-slate-50 relative p-6 flex flex-col items-center justify-center gap-4">
                 <LucideFileText class="w-12 h-12 text-slate-100" />

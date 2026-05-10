@@ -16,7 +16,7 @@ INSERT INTO system_modules (id, name, category, path, icon, allowed_actions, sor
 ('loan_hist', 'Loan History', 'Circulation', '/loans/history', 'LucideHistory', ARRAY['VIEW'], 34, 'cat_loans'),
 
 ('cat_submissions', 'Document Submissions', 'Registration', NULL, 'LucideLayers', ARRAY['VIEW'], 40, NULL),
-('sub_new', 'Submit Document', 'Registration', '/registration/new', 'LucideUpload', ARRAY['VIEW', 'CREATE'], 41, 'cat_submissions'),
+('sub_new', 'Submit Document', 'Registration', '/documents/upload', 'LucideUpload', ARRAY['VIEW', 'CREATE'], 41, 'cat_submissions'),
 ('sub_status', 'Submission Status', 'Registration', '/registration/status', 'LucideActivity', ARRAY['VIEW'], 42, 'cat_submissions'),
 
 ('notifications', 'Notifications', 'System', '/notifications', 'LucideBell', ARRAY['VIEW'], 100, NULL)

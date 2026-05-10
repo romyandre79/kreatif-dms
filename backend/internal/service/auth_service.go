@@ -286,15 +286,21 @@ func (s *AuthService) GetMenu(ctx context.Context, userID uuid.UUID) ([]MenuItem
 		return nil, err
 	}
 
-	// 4. Create a map of MenuItems and identify roots
-	menuItems := make(map[string]*MenuItem)
-	var rootItems []*MenuItem
+	// 3.5 Get counts for badges
+	pendingCounts, _ := s.repo.GetPendingCountsByType(ctx, user.ID)
+	unreadNotifs, _ := s.repo.GetUnreadCount(ctx, user.ID)
 
-	// First pass: Create all MenuItem objects that are allowed
+	typeCounts := make(map[string]int64)
+	totalPending := int64(0)
+	for _, pc := range pendingCounts {
+		typeCounts[pc.EntityType] = pc.Count
+		totalPending += pc.Count
+	}
+
+	// 4. Create a map of MenuItems
+	menuItems := make(map[string]*MenuItem)
 	for _, m := range allModules {
-		// Categories (parent_id is null/empty) are always included if they have allowed children,
-		// or we can just include them and prune later. 
-		// For now, let's include if allowed or if it's a category.
+		// Category logic: include if it has children or if it's allowed
 		if !allowedModules[m.ID] && m.Path.String != "" {
 			continue
 		}
@@ -306,28 +312,38 @@ func (s *AuthService) GetMenu(ctx context.Context, userID uuid.UUID) ([]MenuItem
 			Children: []MenuItem{},
 		}
 
-		// Mock badges for Manager role as per design
-		if user.RoleName.String == "manajer" {
+		// Dynamic badges for relevant roles
+		roleLower := strings.ToLower(user.RoleName.String)
+		if roleLower == "manajer" || roleLower == "manager" || roleLower == "admin" || roleLower == "superadmin" {
 			switch m.ID {
 			case "cat_approval":
-				item.Badge = "5"
+				if totalPending > 0 {
+					item.Badge = fmt.Sprintf("%d", totalPending)
+				}
 			case "sub_docs":
-				item.Badge = "2"
+				if c := typeCounts["document_upload"]; c > 0 {
+					item.Badge = fmt.Sprintf("%d", c)
+				}
 			case "sub_loans":
-				item.Badge = "2"
+				if c := typeCounts["loan_request"]; c > 0 {
+					item.Badge = fmt.Sprintf("%d", c)
+				}
 			case "sub_ext":
-				item.Badge = "1"
+				if c := typeCounts["retention"]; c > 0 {
+					item.Badge = fmt.Sprintf("%d", c)
+				}
 			case "notifications":
-				item.Badge = "8"
+				if unreadNotifs > 0 {
+					item.Badge = fmt.Sprintf("%d", unreadNotifs)
+				}
 			}
 		}
 
-		// Special case: for categories, use their name as the key if preferred, 
-		// but using ID is safer for i18n.
 		menuItems[m.ID] = item
 	}
 
-	// Second pass: Build the tree
+	// 5. Build the tree
+	var rootItems []*MenuItem
 	for _, m := range allModules {
 		item, exists := menuItems[m.ID]
 		if !exists {
@@ -344,16 +360,41 @@ func (s *AuthService) GetMenu(ctx context.Context, userID uuid.UUID) ([]MenuItem
 		}
 	}
 
-	// Convert []*MenuItem to []MenuItem
+	// 6. Final Menu Construction with Flattening Rules
 	var finalMenu []MenuItem
+	isUserRole := user.RoleName.String == "user"
+
 	for _, item := range rootItems {
-		// Prune empty categories if they are not dashboard/search
+		// Prune empty categories
 		if item.Path == "" && len(item.Children) == 0 {
 			continue
 		}
+
+		// Rule 1: Total flattening for 'user' role
+		if isUserRole {
+			if item.Path != "" {
+				finalMenu = append(finalMenu, *item)
+			}
+			// If it's a category with children, promote all children to root
+			for _, child := range item.Children {
+				finalMenu = append(finalMenu, child)
+			}
+			continue
+		}
+
+		// Rule 2: If category has exactly 1 child, promote the child (General rule)
+		if item.Path == "" && len(item.Children) == 1 {
+			child := item.Children[0]
+			// Copy parent's icon/badge if child doesn't have one? 
+			// Usually child has its own.
+			finalMenu = append(finalMenu, child)
+			continue
+		}
+
 		finalMenu = append(finalMenu, *item)
 	}
 
+	// Sort finalMenu by some order? (Optional, use original rootItems order)
 	return finalMenu, nil
 }
 

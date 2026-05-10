@@ -24,7 +24,7 @@
 
       <!-- Auditor Info Card -->
       <div class="px-8 pt-8">
-        <div class="p-6 bg-slate-50 rounded-[2rem] border-l-4 border-[#1E3A5F] flex items-center justify-between">
+        <div class="p-6 bg-slate-50 rounded-lg border-l-4 border-[#1E3A5F] flex items-center justify-between">
           <div class="flex items-center gap-4">
             <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=100" class="w-12 h-12 rounded-2xl object-cover shadow-sm" />
             <div>
@@ -67,7 +67,7 @@
 
       <!-- Active Location Card -->
       <div class="px-8 mb-8">
-        <div class="p-8 bg-blue-50 rounded-[2.5rem] flex items-center justify-between group cursor-pointer hover:bg-blue-100 transition-all">
+        <div class="p-8 bg-blue-50 rounded-lg flex items-center justify-between group cursor-pointer hover:bg-blue-100 transition-all">
           <div class="flex items-center gap-6">
             <div class="w-14 h-14 rounded-2xl bg-[#1E3A5F] flex items-center justify-center text-white shadow-lg">
               <LucideScanQrCode class="w-7 h-7" />
@@ -104,11 +104,11 @@
       <!-- Floating Bottom Panel -->
       <div class="absolute bottom-0 left-0 w-full p-6 bg-white/80 backdrop-blur-xl border-t border-slate-50 flex flex-col gap-6">
         <div class="flex gap-4">
-          <button class="flex-grow flex items-center justify-center gap-3 py-6 bg-slate-100 rounded-[1.5rem] text-[10px] font-black text-[#1E3A5F] uppercase tracking-widest">
+          <button class="flex-grow flex items-center justify-center gap-3 py-6 bg-slate-100 rounded-lg text-[10px] font-black text-[#1E3A5F] uppercase tracking-widest">
             <LucideMapPin class="w-5 h-5" />
             Scan Rack
           </button>
-          <button class="flex-grow flex items-center justify-center gap-3 py-6 bg-blue-50 rounded-[1.5rem] text-[10px] font-black text-blue-200 uppercase tracking-widest cursor-not-allowed">
+          <button class="flex-grow flex items-center justify-center gap-3 py-6 bg-blue-50 rounded-lg text-[10px] font-black text-blue-200 uppercase tracking-widest cursor-not-allowed">
             <LucideRss class="w-5 h-5" />
             Scan Item
           </button>

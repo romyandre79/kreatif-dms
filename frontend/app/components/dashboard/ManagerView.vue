@@ -15,7 +15,10 @@
           <p class="text-sm text-orange-700/80 dark:text-orange-400/80">{{ $t('dashboard.manager.alert_desc', { count: statsSummary?.active_tasks }) }}</p>
         </div>
       </div>
-      <button class="px-6 py-2 bg-orange-600 hover:bg-orange-700 text-white font-black text-xs uppercase tracking-widest rounded-xl shadow-lg shadow-orange-600/30 transition-all">
+      <button 
+        @click="navigateTo('/approvals')"
+        class="px-6 py-2 bg-orange-600 hover:bg-orange-700 text-white font-black text-xs uppercase tracking-widest rounded-xl shadow-lg shadow-orange-600/30 transition-all"
+      >
         {{ $t('dashboard.manager.btn_review_all') }}
       </button>
     </div>
@@ -44,9 +47,24 @@
         <div class="px-8 py-6 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
           <h3 class="font-black text-lg text-slate-800 dark:text-white">{{ $t('dashboard.manager.queue.title') }}</h3>
           <div class="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl">
-            <button class="px-4 py-1.5 text-xs font-bold rounded-lg bg-white dark:bg-slate-700 shadow-sm">{{ $t('dashboard.manager.queue.tabs.urgent') }}</button>
-            <button class="px-4 py-1.5 text-xs font-bold text-slate-500 hover:text-slate-700 transition-colors">{{ $t('dashboard.manager.queue.tabs.normal') }}</button>
-            <button class="px-4 py-1.5 text-xs font-bold text-slate-500 hover:text-slate-700 transition-colors">{{ $t('dashboard.manager.queue.tabs.all') }}</button>
+            <button 
+              @click="activeTab = 'urgent'"
+              :class="`px-4 py-1.5 text-xs font-bold rounded-lg transition-all ${activeTab === 'urgent' ? 'bg-white dark:bg-slate-700 shadow-sm text-slate-900 dark:text-white' : 'text-slate-500 hover:text-slate-700'}`"
+            >
+              {{ $t('dashboard.manager.queue.tabs.urgent') }}
+            </button>
+            <button 
+              @click="activeTab = 'normal'"
+              :class="`px-4 py-1.5 text-xs font-bold rounded-lg transition-all ${activeTab === 'normal' ? 'bg-white dark:bg-slate-700 shadow-sm text-slate-900 dark:text-white' : 'text-slate-500 hover:text-slate-700'}`"
+            >
+              {{ $t('dashboard.manager.queue.tabs.normal') }}
+            </button>
+            <button 
+              @click="activeTab = 'all'"
+              :class="`px-4 py-1.5 text-xs font-bold rounded-lg transition-all ${activeTab === 'all' ? 'bg-white dark:bg-slate-700 shadow-sm text-slate-900 dark:text-white' : 'text-slate-500 hover:text-slate-700'}`"
+            >
+              {{ $t('dashboard.manager.queue.tabs.all') }}
+            </button>
           </div>
         </div>
         <div class="overflow-x-auto">
@@ -57,11 +75,15 @@
                 <th class="px-8 py-4">{{ $t('dashboard.manager.queue.table.staff_name') }}</th>
                 <th class="px-8 py-4">{{ $t('dashboard.manager.queue.table.days_elapsed') }}</th>
                 <th class="px-8 py-4">{{ $t('dashboard.manager.queue.table.status') }}</th>
-                <th class="px-8 py-4 text-right">{{ $t('dashboard.manager.queue.table.actions') }}</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
-              <tr v-for="item in dashboardData?.tasks" :key="item.id" :class="item.level > 1 ? 'bg-red-50/50 dark:bg-red-900/10' : ''">
+              <tr 
+                v-for="item in filteredTasks" 
+                :key="item.id" 
+                @click="navigateToDocument(item)"
+                :class="`group/row cursor-pointer transition-colors ${item.level > 1 ? 'bg-red-50/50 dark:bg-red-900/10 hover:bg-red-100/50 dark:hover:bg-red-900/20' : 'hover:bg-slate-50 dark:hover:bg-slate-800/50'}`"
+              >
                 <td class="px-8 py-6 border-l-4" :class="item.level > 1 ? 'border-red-500' : 'border-transparent'">
                   <p class="font-black text-sm text-slate-800 dark:text-slate-200">{{ item.id.substring(0, 8) }}...</p>
                   <p class="text-[10px] text-slate-400 font-bold mt-1 uppercase">{{ item.entity_type }}</p>
@@ -82,19 +104,9 @@
                     {{ item.status }}
                   </span>
                 </td>
-                <td class="px-8 py-6 text-right">
-                  <div class="flex justify-end gap-2">
-                    <button class="w-8 h-8 rounded-full bg-green-500/10 text-green-500 flex items-center justify-center hover:bg-green-500 hover:text-white transition-all shadow-sm">
-                      <LucideCheck class="w-4 h-4" />
-                    </button>
-                    <button class="w-8 h-8 rounded-full bg-red-500/10 text-red-500 flex items-center justify-center hover:bg-red-500 hover:text-white transition-all shadow-sm">
-                      <LucideX class="w-4 h-4" />
-                    </button>
-                  </div>
-                </td>
               </tr>
               <tr v-if="!dashboardData?.tasks?.length">
-                <td colspan="5" class="px-8 py-10 text-center text-slate-400 font-bold text-xs uppercase tracking-widest">
+                <td colspan="4" class="px-8 py-10 text-center text-slate-400 font-bold text-xs uppercase tracking-widest">
                   {{ $t('dashboard.manager.queue.no_pending') }}
                 </td>
               </tr>
@@ -111,10 +123,10 @@
           <div class="relative w-40 h-40 flex items-center justify-center">
             <svg class="w-full h-full transform -rotate-90">
               <circle cx="80" cy="80" r="70" fill="transparent" stroke="currentColor" stroke-width="12" class="text-slate-100 dark:text-slate-800" />
-              <circle cx="80" cy="80" r="70" fill="transparent" stroke="currentColor" stroke-width="12" stroke-dasharray="440" :stroke-dashoffset="440 - (440 * 0.92)" class="text-primary-600 dark:text-primary-400 transition-all duration-1000" />
+              <circle cx="80" cy="80" r="70" fill="transparent" stroke="currentColor" stroke-width="12" stroke-dasharray="440" :stroke-dashoffset="440 - (440 * (statsSummary?.compliance_rate || 100) / 100)" class="text-primary-600 dark:text-primary-400 transition-all duration-1000" />
             </svg>
             <div class="absolute inset-0 flex flex-col items-center justify-center">
-              <span class="text-3xl font-black text-slate-800 dark:text-white">92%</span>
+              <span class="text-3xl font-black text-slate-800 dark:text-white">{{ statsSummary?.compliance_rate?.toFixed(0) || 100 }}%</span>
               <span class="text-[10px] font-bold text-slate-400 uppercase">{{ $t('dashboard.manager.compliance.target', { target: 95 }) }}</span>
             </div>
           </div>
@@ -181,7 +193,50 @@
           </div>
         </div>
       </div>
+    <!-- System Update Banner -->
+    <div v-if="dashboardData?.announcement?.active" class="mt-8 bg-gradient-to-br from-[#1E3A5F] to-[#152943] rounded-lg p-6 text-white relative overflow-hidden group shadow-2xl shadow-blue-900/40 flex items-center justify-between" v-motion-slide-visible-bottom>
+      <div class="relative z-10 flex items-center gap-8">
+        <div class="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center shrink-0 ring-1 ring-white/20">
+           <LucideInfo class="w-8 h-8 text-white" />
+        </div>
+        <div>
+          <h3 class="font-black text-xl mb-1 leading-tight">{{ dashboardData.announcement.title }}</h3>
+          <p class="text-blue-100/70 text-sm font-medium leading-relaxed max-w-2xl">
+            {{ dashboardData.announcement.message }}
+          </p>
+        </div>
+      </div>
+      <div class="relative z-10">
+        <button 
+          @click="isNotesOpen = true"
+          class="px-8 py-3 bg-white text-[#1E3A5F] rounded-xl font-black text-xs uppercase tracking-widest hover:bg-blue-50 transition-all shadow-xl shadow-black/20"
+        >
+          {{ $t('dashboard.user.system_update.btn_notes') }}
+        </button>
+      </div>
+      <!-- Decorative bubbles -->
+      <div class="absolute -right-10 -bottom-10 w-64 h-64 bg-white/5 rounded-full blur-3xl group-hover:scale-125 transition-transform duration-1000"></div>
+      <div class="absolute -left-10 -top-10 w-32 h-32 bg-primary-500/10 rounded-full blur-2xl"></div>
     </div>
+    </div>
+
+    <!-- Release Notes Modal -->
+    <Modal 
+      v-model="isNotesOpen" 
+      :title="dashboardData?.announcement?.title || 'Release Notes'"
+    >
+      <div class="prose prose-slate dark:prose-invert max-w-none">
+        <div v-html="parseMarkdown(dashboardData?.announcement?.notes || '')"></div>
+      </div>
+      <template #footer>
+        <button 
+          @click="isNotesOpen = false"
+          class="px-6 py-2 bg-[#1E3A5F] text-white rounded-xl font-black text-xs uppercase tracking-widest hover:bg-[#152943] transition-all"
+        >
+          {{ $t('common.close') || 'Tutup' }}
+        </button>
+      </template>
+    </Modal>
   </div>
 </template>
 
@@ -204,39 +259,71 @@ import {
   LucideEdit,
   LucideTrash,
   LucideUpload,
-  LucideActivity
+  LucideActivity,
+  LucideInfo
 } from 'lucide-vue-next'
 import { useAuthStore } from '~/stores/auth'
 import { useApi } from '~/composables/useApi'
 import PageHeader from '~/components/PageHeader.vue'
-import { formatBytes, timeAgo } from '~/utils/format'
+import Modal from '~/components/Modal.vue'
+import { formatBytes, timeAgo, parseMarkdown } from '~/utils/format'
 
 const { t } = useI18n()
 const auth = useAuthStore()
 const { $api } = useApi()
 const user = computed(() => auth.user)
 const config = useRuntimeConfig()
+const isNotesOpen = ref(false)
+const activeTab = ref('all')
 
 // Data Fetching
-const { data: dashboardData, refresh: refreshDashboard } = await useAsyncData('dashboard-summary', async () => {
-  const res = await $api(`${config.public.apiBase}/dashboard/summary`)
+const { data: dashboardData, refresh: refreshDashboard } = await useAsyncData('manager-summary', async () => {
+  const res = await $api('/dashboard/summary')
   return res.data
 })
 
 const statsSummary = computed(() => dashboardData.value?.stats)
 
 const stats = computed(() => [
-  { label: t('dashboard.manager.stats.priority_pending'), value: statsSummary.value?.active_tasks || 0, trend: '+0%', trendUp: true, progress: Math.min((statsSummary.value?.active_tasks || 0) * 5, 100), barColor: 'bg-orange-500' },
-  { label: t('dashboard.manager.stats.approved_today'), value: statsSummary.value?.daily_processed || 0, trend: '+0%', trendUp: true, progress: Math.min((statsSummary.value?.daily_processed || 0) * 10, 100), barColor: 'bg-green-500' },
+  { label: t('dashboard.manager.stats.priority_pending'), value: statsSummary.value?.active_tasks || 0, trend: '+0%', trendUp: true, progress: Math.min((statsSummary.value?.active_tasks || 0) * 10, 100), barColor: 'bg-orange-500' },
   { label: t('dashboard.manager.stats.team_submissions'), value: statsSummary.value?.daily_received || 0, trend: '+0%', trendUp: true, progress: Math.min((statsSummary.value?.daily_received || 0) * 5, 100), barColor: 'bg-blue-600' },
-  { label: t('dashboard.manager.stats.avg_approval_time'), value: '2.3h', trend: '-0h', trendUp: true, progress: 30, barColor: 'bg-primary-500' },
+  { label: t('dashboard.manager.stats.my_submissions'), value: statsSummary.value?.my_submissions || 0, trend: '+0%', trendUp: true, progress: Math.min((statsSummary.value?.my_submissions || 0) * 20, 100), barColor: 'bg-green-500' },
+  { label: t('dashboard.manager.stats.avg_approval_time'), value: formatTime(statsSummary.value?.avg_approval_time), trend: '-0h', trendUp: true, progress: 30, barColor: 'bg-primary-500' },
 ])
 
-const topSubmitters = [
-  { rank: '01', name: 'Indra M.', count: '0', avatar: '' },
-  { rank: '02', name: 'Maya A.', count: '0', avatar: '' },
-  { rank: '03', name: 'Dedi K.', count: '0', avatar: '' },
-]
+const formatTime = (seconds) => {
+  if (!seconds || seconds <= 0) return '0h'
+  if (seconds < 3600) return `${(seconds / 60).toFixed(1)}m`
+  return `${(seconds / 3600).toFixed(1)}h`
+}
+
+const filteredTasks = computed(() => {
+  const tasks = dashboardData.value?.tasks || []
+  if (activeTab.value === 'urgent') {
+    return tasks.filter(t => t.level > 1)
+  }
+  if (activeTab.value === 'normal') {
+    return tasks.filter(t => t.level <= 1)
+  }
+  return tasks
+})
+
+const navigateToDocument = (item) => {
+  const id = item.entity_id || item.id
+  if (!id) return
+  
+  console.log('[ManagerView] Navigating to approval for:', id)
+  navigateTo(`/approvals/${id}`)
+}
+
+const topSubmitters = computed(() => {
+  return (dashboardData.value?.top_submitters || []).map((s, i) => ({
+    rank: (i + 1).toString().padStart(2, '0'),
+    name: s.name,
+    count: s.count.toString(),
+    avatar: s.avatar || ''
+  }))
+})
 
 const bulkActions = [
   { label: t('dashboard.manager.bulk_actions.items.bulk_approve.label'), desc: t('dashboard.manager.bulk_actions.items.bulk_approve.desc'), icon: LucideLayoutGrid },

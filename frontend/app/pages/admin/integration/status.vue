@@ -25,7 +25,7 @@
     <!-- Stats Grid -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
       <div v-for="(stat, i) in stats" :key="i" 
-        class="glass p-10 rounded-[2.5rem] relative overflow-hidden group border-l-8"
+        class="glass p-10 rounded-lg relative overflow-hidden group border-l-8"
         :class="stat.borderClass"
         v-motion-slide-visible-bottom
         :delay="i * 100"

@@ -92,18 +92,19 @@ func (q *Queries) CreateBranch(ctx context.Context, arg CreateBranchParams) (Bra
 }
 
 const createCompany = `-- name: CreateCompany :one
-INSERT INTO companies (name, entity_id, npwp_status, location, status, address)
-VALUES ($1, $2, $3, $4, $5, $6)
-RETURNING id, name, address, created_at, entity_id, npwp_status, location, status
+INSERT INTO companies (name, entity_id, npwp_status, location, status, address, delivery_instructions)
+VALUES ($1, $2, $3, $4, $5, $6, $7)
+RETURNING id, name, address, created_at, entity_id, npwp_status, location, status, logo_url, delivery_instructions
 `
 
 type CreateCompanyParams struct {
-	Name       string      `json:"name"`
-	EntityID   pgtype.Text `json:"entity_id"`
-	NpwpStatus pgtype.Text `json:"npwp_status"`
-	Location   pgtype.Text `json:"location"`
-	Status     pgtype.Text `json:"status"`
-	Address    pgtype.Text `json:"address"`
+	Name                 string      `json:"name"`
+	EntityID             pgtype.Text `json:"entity_id"`
+	NpwpStatus           pgtype.Text `json:"npwp_status"`
+	Location             pgtype.Text `json:"location"`
+	Status               pgtype.Text `json:"status"`
+	Address              pgtype.Text `json:"address"`
+	DeliveryInstructions pgtype.Text `json:"delivery_instructions"`
 }
 
 func (q *Queries) CreateCompany(ctx context.Context, arg CreateCompanyParams) (Company, error) {
@@ -114,6 +115,7 @@ func (q *Queries) CreateCompany(ctx context.Context, arg CreateCompanyParams) (C
 		arg.Location,
 		arg.Status,
 		arg.Address,
+		arg.DeliveryInstructions,
 	)
 	var i Company
 	err := row.Scan(
@@ -125,6 +127,8 @@ func (q *Queries) CreateCompany(ctx context.Context, arg CreateCompanyParams) (C
 		&i.NpwpStatus,
 		&i.Location,
 		&i.Status,
+		&i.LogoUrl,
+		&i.DeliveryInstructions,
 	)
 	return i, err
 }
@@ -479,7 +483,7 @@ func (q *Queries) GetBranch(ctx context.Context, id uuid.UUID) (Branch, error) {
 }
 
 const getCompany = `-- name: GetCompany :one
-SELECT id, name, address, created_at, entity_id, npwp_status, location, status FROM companies WHERE id = $1
+SELECT id, name, address, created_at, entity_id, npwp_status, location, status, logo_url, delivery_instructions FROM companies WHERE id = $1
 `
 
 func (q *Queries) GetCompany(ctx context.Context, id uuid.UUID) (Company, error) {
@@ -494,6 +498,8 @@ func (q *Queries) GetCompany(ctx context.Context, id uuid.UUID) (Company, error)
 		&i.NpwpStatus,
 		&i.Location,
 		&i.Status,
+		&i.LogoUrl,
+		&i.DeliveryInstructions,
 	)
 	return i, err
 }
@@ -1068,7 +1074,7 @@ func (q *Queries) ListBranches(ctx context.Context, companyID uuid.UUID) ([]Bran
 }
 
 const listCompanies = `-- name: ListCompanies :many
-SELECT id, name, address, created_at, entity_id, npwp_status, location, status FROM companies ORDER BY name
+SELECT id, name, address, created_at, entity_id, npwp_status, location, status, logo_url, delivery_instructions FROM companies ORDER BY name
 `
 
 // Companies
@@ -1090,6 +1096,8 @@ func (q *Queries) ListCompanies(ctx context.Context) ([]Company, error) {
 			&i.NpwpStatus,
 			&i.Location,
 			&i.Status,
+			&i.LogoUrl,
+			&i.DeliveryInstructions,
 		); err != nil {
 			return nil, err
 		}
@@ -1468,19 +1476,21 @@ UPDATE companies SET
     npwp_status = $4, 
     location = $5, 
     status = $6, 
-    address = $7
+    address = $7,
+    delivery_instructions = $8
 WHERE id = $1
-RETURNING id, name, address, created_at, entity_id, npwp_status, location, status
+RETURNING id, name, address, created_at, entity_id, npwp_status, location, status, logo_url, delivery_instructions
 `
 
 type UpdateCompanyParams struct {
-	ID         uuid.UUID   `json:"id"`
-	Name       string      `json:"name"`
-	EntityID   pgtype.Text `json:"entity_id"`
-	NpwpStatus pgtype.Text `json:"npwp_status"`
-	Location   pgtype.Text `json:"location"`
-	Status     pgtype.Text `json:"status"`
-	Address    pgtype.Text `json:"address"`
+	ID                   uuid.UUID   `json:"id"`
+	Name                 string      `json:"name"`
+	EntityID             pgtype.Text `json:"entity_id"`
+	NpwpStatus           pgtype.Text `json:"npwp_status"`
+	Location             pgtype.Text `json:"location"`
+	Status               pgtype.Text `json:"status"`
+	Address              pgtype.Text `json:"address"`
+	DeliveryInstructions pgtype.Text `json:"delivery_instructions"`
 }
 
 func (q *Queries) UpdateCompany(ctx context.Context, arg UpdateCompanyParams) (Company, error) {
@@ -1492,6 +1502,7 @@ func (q *Queries) UpdateCompany(ctx context.Context, arg UpdateCompanyParams) (C
 		arg.Location,
 		arg.Status,
 		arg.Address,
+		arg.DeliveryInstructions,
 	)
 	var i Company
 	err := row.Scan(
@@ -1503,8 +1514,24 @@ func (q *Queries) UpdateCompany(ctx context.Context, arg UpdateCompanyParams) (C
 		&i.NpwpStatus,
 		&i.Location,
 		&i.Status,
+		&i.LogoUrl,
+		&i.DeliveryInstructions,
 	)
 	return i, err
+}
+
+const updateCompanyLogo = `-- name: UpdateCompanyLogo :exec
+UPDATE companies SET logo_url = $2 WHERE id = $1
+`
+
+type UpdateCompanyLogoParams struct {
+	ID      uuid.UUID   `json:"id"`
+	LogoUrl pgtype.Text `json:"logo_url"`
+}
+
+func (q *Queries) UpdateCompanyLogo(ctx context.Context, arg UpdateCompanyLogoParams) error {
+	_, err := q.db.Exec(ctx, updateCompanyLogo, arg.ID, arg.LogoUrl)
+	return err
 }
 
 const updateDepartment = `-- name: UpdateDepartment :one

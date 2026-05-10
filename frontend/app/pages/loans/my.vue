@@ -40,7 +40,7 @@
       </div>
 
       <!-- Table Card -->
-      <div class="glass rounded-[2.5rem] bg-white border border-slate-100 shadow-2xl shadow-slate-200/50 overflow-hidden">
+      <div class="glass rounded-lg bg-white border border-slate-100 shadow-2xl shadow-slate-200/50 overflow-hidden">
         <table class="w-full text-left">
           <thead>
             <tr class="bg-slate-50/50 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100">
@@ -93,7 +93,7 @@
           </div>
 
           <!-- Time Remaining Big Card -->
-          <div class="p-8 bg-orange-50/50 border border-orange-100 rounded-[2.5rem] text-center space-y-4">
+          <div class="p-8 bg-orange-50/50 border border-orange-100 rounded-lg text-center space-y-4">
             <p class="text-[10px] font-black text-orange-400 uppercase tracking-widest">{{ $t('loans.my.detail.time_remaining') }}</p>
             <div class="space-y-1">
               <p class="text-4xl font-black text-orange-500">{{ selectedLoan.remainingText }}</p>
@@ -237,7 +237,7 @@
             </div>
 
             <!-- Info Box -->
-            <div class="p-6 bg-blue-50/50 border border-blue-100 rounded-[2rem] flex gap-4 items-start">
+            <div class="p-6 bg-blue-50/50 border border-blue-100 rounded-lg flex gap-4 items-start">
               <LucideInfo class="w-5 h-5 text-blue-500 shrink-0 mt-0.5" />
               <p class="text-[11px] font-bold text-slate-500 leading-relaxed">
                 {{ $t('loans.my.modal.info_box') }}

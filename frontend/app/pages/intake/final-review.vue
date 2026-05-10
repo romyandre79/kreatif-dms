@@ -66,7 +66,7 @@
 
         <!-- Verification Preview -->
         <div class="glass p-10 rounded-[4rem] shadow-sm border border-slate-50 dark:border-slate-800 bg-slate-900 overflow-hidden relative group">
-          <div class="aspect-video bg-slate-800 rounded-[2.5rem] flex items-center justify-center relative overflow-hidden">
+          <div class="aspect-video bg-slate-800 rounded-lg flex items-center justify-center relative overflow-hidden">
             <!-- Digital Twin Lines -->
             <div class="absolute inset-0 opacity-10 pointer-events-none">
               <div class="absolute top-0 left-0 w-full h-full grid grid-cols-12 gap-1">
@@ -103,11 +103,11 @@
           </div>
 
           <div class="space-y-6">
-            <button class="w-full py-6 bg-[#1E3A5F] text-white rounded-[2rem] text-sm font-black uppercase tracking-widest shadow-2xl shadow-blue-900/40 hover:bg-[#152943] transition-all flex items-center justify-center gap-6 active:scale-95 group">
+            <button class="w-full py-6 bg-[#1E3A5F] text-white rounded-lg text-sm font-black uppercase tracking-widest shadow-2xl shadow-blue-900/40 hover:bg-[#152943] transition-all flex items-center justify-center gap-6 active:scale-95 group">
               <LucideSend class="w-6 h-6 group-hover:translate-x-2 group-hover:-translate-y-2 transition-transform" />
               {{ $t('intake.final_review.controls.commit') }}
             </button>
-            <button class="w-full py-6 bg-slate-100 dark:bg-slate-800 text-[#1E3A5F] dark:text-white rounded-[2rem] text-sm font-black uppercase tracking-widest hover:bg-slate-200 transition-all flex items-center justify-center gap-6 active:scale-95 group">
+            <button class="w-full py-6 bg-slate-100 dark:bg-slate-800 text-[#1E3A5F] dark:text-white rounded-lg text-sm font-black uppercase tracking-widest hover:bg-slate-200 transition-all flex items-center justify-center gap-6 active:scale-95 group">
               <LucideUsers class="w-6 h-6" />
               {{ $t('intake.final_review.controls.supervisor') }}
             </button>

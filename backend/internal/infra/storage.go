@@ -6,12 +6,15 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"strings"
 
+	"crypto/sha256"
+	"bytes"
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
-	"github.com/minio/minio-go/v7/pkg/encrypt"
 	"github.com/kreatif/dms-backend/internal/config"
 	"github.com/kreatif/dms-backend/internal/repository"
+	"github.com/kreatif/dms-backend/pkg/utils"
 )
 
 type StorageService struct {
@@ -97,16 +100,37 @@ func (s *StorageService) Upload(ctx context.Context, objectName string, reader i
 	}
 
 	log.Printf("[StorageService] Uploading object: %s (Size: %d, Type: %s) to bucket %s", objectName, size, contentType, bucket)
+	
+	finalReader := reader
+	finalSize := size
+	metadata := make(map[string]string)
+
+	if encryptFile && s.cfg.StorageEncryptionKey != "" {
+		log.Printf("[StorageService] Applying Client-Side AES-256-GCM encryption")
+		
+		// Read entire content to encrypt (Note: For very large files, this uses RAM)
+		data, err := io.ReadAll(reader)
+		if err != nil {
+			return minio.UploadInfo{}, fmt.Errorf("failed to read data for encryption: %v", err)
+		}
+
+		key := sha256.Sum256([]byte(s.cfg.StorageEncryptionKey))
+		encryptedData, err := utils.EncryptAES256(data, key[:])
+		if err != nil {
+			return minio.UploadInfo{}, fmt.Errorf("encryption failed: %v", err)
+		}
+
+		finalReader = bytes.NewReader(encryptedData)
+		finalSize = int64(len(encryptedData))
+		metadata["X-Amz-Meta-Encrypted"] = "true"
+	}
+
 	opts := minio.PutObjectOptions{
-		ContentType: contentType,
+		ContentType:  contentType,
+		UserMetadata: metadata,
 	}
 
-	if encryptFile {
-		// Using SSE-S3 (Managed by MinIO)
-		opts.ServerSideEncryption = encrypt.NewSSE()
-	}
-
-	info, err := client.PutObject(ctx, bucket, objectName, reader, size, opts)
+	info, err := client.PutObject(ctx, bucket, objectName, finalReader, finalSize, opts)
 	if err != nil {
 		log.Printf("[StorageService] Error uploading object %s: %v", objectName, err)
 		return info, err
@@ -123,7 +147,49 @@ func (s *StorageService) Download(ctx context.Context, objectName string) (io.Re
 	}
 
 	log.Printf("[StorageService] Downloading object: %s from bucket %s", objectName, bucket)
-	return client.GetObject(ctx, bucket, objectName, minio.GetObjectOptions{})
+	
+	// Get object info first to check if it's encrypted
+	objInfo, err := client.StatObject(ctx, bucket, objectName, minio.StatObjectOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	rawObj, err := client.GetObject(ctx, bucket, objectName, minio.GetObjectOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	// Check if it was encrypted by us (keys are often lowercased by S3/MinIO)
+	isEncrypted := false
+	for k, v := range objInfo.UserMetadata {
+		if strings.EqualFold(k, "X-Amz-Meta-Encrypted") && v == "true" {
+			isEncrypted = true
+			break
+		}
+		if strings.EqualFold(k, "Encrypted") && v == "true" {
+			isEncrypted = true
+			break
+		}
+	}
+
+	if isEncrypted && s.cfg.StorageEncryptionKey != "" {
+		log.Printf("[StorageService] Decrypting object: %s", objectName)
+		data, err := io.ReadAll(rawObj)
+		rawObj.Close()
+		if err != nil {
+			return nil, fmt.Errorf("failed to read encrypted data: %v", err)
+		}
+
+		key := sha256.Sum256([]byte(s.cfg.StorageEncryptionKey))
+		decryptedData, err := utils.DecryptAES256(data, key[:])
+		if err != nil {
+			return nil, fmt.Errorf("decryption failed: %v", err)
+		}
+
+		return io.NopCloser(bytes.NewReader(decryptedData)), nil
+	}
+	
+	return rawObj, nil
 }
 
 func (s *StorageService) Delete(ctx context.Context, objectName string) error {

@@ -48,7 +48,7 @@
     </div>
 
     <!-- Approvals Table -->
-    <div class="glass rounded-[2rem] overflow-hidden shadow-xl shadow-slate-200/50 dark:shadow-none" v-motion-fade>
+    <div class="glass rounded-lg overflow-hidden shadow-xl shadow-slate-200/50 dark:shadow-none" v-motion-fade>
       <table class="w-full text-left border-collapse">
         <thead>
           <tr class="bg-slate-50/50 dark:bg-slate-900/50 border-b border-slate-100 dark:border-slate-800">

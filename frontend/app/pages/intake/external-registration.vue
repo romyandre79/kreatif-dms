@@ -75,7 +75,7 @@
             </div>
             <div class="col-span-2 space-y-3">
               <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest">{{ $t('intake.external.form.subject') }}</label>
-              <textarea class="w-full p-6 bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-[2rem] text-xs font-bold leading-relaxed outline-none h-24 resize-none uppercase">Permohonan Kerjasama Infrastruktur Jaringan Tahap II - Wilayah Jabodetabek</textarea>
+              <textarea class="w-full p-6 bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-lg text-xs font-bold leading-relaxed outline-none h-24 resize-none uppercase">Permohonan Kerjasama Infrastruktur Jaringan Tahap II - Wilayah Jabodetabek</textarea>
             </div>
           </div>
         </div>
@@ -111,7 +111,7 @@
             </div>
 
             <!-- Main Scan View -->
-            <div class="col-span-8 bg-slate-50 dark:bg-slate-950 rounded-[2.5rem] p-10 h-[600px] overflow-y-auto custom-scrollbar relative border border-slate-100 dark:border-slate-800">
+            <div class="col-span-8 bg-slate-50 dark:bg-slate-950 rounded-lg p-10 h-[600px] overflow-y-auto custom-scrollbar relative border border-slate-100 dark:border-slate-800">
               <div class="bg-white shadow-2xl p-12 space-y-10 min-h-[1000px] relative">
                 <!-- Watermark/Skeleton doc -->
                 <div class="h-20 bg-slate-800/80 w-1/3 mb-10"></div>

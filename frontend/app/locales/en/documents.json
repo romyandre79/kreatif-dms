@@ -63,6 +63,47 @@
         "result_3_name": "Office Cleanliness SOP",
         "result_3_snippet": "Standard operating procedure regarding cleanliness management and maintenance of the head office building..."
       }
+    },
+    "detail": {
+      "btn_back": "Back",
+      "viewer": {
+        "page": "Page",
+        "no_preview": "Preview not available for this file type"
+      },
+      "loading": "Loading document data...",
+      "actions": {
+        "available": "Available",
+        "add_to_cart": "Add to Cart",
+        "request_digital": "Request Digital",
+        "more": "More"
+      },
+      "metadata": {
+        "title": "Document Metadata",
+        "labels": {
+          "doc_type": "Document Type",
+          "company": "Company",
+          "department": "Department",
+          "year": "Year",
+          "date_issued": "Date Issued",
+          "retention": "Retention",
+          "version": "Version"
+        },
+        "no_tags": "No tags"
+      },
+      "location": {
+        "title": "Physical Location",
+        "building_room": "Building / Room",
+        "cabinet_shelf": "Cabinet / Shelf",
+        "scan": "Scan Location"
+      },
+      "related": {
+        "title": "Related Documents"
+      },
+      "loan_history": {
+        "title": "Loan History",
+        "returned": "Returned by {name} on {date}",
+        "duration": "Duration {days} days"
+      }
     }
   }
 }

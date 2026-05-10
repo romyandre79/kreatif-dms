@@ -15,7 +15,7 @@ INSERT INTO system_modules (id, name, category, path, icon, allowed_actions, sor
 VALUES 
 ('dashboard', 'Dashboard', 'Dashboard', '/dashboard', 'LucideLayoutDashboard', ARRAY['VIEW'], 1),
 ('search', 'Pencarian', 'Search', '/documents', 'LucideSearch', ARRAY['VIEW'], 2),
-('submit', 'Ajukan Dokumen', 'Registration', '/registration/new', 'LucideUpload', ARRAY['VIEW', 'CREATE'], 3),
+('submit', 'Ajukan Dokumen', 'Registration', '/documents/upload', 'LucideUpload', ARRAY['VIEW', 'CREATE'], 3),
 ('loans', 'Pinjaman Saya', 'Circulation', '/circulation/checkout', 'LucideFileText', ARRAY['VIEW'], 4),
 ('tracking', 'Pelacakan Dokumen', 'Warehouse', '/warehouse/labels', 'LucideQrCode', ARRAY['VIEW'], 5)
 ON CONFLICT (id) DO UPDATE SET 

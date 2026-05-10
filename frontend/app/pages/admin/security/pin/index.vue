@@ -4,7 +4,7 @@
       <!-- Left Sidebar -->
       <div class="lg:w-[380px] space-y-6">
         <!-- Compliance Summary -->
-        <div class="bg-white dark:bg-[#0D121F] rounded-[2rem] p-8 shadow-sm border border-slate-100 dark:border-slate-800" v-motion-slide-visible-bottom>
+        <div class="bg-white dark:bg-[#0D121F] rounded-lg p-8 shadow-sm border border-slate-100 dark:border-slate-800" v-motion-slide-visible-bottom>
           <p class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-6">RINGKASAN KEPATUHAN</p>
           <div class="grid grid-cols-2 gap-8 mb-8">
             <div class="space-y-1">
@@ -23,7 +23,7 @@
         </div>
 
         <!-- Rules Enforcement -->
-        <div class="bg-white dark:bg-[#0D121F] rounded-[2rem] p-8 shadow-sm border border-slate-100 dark:border-slate-800" v-motion-slide-visible-bottom>
+        <div class="bg-white dark:bg-[#0D121F] rounded-lg p-8 shadow-sm border border-slate-100 dark:border-slate-800" v-motion-slide-visible-bottom>
           <div class="flex items-center justify-between mb-8">
             <div class="flex items-center gap-3">
               <LucideShieldCheck class="w-5 h-5 text-primary-500" />
@@ -58,7 +58,7 @@
         </div>
 
         <!-- PIN Preview / Info -->
-        <div class="bg-[#EDF1F7] dark:bg-[#151B2B] rounded-[2rem] p-8 shadow-sm border border-slate-200/50 dark:border-slate-800" v-motion-slide-visible-bottom>
+        <div class="bg-[#EDF1F7] dark:bg-[#151B2B] rounded-lg p-8 shadow-sm border border-slate-200/50 dark:border-slate-800" v-motion-slide-visible-bottom>
           <p class="text-[10px] font-black uppercase tracking-[0.2em] text-center text-slate-400 mb-8">KEAMANAN BERLAPIS</p>
           <div class="space-y-6">
             <div class="flex items-center gap-4 p-4 bg-white dark:bg-[#1E2538] rounded-2xl shadow-sm">
@@ -85,7 +85,7 @@
 
       <!-- Main Content -->
       <div class="flex-1">
-        <div class="bg-white dark:bg-[#0D121F] rounded-[2.5rem] shadow-sm border border-slate-100 dark:border-slate-800 overflow-hidden" v-motion-slide-visible-bottom>
+        <div class="bg-white dark:bg-[#0D121F] rounded-lg shadow-sm border border-slate-100 dark:border-slate-800 overflow-hidden" v-motion-slide-visible-bottom>
           <div class="p-10 border-b border-slate-100 dark:border-slate-800">
             <div class="flex items-start justify-between mb-8">
               <div>
@@ -163,7 +163,7 @@
                   </tr>
                   <tr v-if="filteredUsers.length === 0">
                     <td colspan="6" class="py-32 text-center">
-                      <div class="w-20 h-20 bg-slate-50 dark:bg-slate-800/50 rounded-[2rem] flex items-center justify-center mx-auto mb-6">
+                      <div class="w-20 h-20 bg-slate-50 dark:bg-slate-800/50 rounded-lg flex items-center justify-center mx-auto mb-6">
                         <LucideShieldCheck class="w-8 h-8 text-slate-200 dark:text-slate-700" />
                       </div>
                       <p class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">No authorized users found</p>

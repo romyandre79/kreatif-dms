@@ -115,7 +115,7 @@
                   maxlength="1000"
                   :placeholder="$t('retention.batch.notes.placeholder')" 
                   rows="6" 
-                  class="w-full p-10 bg-slate-50/50 border border-slate-100 rounded-[2.5rem] text-sm font-medium text-slate-600 outline-none focus:ring-4 focus:ring-primary-500/5 focus:border-primary-500 transition-all resize-none"></textarea>
+                  class="w-full p-10 bg-slate-50/50 border border-slate-100 rounded-lg text-sm font-medium text-slate-600 outline-none focus:ring-4 focus:ring-primary-500/5 focus:border-primary-500 transition-all resize-none"></textarea>
         
         <div class="flex items-center justify-between px-2">
           <p class="text-[10px] font-bold text-slate-300 uppercase tracking-widest">

@@ -5,6 +5,9 @@ export const useApi = () => {
   const config = useRuntimeConfig()
 
   const fetchWithAuth = async (url: string, options: any = {}) => {
+    // Auto-prepend apiBase if relative URL
+    const fullUrl = url.startsWith('http') ? url : `${config.public.apiBase}${url.startsWith('/') ? url : '/' + url}`
+
     // Add auth header if token exists
     if (auth.accessToken) {
       options.headers = {
@@ -14,7 +17,7 @@ export const useApi = () => {
     }
 
     try {
-      const response = await $fetch.raw(url, options)
+      const response = await $fetch.raw(fullUrl, options)
       return response._data
     } catch (err: any) {
       // Handle 401 Unauthorized

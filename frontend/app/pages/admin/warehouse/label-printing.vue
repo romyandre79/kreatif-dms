@@ -125,7 +125,7 @@
             </div>
 
             <!-- Current Operation -->
-            <div class="p-8 bg-slate-50/50 dark:bg-slate-900/50 rounded-[2.5rem] border border-slate-100 dark:border-slate-800 space-y-6">
+            <div class="p-8 bg-slate-50/50 dark:bg-slate-900/50 rounded-lg border border-slate-100 dark:border-slate-800 space-y-6">
               <h4 class="text-[9px] font-black text-slate-400 uppercase tracking-widest">{{ $t('warehouse.printing.execution.detail.title') }}</h4>
               <div class="flex items-start justify-between">
                 <div class="flex items-center gap-6">
@@ -154,7 +154,7 @@
             { id: 'speed', val: '2.4', unit: 'lbl/sec' },
             { id: 'temp', val: '42.5', unit: '°C' },
             { id: 'retries', val: '4', color: 'text-red-500' }
-          ]" :key="s.id" class="glass p-8 rounded-[2.5rem] space-y-2 text-center border border-slate-50 dark:border-slate-800">
+          ]" :key="s.id" class="glass p-8 rounded-lg space-y-2 text-center border border-slate-50 dark:border-slate-800">
             <p class="text-[8px] font-black text-slate-400 uppercase tracking-widest">{{ $t(`warehouse.printing.execution.stats.${s.id}`) }}</p>
             <p :class="`text-2xl font-black ${s.color || 'text-[#1E3A5F] dark:text-white'} tracking-tighter`">{{ s.val }}<span v-if="s.unit" class="text-[10px] ml-1">{{ s.unit }}</span></p>
           </div>

@@ -23,6 +23,17 @@ type ActivityLog struct {
 	CreatedAt  pgtype.Timestamptz `json:"created_at"`
 }
 
+type Announcement struct {
+	ID        uuid.UUID          `json:"id"`
+	Title     string             `json:"title"`
+	Message   string             `json:"message"`
+	Notes     pgtype.Text        `json:"notes"`
+	IsActive  bool               `json:"is_active"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
+	CreatedBy pgtype.UUID        `json:"created_by"`
+}
+
 type ApprovalWorkflow struct {
 	ID              uuid.UUID          `json:"id"`
 	EntityType      string             `json:"entity_type"`
@@ -114,14 +125,16 @@ type Branch struct {
 }
 
 type Company struct {
-	ID         uuid.UUID          `json:"id"`
-	Name       string             `json:"name"`
-	Address    pgtype.Text        `json:"address"`
-	CreatedAt  pgtype.Timestamptz `json:"created_at"`
-	EntityID   pgtype.Text        `json:"entity_id"`
-	NpwpStatus pgtype.Text        `json:"npwp_status"`
-	Location   pgtype.Text        `json:"location"`
-	Status     pgtype.Text        `json:"status"`
+	ID                   uuid.UUID          `json:"id"`
+	Name                 string             `json:"name"`
+	Address              pgtype.Text        `json:"address"`
+	CreatedAt            pgtype.Timestamptz `json:"created_at"`
+	EntityID             pgtype.Text        `json:"entity_id"`
+	NpwpStatus           pgtype.Text        `json:"npwp_status"`
+	Location             pgtype.Text        `json:"location"`
+	Status               pgtype.Text        `json:"status"`
+	LogoUrl              pgtype.Text        `json:"logo_url"`
+	DeliveryInstructions pgtype.Text        `json:"delivery_instructions"`
 }
 
 type ComplianceCheck struct {
@@ -231,6 +244,7 @@ type Document struct {
 	CirculationID       pgtype.UUID        `json:"circulation_id"`
 	MinioBucket         pgtype.Text        `json:"minio_bucket"`
 	EsIndexed           pgtype.Bool        `json:"es_indexed"`
+	TypeID              pgtype.UUID        `json:"type_id"`
 }
 
 type DocumentCirculation struct {

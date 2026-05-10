@@ -8,7 +8,9 @@ if not exist %OUT_DIR% mkdir %OUT_DIR%
 echo [INFO] Starting multi-OS build for Server and Worker...
 
 :: Define platforms to build: OS/ARCH
-set PLATFORMS=windows/amd64 windows/arm64 linux/amd64 linux/arm64 darwin/amd64 darwin/arm64
+set PLATFORMS=windows/amd64 linux/amd64 
+
+::darwin/amd64 darwin/arm64
 
 for %%P in (%PLATFORMS%) do (
     for /f "tokens=1,2 delims=/" %%A in ("%%P") do (

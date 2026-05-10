@@ -98,31 +98,60 @@ func (s *MasterService) ListCompanies(ctx context.Context) ([]repository.Company
 	return s.repo.ListCompanies(ctx)
 }
 
-func (s *MasterService) CreateCompany(ctx context.Context, name, entityID, npwpStatus, location, status, address string) (repository.Company, error) {
+func (s *MasterService) CreateCompany(ctx context.Context, name, entityID, npwpStatus, location, status, address, deliveryInstructions string) (repository.Company, error) {
 	return s.repo.CreateCompany(ctx, repository.CreateCompanyParams{
-		Name:       name,
-		EntityID:   pgtype.Text{String: entityID, Valid: entityID != ""},
-		NpwpStatus: pgtype.Text{String: npwpStatus, Valid: npwpStatus != ""},
-		Location:   pgtype.Text{String: location, Valid: location != ""},
-		Status:     pgtype.Text{String: status, Valid: status != ""},
-		Address:    pgtype.Text{String: address, Valid: address != ""},
+		Name:                 name,
+		EntityID:             pgtype.Text{String: entityID, Valid: entityID != ""},
+		NpwpStatus:           pgtype.Text{String: npwpStatus, Valid: npwpStatus != ""},
+		Location:             pgtype.Text{String: location, Valid: location != ""},
+		Status:               pgtype.Text{String: status, Valid: status != ""},
+		Address:              pgtype.Text{String: address, Valid: address != ""},
+		DeliveryInstructions: pgtype.Text{String: deliveryInstructions, Valid: deliveryInstructions != ""},
 	})
 }
 
-func (s *MasterService) UpdateCompany(ctx context.Context, id uuid.UUID, name, entityID, npwpStatus, location, status, address string) (repository.Company, error) {
+func (s *MasterService) UpdateCompany(ctx context.Context, id uuid.UUID, name, entityID, npwpStatus, location, status, address, deliveryInstructions string) (repository.Company, error) {
 	return s.repo.UpdateCompany(ctx, repository.UpdateCompanyParams{
-		ID:         id,
-		Name:       name,
-		EntityID:   pgtype.Text{String: entityID, Valid: entityID != ""},
-		NpwpStatus: pgtype.Text{String: npwpStatus, Valid: npwpStatus != ""},
-		Location:   pgtype.Text{String: location, Valid: location != ""},
-		Status:     pgtype.Text{String: status, Valid: status != ""},
-		Address:    pgtype.Text{String: address, Valid: address != ""},
+		ID:                   id,
+		Name:                 name,
+		EntityID:             pgtype.Text{String: entityID, Valid: entityID != ""},
+		NpwpStatus:           pgtype.Text{String: npwpStatus, Valid: npwpStatus != ""},
+		Location:             pgtype.Text{String: location, Valid: location != ""},
+		Status:               pgtype.Text{String: status, Valid: status != ""},
+		Address:              pgtype.Text{String: address, Valid: address != ""},
+		DeliveryInstructions: pgtype.Text{String: deliveryInstructions, Valid: deliveryInstructions != ""},
 	})
 }
 
 func (s *MasterService) DeleteCompany(ctx context.Context, id uuid.UUID) error {
 	return s.repo.DeleteCompany(ctx, id)
+}
+
+func (s *MasterService) UploadCompanyLogo(ctx context.Context, id uuid.UUID, file io.Reader, fileName string) (string, error) {
+	// 1. Check encryption setting
+	encryptEnabled := false
+	encSetting, err := s.repo.GetSystemSetting(ctx, repository.GetSystemSettingParams{
+		Category: "storage",
+		Key:      "encryption_enabled",
+	})
+	if err == nil && encSetting.Value.String == "true" {
+		encryptEnabled = true
+	}
+
+	// 2. Upload to storage (MinIO)
+	objectPath := fmt.Sprintf("companies/%s/logo/%s", id, fileName)
+	_, err = s.storageSvc.Upload(ctx, objectPath, file, -1, "image/png", encryptEnabled)
+	if err != nil {
+		return "", err
+	}
+
+	// 3. Update DB
+	err = s.repo.UpdateCompanyLogo(ctx, repository.UpdateCompanyLogoParams{
+		ID:      id,
+		LogoUrl: pgtype.Text{String: objectPath, Valid: true},
+	})
+	
+	return objectPath, err
 }
 
 func (s *MasterService) ExportCompanies(ctx context.Context) ([]byte, string, error) {
@@ -828,6 +857,41 @@ func (s *MasterService) UpdateSetting(ctx context.Context, category, key, value,
 		Description: pgtype.Text{String: desc, Valid: true},
 		UpdatedBy:   pgtype.UUID{Bytes: userID, Valid: true},
 	})
+}
+
+// Announcements Management
+func (s *MasterService) ListAnnouncements(ctx context.Context) ([]repository.Announcement, error) {
+	return s.repo.ListAnnouncements(ctx)
+}
+
+func (s *MasterService) CreateAnnouncement(ctx context.Context, title, message, notes string, isActive bool, userID uuid.UUID) (repository.Announcement, error) {
+	if isActive {
+		_ = s.repo.DeactivateAllAnnouncements(ctx)
+	}
+	return s.repo.CreateAnnouncement(ctx, repository.CreateAnnouncementParams{
+		Title:     title,
+		Message:   message,
+		Notes:     pgtype.Text{String: notes, Valid: true},
+		IsActive:  isActive,
+		CreatedBy: pgtype.UUID{Bytes: userID, Valid: true},
+	})
+}
+
+func (s *MasterService) UpdateAnnouncement(ctx context.Context, id uuid.UUID, title, message, notes string, isActive bool) (repository.Announcement, error) {
+	if isActive {
+		_ = s.repo.DeactivateAllAnnouncements(ctx)
+	}
+	return s.repo.UpdateAnnouncement(ctx, repository.UpdateAnnouncementParams{
+		ID:       id,
+		Title:    title,
+		Message:  message,
+		Notes:    pgtype.Text{String: notes, Valid: true},
+		IsActive: isActive,
+	})
+}
+
+func (s *MasterService) DeleteAnnouncement(ctx context.Context, id uuid.UUID) error {
+	return s.repo.DeleteAnnouncement(ctx, id)
 }
 
 // Warehouse Topology

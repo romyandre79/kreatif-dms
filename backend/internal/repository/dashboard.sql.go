@@ -12,13 +12,71 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const approveTask = `-- name: ApproveTask :exec
+UPDATE approval_workflows 
+SET status = 'approved', decided_at = NOW(), decision_note = $2
+WHERE entity_id = $1 AND status = 'pending'
+`
+
+type ApproveTaskParams struct {
+	EntityID     uuid.UUID   `json:"entity_id"`
+	DecisionNote pgtype.Text `json:"decision_note"`
+}
+
+func (q *Queries) ApproveTask(ctx context.Context, arg ApproveTaskParams) error {
+	_, err := q.db.Exec(ctx, approveTask, arg.EntityID, arg.DecisionNote)
+	return err
+}
+
+const createApprovalTask = `-- name: CreateApprovalTask :one
+INSERT INTO approval_workflows (
+    entity_type, entity_id, approver_id, level, status
+) VALUES (
+    $1, $2, $3, $4, 'pending'
+) RETURNING id, entity_type, entity_id, level, approver_id, status, decision_note, rejection_reason, requires_pin, pin_verified, decided_at, created_at
+`
+
+type CreateApprovalTaskParams struct {
+	EntityType string    `json:"entity_type"`
+	EntityID   uuid.UUID `json:"entity_id"`
+	ApproverID uuid.UUID `json:"approver_id"`
+	Level      int32     `json:"level"`
+}
+
+func (q *Queries) CreateApprovalTask(ctx context.Context, arg CreateApprovalTaskParams) (ApprovalWorkflow, error) {
+	row := q.db.QueryRow(ctx, createApprovalTask,
+		arg.EntityType,
+		arg.EntityID,
+		arg.ApproverID,
+		arg.Level,
+	)
+	var i ApprovalWorkflow
+	err := row.Scan(
+		&i.ID,
+		&i.EntityType,
+		&i.EntityID,
+		&i.Level,
+		&i.ApproverID,
+		&i.Status,
+		&i.DecisionNote,
+		&i.RejectionReason,
+		&i.RequiresPin,
+		&i.PinVerified,
+		&i.DecidedAt,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
 const getDailyStats = `-- name: GetDailyStats :one
 SELECT 
     (SELECT COUNT(*) FROM documents WHERE created_at >= CURRENT_DATE) as daily_received,
     (SELECT COUNT(*) FROM ocr_jobs WHERE completed_at >= CURRENT_DATE AND status = 'completed') as daily_scanned,
     (SELECT COUNT(*) FROM documents WHERE updated_at >= CURRENT_DATE AND status = 'active') as daily_processed,
     (SELECT COALESCE(SUM(file_size), 0) FROM documents) as total_storage_size,
-    (SELECT COUNT(*) FROM approval_workflows WHERE status = 'pending') as active_tasks
+    (SELECT COUNT(*) FROM approval_workflows WHERE status = 'pending') as active_tasks,
+    (SELECT COALESCE(AVG(EXTRACT(EPOCH FROM (decided_at - created_at))), 0)::float FROM approval_workflows WHERE status IN ('approved', 'rejected')) as avg_approval_time,
+    (SELECT COALESCE((COUNT(*) FILTER (WHERE decided_at - created_at <= (SELECT COALESCE(NULLIF(value, ''), '24') FROM system_settings WHERE key = 'sla_approval_hours')::int * interval '1 hour')::float / NULLIF(COUNT(*), 0)::float) * 100, 100)::float FROM approval_workflows WHERE status IN ('approved', 'rejected')) as compliance_rate
 `
 
 type GetDailyStatsRow struct {
@@ -27,6 +85,8 @@ type GetDailyStatsRow struct {
 	DailyProcessed   int64       `json:"daily_processed"`
 	TotalStorageSize interface{} `json:"total_storage_size"`
 	ActiveTasks      int64       `json:"active_tasks"`
+	AvgApprovalTime  float64     `json:"avg_approval_time"`
+	ComplianceRate   float64     `json:"compliance_rate"`
 }
 
 func (q *Queries) GetDailyStats(ctx context.Context) (GetDailyStatsRow, error) {
@@ -38,8 +98,184 @@ func (q *Queries) GetDailyStats(ctx context.Context) (GetDailyStatsRow, error) {
 		&i.DailyProcessed,
 		&i.TotalStorageSize,
 		&i.ActiveTasks,
+		&i.AvgApprovalTime,
+		&i.ComplianceRate,
 	)
 	return i, err
+}
+
+const getManagerDailyStats = `-- name: GetManagerDailyStats :one
+SELECT 
+    (SELECT COUNT(*) FROM documents d 
+     WHERE d.department_id IN (SELECT id FROM departments WHERE head_id = $1) 
+     AND (d.created_at AT TIME ZONE 'Asia/Jakarta')::date = (now() AT TIME ZONE 'Asia/Jakarta')::date) as daily_received,
+    (SELECT COUNT(*) FROM approval_workflows aw1 WHERE aw1.approver_id = $1 AND aw1.status = 'pending') as active_tasks,
+    (SELECT COUNT(*) FROM approval_workflows aw2 WHERE aw2.approver_id = $1 AND aw2.status IN ('approved', 'rejected') 
+     AND (aw2.decided_at AT TIME ZONE 'Asia/Jakarta')::date = (now() AT TIME ZONE 'Asia/Jakarta')::date) as daily_processed,
+    (SELECT COUNT(*) FROM documents d WHERE d.owner_id = $1 AND (d.created_at AT TIME ZONE 'Asia/Jakarta')::date = (now() AT TIME ZONE 'Asia/Jakarta')::date) as my_submissions,
+    (SELECT COALESCE(AVG(EXTRACT(EPOCH FROM (decided_at - created_at))), 0)::float FROM approval_workflows WHERE approver_id = $1 AND status IN ('approved', 'rejected')) as avg_approval_time,
+    (SELECT COALESCE((COUNT(*) FILTER (WHERE decided_at - created_at <= (SELECT COALESCE(NULLIF(value, ''), '24') FROM system_settings WHERE key = 'sla_approval_hours')::int * interval '1 hour')::float / NULLIF(COUNT(*), 0)::float) * 100, 100)::float FROM approval_workflows WHERE approver_id = $1 AND status IN ('approved', 'rejected')) as compliance_rate
+`
+
+type GetManagerDailyStatsRow struct {
+	DailyReceived   int64   `json:"daily_received"`
+	ActiveTasks     int64   `json:"active_tasks"`
+	DailyProcessed  int64   `json:"daily_processed"`
+	MySubmissions   int64   `json:"my_submissions"`
+	AvgApprovalTime float64 `json:"avg_approval_time"`
+	ComplianceRate  float64 `json:"compliance_rate"`
+}
+
+func (q *Queries) GetManagerDailyStats(ctx context.Context, headID pgtype.UUID) (GetManagerDailyStatsRow, error) {
+	row := q.db.QueryRow(ctx, getManagerDailyStats, headID)
+	var i GetManagerDailyStatsRow
+	err := row.Scan(
+		&i.DailyReceived,
+		&i.ActiveTasks,
+		&i.DailyProcessed,
+		&i.MySubmissions,
+		&i.AvgApprovalTime,
+		&i.ComplianceRate,
+	)
+	return i, err
+}
+
+const getManagerRecentActivities = `-- name: GetManagerRecentActivities :many
+SELECT 
+    a.id,
+    a.action,
+    a.entity_type,
+    a.entity_id,
+    a.details,
+    a.created_at,
+    u.full_name as user_name,
+    u.email as user_email
+FROM activity_logs a
+JOIN users u ON a.user_id = u.id
+WHERE u.department_id IN (SELECT id FROM departments WHERE head_id = $1)
+ORDER BY a.created_at DESC
+LIMIT $2
+`
+
+type GetManagerRecentActivitiesParams struct {
+	HeadID pgtype.UUID `json:"head_id"`
+	Limit  int32       `json:"limit"`
+}
+
+type GetManagerRecentActivitiesRow struct {
+	ID         uuid.UUID          `json:"id"`
+	Action     string             `json:"action"`
+	EntityType string             `json:"entity_type"`
+	EntityID   pgtype.UUID        `json:"entity_id"`
+	Details    []byte             `json:"details"`
+	CreatedAt  pgtype.Timestamptz `json:"created_at"`
+	UserName   string             `json:"user_name"`
+	UserEmail  string             `json:"user_email"`
+}
+
+func (q *Queries) GetManagerRecentActivities(ctx context.Context, arg GetManagerRecentActivitiesParams) ([]GetManagerRecentActivitiesRow, error) {
+	rows, err := q.db.Query(ctx, getManagerRecentActivities, arg.HeadID, arg.Limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetManagerRecentActivitiesRow
+	for rows.Next() {
+		var i GetManagerRecentActivitiesRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Action,
+			&i.EntityType,
+			&i.EntityID,
+			&i.Details,
+			&i.CreatedAt,
+			&i.UserName,
+			&i.UserEmail,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getManagerTopSubmitters = `-- name: GetManagerTopSubmitters :many
+SELECT 
+    u.full_name as name,
+    u.avatar_url as avatar,
+    COUNT(d.id) as count
+FROM users u
+LEFT JOIN documents d ON u.id = d.owner_id
+WHERE u.department_id IN (SELECT id FROM departments WHERE head_id = $1)
+GROUP BY u.id, u.full_name, u.avatar_url
+ORDER BY count DESC
+LIMIT $2
+`
+
+type GetManagerTopSubmittersParams struct {
+	HeadID pgtype.UUID `json:"head_id"`
+	Limit  int32       `json:"limit"`
+}
+
+type GetManagerTopSubmittersRow struct {
+	Name   string      `json:"name"`
+	Avatar pgtype.Text `json:"avatar"`
+	Count  int64       `json:"count"`
+}
+
+func (q *Queries) GetManagerTopSubmitters(ctx context.Context, arg GetManagerTopSubmittersParams) ([]GetManagerTopSubmittersRow, error) {
+	rows, err := q.db.Query(ctx, getManagerTopSubmitters, arg.HeadID, arg.Limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetManagerTopSubmittersRow
+	for rows.Next() {
+		var i GetManagerTopSubmittersRow
+		if err := rows.Scan(&i.Name, &i.Avatar, &i.Count); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getPendingCountsByType = `-- name: GetPendingCountsByType :many
+SELECT entity_type, COUNT(*) as count
+FROM approval_workflows
+WHERE approver_id = $1 AND status = 'pending'
+GROUP BY entity_type
+`
+
+type GetPendingCountsByTypeRow struct {
+	EntityType string `json:"entity_type"`
+	Count      int64  `json:"count"`
+}
+
+func (q *Queries) GetPendingCountsByType(ctx context.Context, approverID uuid.UUID) ([]GetPendingCountsByTypeRow, error) {
+	rows, err := q.db.Query(ctx, getPendingCountsByType, approverID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetPendingCountsByTypeRow
+	for rows.Next() {
+		var i GetPendingCountsByTypeRow
+		if err := rows.Scan(&i.EntityType, &i.Count); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const getPriorityTasks = `-- name: GetPriorityTasks :many
@@ -146,4 +382,218 @@ func (q *Queries) GetRecentActivities(ctx context.Context, limit int32) ([]GetRe
 		return nil, err
 	}
 	return items, nil
+}
+
+const getUserDailyStats = `-- name: GetUserDailyStats :one
+SELECT 
+    (SELECT COUNT(*) FROM documents d1 WHERE d1.owner_id = $1 AND (d1.created_at AT TIME ZONE 'Asia/Jakarta')::date = (now() AT TIME ZONE 'Asia/Jakarta')::date) as daily_received,
+    (SELECT COUNT(*) FROM borrow_requests br WHERE br.user_id = $1 AND br.status = 'active') as active_loans,
+    (SELECT COUNT(*) FROM approval_workflows aw JOIN documents d2 ON aw.entity_id = d2.id WHERE d2.owner_id = $1 AND aw.status = 'pending') as active_tasks,
+    (SELECT COUNT(*) FROM activity_logs al WHERE al.user_id = $1 AND al.action = 'SEARCH' AND (al.created_at AT TIME ZONE 'Asia/Jakarta')::date = (now() AT TIME ZONE 'Asia/Jakarta')::date) as search_count
+`
+
+type GetUserDailyStatsRow struct {
+	DailyReceived int64 `json:"daily_received"`
+	ActiveLoans   int64 `json:"active_loans"`
+	ActiveTasks   int64 `json:"active_tasks"`
+	SearchCount   int64 `json:"search_count"`
+}
+
+func (q *Queries) GetUserDailyStats(ctx context.Context, ownerID uuid.UUID) (GetUserDailyStatsRow, error) {
+	row := q.db.QueryRow(ctx, getUserDailyStats, ownerID)
+	var i GetUserDailyStatsRow
+	err := row.Scan(
+		&i.DailyReceived,
+		&i.ActiveLoans,
+		&i.ActiveTasks,
+		&i.SearchCount,
+	)
+	return i, err
+}
+
+const getUserLoanHistory = `-- name: GetUserLoanHistory :many
+SELECT 
+    br.id,
+    d.title as document_title,
+    br.borrow_date,
+    br.due_date,
+    br.status
+FROM borrow_requests br
+JOIN documents d ON br.document_id = d.id
+WHERE br.user_id = $1
+ORDER BY br.created_at DESC
+LIMIT $2
+`
+
+type GetUserLoanHistoryParams struct {
+	UserID uuid.UUID `json:"user_id"`
+	Limit  int32     `json:"limit"`
+}
+
+type GetUserLoanHistoryRow struct {
+	ID            uuid.UUID          `json:"id"`
+	DocumentTitle string             `json:"document_title"`
+	BorrowDate    pgtype.Timestamptz `json:"borrow_date"`
+	DueDate       pgtype.Timestamptz `json:"due_date"`
+	Status        string             `json:"status"`
+}
+
+func (q *Queries) GetUserLoanHistory(ctx context.Context, arg GetUserLoanHistoryParams) ([]GetUserLoanHistoryRow, error) {
+	rows, err := q.db.Query(ctx, getUserLoanHistory, arg.UserID, arg.Limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetUserLoanHistoryRow
+	for rows.Next() {
+		var i GetUserLoanHistoryRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.DocumentTitle,
+			&i.BorrowDate,
+			&i.DueDate,
+			&i.Status,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getUserPriorityTasks = `-- name: GetUserPriorityTasks :many
+SELECT 
+    id,
+    entity_type,
+    entity_id,
+    level,
+    status,
+    created_at
+FROM approval_workflows
+WHERE status = 'pending' AND (approver_id = $1)
+ORDER BY created_at ASC
+LIMIT $2
+`
+
+type GetUserPriorityTasksParams struct {
+	ApproverID uuid.UUID `json:"approver_id"`
+	Limit      int32     `json:"limit"`
+}
+
+type GetUserPriorityTasksRow struct {
+	ID         uuid.UUID          `json:"id"`
+	EntityType string             `json:"entity_type"`
+	EntityID   uuid.UUID          `json:"entity_id"`
+	Level      int32              `json:"level"`
+	Status     string             `json:"status"`
+	CreatedAt  pgtype.Timestamptz `json:"created_at"`
+}
+
+func (q *Queries) GetUserPriorityTasks(ctx context.Context, arg GetUserPriorityTasksParams) ([]GetUserPriorityTasksRow, error) {
+	rows, err := q.db.Query(ctx, getUserPriorityTasks, arg.ApproverID, arg.Limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetUserPriorityTasksRow
+	for rows.Next() {
+		var i GetUserPriorityTasksRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.EntityType,
+			&i.EntityID,
+			&i.Level,
+			&i.Status,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getUserRecentActivities = `-- name: GetUserRecentActivities :many
+SELECT 
+    a.id,
+    a.action,
+    a.entity_type,
+    a.entity_id,
+    a.details,
+    a.created_at,
+    u.full_name as user_name,
+    u.email as user_email
+FROM activity_logs a
+JOIN users u ON a.user_id = u.id
+WHERE a.user_id = $1
+ORDER BY a.created_at DESC
+LIMIT $2
+`
+
+type GetUserRecentActivitiesParams struct {
+	UserID uuid.UUID `json:"user_id"`
+	Limit  int32     `json:"limit"`
+}
+
+type GetUserRecentActivitiesRow struct {
+	ID         uuid.UUID          `json:"id"`
+	Action     string             `json:"action"`
+	EntityType string             `json:"entity_type"`
+	EntityID   pgtype.UUID        `json:"entity_id"`
+	Details    []byte             `json:"details"`
+	CreatedAt  pgtype.Timestamptz `json:"created_at"`
+	UserName   string             `json:"user_name"`
+	UserEmail  string             `json:"user_email"`
+}
+
+func (q *Queries) GetUserRecentActivities(ctx context.Context, arg GetUserRecentActivitiesParams) ([]GetUserRecentActivitiesRow, error) {
+	rows, err := q.db.Query(ctx, getUserRecentActivities, arg.UserID, arg.Limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetUserRecentActivitiesRow
+	for rows.Next() {
+		var i GetUserRecentActivitiesRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Action,
+			&i.EntityType,
+			&i.EntityID,
+			&i.Details,
+			&i.CreatedAt,
+			&i.UserName,
+			&i.UserEmail,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const rejectTask = `-- name: RejectTask :exec
+UPDATE approval_workflows 
+SET status = 'rejected', decided_at = NOW(), decision_note = $2, rejection_reason = $3
+WHERE entity_id = $1 AND status = 'pending'
+`
+
+type RejectTaskParams struct {
+	EntityID        uuid.UUID   `json:"entity_id"`
+	DecisionNote    pgtype.Text `json:"decision_note"`
+	RejectionReason pgtype.Text `json:"rejection_reason"`
+}
+
+func (q *Queries) RejectTask(ctx context.Context, arg RejectTaskParams) error {
+	_, err := q.db.Exec(ctx, rejectTask, arg.EntityID, arg.DecisionNote, arg.RejectionReason)
+	return err
 }

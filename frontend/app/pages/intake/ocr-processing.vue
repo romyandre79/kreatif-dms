@@ -55,7 +55,7 @@
           </div>
 
           <div class="space-y-10">
-            <div class="glass p-8 rounded-[2.5rem] bg-slate-50/50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800 flex flex-col items-center text-center space-y-3">
+            <div class="glass p-8 rounded-lg bg-slate-50/50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800 flex flex-col items-center text-center space-y-3">
               <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">{{ $t('intake.processing.quality.avg') }}</p>
               <div class="space-y-1">
                 <p class="text-5xl font-black text-[#1E3A5F] dark:text-white tracking-tighter">92.4%</p>

@@ -78,11 +78,11 @@
         </div>
 
         <div v-motion-slide-visible-right class="relative">
-          <div class="glass p-2 rounded-[2.5rem] shadow-2xl shadow-primary-500/10 relative z-10 overflow-hidden group">
+          <div class="glass p-2 rounded-lg shadow-2xl shadow-primary-500/10 relative z-10 overflow-hidden group">
             <img 
               src="/kreatif_dms_hero.png" 
               alt="Kreatif DMS Dashboard" 
-              class="w-full rounded-[2rem] transition-transform duration-700 group-hover:scale-105"
+              class="w-full rounded-lg transition-transform duration-700 group-hover:scale-105"
             />
             <div class="absolute inset-0 bg-gradient-to-t from-[#020617]/50 to-transparent"></div>
           </div>

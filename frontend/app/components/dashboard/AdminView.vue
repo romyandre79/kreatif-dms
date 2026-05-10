@@ -98,6 +98,20 @@
           <p class="text-[10px] font-bold text-teal-50 mt-1">{{ $t('dashboard.stats.immediate_attention') }}</p>
         </div>
       </div>
+
+      <!-- SLA Compliance -->
+      <div v-motion-slide-visible-bottom class="glass p-6 rounded-2xl flex flex-col justify-between border-l-4 border-primary-500">
+        <div class="flex items-center justify-between mb-6">
+          <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-tight">SLA<br>Compliance</p>
+          <LucideActivity class="w-5 h-5 text-primary-500" />
+        </div>
+        <div>
+          <p class="text-3xl font-black text-slate-900 dark:text-white">{{ stats?.compliance_rate?.toFixed(1) || 100 }}%</p>
+          <div class="flex items-center gap-1 text-[10px] font-black text-slate-400 mt-1 uppercase tracking-tighter">
+            Avg: {{ formatTime(stats?.avg_approval_time) }}
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Main Content -->
@@ -171,6 +185,32 @@
       </div>
     </div>
 
+    <!-- System Update Banner -->
+    <div v-if="dashboardData?.announcement?.active" class="bg-gradient-to-br from-[#1E3A5F] to-[#152943] rounded-lg p-6 text-white relative overflow-hidden group shadow-2xl shadow-blue-900/40 flex items-center justify-between" v-motion-slide-visible-bottom>
+      <div class="relative z-10 flex items-center gap-8">
+        <div class="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center shrink-0 ring-1 ring-white/20">
+           <LucideInfo class="w-8 h-8 text-white" />
+        </div>
+        <div>
+          <h3 class="font-black text-xl mb-1 leading-tight">{{ dashboardData.announcement.title }}</h3>
+          <p class="text-blue-100/70 text-sm font-medium leading-relaxed max-w-2xl">
+            {{ dashboardData.announcement.message }}
+          </p>
+        </div>
+      </div>
+      <div class="relative z-10">
+        <button 
+          @click="isNotesOpen = true"
+          class="px-8 py-3 bg-white text-[#1E3A5F] rounded-xl font-black text-xs uppercase tracking-widest hover:bg-blue-50 transition-all shadow-xl shadow-black/20"
+        >
+          {{ $t('dashboard.user.system_update.btn_notes') }}
+        </button>
+      </div>
+      <!-- Decorative bubbles -->
+      <div class="absolute -right-10 -bottom-10 w-64 h-64 bg-white/5 rounded-full blur-3xl group-hover:scale-125 transition-transform duration-1000"></div>
+      <div class="absolute -left-10 -top-10 w-32 h-32 bg-primary-500/10 rounded-full blur-2xl"></div>
+    </div>
+
     <!-- Infrastructure Status -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6" v-motion-slide-visible-bottom>
       <!-- Scanner -->
@@ -213,6 +253,24 @@
         </div>
       </div>
     </div>
+
+    <!-- Release Notes Modal -->
+    <Modal 
+      v-model="isNotesOpen" 
+      :title="dashboardData?.announcement?.title || 'Release Notes'"
+    >
+      <div class="prose prose-slate dark:prose-invert max-w-none">
+        <div v-html="parseMarkdown(dashboardData?.announcement?.notes || '')"></div>
+      </div>
+      <template #footer>
+        <button 
+          @click="isNotesOpen = false"
+          class="px-6 py-2 bg-[#1E3A5F] text-white rounded-xl font-black text-xs uppercase tracking-widest hover:bg-[#152943] transition-all"
+        >
+          {{ $t('common.close') || 'Tutup' }}
+        </button>
+      </template>
+    </Modal>
   </div>
 </template>
 
@@ -237,18 +295,21 @@ import {
   LucideActivity,
   LucideTrash,
   LucideEdit,
-  LucideUpload
+  LucideUpload,
+  LucideInfo
 } from 'lucide-vue-next'
 import { useAuthStore } from '~/stores/auth'
 import { useApi } from '~/composables/useApi'
 import PageHeader from '~/components/PageHeader.vue'
-import { formatBytes, timeAgo } from '~/utils/format'
+import Modal from '~/components/Modal.vue'
+import { formatBytes, timeAgo, parseMarkdown } from '~/utils/format'
 
 const auth = useAuthStore()
 const { $api } = useApi()
 const { t } = useI18n()
 const user = computed(() => auth.user)
 const config = useRuntimeConfig()
+const isNotesOpen = ref(false)
 
 const currentDate = computed(() => {
   const d = new Date();
@@ -259,13 +320,13 @@ const currentDate = computed(() => {
 })
 
 // Data Fetching
-const { data: dashboardData, refresh: refreshDashboard } = await useAsyncData('dashboard-summary', async () => {
-  const res = await $api(`${config.public.apiBase}/dashboard/summary`)
+const { data: dashboardData, refresh: refreshDashboard } = await useAsyncData('admin-summary', async () => {
+  const res = await $api('/dashboard/summary')
   return res.data
 })
 
-const { data: integrationData, refresh: refreshIntegration } = await useAsyncData('integration-status', async () => {
-  const res = await $api(`${config.public.apiBase}/master/integration/status`)
+const { data: integrationData, refresh: refreshIntegration } = await useAsyncData('health-status', async () => {
+  const res = await $api('/master/integration/status')
   return res.data
 })
 
@@ -286,6 +347,12 @@ const getActivityStyles = (action) => {
     case 'UPLOAD': return { icon: LucideUpload, color: 'text-teal-500', bg: 'bg-teal-50 dark:bg-teal-900/20' }
     default: return { icon: LucideActivity, color: 'text-slate-500', bg: 'bg-slate-50 dark:bg-slate-900/20' }
   }
+}
+
+const formatTime = (seconds) => {
+  if (!seconds || seconds <= 0) return '0h'
+  if (seconds < 3600) return `${(seconds / 60).toFixed(1)}m`
+  return `${(seconds / 3600).toFixed(1)}h`
 }
 
 // Polling for updates

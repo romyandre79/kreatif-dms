@@ -69,6 +69,80 @@
         "btn_cancel": "CANCEL",
         "footer": "Your PIN is used as a valid digital signature."
       }
+    },
+    "detail": {
+      "title": "Pre-Registration Review",
+      "back_to_queue": "Back to Queue",
+      "sections": {
+        "submission": "SUBMISSION DETAILS",
+        "attachments": "DOCUMENT ATTACHMENTS",
+        "manager_notes": "INTERNAL MANAGER NOTES (PRIVATE)",
+        "workflow": "WORKFLOW STATUS"
+      },
+      "fields": {
+        "submitted_by": "SUBMITTED BY",
+        "doc_info": "DOCUMENT INFORMATION",
+        "category": "CATEGORY",
+        "department": "DEPARTMENT",
+        "date": "SUBMISSION DATE",
+        "count": "DOCUMENT COUNT",
+        "files": "files",
+        "notes": "NOTES"
+      },
+      "status": {
+        "pending": "PENDING YOUR APPROVAL",
+        "urgent": "URGENT"
+      },
+      "workflow": {
+        "submitted": "Submitted",
+        "pending_manager": "Pending Manager Approval",
+        "compliance": "Legal Compliance Review",
+        "archiving": "Final Archiving"
+      }
+    },
+    "list": {
+      "title": "All Pending Submissions",
+      "table": {
+        "reg_id": "REGISTRATION ID",
+        "submitted_by": "SUBMITTED BY",
+        "doc_info": "DOCUMENT INFO",
+        "date": "SUBMISSION DATE",
+        "urgency": "URGENCY",
+        "actions": "ACTIONS"
+      }
+    },
+    "modals": {
+      "approve": {
+        "title": "Confirm Approval",
+        "summary": "Summary",
+        "ref_id": "Reference ID:",
+        "type": "Type:",
+        "comments": "Decision Comments (Optional)",
+        "placeholder": "Add any feedback for the submitter...",
+        "info": "By clicking confirm, this document will be moved to the next department's queue for final compliance check.",
+        "btn_cancel": "Cancel",
+        "btn_confirm": "Confirm Approval",
+        "processing": "Processing..."
+      },
+      "reject": {
+        "title": "Reject Submission",
+        "reason_title": "Select Rejection Reason",
+        "reasons": {
+          "incomplete": "Incomplete Documents",
+          "unclear": "Unclear / Blurry Scan",
+          "wrong_dept": "Wrong Department",
+          "invalid": "Invalid / Expired Data",
+          "other": "Other"
+        },
+        "placeholder": "E.g., The attached Vendor Agreement is missing the final signature on page 12.",
+        "hint": "Please explain why this submission is being rejected. This message will be sent to the submitter.",
+        "next_steps": "What happens next",
+        "step1": "The submitter will receive an immediate notification via email and system alert.",
+        "step2": "The status of this submission will be updated to Rejected in the tracking logs.",
+        "step3": "The submitter can edit and resubmit this document as a new entry if corrected.",
+        "btn_cancel": "Cancel",
+        "btn_confirm": "Confirm Rejection"
+      }
     }
   }
 }

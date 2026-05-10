@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-col h-[calc(100vh-8rem)] bg-slate-50/50 dark:bg-slate-950/50 rounded-[2.5rem] overflow-hidden border border-slate-200 dark:border-slate-800">
+  <div class="flex flex-col h-[calc(100vh-8rem)] bg-slate-50/50 dark:bg-slate-950/50 rounded-lg overflow-hidden border border-slate-200 dark:border-slate-800">
     <!-- Top Alert Banner (Dirty State) -->
     <Transition name="slide-down">
       <div v-if="isDirty" class="bg-amber-500/10 border-b border-amber-500/20 px-8 py-3 flex items-center justify-between backdrop-blur-md relative z-[20]">
@@ -129,7 +129,7 @@
       <aside class="w-[400px] bg-slate-50/50 dark:bg-slate-900/50 border-l border-slate-200 dark:border-slate-800 flex flex-col p-4 overflow-y-auto custom-scrollbar gap-10">
         <!-- Role Header -->
         <div class="flex items-start gap-6">
-          <div class="w-16 h-16 rounded-[1.5rem] bg-white dark:bg-slate-800 shadow-xl border border-slate-100 dark:border-slate-700 flex items-center justify-center text-primary-500">
+          <div class="w-16 h-16 rounded-lg bg-white dark:bg-slate-800 shadow-xl border border-slate-100 dark:border-slate-700 flex items-center justify-center text-primary-500">
             <LucideShieldCheck class="w-8 h-8" />
           </div>
           <div class="space-y-1 text-left">
@@ -148,7 +148,7 @@
 
         <!-- Stats Grid -->
         <div class="grid grid-cols-2 gap-6">
-          <div class="p-6 bg-white dark:bg-slate-800/50 rounded-[2.5rem] shadow-sm border border-slate-100 dark:border-slate-700 space-y-2 text-left">
+          <div class="p-6 bg-white dark:bg-slate-800/50 rounded-lg shadow-sm border border-slate-100 dark:border-slate-700 space-y-2 text-left">
             <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">User Aktif</p>
             <p class="text-3xl font-black text-[#1E3A5F] dark:text-white tracking-tighter">{{ selectedRole?.user_count || 0 }}</p>
           </div>

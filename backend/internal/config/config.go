@@ -25,6 +25,7 @@ type Config struct {
 	MinIOSecretKey string `mapstructure:"MINIO_SECRET_KEY"`
 	MinIOUseSSL    bool   `mapstructure:"MINIO_USE_SSL"`
 	MinIOBucket    string `mapstructure:"MINIO_BUCKET"`
+	StorageEncryptionKey string `mapstructure:"STORAGE_ENCRYPTION_KEY"`
 
 	ElasticsearchURL string `mapstructure:"ELASTICSEARCH_URL"`
 

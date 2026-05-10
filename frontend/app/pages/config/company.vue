@@ -2,6 +2,7 @@
   <div class="flex flex-col h-full bg-[#F8FAFC] dark:bg-slate-950 overflow-hidden" v-motion-fade>
     <!-- Hidden File Input for Import -->
     <input type="file" ref="fileInput" class="hidden" accept=".csv" @change="handleFileImport" />
+    <input type="file" ref="logoInput" class="hidden" accept="image/*" @change="onLogoSelected" />
 
     <div class="flex flex-1 overflow-hidden">
       <!-- Main Content Area -->
@@ -28,7 +29,7 @@
 
         <!-- Table Section -->
         <div class="flex-grow p-2.5 overflow-auto custom-scrollbar">
-          <div class="bg-white dark:bg-slate-900 rounded-[1.5rem] shadow-sm border border-slate-100 dark:border-slate-800 overflow-hidden">
+          <div class="bg-white dark:bg-slate-900 rounded-lg shadow-sm border border-slate-100 dark:border-slate-800 overflow-hidden">
             <!-- Filter Bar -->
             <div class="px-8 py-6 border-b border-slate-50 dark:border-slate-800 flex items-center justify-between bg-slate-50/30 dark:bg-slate-900/30">
               <div class="relative w-96 group">
@@ -57,10 +58,12 @@
               <table class="w-full text-left border-collapse">
                 <thead>
                   <tr class="bg-slate-50/50 dark:bg-slate-900/50 text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] border-b border-slate-50 dark:border-slate-800">
-                    <th class="p-4 pl-8">ID / Code</th>
+                    <th class="p-4 pl-8">Logo</th>
+                    <th class="p-4">ID / Code</th>
                     <th class="p-4">Nama / Deskripsi</th>
                     <th class="p-4" v-if="activeEntity === 'pt'">NPWP Status</th>
                     <th class="p-4">Lokasi / Detail</th>
+                    <th class="p-4">Instruksi Pengiriman</th>
                     <th class="p-4">Status</th>
                     <th class="p-4 pr-10 text-right">Action</th>
                   </tr>
@@ -79,6 +82,17 @@
                     :class="row.isNew ? 'bg-blue-50/50 dark:bg-blue-900/10' : 'hover:bg-slate-50/50 dark:hover:bg-slate-800/30'"
                   >
                     <td class="p-4 pl-8">
+                       <div class="relative group w-12 h-12">
+                          <div class="w-full h-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 flex items-center justify-center overflow-hidden">
+                             <img v-if="row.logo_url" :src="row.logo_url" class="w-full h-full object-contain" />
+                             <LucideBuilding2 v-else class="w-5 h-5 text-slate-300" />
+                          </div>
+                          <button v-if="!row.isNew" @click="triggerLogoUpload(row)" class="absolute -bottom-1 -right-1 w-6 h-6 bg-[#1E3A5F] text-white rounded-lg flex items-center justify-center shadow-lg hover:scale-110 transition-all opacity-0 group-hover:opacity-100 cursor-pointer">
+                             <LucideUpload class="w-3 h-3" />
+                          </button>
+                       </div>
+                    </td>
+                    <td class="p-4">
                       <div v-if="row.editing" class="max-w-[120px]">
                         <input 
                           type="text" 
@@ -115,6 +129,12 @@
                         <input type="text" v-model="row.location" class="w-full bg-white dark:bg-slate-800 border border-slate-200 rounded-xl px-4 py-2 text-xs font-bold" />
                       </div>
                       <p v-else class="text-sm font-bold text-slate-500 uppercase tracking-tight">{{ (row.location === 'null' || !row.location) ? '-' : row.location }}</p>
+                    </td>
+                    <td class="p-4">
+                      <div v-if="row.editing">
+                        <textarea v-model="row.delivery_instructions" class="w-full bg-white dark:bg-slate-800 border border-slate-200 rounded-xl px-4 py-2 text-xs font-bold" rows="2"></textarea>
+                      </div>
+                      <p v-else class="text-xs font-bold text-slate-500 line-clamp-2">{{ (row.delivery_instructions === 'null' || !row.delivery_instructions) ? '-' : row.delivery_instructions }}</p>
                     </td>
                     <td class="p-4">
                       <div v-if="row.editing">
@@ -287,6 +307,8 @@ const loading = ref(false)
 const error = ref('')
 const companies = ref([])
 const fileInput = ref(null)
+const logoInput = ref(null)
+const activeRowForLogo = ref(null)
 
 // Pagination state
 const currentPage = ref(1)
@@ -386,6 +408,39 @@ const exportCSV = async () => {
   }
 }
 
+const triggerLogoUpload = (row) => {
+  activeRowForLogo.value = row
+  logoInput.value.click()
+}
+
+const onLogoSelected = async (event) => {
+  const file = event.target.files[0]
+  if (!file || !activeRowForLogo.value) return
+
+  const formData = new FormData()
+  formData.append('logo', file)
+
+  loading.value = true
+  try {
+    const config = useRuntimeConfig()
+    const auth = useAuthStore()
+    
+    const res = await $fetch(`${config.public.apiBase}/master/companies/${activeRowForLogo.value.id}/logo`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${auth.accessToken}` },
+      body: formData
+    })
+    
+    activeRowForLogo.value.logo_url = res.data
+    error.value = 'Logo berhasil diperbarui'
+  } catch (err) {
+    error.value = 'Gagal mengunggah logo'
+  } finally {
+    loading.value = false
+    event.target.value = ''
+  }
+}
+
 const addRow = () => {
   companies.value.unshift({
     id: '', 
@@ -393,6 +448,7 @@ const addRow = () => {
     name: '',
     npwp_status: 'PENDING',
     location: '',
+    delivery_instructions: '',
     status: 'Editing',
     editing: true,
     isNew: true
@@ -438,7 +494,8 @@ const saveRow = async (row) => {
         npwp_status: row.npwp_status,
         location: row.location,
         status: row.status,
-        address: ''
+        address: '',
+        delivery_instructions: row.delivery_instructions
       }
     })
 

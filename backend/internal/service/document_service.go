@@ -50,6 +50,11 @@ type UploadDocumentParams struct {
 	BranchID     uuid.UUID
 	DepartmentID uuid.UUID
 	BatchID      uuid.UUID
+	TypeID       uuid.UUID
+	Sensitivity  string
+	Urgency      string
+	DocumentDate string
+	PageCount    int
 }
 
 func (s *DocumentService) UploadDocument(ctx context.Context, p UploadDocumentParams) (repository.Document, error) {
@@ -58,8 +63,19 @@ func (s *DocumentService) UploadDocument(ctx context.Context, p UploadDocumentPa
 	// 1. Generate unique file path
 	objectName := fmt.Sprintf("%s/%s", p.DepartmentID, p.FileName)
 
-	// 2. Upload to MinIO (Encryption disabled for local dev/KMS not configured)
-	_, err := s.storage.Upload(ctx, objectName, p.Content, p.FileSize, p.MimeType, false)
+	// 2. Check encryption setting from system_settings
+	encryptEnabled := false
+	encSetting, err := s.repo.GetSystemSetting(ctx, repository.GetSystemSettingParams{
+		Category: "storage",
+		Key:      "encryption_enabled",
+	})
+	if err == nil && encSetting.Value.String == "true" {
+		encryptEnabled = true
+		log.Printf("[DocumentService] AES-256 Encryption (SSE-S3) is ENABLED for this upload")
+	}
+
+	// 3. Upload to MinIO
+	_, err = s.storage.Upload(ctx, objectName, p.Content, p.FileSize, p.MimeType, encryptEnabled)
 	if err != nil {
 		log.Printf("[DocumentService] Error uploading to storage: %v", err)
 		return repository.Document{}, err
@@ -67,9 +83,18 @@ func (s *DocumentService) UploadDocument(ctx context.Context, p UploadDocumentPa
 
 	log.Printf("[DocumentService] Storage upload successful, creating DB record for %s", p.FileName)
 
+	// Prepare metadata JSON
+	metadata := map[string]interface{}{
+		"urgency":       p.Urgency,
+		"document_date": p.DocumentDate,
+		"page_count":    p.PageCount,
+	}
+	metadataBytes, _ := json.Marshal(metadata)
+
 	// 3. Save to DB
 	doc, err := s.repo.CreateDocument(ctx, repository.CreateDocumentParams{
 		Title:        p.Title,
+		Description:  pgtype.Text{String: p.Description, Valid: p.Description != ""},
 		FileName:     p.FileName,
 		FilePath:     objectName,
 		FileSize:     p.FileSize,
@@ -80,6 +105,9 @@ func (s *DocumentService) UploadDocument(ctx context.Context, p UploadDocumentPa
 		DepartmentID: p.DepartmentID,
 		Status:       "processing",
 		BatchID:      pgtype.UUID{Bytes: p.BatchID, Valid: p.BatchID != uuid.Nil},
+		Sensitivity:  pgtype.Text{String: strings.ToLower(p.Sensitivity), Valid: p.Sensitivity != ""},
+		Metadata:     metadataBytes,
+		TypeID:       pgtype.UUID{Bytes: p.TypeID, Valid: p.TypeID != uuid.Nil},
 	})
 	if err != nil {
 		log.Printf("[DocumentService] Error creating document record in DB: %v", err)
@@ -110,6 +138,24 @@ func (s *DocumentService) UploadDocument(ctx context.Context, p UploadDocumentPa
 	}
 	
 	log.Printf("[DocumentService] OCR task enqueued successfully for doc: %s", doc.ID)
+	
+	// 5. Create Approval Workflow Task
+	// We automatically assign an approval task to the Department Head
+	dept, err := s.repo.GetDepartment(ctx, p.DepartmentID)
+	if err == nil && dept.HeadID.Valid {
+		log.Printf("[DocumentService] Creating approval task for head of department: %s", dept.HeadID.Bytes)
+		_, err = s.repo.CreateApprovalTask(ctx, repository.CreateApprovalTaskParams{
+			EntityType: "document_upload",
+			EntityID:   doc.ID,
+			ApproverID: dept.HeadID.Bytes,
+			Level:      1,
+		})
+		if err != nil {
+			log.Printf("[DocumentService] Error creating approval task: %v", err)
+		}
+	} else {
+		log.Printf("[DocumentService] WARNING: No department head found for approval task. Document ID: %s", doc.ID)
+	}
 
 	return doc, nil
 }
@@ -161,9 +207,19 @@ func (s *DocumentService) GetWatermarkedPDF(ctx context.Context, docID uuid.UUID
 	watermarkText := strings.ReplaceAll(wmText, "{user}", strings.ToUpper(userFullName))
 	watermarkText = strings.ReplaceAll(watermarkText, "{date}", time.Now().Format("2006-01-02"))
 
-	if doc.MimeType != "application/pdf" {
-		log.Printf("[DocumentService] Applying image watermark for: %s (MimeType: %s, Type: %s)", docID, doc.MimeType, wmType)
-		watermarkedContent, err := s.applyImageWatermark(content, watermarkText, doc.MimeType, wmOpacity)
+	// 4. Apply Watermark based on MimeType (with fallback for octet-stream)
+	effectiveMimeType := doc.MimeType
+	if effectiveMimeType == "application/octet-stream" {
+		if strings.HasSuffix(strings.ToLower(doc.FileName), ".pdf") {
+			effectiveMimeType = "application/pdf"
+		} else if strings.HasSuffix(strings.ToLower(doc.FileName), ".jpg") || strings.HasSuffix(strings.ToLower(doc.FileName), ".jpeg") || strings.HasSuffix(strings.ToLower(doc.FileName), ".png") {
+			effectiveMimeType = "image/jpeg" // trigger image watermarking
+		}
+	}
+
+	if effectiveMimeType != "application/pdf" {
+		log.Printf("[DocumentService] Applying image watermark for: %s (MimeType: %s, Type: %s)", docID, effectiveMimeType, wmType)
+		watermarkedContent, err := s.applyImageWatermark(content, watermarkText, effectiveMimeType, wmOpacity)
 		if err != nil {
 			log.Printf("[DocumentService] Warning: Failed to apply image watermark, returning raw: %v", err)
 			return content, doc.MimeType, nil
@@ -242,10 +298,22 @@ func (s *DocumentService) ListOCRHistory(ctx context.Context, page, pageSize int
 	return rows, total, nil
 }
 
+func (s *DocumentService) GetDocument(ctx context.Context, id uuid.UUID) (repository.GetDocumentWithDetailsRow, error) {
+	return s.repo.GetDocumentWithDetails(ctx, id)
+}
+
 func (s *DocumentService) ListRecentDocuments(ctx context.Context, limit int) ([]repository.ListRecentDocumentsRow, error) {
 	return s.repo.ListRecentDocuments(ctx, repository.ListRecentDocumentsParams{
 		Limit:  int32(limit),
 		Offset: 0,
+	})
+}
+
+func (s *DocumentService) ListRecentDocumentsByOwner(ctx context.Context, ownerID uuid.UUID, limit int) ([]repository.ListRecentDocumentsByOwnerRow, error) {
+	return s.repo.ListRecentDocumentsByOwner(ctx, repository.ListRecentDocumentsByOwnerParams{
+		OwnerID: ownerID,
+		Limit:   int32(limit),
+		Offset:  0,
 	})
 }
 
@@ -319,4 +387,56 @@ func (s *DocumentService) applyImageWatermark(content []byte, text string, mimeT
 	}
 
 	return buf.Bytes(), nil
+}
+func (s *DocumentService) GetLoanHistory(ctx context.Context, docID uuid.UUID) ([]repository.GetDocumentLoanHistoryRow, error) {
+	return s.repo.GetDocumentLoanHistory(ctx, docID)
+}
+func (s *DocumentService) ApproveDocument(ctx context.Context, docID uuid.UUID, notes string) error {
+	// 1. Update workflow status
+	if err := s.repo.ApproveTask(ctx, repository.ApproveTaskParams{
+		EntityID:     docID,
+		DecisionNote: pgtype.Text{String: notes, Valid: notes != ""},
+	}); err != nil {
+		return err
+	}
+
+	// 2. Update document status to active
+	return s.repo.UpdateDocumentStatus(ctx, repository.UpdateDocumentStatusParams{
+		ID:     docID,
+		Status: "active",
+	})
+}
+
+func (s *DocumentService) RejectDocument(ctx context.Context, docID uuid.UUID, reason string, notes string) error {
+	// 1. Update workflow status
+	if err := s.repo.RejectTask(ctx, repository.RejectTaskParams{
+		EntityID:        docID,
+		DecisionNote:    pgtype.Text{String: notes, Valid: notes != ""},
+		RejectionReason: pgtype.Text{String: reason, Valid: reason != ""},
+	}); err != nil {
+		return err
+	}
+
+	// 2. Update document status to rejected
+	return s.repo.UpdateDocumentStatus(ctx, repository.UpdateDocumentStatusParams{
+		ID:     docID,
+		Status: "rejected",
+	})
+}
+func (s *DocumentService) BulkApproveDocuments(ctx context.Context, ids []uuid.UUID) error {
+	for _, id := range ids {
+		if err := s.ApproveDocument(ctx, id, "Bulk approved"); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (s *DocumentService) BulkRejectDocuments(ctx context.Context, ids []uuid.UUID) error {
+	for _, id := range ids {
+		if err := s.RejectDocument(ctx, id, "Bulk Action", "Bulk rejected"); err != nil {
+			return err
+		}
+	}
+	return nil
 }

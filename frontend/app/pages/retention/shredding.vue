@@ -119,7 +119,7 @@
       <!-- Upload Full Width Area -->
       <div class="col-span-12 glass p-12 rounded-[3.5rem] bg-slate-50/50 border border-slate-100 shadow-xl space-y-10" v-motion-slide-visible-bottom>
         <div class="flex flex-col items-center justify-center text-center space-y-6 py-10">
-          <div class="w-20 h-20 bg-white rounded-[2rem] flex items-center justify-center shadow-sm text-slate-200">
+          <div class="w-20 h-20 bg-white rounded-lg flex items-center justify-center shadow-sm text-slate-200">
             <LucideCamera class="w-10 h-10" />
           </div>
           <div class="space-y-2">

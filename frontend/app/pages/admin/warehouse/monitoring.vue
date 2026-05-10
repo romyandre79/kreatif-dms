@@ -20,14 +20,14 @@
 
     <!-- Stats Grid -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-      <div class="glass p-8 rounded-[2.5rem] space-y-4 shadow-sm border-t-8 border-blue-500">
+      <div class="glass p-8 rounded-lg space-y-4 shadow-sm border-t-8 border-blue-500">
         <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest">{{ $t('warehouse.monitoring.stats.total') }}</p>
         <div class="flex items-center gap-4">
           <p class="text-4xl font-black text-[#1E3A5F] dark:text-white tracking-tighter">1,248</p>
           <span class="text-[8px] font-black text-green-500 uppercase tracking-widest">{{ $t('warehouse.monitoring.stats.mom', { val: 2 }) }}</span>
         </div>
       </div>
-      <div class="glass p-8 rounded-[2.5rem] space-y-4 shadow-sm">
+      <div class="glass p-8 rounded-lg space-y-4 shadow-sm">
         <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest">{{ $t('warehouse.monitoring.stats.capacity') }}</p>
         <div class="flex items-end justify-between">
           <div class="space-y-1">
@@ -37,7 +37,7 @@
           <span class="px-3 py-1 bg-slate-50 dark:bg-slate-800 rounded text-[8px] font-black text-slate-400 uppercase tracking-widest">{{ $t('warehouse.monitoring.stats.optimal') }}</span>
         </div>
       </div>
-      <div class="glass p-8 rounded-[2.5rem] space-y-4 shadow-sm border-t-8 border-red-500">
+      <div class="glass p-8 rounded-lg space-y-4 shadow-sm border-t-8 border-red-500">
         <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest">{{ $t('warehouse.monitoring.stats.reserved') }}</p>
         <div class="flex items-center gap-4">
           <div class="w-10 h-10 rounded-xl bg-red-50 text-red-500 flex items-center justify-center shadow-sm">
@@ -49,7 +49,7 @@
           </div>
         </div>
       </div>
-      <div class="glass p-8 rounded-[2.5rem] space-y-4 shadow-sm relative overflow-hidden group">
+      <div class="glass p-8 rounded-lg space-y-4 shadow-sm relative overflow-hidden group">
         <LucideCompass class="absolute top-0 right-0 w-24 h-24 text-slate-100 dark:text-slate-800 -rotate-12 translate-x-6 -translate-y-6 group-hover:scale-110 transition-transform" />
         <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest z-10 relative">{{ $t('warehouse.monitoring.stats.accuracy') }}</p>
         <p class="text-4xl font-black text-[#1E3A5F] dark:text-white tracking-tighter z-10 relative">96.8%</p>

@@ -33,7 +33,7 @@
       <!-- Left Column: Scanner Controls -->
       <div class="lg:col-span-4 space-y-8">
         <!-- Scanner Connection -->
-        <div class="glass p-8 rounded-[2.5rem] space-y-6">
+        <div class="glass p-8 rounded-lg space-y-6">
           <div class="flex items-center justify-between">
             <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-widest">{{ $t('circulation.receive.scanner.title') }}</h4>
             <span class="px-3 py-1 bg-green-50 text-green-500 rounded-full text-[8px] font-black uppercase tracking-widest border border-green-100 flex items-center gap-1.5">
@@ -65,7 +65,7 @@
         </div>
 
         <!-- Scanning Checklist -->
-        <div class="p-8 bg-slate-50/50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800 rounded-[2rem] space-y-6">
+        <div class="p-8 bg-slate-50/50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800 rounded-lg space-y-6">
           <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-widest">{{ $t('circulation.receive.checklist.title') }}</h4>
           <ul class="space-y-4">
             <li v-for="i in [1, 2, 3]" :key="i" class="flex gap-4 text-xs font-bold text-slate-600 dark:text-slate-300 leading-relaxed">
@@ -155,7 +155,7 @@
         </div>
 
         <!-- Quality Control Footer -->
-        <div class="glass p-10 rounded-[2.5rem] space-y-8" v-motion-slide-visible-bottom>
+        <div class="glass p-10 rounded-lg space-y-8" v-motion-slide-visible-bottom>
           <h4 class="text-sm font-black text-[#1E3A5F] dark:text-white uppercase tracking-widest">{{ $t('circulation.receive.quality.title') }}</h4>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div v-for="qc in [1, 2, 3, 4]" :key="qc" class="flex items-center gap-4 group cursor-pointer" @click="qcChecked[qc-1] = !qcChecked[qc-1]">

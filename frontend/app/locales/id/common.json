@@ -10,7 +10,8 @@
     "loading": "Memuat data...",
     "no_data": "Data tidak ditemukan",
     "system": "Sistem",
-    "system_entity": "Entitas Sistem"
+    "system_entity": "Entitas Sistem",
+    "close": "Tutup"
   },
   "error": {
     "page_not_found": "Halaman tidak ditemukan",

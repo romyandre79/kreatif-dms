@@ -69,6 +69,80 @@
         "btn_cancel": "BATALKAN",
         "footer": "PIN Anda digunakan sebagai tanda tangan digital yang sah."
       }
+    },
+    "detail": {
+      "title": "Tinjauan Pra-Registrasi",
+      "back_to_queue": "Kembali ke Antrean",
+      "sections": {
+        "submission": "DETAIL PENGAJUAN",
+        "attachments": "LAMPIRAN DOKUMEN",
+        "manager_notes": "CATATAN INTERNAL MANAJER (PRIVATE)",
+        "workflow": "STATUS WORKFLOW"
+      },
+      "fields": {
+        "submitted_by": "DIAJUKAN OLEH",
+        "doc_info": "INFORMASI DOKUMEN",
+        "category": "KATEGORI",
+        "department": "DEPARTEMEN",
+        "date": "TANGGAL PENGAJUAN",
+        "count": "JUMLAH DOKUMEN",
+        "files": "berkas",
+        "notes": "CATATAN"
+      },
+      "status": {
+        "pending": "MENUNGGU PERSETUJUAN ANDA",
+        "urgent": "URGENT"
+      },
+      "workflow": {
+        "submitted": "Diajukan",
+        "pending_manager": "Menunggu Persetujuan Manajer",
+        "compliance": "Review Kepatuhan Hukum",
+        "archiving": "Pengarsipan Akhir"
+      }
+    },
+    "list": {
+      "title": "Seluruh Antrean Persetujuan",
+      "table": {
+        "reg_id": "ID REGISTRASI",
+        "submitted_by": "DIAJUKAN OLEH",
+        "doc_info": "INFO DOKUMEN",
+        "date": "TANGGAL PENGAJUAN",
+        "urgency": "URGENSI",
+        "actions": "AKSI"
+      }
+    },
+    "modals": {
+      "approve": {
+        "title": "Konfirmasi Persetujuan",
+        "summary": "Ringkasan",
+        "ref_id": "ID Referensi:",
+        "type": "Tipe:",
+        "comments": "Komentar Keputusan (Opsional)",
+        "placeholder": "Tambahkan umpan balik untuk pengirim...",
+        "info": "Dengan mengklik konfirmasi, dokumen ini akan dipindahkan ke antrean departemen berikutnya untuk pemeriksaan kepatuhan akhir.",
+        "btn_cancel": "Batal",
+        "btn_confirm": "Konfirmasi Setujui",
+        "processing": "Memproses..."
+      },
+      "reject": {
+        "title": "Tolak Pengajuan",
+        "reason_title": "Pilih Alasan Penolakan",
+        "reasons": {
+          "incomplete": "Dokumen Tidak Lengkap",
+          "unclear": "Scan Tidak Jelas / Buram",
+          "wrong_dept": "Salah Departemen",
+          "invalid": "Data Tidak Valid / Kadaluwarsa",
+          "other": "Lainnya"
+        },
+        "placeholder": "Contoh: Perjanjian Vendor yang dilampirkan kurang tanda tangan di halaman 12.",
+        "hint": "Harap jelaskan alasan penolakan ini. Pesan ini akan dikirimkan kepada pengirim.",
+        "next_steps": "Langkah selanjutnya",
+        "step1": "Pengirim akan menerima notifikasi segera melalui email dan sistem.",
+        "step2": "Status pengajuan ini akan diperbarui menjadi Ditolak dalam log pelacakan.",
+        "step3": "Pengirim dapat mengedit dan mengirim ulang dokumen ini sebagai entri baru jika sudah diperbaiki.",
+        "btn_cancel": "Batal",
+        "btn_confirm": "Konfirmasi Penolakan"
+      }
     }
   }
 }
