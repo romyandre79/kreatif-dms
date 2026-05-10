@@ -56,7 +56,7 @@
       "step1_download": "UNDUH TEMPLATE EXCEL",
       "step1_info": "Harap jangan mengubah header kolom pada template agar proses validasi berjalan lancar.",
       "step2_title": "Unggah File Data",
-      "step2_dropzone": "Tarik file Excel Anda ke sini",
+      "step2_dropzone": "Tarik file Dokumen Anda ke sini",
       "step2_formats": "Mendukung format .xlsx dan .xls (Maks. 10MB)",
       "step2_browse": "TELUSURI FILE",
       "validation_rules_title": "Aturan Validasi Penting",
@@ -119,10 +119,22 @@
     "side": {
       "next_title": "Langkah Selanjutnya",
       "steps": [
-        { "title": "Registrasi Sistem", "desc": "Data dokumen didaftarkan secara digital." },
-        { "title": "Cetak Manifest", "desc": "Manifest fisik sebagai tanda terima pengiriman." },
-        { "title": "Pengiriman Fisik", "desc": "Kirim dokumen ke pusat pengolahan arsip." },
-        { "title": "Proses Digital", "desc": "Dokumen dipindai dan diindeks sepenuhnya." }
+        {
+          "title": "Registrasi Sistem",
+          "desc": "Data dokumen didaftarkan secara digital."
+        },
+        {
+          "title": "Cetak Manifest",
+          "desc": "Manifest fisik sebagai tanda terima pengiriman."
+        },
+        {
+          "title": "Pengiriman Fisik",
+          "desc": "Kirim dokumen ke pusat pengolahan arsip."
+        },
+        {
+          "title": "Proses Digital",
+          "desc": "Dokumen dipindai dan diindeks sepenuhnya."
+        }
       ],
       "tips_title": "Tips Pengarsipan",
       "tips": [

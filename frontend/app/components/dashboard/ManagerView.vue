@@ -123,10 +123,10 @@
           <div class="relative w-40 h-40 flex items-center justify-center">
             <svg class="w-full h-full transform -rotate-90">
               <circle cx="80" cy="80" r="70" fill="transparent" stroke="currentColor" stroke-width="12" class="text-slate-100 dark:text-slate-800" />
-              <circle cx="80" cy="80" r="70" fill="transparent" stroke="currentColor" stroke-width="12" stroke-dasharray="440" :stroke-dashoffset="440 - (440 * 0.92)" class="text-primary-600 dark:text-primary-400 transition-all duration-1000" />
+              <circle cx="80" cy="80" r="70" fill="transparent" stroke="currentColor" stroke-width="12" stroke-dasharray="440" :stroke-dashoffset="440 - (440 * (statsSummary?.compliance_rate || 100) / 100)" class="text-primary-600 dark:text-primary-400 transition-all duration-1000" />
             </svg>
             <div class="absolute inset-0 flex flex-col items-center justify-center">
-              <span class="text-3xl font-black text-slate-800 dark:text-white">92%</span>
+              <span class="text-3xl font-black text-slate-800 dark:text-white">{{ statsSummary?.compliance_rate?.toFixed(0) || 100 }}%</span>
               <span class="text-[10px] font-bold text-slate-400 uppercase">{{ $t('dashboard.manager.compliance.target', { target: 95 }) }}</span>
             </div>
           </div>
@@ -285,11 +285,17 @@ const { data: dashboardData, refresh: refreshDashboard } = await useAsyncData('m
 const statsSummary = computed(() => dashboardData.value?.stats)
 
 const stats = computed(() => [
-  { label: t('dashboard.manager.stats.priority_pending'), value: statsSummary.value?.active_tasks || 0, trend: '+0%', trendUp: true, progress: Math.min((statsSummary.value?.active_tasks || 0) * 5, 100), barColor: 'bg-orange-500' },
-  { label: t('dashboard.manager.stats.approved_today'), value: statsSummary.value?.daily_processed || 0, trend: '+0%', trendUp: true, progress: Math.min((statsSummary.value?.daily_processed || 0) * 10, 100), barColor: 'bg-green-500' },
+  { label: t('dashboard.manager.stats.priority_pending'), value: statsSummary.value?.active_tasks || 0, trend: '+0%', trendUp: true, progress: Math.min((statsSummary.value?.active_tasks || 0) * 10, 100), barColor: 'bg-orange-500' },
   { label: t('dashboard.manager.stats.team_submissions'), value: statsSummary.value?.daily_received || 0, trend: '+0%', trendUp: true, progress: Math.min((statsSummary.value?.daily_received || 0) * 5, 100), barColor: 'bg-blue-600' },
-  { label: t('dashboard.manager.stats.avg_approval_time'), value: '2.3h', trend: '-0h', trendUp: true, progress: 30, barColor: 'bg-primary-500' },
+  { label: t('dashboard.manager.stats.my_submissions'), value: statsSummary.value?.my_submissions || 0, trend: '+0%', trendUp: true, progress: Math.min((statsSummary.value?.my_submissions || 0) * 20, 100), barColor: 'bg-green-500' },
+  { label: t('dashboard.manager.stats.avg_approval_time'), value: formatTime(statsSummary.value?.avg_approval_time), trend: '-0h', trendUp: true, progress: 30, barColor: 'bg-primary-500' },
 ])
+
+const formatTime = (seconds) => {
+  if (!seconds || seconds <= 0) return '0h'
+  if (seconds < 3600) return `${(seconds / 60).toFixed(1)}m`
+  return `${(seconds / 3600).toFixed(1)}h`
+}
 
 const filteredTasks = computed(() => {
   const tasks = dashboardData.value?.tasks || []

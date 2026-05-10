@@ -3,7 +3,7 @@
     <!-- Header Banner -->
     <div class="bg-red-50 border border-red-100 p-10 rounded-[3rem] flex flex-col md:flex-row md:items-center gap-10 relative overflow-hidden group">
       <div class="absolute top-0 right-0 w-64 h-64 bg-red-100/50 rounded-full -translate-x-10 -translate-y-20 group-hover:scale-110 transition-transform"></div>
-      <div class="w-16 h-16 rounded-[1.5rem] bg-red-500 text-white flex items-center justify-center shrink-0 shadow-xl shadow-red-500/20 z-10">
+      <div class="w-16 h-16 rounded-lg bg-red-500 text-white flex items-center justify-center shrink-0 shadow-xl shadow-red-500/20 z-10">
         <LucideAlertTriangle class="w-8 h-8" />
       </div>
       <div class="space-y-2 flex-grow z-10">
@@ -123,7 +123,7 @@
         </div>
         <div class="glass rounded-[3rem] h-[500px] border border-slate-50 dark:border-slate-800 flex items-center justify-center">
           <div class="p-10 bg-white dark:bg-slate-900 rounded-lg shadow-2xl border border-slate-100 dark:border-slate-800 flex flex-col items-center gap-6 group hover:scale-105 transition-all">
-            <div class="w-20 h-20 rounded-[1.5rem] bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-slate-200 group-hover:text-blue-500 transition-colors">
+            <div class="w-20 h-20 rounded-lg bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-slate-200 group-hover:text-blue-500 transition-colors">
               <LucideLock class="w-10 h-10" />
             </div>
             <div class="text-center space-y-1">

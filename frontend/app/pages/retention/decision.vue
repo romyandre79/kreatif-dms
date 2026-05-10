@@ -127,7 +127,7 @@
               <div class="relative group">
                 <div class="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300 font-black text-xl">#</div>
                 <input type="text" placeholder="e.g., BAST/OFF/2023/X/0042" 
-                       class="w-full pl-12 pr-10 py-5 bg-slate-50 border border-slate-100 rounded-[2rem] text-sm font-black text-[#1E3A5F] outline-none focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 transition-all tracking-widest placeholder:tracking-normal placeholder:font-medium" />
+                       class="w-full pl-12 pr-10 py-5 bg-slate-50 border border-slate-100 rounded-lg text-sm font-black text-[#1E3A5F] outline-none focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 transition-all tracking-widest placeholder:tracking-normal placeholder:font-medium" />
               </div>
             </div>
 

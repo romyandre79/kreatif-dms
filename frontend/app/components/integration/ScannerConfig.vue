@@ -24,7 +24,7 @@
     </div>
 
     <!-- Scanner Specific Config -->
-    <div class="p-8 bg-white/50 dark:bg-slate-900/50 rounded-[2rem] border border-slate-100 dark:border-slate-800 space-y-6">
+    <div class="p-8 bg-white/50 dark:bg-slate-900/50 rounded-lg border border-slate-100 dark:border-slate-800 space-y-6">
       <div class="flex items-center gap-3 mb-2">
         <LucideSettings class="w-4 h-4 text-primary-500" />
         <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Hardware Parameters</h4>

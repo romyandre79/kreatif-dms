@@ -75,7 +75,7 @@
             </div>
             <div class="col-span-2 space-y-3">
               <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest">{{ $t('intake.external.form.subject') }}</label>
-              <textarea class="w-full p-6 bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-[2rem] text-xs font-bold leading-relaxed outline-none h-24 resize-none uppercase">Permohonan Kerjasama Infrastruktur Jaringan Tahap II - Wilayah Jabodetabek</textarea>
+              <textarea class="w-full p-6 bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-lg text-xs font-bold leading-relaxed outline-none h-24 resize-none uppercase">Permohonan Kerjasama Infrastruktur Jaringan Tahap II - Wilayah Jabodetabek</textarea>
             </div>
           </div>
         </div>

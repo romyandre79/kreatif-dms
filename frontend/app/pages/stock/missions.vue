@@ -19,7 +19,7 @@
 
     <!-- Stats Grid -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-      <div class="glass p-8 rounded-[2rem] flex items-center justify-between group hover:border-primary-500/30 transition-all">
+      <div class="glass p-8 rounded-lg flex items-center justify-between group hover:border-primary-500/30 transition-all">
         <div class="space-y-1">
           <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">{{ $t('stock.missions.stats.pending') }}</p>
           <div class="flex items-baseline gap-3">
@@ -30,7 +30,7 @@
         <div class="w-12 h-12 rounded-2xl bg-orange-50 dark:bg-orange-900/20 text-orange-500 flex items-center justify-center"><LucideClipboardList class="w-6 h-6" /></div>
       </div>
       
-      <div class="glass p-8 rounded-[2rem] flex items-center justify-between group hover:border-primary-500/30 transition-all">
+      <div class="glass p-8 rounded-lg flex items-center justify-between group hover:border-primary-500/30 transition-all">
         <div class="space-y-1">
           <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">{{ $t('stock.missions.stats.active') }}</p>
           <div class="flex items-baseline gap-3">
@@ -41,7 +41,7 @@
         <div class="w-12 h-12 rounded-2xl bg-blue-50 dark:bg-blue-900/20 text-blue-500 flex items-center justify-center"><LucideUsers class="w-6 h-6" /></div>
       </div>
 
-      <div class="glass p-8 rounded-[2rem] flex items-center justify-between group hover:border-primary-500/30 transition-all">
+      <div class="glass p-8 rounded-lg flex items-center justify-between group hover:border-primary-500/30 transition-all">
         <div class="space-y-1">
           <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">{{ $t('stock.missions.stats.rate') }}</p>
           <div class="flex items-baseline gap-3">

@@ -159,7 +159,7 @@
             <div class="w-1.5 h-6 bg-primary-500 rounded-full"></div>
             <h2 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">{{ $t('documents.detail.metadata.title') }}</h2>
           </div>
-          <div class="glass rounded-[2rem] overflow-hidden border border-slate-100">
+          <div class="glass rounded-lg overflow-hidden border border-slate-100">
             <table class="w-full text-sm">
               <tbody class="divide-y divide-slate-50">
                 <tr v-for="(val, label) in metadata" :key="label" class="group">
@@ -175,7 +175,7 @@
             <div class="w-1.5 h-6 bg-primary-500 rounded-full"></div>
             <h2 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">{{ $t('documents.detail.location.title') }}</h2>
           </div>
-          <div class="bg-slate-50/50 border border-slate-100 rounded-[2rem] p-8 flex items-center justify-between relative overflow-hidden group">
+          <div class="bg-slate-50/50 border border-slate-100 rounded-lg p-8 flex items-center justify-between relative overflow-hidden group">
             <div class="space-y-6 relative z-10">
               <div class="grid grid-cols-2 gap-x-12 gap-y-6">
                 <div class="flex items-start gap-4">

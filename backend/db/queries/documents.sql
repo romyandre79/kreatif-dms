@@ -2,13 +2,16 @@
 INSERT INTO documents (
     title, description, file_name, file_path, file_size, mime_type, 
     company_id, branch_id, department_id, owner_id, status, batch_id,
-    sensitivity, metadata
+    sensitivity, metadata, type_id
 ) VALUES (
-    $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14
+    $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15
 ) RETURNING *;
 
 -- name: GetDocument :one
-SELECT * FROM documents WHERE id = $1 LIMIT 1;
+SELECT d.*, dt.name as type_name
+FROM documents d
+LEFT JOIN document_types dt ON d.type_id = dt.id
+WHERE d.id = $1 LIMIT 1;
 
 -- name: GetDocumentWithDetails :one
 SELECT 

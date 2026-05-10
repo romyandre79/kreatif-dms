@@ -237,7 +237,7 @@
             </div>
 
             <!-- Info Box -->
-            <div class="p-6 bg-blue-50/50 border border-blue-100 rounded-[2rem] flex gap-4 items-start">
+            <div class="p-6 bg-blue-50/50 border border-blue-100 rounded-lg flex gap-4 items-start">
               <LucideInfo class="w-5 h-5 text-blue-500 shrink-0 mt-0.5" />
               <p class="text-[11px] font-bold text-slate-500 leading-relaxed">
                 {{ $t('loans.my.modal.info_box') }}

@@ -27,7 +27,7 @@
     <!-- Stat Cards -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6" v-motion-slide-visible-bottom>
       <!-- Stat 1 -->
-      <div class="glass p-8 rounded-[2rem] border border-slate-100 bg-white shadow-xl shadow-slate-200/50 relative overflow-hidden group hover:shadow-2xl hover:shadow-primary-900/10 transition-all" :class="level === 'L2' ? 'border-l-4 border-primary-500' : ''">
+      <div class="glass p-8 rounded-lg border border-slate-100 bg-white shadow-xl shadow-slate-200/50 relative overflow-hidden group hover:shadow-2xl hover:shadow-primary-900/10 transition-all" :class="level === 'L2' ? 'border-l-4 border-primary-500' : ''">
         <div class="space-y-4">
           <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">
             {{ level === 'L1' ? $t('approvals.loans.stats.l1_waiting') : $t('approvals.loans.stats.l2_waiting') }}
@@ -43,7 +43,7 @@
       </div>
 
       <!-- Stat 2 -->
-      <div class="glass p-8 rounded-[2rem] border border-slate-100 bg-white shadow-xl shadow-slate-200/50 relative overflow-hidden group hover:shadow-2xl hover:shadow-primary-900/10 transition-all">
+      <div class="glass p-8 rounded-lg border border-slate-100 bg-white shadow-xl shadow-slate-200/50 relative overflow-hidden group hover:shadow-2xl hover:shadow-primary-900/10 transition-all">
         <div class="space-y-4">
           <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">
             {{ level === 'L1' ? $t('approvals.loans.stats.l1_approved') : $t('approvals.loans.stats.l2_release') }}
@@ -59,7 +59,7 @@
       </div>
 
       <!-- Stat 3 -->
-      <div class="glass p-8 rounded-[2rem] border border-slate-100 bg-white shadow-xl shadow-slate-200/50 relative overflow-hidden group hover:shadow-2xl hover:shadow-primary-900/10 transition-all">
+      <div class="glass p-8 rounded-lg border border-slate-100 bg-white shadow-xl shadow-slate-200/50 relative overflow-hidden group hover:shadow-2xl hover:shadow-primary-900/10 transition-all">
         <div class="space-y-4">
           <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">
             {{ level === 'L1' ? $t('approvals.loans.stats.l1_rejected') : $t('approvals.loans.stats.l2_pickup') }}
@@ -75,7 +75,7 @@
       </div>
 
       <!-- Stat 4 -->
-      <div class="glass p-8 rounded-[2rem] border border-slate-100 bg-white shadow-xl shadow-slate-200/50 relative overflow-hidden group hover:shadow-2xl hover:shadow-primary-900/10 transition-all border-l-4" :class="level === 'L1' ? 'border-orange-500' : 'border-slate-200'">
+      <div class="glass p-8 rounded-lg border border-slate-100 bg-white shadow-xl shadow-slate-200/50 relative overflow-hidden group hover:shadow-2xl hover:shadow-primary-900/10 transition-all border-l-4" :class="level === 'L1' ? 'border-orange-500' : 'border-slate-200'">
         <div class="space-y-4">
           <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">
             {{ level === 'L1' ? $t('approvals.loans.stats.l1_sla') : $t('approvals.loans.stats.l2_overdue') }}
@@ -121,10 +121,10 @@
             </thead>
             <tbody class="divide-y divide-slate-50">
               <tr v-for="req in queue" :key="req.no" 
-                  @click="selectedRequest = req"
-                  :class="`group hover:bg-slate-50/50 transition-all cursor-pointer ${selectedRequest?.no === req.no ? 'bg-primary-50/30' : ''}`">
+                  @click="navigateTo(`/approvals/${req.no}`)"
+                  class="group hover:bg-slate-50/50 transition-all cursor-pointer">
                 <td class="px-8 py-7">
-                  <p :class="`text-sm font-black uppercase tracking-tight ${selectedRequest?.no === req.no ? 'text-primary-600' : 'text-[#1E3A5F]'}`">{{ req.no }}</p>
+                  <p class="text-sm font-black uppercase tracking-tight text-[#1E3A5F] group-hover:text-primary-600 transition-colors">{{ req.no }}</p>
                 </td>
                 <td class="px-8 py-7"><p class="text-sm font-bold text-slate-700">{{ req.requestor }}</p></td>
                 <td class="px-8 py-7"><p class="text-xs font-bold text-slate-500 uppercase">{{ req.dept }}</p></td>
@@ -154,10 +154,15 @@
                 
                 <td class="px-8 py-7 text-center"><span class="text-sm font-black text-slate-400">{{ req.docsCount }}</span></td>
                 <td class="px-8 py-7">
-                  <p v-if="level === 'L1'" class="text-xs font-bold text-slate-600">{{ req.duration }}</p>
-                  <div v-else class="flex items-center gap-2">
-                    <div :class="`w-2 h-2 rounded-full ${req.priority === 'High' ? 'bg-orange-500' : 'bg-slate-300'}`"></div>
-                    <p class="text-xs font-bold text-slate-600">{{ req.priority }}</p>
+                  <div class="flex items-center justify-between gap-4">
+                    <p v-if="level === 'L1'" class="text-xs font-bold text-slate-600">{{ req.duration }}</p>
+                    <div v-else class="flex items-center gap-2">
+                      <div :class="`w-2 h-2 rounded-full ${req.priority === 'High' ? 'bg-orange-500' : 'bg-slate-300'}`"></div>
+                      <p class="text-xs font-bold text-slate-600">{{ req.priority }}</p>
+                    </div>
+                    <button class="px-4 py-1.5 bg-[#1E3A5F] text-white rounded-lg text-[9px] font-black uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-all">
+                      Review
+                    </button>
                   </div>
                 </td>
               </tr>

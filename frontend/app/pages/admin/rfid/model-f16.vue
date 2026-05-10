@@ -29,7 +29,7 @@
           </div>
 
           <div class="aspect-square bg-slate-50/50 dark:bg-slate-900/50 rounded-[3rem] border-4 border-dashed border-slate-100 dark:border-slate-800 flex flex-col items-center justify-center gap-6 group cursor-pointer hover:bg-slate-100/50 transition-all">
-            <div class="w-32 h-32 bg-white dark:bg-slate-800 rounded-[2rem] shadow-xl flex items-center justify-center text-slate-100 dark:text-slate-700 group-hover:scale-110 transition-transform">
+            <div class="w-32 h-32 bg-white dark:bg-slate-800 rounded-lg shadow-xl flex items-center justify-center text-slate-100 dark:text-slate-700 group-hover:scale-110 transition-transform">
               <LucideBox class="w-16 h-16" />
             </div>
             <p class="text-xs font-bold text-slate-300 uppercase tracking-widest">{{ $t('rfid.model_f16.container.drop') }}</p>
@@ -147,7 +147,7 @@
           </div>
 
           <div class="pt-10 border-t border-slate-50 dark:border-slate-800 space-y-8">
-            <div class="p-8 bg-slate-50/50 dark:bg-slate-900/50 rounded-[2rem] border border-slate-100 dark:border-slate-800 space-y-4">
+            <div class="p-8 bg-slate-50/50 dark:bg-slate-900/50 rounded-lg border border-slate-100 dark:border-slate-800 space-y-4">
               <div class="flex items-center gap-3">
                 <LucideInfo class="w-4 h-4 text-blue-500" />
                 <h4 class="text-[10px] font-black text-[#1E3A5F] dark:text-white uppercase tracking-widest">{{ $t('rfid.model_f16.summary.network') }}</h4>

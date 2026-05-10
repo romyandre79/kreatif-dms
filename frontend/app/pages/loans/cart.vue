@@ -20,7 +20,7 @@
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
       <!-- Left Column: Cart Items -->
       <div class="lg:col-span-8 space-y-4">
-        <div class="glass rounded-[2rem] overflow-hidden border border-slate-100 bg-white/80 backdrop-blur-xl">
+        <div class="glass rounded-lg overflow-hidden border border-slate-100 bg-white/80 backdrop-blur-xl">
           <div class="px-8 py-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
             <label class="flex items-center gap-3 cursor-pointer group">
               <input type="checkbox" class="w-5 h-5 rounded-md border-2 border-slate-200 text-primary-600 focus:ring-primary-500/20" />

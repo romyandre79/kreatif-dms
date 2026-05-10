@@ -63,7 +63,7 @@
                 v-model="form.notes"
                 :placeholder="$t('loans.fast_track.step1.form.notes_placeholder')" 
                 rows="5" 
-                class="w-full p-6 bg-slate-50 border border-slate-200 rounded-[2rem] text-sm font-bold text-slate-700 outline-none focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 transition-all resize-none"
+                class="w-full p-6 bg-slate-50 border border-slate-200 rounded-lg text-sm font-bold text-slate-700 outline-none focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 transition-all resize-none"
               ></textarea>
             </div>
           </div>

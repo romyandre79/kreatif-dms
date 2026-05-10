@@ -134,7 +134,7 @@
               <LucideFileText class="w-4 h-4 text-blue-500" />
               Document Info
             </h4>
-            <div class="p-8 bg-slate-50 dark:bg-slate-800/50 rounded-[2rem] space-y-6 border border-slate-100 dark:border-slate-800">
+            <div class="p-8 bg-slate-50 dark:bg-slate-800/50 rounded-lg space-y-6 border border-slate-100 dark:border-slate-800">
               <div class="space-y-1">
                 <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest">File Name</p>
                 <p class="text-[13px] font-black text-[#1E3A5F] dark:text-white uppercase tracking-tight">SK_Direksi_2023_V2.pdf</p>

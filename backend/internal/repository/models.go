@@ -244,6 +244,7 @@ type Document struct {
 	CirculationID       pgtype.UUID        `json:"circulation_id"`
 	MinioBucket         pgtype.Text        `json:"minio_bucket"`
 	EsIndexed           pgtype.Bool        `json:"es_indexed"`
+	TypeID              pgtype.UUID        `json:"type_id"`
 }
 
 type DocumentCirculation struct {

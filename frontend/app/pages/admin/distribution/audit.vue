@@ -23,7 +23,7 @@
       <div class="lg:col-span-8">
         <div class="glass p-10 rounded-lg relative overflow-hidden group border-2 border-green-500/10" v-motion-slide-visible-bottom>
           <div class="flex items-start gap-8">
-            <div class="w-20 h-20 rounded-[2rem] bg-green-50 dark:bg-green-900/20 flex items-center justify-center text-green-500 shadow-inner">
+            <div class="w-20 h-20 rounded-lg bg-green-50 dark:bg-green-900/20 flex items-center justify-center text-green-500 shadow-inner">
               <LucideCheckCircle2 class="w-10 h-10" />
             </div>
             <div class="space-y-2 flex-grow">
@@ -165,7 +165,7 @@
 
     <!-- Info Box Footer -->
     <div class="p-10 bg-slate-50 dark:bg-slate-900/50 rounded-[3rem] border border-slate-100 dark:border-slate-800 flex items-start gap-8 group hover:border-blue-500/30 transition-all" v-motion-slide-visible-bottom>
-      <div class="w-16 h-16 rounded-[1.5rem] bg-[#1E3A5F] text-white flex items-center justify-center shadow-xl shadow-blue-900/20 group-hover:scale-110 transition-transform">
+      <div class="w-16 h-16 rounded-lg bg-[#1E3A5F] text-white flex items-center justify-center shadow-xl shadow-blue-900/20 group-hover:scale-110 transition-transform">
         <LucideShieldCheck class="w-8 h-8" />
       </div>
       <div class="space-y-4 flex-grow">

@@ -36,7 +36,7 @@
 
         <div class="space-y-6 overflow-y-auto max-h-[800px] pr-2 custom-scrollbar">
           <!-- Scanning Progress Card -->
-          <div class="p-6 bg-slate-50 dark:bg-slate-900 border-2 border-blue-500/20 rounded-[2rem] space-y-3">
+          <div class="p-6 bg-slate-50 dark:bg-slate-900 border-2 border-blue-500/20 rounded-lg space-y-3">
             <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest text-center">Scanning page 4 of 12</p>
             <div class="h-2 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
               <div class="h-full bg-[#1E3A5F] w-[33%] animate-pulse"></div>
@@ -48,7 +48,7 @@
             class="relative group rounded-lg p-4 transition-all duration-300 border-4 overflow-hidden"
             :class="t.status === 'active' ? 'border-[#1E3A5F] bg-slate-50 dark:bg-slate-900 shadow-xl shadow-blue-900/10' : 'border-transparent hover:border-slate-100 dark:hover:border-slate-800'"
           >
-            <div class="aspect-[3/4] bg-white dark:bg-slate-800 rounded-[1.5rem] overflow-hidden shadow-sm flex items-center justify-center p-2">
+            <div class="aspect-[3/4] bg-white dark:bg-slate-800 rounded-lg overflow-hidden shadow-sm flex items-center justify-center p-2">
               <img :src="t.src" class="w-full h-full object-cover rounded-xl" :class="t.status === 'error' ? 'opacity-50' : ''" />
             </div>
             <div class="mt-4 flex items-center justify-between px-2">
@@ -138,12 +138,12 @@
 
         <!-- Action Panel -->
         <div class="space-y-4" v-motion-slide-visible-bottom :delay="100">
-          <button class="w-full py-6 bg-[#1E3A5F] hover:bg-[#152943] text-white rounded-[2rem] shadow-2xl shadow-blue-900/20 transition-all active:scale-95 group">
+          <button class="w-full py-6 bg-[#1E3A5F] hover:bg-[#152943] text-white rounded-lg shadow-2xl shadow-blue-900/20 transition-all active:scale-95 group">
             <p class="text-xs font-black uppercase tracking-[0.2em] mb-1">Gunakan Hasil Scan</p>
             <p class="text-[9px] font-bold text-blue-300 uppercase tracking-widest">Lanjut ke Distribusi Digital</p>
           </button>
           
-          <button class="w-full py-4 border-2 border-slate-200 dark:border-slate-800 text-[#1E3A5F] dark:text-slate-300 rounded-[1.5rem] text-[10px] font-black uppercase tracking-widest hover:bg-slate-50 transition-all">
+          <button class="w-full py-4 border-2 border-slate-200 dark:border-slate-800 text-[#1E3A5F] dark:text-slate-300 rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-slate-50 transition-all">
             Simpan Draft
           </button>
 

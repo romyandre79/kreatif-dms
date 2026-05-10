@@ -98,6 +98,20 @@
           <p class="text-[10px] font-bold text-teal-50 mt-1">{{ $t('dashboard.stats.immediate_attention') }}</p>
         </div>
       </div>
+
+      <!-- SLA Compliance -->
+      <div v-motion-slide-visible-bottom class="glass p-6 rounded-2xl flex flex-col justify-between border-l-4 border-primary-500">
+        <div class="flex items-center justify-between mb-6">
+          <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-tight">SLA<br>Compliance</p>
+          <LucideActivity class="w-5 h-5 text-primary-500" />
+        </div>
+        <div>
+          <p class="text-3xl font-black text-slate-900 dark:text-white">{{ stats?.compliance_rate?.toFixed(1) || 100 }}%</p>
+          <div class="flex items-center gap-1 text-[10px] font-black text-slate-400 mt-1 uppercase tracking-tighter">
+            Avg: {{ formatTime(stats?.avg_approval_time) }}
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Main Content -->
@@ -333,6 +347,12 @@ const getActivityStyles = (action) => {
     case 'UPLOAD': return { icon: LucideUpload, color: 'text-teal-500', bg: 'bg-teal-50 dark:bg-teal-900/20' }
     default: return { icon: LucideActivity, color: 'text-slate-500', bg: 'bg-slate-50 dark:bg-slate-900/20' }
   }
+}
+
+const formatTime = (seconds) => {
+  if (!seconds || seconds <= 0) return '0h'
+  if (seconds < 3600) return `${(seconds / 60).toFixed(1)}m`
+  return `${(seconds / 3600).toFixed(1)}h`
 }
 
 // Polling for updates

@@ -103,11 +103,11 @@
                 <span class="px-3 py-1 bg-amber-500 text-white rounded-lg text-[8px] tracking-tight">{{ $t('warehouse.override.config.lock_hint') }}</span>
               </label>
               <div class="grid grid-cols-2 gap-6">
-                <button class="p-6 rounded-[2rem] border-2 border-slate-50 dark:border-slate-800 flex flex-col items-center text-center space-y-3 hover:border-blue-500 transition-all group">
+                <button class="p-6 rounded-lg border-2 border-slate-50 dark:border-slate-800 flex flex-col items-center text-center space-y-3 hover:border-blue-500 transition-all group">
                   <LucideZap class="w-6 h-6 text-slate-300 group-hover:text-blue-500" />
                   <span class="text-[10px] font-black text-[#1E3A5F] dark:text-white uppercase">{{ $t('warehouse.override.list.auto') }}</span>
                 </button>
-                <button class="p-6 rounded-[2rem] border-2 border-amber-500 bg-amber-50/30 flex flex-col items-center text-center space-y-3 group">
+                <button class="p-6 rounded-lg border-2 border-amber-500 bg-amber-50/30 flex flex-col items-center text-center space-y-3 group">
                   <LucideShieldAlert class="w-6 h-6 text-amber-500" />
                   <span class="text-[10px] font-black text-[#1E3A5F] dark:text-white uppercase">{{ $t('warehouse.override.list.full') }}</span>
                 </button>
@@ -130,7 +130,7 @@
               <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest">{{ $t('warehouse.override.config.reason') }}</label>
               <textarea 
                 :placeholder="$t('warehouse.override.config.reason_placeholder')"
-                class="w-full bg-slate-50/50 dark:bg-slate-900/50 border-2 border-slate-100 dark:border-slate-800 rounded-[2rem] p-6 text-xs font-bold focus:ring-2 focus:ring-blue-500 outline-none min-h-[120px] custom-scrollbar"
+                class="w-full bg-slate-50/50 dark:bg-slate-900/50 border-2 border-slate-100 dark:border-slate-800 rounded-lg p-6 text-xs font-bold focus:ring-2 focus:ring-blue-500 outline-none min-h-[120px] custom-scrollbar"
               ></textarea>
             </div>
 

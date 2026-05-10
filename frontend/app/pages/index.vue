@@ -82,7 +82,7 @@
             <img 
               src="/kreatif_dms_hero.png" 
               alt="Kreatif DMS Dashboard" 
-              class="w-full rounded-[2rem] transition-transform duration-700 group-hover:scale-105"
+              class="w-full rounded-lg transition-transform duration-700 group-hover:scale-105"
             />
             <div class="absolute inset-0 bg-gradient-to-t from-[#020617]/50 to-transparent"></div>
           </div>

@@ -21,7 +21,7 @@
       <div class="glass p-10 rounded-[3rem] bg-white border border-slate-100 shadow-2xl shadow-slate-200/50 relative overflow-hidden group" v-motion-slide-visible-bottom>
         <div class="absolute top-0 left-0 right-0 h-1.5 bg-emerald-500"></div>
         <div class="flex items-center gap-8">
-          <div class="w-24 h-24 bg-emerald-50 rounded-[2rem] flex items-center justify-center text-emerald-500 shadow-lg shadow-emerald-500/10 group-hover:scale-110 transition-transform duration-500">
+          <div class="w-24 h-24 bg-emerald-50 rounded-lg flex items-center justify-center text-emerald-500 shadow-lg shadow-emerald-500/10 group-hover:scale-110 transition-transform duration-500">
             <LucideFileSpreadsheet class="w-12 h-12" />
           </div>
           <div class="space-y-6 flex-1">
@@ -108,7 +108,7 @@
 
         <div class="pt-8 border-t border-slate-200 space-y-6">
           <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">{{ $t('retention.export.sidebar.next_steps') }}</p>
-          <button @click="navigateTo('/retention/decision')" class="w-full p-8 bg-[#1E3A5F] hover:bg-[#152943] text-white rounded-[2rem] shadow-2xl shadow-blue-900/30 transition-all flex items-center justify-between group">
+          <button @click="navigateTo('/retention/decision')" class="w-full p-8 bg-[#1E3A5F] hover:bg-[#152943] text-white rounded-lg shadow-2xl shadow-blue-900/30 transition-all flex items-center justify-between group">
             <span class="text-sm font-black text-left uppercase tracking-tight">
               {{ $t('retention.export.sidebar.btn_wait') }}
             </span>

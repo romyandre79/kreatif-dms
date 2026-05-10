@@ -30,7 +30,7 @@
         <img src="https://images.unsplash.com/photo-1568667256549-094345857637?auto=format&fit=crop&q=80&w=400" 
              class="w-full h-full object-cover opacity-60 mix-blend-multiply group-hover:scale-110 transition-transform duration-1000" />
         <div class="absolute inset-0 flex items-center justify-center">
-          <div class="w-20 h-20 bg-white/90 backdrop-blur-sm rounded-[1.5rem] shadow-2xl flex items-center justify-center text-slate-400">
+          <div class="w-20 h-20 bg-white/90 backdrop-blur-sm rounded-lg shadow-2xl flex items-center justify-center text-slate-400">
             <LucideFolderMinus class="w-10 h-10" />
           </div>
         </div>

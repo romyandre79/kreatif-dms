@@ -120,6 +120,7 @@
             </td>
             <td class="pr-8 py-6 text-right">
               <button 
+                @click.stop="navigateTo(`/approvals/${item.entity_id || item.id}`)"
                 class="px-5 py-2 bg-[#1E3A5F] hover:bg-[#2A4B75] text-white rounded-lg text-[10px] font-black uppercase tracking-widest flex items-center gap-2 ml-auto transition-all group-hover:scale-105 active:scale-95 shadow-lg shadow-blue-900/10"
               >
                 Review

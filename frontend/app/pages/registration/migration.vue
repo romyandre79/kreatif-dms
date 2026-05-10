@@ -189,7 +189,7 @@
           
           <!-- State: Duplicate Check -->
           <div v-if="state === 'duplicate_check'" class="space-y-10">
-            <div class="bg-green-50/50 dark:bg-green-900/10 border border-green-100 rounded-[1.5rem] p-8 flex items-center justify-between">
+            <div class="bg-green-50/50 dark:bg-green-900/10 border border-green-100 rounded-lg p-8 flex items-center justify-between">
               <div class="space-y-1">
                 <h3 class="text-sm font-black text-green-800 dark:text-green-300 uppercase">{{ $t('registration.migration.duplicate_check.alert.title') }}</h3>
                 <p class="text-xs font-medium text-green-700/70 dark:text-green-400">{{ $t('registration.migration.duplicate_check.alert.desc') }}</p>
@@ -200,7 +200,7 @@
               <div class="lg:col-span-2 space-y-8">
                 <div class="glass p-10 rounded-lg space-y-8">
                   <h4 class="text-sm font-black text-[#1E3A5F] dark:text-white uppercase">{{ $t('registration.migration.duplicate_check.similar.title') }}</h4>
-                  <div v-for="rec in similarRecords" :key="rec.id" class="p-8 bg-slate-50 border border-slate-100 rounded-[2rem] flex items-center justify-between group transition-all">
+                  <div v-for="rec in similarRecords" :key="rec.id" class="p-8 bg-slate-50 border border-slate-100 rounded-lg flex items-center justify-between group transition-all">
                     <div class="flex items-center gap-8">
                       <div class="w-16 h-16 rounded-full border-4 border-green-500 flex items-center justify-center text-xs font-black">{{ rec.score }}%</div>
                       <div>
@@ -213,7 +213,7 @@
                 </div>
               </div>
               <div class="space-y-8">
-                <button @click="state = 'location_assignment'" class="w-full py-5 bg-[#1E3A5F] text-white rounded-[1.5rem] text-xs font-black uppercase tracking-widest shadow-2xl shadow-blue-900/40">{{ $t('registration.migration.duplicate_check.footer.btn_next') }}</button>
+                <button @click="state = 'location_assignment'" class="w-full py-5 bg-[#1E3A5F] text-white rounded-lg text-xs font-black uppercase tracking-widest shadow-2xl shadow-blue-900/40">{{ $t('registration.migration.duplicate_check.footer.btn_next') }}</button>
               </div>
             </div>
           </div>
@@ -229,7 +229,7 @@
                 <div class="glass p-10 rounded-lg space-y-10">
                   <h4 class="text-sm font-black text-[#1E3A5F] dark:text-white uppercase">{{ $t('registration.migration.location_assignment.strategy.title') }}</h4>
                   <div class="grid grid-cols-2 gap-8">
-                    <div class="p-8 bg-slate-50 dark:bg-slate-900/50 rounded-[2rem] space-y-2">
+                    <div class="p-8 bg-slate-50 dark:bg-slate-900/50 rounded-lg space-y-2">
                       <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest">{{ $t('registration.migration.location_assignment.strategy.target') }}</p>
                       <p class="text-lg font-black text-[#1E3A5F] dark:text-white">{{ $t('registration.migration.location_assignment.strategy.archives') }}</p>
                     </div>
@@ -275,10 +275,10 @@
                 </div>
               </div>
               <div class="space-y-12">
-                <button @click="state = 'print_qr'" class="w-full py-5 bg-[#1E3A5F] text-white rounded-[1.5rem] text-xs font-black uppercase shadow-2xl shadow-blue-900/40 transition-all">
+                <button @click="state = 'print_qr'" class="w-full py-5 bg-[#1E3A5F] text-white rounded-lg text-xs font-black uppercase shadow-2xl shadow-blue-900/40 transition-all">
                   {{ $t('registration.migration.success.buttons.print') }}
                 </button>
-                <button @click="state = 'initial'" class="w-full py-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[1.5rem] text-xs font-black uppercase text-[#1E3A5F] flex items-center justify-center gap-3">
+                <button @click="state = 'initial'" class="w-full py-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-xs font-black uppercase text-[#1E3A5F] flex items-center justify-center gap-3">
                   <LucidePlus class="w-4 h-4" /> {{ $t('registration.migration.success.buttons.more') }}
                 </button>
               </div>
@@ -415,7 +415,7 @@
                     </p>
                   </div>
 
-                  <button class="w-full py-5 bg-[#1E3A5F] text-white rounded-[1.5rem] text-xs font-black uppercase tracking-widest shadow-2xl shadow-blue-900/40 hover:bg-[#152943] transition-all flex items-center justify-center gap-3">
+                  <button class="w-full py-5 bg-[#1E3A5F] text-white rounded-lg text-xs font-black uppercase tracking-widest shadow-2xl shadow-blue-900/40 hover:bg-[#152943] transition-all flex items-center justify-center gap-3">
                     <LucidePrinter class="w-5 h-5" />
                     {{ $t('registration.migration.print_qr.preview.btn_print') }}
                   </button>

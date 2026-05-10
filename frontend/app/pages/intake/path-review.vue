@@ -184,7 +184,7 @@
         <LucideArrowLeft class="w-5 h-5 group-hover:scale-125 transition-transform" />
         {{ $t('intake.path_review.actions.back') }}
       </button>
-      <button class="px-16 py-6 bg-[#1E3A5F] text-white rounded-[2rem] text-sm font-black uppercase tracking-widest shadow-2xl shadow-blue-900/40 hover:bg-[#152943] transition-all flex items-center gap-6 active:scale-95 group">
+      <button class="px-16 py-6 bg-[#1E3A5F] text-white rounded-lg text-sm font-black uppercase tracking-widest shadow-2xl shadow-blue-900/40 hover:bg-[#152943] transition-all flex items-center gap-6 active:scale-95 group">
         {{ $t('intake.path_review.actions.commit') }}
         <div class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center group-hover:rotate-12 transition-transform">
           <LucideCheckCircle2 class="w-6 h-6" />

@@ -78,7 +78,7 @@
                   v-model="form.fullName"
                   type="text" 
                   :placeholder="$t('register.name_placeholder')"
-                  class="w-full pl-14 md:pl-16 pr-6 py-4 md:py-5.5 rounded-[1.5rem] md:rounded-[2rem] border-2 border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 focus:outline-none focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 transition-all text-base md:text-lg"
+                  class="w-full pl-14 md:pl-16 pr-6 py-4 md:py-5.5 rounded-lg md:rounded-lg border-2 border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 focus:outline-none focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 transition-all text-base md:text-lg"
                   required
                 />
               </div>
@@ -94,7 +94,7 @@
                   v-model="form.email"
                   type="text" 
                   :placeholder="authType === 'sso' ? $t('login.username_placeholder') : $t('login.email_placeholder')"
-                  class="w-full pl-14 md:pl-16 pr-6 py-4 md:py-5.5 rounded-[1.5rem] md:rounded-[2rem] border-2 border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 focus:outline-none focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 transition-all text-base md:text-lg"
+                  class="w-full pl-14 md:pl-16 pr-6 py-4 md:py-5.5 rounded-lg md:rounded-lg border-2 border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 focus:outline-none focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 transition-all text-base md:text-lg"
                   required
                 />
               </div>
@@ -118,7 +118,7 @@
                   v-model="form.password"
                   :type="showPassword ? 'text' : 'password'" 
                   :placeholder="$t('login.password_placeholder')"
-                  class="w-full pl-14 md:pl-16 pr-14 md:pr-16 py-4 md:py-5.5 rounded-[1.5rem] md:rounded-[2rem] border-2 border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 focus:outline-none focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 transition-all text-base md:text-lg"
+                  class="w-full pl-14 md:pl-16 pr-14 md:pr-16 py-4 md:py-5.5 rounded-lg md:rounded-lg border-2 border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 focus:outline-none focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 transition-all text-base md:text-lg"
                   required
                 />
                 <button 
@@ -143,7 +143,7 @@
                   v-model="form.confirmPassword"
                   type="password" 
                   :placeholder="$t('register.confirm_password_placeholder')"
-                  class="w-full pl-14 md:pl-16 pr-6 py-4 md:py-5.5 rounded-[1.5rem] md:rounded-[2rem] border-2 border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 focus:outline-none focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 transition-all text-base md:text-lg"
+                  class="w-full pl-14 md:pl-16 pr-6 py-4 md:py-5.5 rounded-lg md:rounded-lg border-2 border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 focus:outline-none focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 transition-all text-base md:text-lg"
                   required
                 />
               </div>
@@ -166,7 +166,7 @@
                   type="text" 
                   maxlength="6"
                   placeholder="000000"
-                  class="w-full text-center text-4xl tracking-[1rem] font-mono py-6 rounded-[2rem] border-2 border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 focus:outline-none focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 transition-all"
+                  class="w-full text-center text-4xl tracking-[1rem] font-mono py-6 rounded-lg border-2 border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 focus:outline-none focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 transition-all"
                   required
                   autofocus
                 />
@@ -199,7 +199,7 @@
           <button 
             type="submit"
             :disabled="loading"
-            class="w-full py-5 md:py-6 bg-[#1E3A5F] hover:bg-[#152943] disabled:bg-slate-400 text-white font-black text-lg md:text-xl rounded-[1.5rem] md:rounded-[2rem] transition-all shadow-2xl shadow-blue-900/30 flex items-center justify-center gap-3"
+            class="w-full py-5 md:py-6 bg-[#1E3A5F] hover:bg-[#152943] disabled:bg-slate-400 text-white font-black text-lg md:text-xl rounded-lg md:rounded-lg transition-all shadow-2xl shadow-blue-900/30 flex items-center justify-center gap-3"
           >
             <LucideLoader2 v-if="loading" class="w-6 h-6 animate-spin" />
             <span v-else>{{ mfaRequired ? 'Verify Code' : (mode === 'login' ? $t('login.sign_in_button') : $t('register.submit_button')) }}</span>

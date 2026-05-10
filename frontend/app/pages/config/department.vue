@@ -28,7 +28,7 @@
 
         <!-- Table Section -->
         <div class="flex-grow p-2.5 custom-scrollbar" :class="hasEditingRow ? 'overflow-visible' : 'overflow-auto'">
-          <div class="bg-white dark:bg-slate-900 rounded-[1.5rem] shadow-sm border border-slate-100 dark:border-slate-800">
+          <div class="bg-white dark:bg-slate-900 rounded-lg shadow-sm border border-slate-100 dark:border-slate-800">
             <!-- Filter Bar -->
             <div class="px-8 py-6 border-b border-slate-50 dark:border-slate-800 flex items-center justify-between bg-slate-50/30 dark:bg-slate-900/30">
               <div class="relative w-96 group">

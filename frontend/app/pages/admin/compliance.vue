@@ -55,7 +55,7 @@
             </div>
           </div>
           <div class="grid grid-cols-4 gap-6">
-            <div class="col-span-1 flex flex-col items-center justify-center p-6 bg-blue-50/50 dark:bg-blue-900/10 rounded-[2rem]">
+            <div class="col-span-1 flex flex-col items-center justify-center p-6 bg-blue-50/50 dark:bg-blue-900/10 rounded-lg">
               <p class="text-4xl font-black text-[#1E3A5F] dark:text-white tracking-tighter">84%</p>
               <p class="text-[8px] font-black text-[#1E3A5F] dark:text-white uppercase tracking-widest text-center mt-2">{{ $t('compliance.score.health') }}</p>
             </div>

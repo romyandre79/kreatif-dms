@@ -65,7 +65,7 @@
         </div>
 
         <!-- Scanning Checklist -->
-        <div class="p-8 bg-slate-50/50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800 rounded-[2rem] space-y-6">
+        <div class="p-8 bg-slate-50/50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800 rounded-lg space-y-6">
           <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-widest">{{ $t('circulation.receive.checklist.title') }}</h4>
           <ul class="space-y-4">
             <li v-for="i in [1, 2, 3]" :key="i" class="flex gap-4 text-xs font-bold text-slate-600 dark:text-slate-300 leading-relaxed">

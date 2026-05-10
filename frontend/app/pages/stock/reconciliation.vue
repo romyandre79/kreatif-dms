@@ -30,7 +30,7 @@
 
       <!-- Summary Cards Grid -->
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-        <div v-for="card in summaryCards" :key="card.type" :class="`glass p-8 rounded-[2rem] border-2 transition-all group ${card.borderColor}`">
+        <div v-for="card in summaryCards" :key="card.type" :class="`glass p-8 rounded-lg border-2 transition-all group ${card.borderColor}`">
           <div class="flex items-center justify-between mb-6">
             <h4 :class="`text-[10px] font-black uppercase tracking-widest ${card.textColor}`">{{ $t(`stock.reconciliation.summary.${card.type}.title`) }}</h4>
             <div :class="`w-8 h-8 rounded-lg flex items-center justify-center ${card.iconBg} ${card.textColor}`">
@@ -186,14 +186,14 @@
             </div>
             <div class="space-y-4">
               <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest">{{ $t('stock.resolution.details.note_label') }}</label>
-              <textarea :placeholder="$t('stock.resolution.details.note_placeholder')" class="w-full h-48 px-6 py-5 bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-800 rounded-[1.5rem] text-xs font-bold outline-none focus:ring-4 focus:ring-primary-500/10 transition-all resize-none custom-scrollbar"></textarea>
+              <textarea :placeholder="$t('stock.resolution.details.note_placeholder')" class="w-full h-48 px-6 py-5 bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-800 rounded-lg text-xs font-bold outline-none focus:ring-4 focus:ring-primary-500/10 transition-all resize-none custom-scrollbar"></textarea>
               <div class="flex gap-3 text-slate-400">
                 <LucideInfo class="w-4 h-4 shrink-0" />
                 <p class="text-[10px] font-bold leading-relaxed italic">{{ $t('stock.resolution.details.note_hint') }}</p>
               </div>
             </div>
             <div class="space-y-4 pt-6">
-              <button @click="state = 'validation'" class="w-full py-5 bg-primary-500 text-white rounded-[1.5rem] text-[10px] font-black uppercase tracking-widest shadow-xl shadow-primary-500/30 hover:bg-primary-600 transition-all active:scale-95">
+              <button @click="state = 'validation'" class="w-full py-5 bg-primary-500 text-white rounded-lg text-[10px] font-black uppercase tracking-widest shadow-xl shadow-primary-500/30 hover:bg-primary-600 transition-all active:scale-95">
                 {{ $t('stock.resolution.details.btn_submit') }}
               </button>
               <button class="w-full text-[10px] font-black text-slate-400 uppercase tracking-widest hover:text-[#1E3A5F] transition-all">
@@ -201,7 +201,7 @@
               </button>
             </div>
             <div class="pt-10 border-t border-slate-50 dark:border-slate-800">
-              <div class="bg-blue-50/30 dark:bg-blue-900/10 p-6 rounded-[2rem] flex items-center gap-5">
+              <div class="bg-blue-50/30 dark:bg-blue-900/10 p-6 rounded-lg flex items-center gap-5">
                 <div class="w-10 h-10 rounded-full bg-primary-500 text-white flex items-center justify-center shadow-lg"><LucideUserCheck class="w-5 h-5" /></div>
                 <div>
                   <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest">{{ $t('stock.resolution.details.actor') }}</p>
@@ -305,7 +305,7 @@
         <!-- Sidebar: Finalization Actions -->
         <div class="space-y-8">
           <div class="glass p-10 rounded-lg space-y-10" v-motion-slide-right>
-            <div class="p-8 bg-blue-50/50 dark:bg-blue-900/10 rounded-[2rem] border border-blue-100 dark:border-blue-800 space-y-3">
+            <div class="p-8 bg-blue-50/50 dark:bg-blue-900/10 rounded-lg border border-blue-100 dark:border-blue-800 space-y-3">
               <div class="flex items-center gap-3 text-primary-500">
                 <LucideInfo class="w-5 h-5" />
                 <h4 class="text-[10px] font-black uppercase tracking-widest">{{ $t('stock.validation.actions.note_title') }}</h4>
@@ -314,11 +314,11 @@
             </div>
 
             <div class="space-y-4 pt-6">
-              <button @click="state = 'report'" class="w-full py-5 bg-primary-500 text-white rounded-[1.5rem] text-xs font-black uppercase tracking-widest shadow-2xl shadow-primary-500/40 hover:bg-primary-600 transition-all flex items-center justify-center gap-3 active:scale-95">
+              <button @click="state = 'report'" class="w-full py-5 bg-primary-500 text-white rounded-lg text-xs font-black uppercase tracking-widest shadow-2xl shadow-primary-500/40 hover:bg-primary-600 transition-all flex items-center justify-center gap-3 active:scale-95">
                 <LucideCheckCircle2 class="w-5 h-5" />
                 {{ $t('stock.validation.actions.btn_approve') }}
               </button>
-              <button class="w-full py-4 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-400 rounded-[1.5rem] text-[10px] font-black uppercase tracking-widest hover:bg-slate-50 transition-all">
+              <button class="w-full py-4 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-400 rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-slate-50 transition-all">
                 {{ $t('stock.validation.actions.btn_reject') }}
               </button>
             </div>

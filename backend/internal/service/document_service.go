@@ -107,6 +107,7 @@ func (s *DocumentService) UploadDocument(ctx context.Context, p UploadDocumentPa
 		BatchID:      pgtype.UUID{Bytes: p.BatchID, Valid: p.BatchID != uuid.Nil},
 		Sensitivity:  pgtype.Text{String: strings.ToLower(p.Sensitivity), Valid: p.Sensitivity != ""},
 		Metadata:     metadataBytes,
+		TypeID:       pgtype.UUID{Bytes: p.TypeID, Valid: p.TypeID != uuid.Nil},
 	})
 	if err != nil {
 		log.Printf("[DocumentService] Error creating document record in DB: %v", err)
@@ -137,6 +138,24 @@ func (s *DocumentService) UploadDocument(ctx context.Context, p UploadDocumentPa
 	}
 	
 	log.Printf("[DocumentService] OCR task enqueued successfully for doc: %s", doc.ID)
+	
+	// 5. Create Approval Workflow Task
+	// We automatically assign an approval task to the Department Head
+	dept, err := s.repo.GetDepartment(ctx, p.DepartmentID)
+	if err == nil && dept.HeadID.Valid {
+		log.Printf("[DocumentService] Creating approval task for head of department: %s", dept.HeadID.Bytes)
+		_, err = s.repo.CreateApprovalTask(ctx, repository.CreateApprovalTaskParams{
+			EntityType: "document_upload",
+			EntityID:   doc.ID,
+			ApproverID: dept.HeadID.Bytes,
+			Level:      1,
+		})
+		if err != nil {
+			log.Printf("[DocumentService] Error creating approval task: %v", err)
+		}
+	} else {
+		log.Printf("[DocumentService] WARNING: No department head found for approval task. Document ID: %s", doc.ID)
+	}
 
 	return doc, nil
 }
@@ -375,8 +394,8 @@ func (s *DocumentService) GetLoanHistory(ctx context.Context, docID uuid.UUID) (
 func (s *DocumentService) ApproveDocument(ctx context.Context, docID uuid.UUID, notes string) error {
 	// 1. Update workflow status
 	if err := s.repo.ApproveTask(ctx, repository.ApproveTaskParams{
-		EntityID:      docID,
-		DecisionNotes: pgtype.Text{String: notes, Valid: notes != ""},
+		EntityID:     docID,
+		DecisionNote: pgtype.Text{String: notes, Valid: notes != ""},
 	}); err != nil {
 		return err
 	}
@@ -388,11 +407,12 @@ func (s *DocumentService) ApproveDocument(ctx context.Context, docID uuid.UUID, 
 	})
 }
 
-func (s *DocumentService) RejectDocument(ctx context.Context, docID uuid.UUID, notes string) error {
+func (s *DocumentService) RejectDocument(ctx context.Context, docID uuid.UUID, reason string, notes string) error {
 	// 1. Update workflow status
 	if err := s.repo.RejectTask(ctx, repository.RejectTaskParams{
-		EntityID:      docID,
-		DecisionNotes: pgtype.Text{String: notes, Valid: notes != ""},
+		EntityID:        docID,
+		DecisionNote:    pgtype.Text{String: notes, Valid: notes != ""},
+		RejectionReason: pgtype.Text{String: reason, Valid: reason != ""},
 	}); err != nil {
 		return err
 	}
@@ -414,7 +434,7 @@ func (s *DocumentService) BulkApproveDocuments(ctx context.Context, ids []uuid.U
 
 func (s *DocumentService) BulkRejectDocuments(ctx context.Context, ids []uuid.UUID) error {
 	for _, id := range ids {
-		if err := s.RejectDocument(ctx, id, "Bulk rejected"); err != nil {
+		if err := s.RejectDocument(ctx, id, "Bulk Action", "Bulk rejected"); err != nil {
 			return err
 		}
 	}

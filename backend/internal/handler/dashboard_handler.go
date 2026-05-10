@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"log"
 	"github.com/gofiber/fiber/v3"
 	"github.com/google/uuid"
 	"github.com/kreatif/dms-backend/internal/repository"
@@ -27,6 +28,7 @@ func NewDashboardHandler(svc *service.DashboardService) *DashboardHandler {
 func (h *DashboardHandler) GetSummary(c fiber.Ctx) error {
 	userID := c.Locals("user_id").(uuid.UUID)
 	role := c.Locals("user_role").(string)
+	log.Printf("[DashboardHandler] Request from UserID: %v, Role: %v", userID, role)
 
 	// If superadmin or admin, return global summary
 	if role == "superadmin" || role == "admin" {
@@ -55,15 +57,9 @@ func (h *DashboardHandler) GetSummary(c fiber.Ctx) error {
 		})
 	}
 
-	// For managers, return department summary
+	// For managers, return department/team summary
 	if role == "manajer" {
-		// Get user's department
-		user, err := h.svc.GetRepo().GetUserByID(c.Context(), userID)
-		if err != nil || !user.DepartmentID.Valid {
-			return response.Error(c, fiber.StatusInternalServerError, "Failed to identify manager's department", "")
-		}
-
-		data, err := h.svc.GetManagerSummary(c.Context(), userID, user.DepartmentID.Bytes)
+		data, err := h.svc.GetManagerSummary(c.Context(), userID)
 		if err != nil {
 			return response.Error(c, fiber.StatusInternalServerError, "Failed to get manager dashboard summary", err.Error())
 		}

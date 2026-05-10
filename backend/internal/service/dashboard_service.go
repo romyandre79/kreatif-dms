@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"log"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/kreatif/dms-backend/internal/repository"
@@ -96,21 +97,20 @@ func (s *DashboardService) GetRecentActivities(ctx context.Context, limit int32)
 func (s *DashboardService) GetPriorityTasks(ctx context.Context, limit int32) ([]repository.GetPriorityTasksRow, error) {
 	return s.repo.GetPriorityTasks(ctx, limit)
 }
-func (s *DashboardService) GetManagerSummary(ctx context.Context, userID uuid.UUID, deptID uuid.UUID) (interface{}, error) {
-	stats, err := s.repo.GetManagerDailyStats(ctx, repository.GetManagerDailyStatsParams{
-		DepartmentID: deptID,
-		ApproverID:   userID,
-	})
+func (s *DashboardService) GetManagerSummary(ctx context.Context, userID uuid.UUID) (interface{}, error) {
+	log.Printf("[DashboardService] Fetching stats for Manager: %v", userID)
+	stats, err := s.repo.GetManagerDailyStats(ctx, pgtype.UUID{Bytes: userID, Valid: true})
 	if err != nil {
 		return nil, err
 	}
+	log.Printf("[DashboardService] Stats retrieved: daily_received=%d, active_tasks=%d", stats.DailyReceived, stats.ActiveTasks)
 
-	activities, err := s.repo.GetDepartmentRecentActivities(ctx, repository.GetDepartmentRecentActivitiesParams{
-		DepartmentID: pgtype.UUID{Bytes: [16]byte(deptID), Valid: true},
-		Limit:        10,
+	activities, err := s.repo.GetManagerRecentActivities(ctx, repository.GetManagerRecentActivitiesParams{
+		HeadID: pgtype.UUID{Bytes: userID, Valid: true},
+		Limit:  10,
 	})
 	if err != nil {
-		activities = []repository.GetDepartmentRecentActivitiesRow{}
+		activities = []repository.GetManagerRecentActivitiesRow{}
 	}
 
 	tasks, err := s.repo.GetUserPriorityTasks(ctx, repository.GetUserPriorityTasksParams{
@@ -121,12 +121,12 @@ func (s *DashboardService) GetManagerSummary(ctx context.Context, userID uuid.UU
 		tasks = []repository.GetUserPriorityTasksRow{}
 	}
 
-	topSubmitters, err := s.repo.GetDepartmentTopSubmitters(ctx, repository.GetDepartmentTopSubmittersParams{
-		DepartmentID: pgtype.UUID{Bytes: [16]byte(deptID), Valid: true},
-		Limit:        5,
+	topSubmitters, err := s.repo.GetManagerTopSubmitters(ctx, repository.GetManagerTopSubmittersParams{
+		HeadID: pgtype.UUID{Bytes: userID, Valid: true},
+		Limit:  5,
 	})
 	if err != nil {
-		topSubmitters = []repository.GetDepartmentTopSubmittersRow{}
+		topSubmitters = []repository.GetManagerTopSubmittersRow{}
 	}
 
 	announcement, _ := s.GetAnnouncements(ctx)

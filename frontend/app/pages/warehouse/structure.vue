@@ -33,7 +33,7 @@
             </div>
 
             <div class="space-y-6">
-              <div v-for="(item, i) in [1, 2, 3]" :key="i" class="p-8 bg-slate-50/50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800 rounded-[2rem] flex items-start gap-6 hover:border-primary-500/30 transition-all group">
+              <div v-for="(item, i) in [1, 2, 3]" :key="i" class="p-8 bg-slate-50/50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800 rounded-lg flex items-start gap-6 hover:border-primary-500/30 transition-all group">
                 <div class="pt-1">
                   <div class="w-6 h-6 rounded border-2 border-slate-200 dark:border-slate-700 flex items-center justify-center group-hover:border-primary-500 transition-colors cursor-pointer">
                     <LucideCheck v-if="checked[i]" class="w-4 h-4 text-primary-500" />
@@ -46,14 +46,14 @@
               </div>
             </div>
 
-            <button @click="state = 'scan'" class="w-full py-5 bg-[#1E3A5F] text-white rounded-[1.5rem] text-xs font-black uppercase tracking-widest shadow-2xl shadow-blue-900/40 hover:bg-[#152943] transition-all flex items-center justify-center gap-3 active:scale-95">
+            <button @click="state = 'scan'" class="w-full py-5 bg-[#1E3A5F] text-white rounded-lg text-xs font-black uppercase tracking-widest shadow-2xl shadow-blue-900/40 hover:bg-[#152943] transition-all flex items-center justify-center gap-3 active:scale-95">
               <LucideScanLine class="w-5 h-5" />
               {{ $t('warehouse.structure.checklist.btn_start') }}
             </button>
           </div>
 
           <!-- SOP Info -->
-          <div class="p-8 bg-primary-50/30 dark:bg-primary-900/10 border border-primary-100/50 dark:border-primary-800/30 rounded-[2rem] flex gap-6">
+          <div class="p-8 bg-primary-50/30 dark:bg-primary-900/10 border border-primary-100/50 dark:border-primary-800/30 rounded-lg flex gap-6">
             <div class="w-12 h-12 rounded-2xl bg-white dark:bg-slate-800 text-primary-500 flex items-center justify-center shadow-sm shrink-0">
               <LucideInfo class="w-6 h-6" />
             </div>
@@ -74,7 +74,7 @@
               <h3 class="text-sm font-black text-[#1E3A5F] dark:text-white uppercase tracking-widest">{{ $t('warehouse.structure.assigned.title') }}</h3>
             </div>
 
-            <div class="aspect-square bg-slate-100 dark:bg-slate-800 rounded-[2rem] overflow-hidden relative group">
+            <div class="aspect-square bg-slate-100 dark:bg-slate-800 rounded-lg overflow-hidden relative group">
               <img src="https://api.mapbox.com/styles/v1/mapbox/dark-v10/static/106.8456, -6.2088,12,0,0/400x400?access_token=pk.eyJ1IjoiYmFyY2FiaWwiLCJhIjoiY2p3Z3R4Z3Q0MDByZDRicXl4bmZ6eXZwMiJ9.8_nF_E0wK_7w1p_8_v_8_w" class="w-full h-full object-cover grayscale opacity-60 group-hover:grayscale-0 group-hover:opacity-100 transition-all" />
               <div class="absolute inset-0 flex items-center justify-center">
                 <div class="w-10 h-10 bg-primary-500/20 rounded-full animate-ping"></div>
@@ -108,7 +108,7 @@
       </div>
 
       <!-- Stepper -->
-      <div class="bg-white dark:bg-slate-900 p-8 rounded-[2rem] border border-slate-100 dark:border-slate-800 shadow-sm flex items-center justify-center gap-12">
+      <div class="bg-white dark:bg-slate-900 p-8 rounded-lg border border-slate-100 dark:border-slate-800 shadow-sm flex items-center justify-center gap-12">
         <div v-for="s in [1, 2, 3]" :key="s" class="flex items-center gap-4">
           <div :class="`w-10 h-10 rounded-full flex items-center justify-center text-xs font-black transition-all ${step >= s ? 'bg-[#1E3A5F] text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-400'}`">
             {{ s }}
@@ -121,7 +121,7 @@
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-10">
         <div class="space-y-8">
           <!-- Target Rack Info -->
-          <div class="glass p-8 rounded-[2rem] space-y-6">
+          <div class="glass p-8 rounded-lg space-y-6">
             <div class="flex items-center justify-between">
               <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-widest">{{ $t('warehouse.scan.rack_info.title') }}</h4>
               <span class="px-2 py-0.5 bg-green-50 text-green-500 rounded text-[8px] font-black uppercase tracking-widest border border-green-100">{{ $t('warehouse.scan.rack_info.scanned') }}</span>
@@ -149,7 +149,7 @@
           </div>
 
           <!-- Box Verification -->
-          <div class="glass p-8 rounded-[2rem] space-y-6 border-2 border-primary-500/10">
+          <div class="glass p-8 rounded-lg space-y-6 border-2 border-primary-500/10">
             <div class="flex items-center justify-between">
               <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-widest">{{ $t('warehouse.scan.box_verify.title') }}</h4>
               <span class="text-[9px] font-black text-primary-500 uppercase tracking-widest animate-pulse">{{ $t('warehouse.scan.box_verify.waiting') }}</span>

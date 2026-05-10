@@ -18,7 +18,7 @@
           </div>
 
           <div class="aspect-square border-2 border-dashed border-slate-100 rounded-[3rem] flex flex-col items-center justify-center text-center p-12 space-y-6 bg-slate-50/30 group hover:border-primary-200 transition-all cursor-pointer">
-            <div class="w-20 h-20 bg-white rounded-[2rem] flex items-center justify-center shadow-sm text-slate-200 group-hover:text-primary-500 transition-colors">
+            <div class="w-20 h-20 bg-white rounded-lg flex items-center justify-center shadow-sm text-slate-200 group-hover:text-primary-500 transition-colors">
               <LucideUploadCloud class="w-10 h-10" />
             </div>
             <div class="space-y-2">

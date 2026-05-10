@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"fmt"
 	"log"
 	"strconv"
 	"strings"
@@ -182,7 +183,12 @@ func (h *DocumentHandler) Preview(c fiber.Ctx) error {
 	
 	disposition := "inline"
 	if c.Query("download") == "true" {
-		disposition = fmt.Sprintf("attachment; filename=\"%s\"", doc.FileName)
+		doc, err := h.svc.GetDocument(c.Context(), docID)
+		if err == nil {
+			disposition = fmt.Sprintf("attachment; filename=\"%s\"", doc.FileName)
+		} else {
+			disposition = "attachment; filename=\"document.pdf\""
+		}
 	}
 	c.Set("Content-Disposition", disposition)
 	
@@ -312,11 +318,12 @@ func (h *DocumentHandler) Reject(c fiber.Ctx) error {
 	}
 
 	var req struct {
-		Notes string `json:"notes"`
+		Reason string `json:"reason"`
+		Notes  string `json:"notes"`
 	}
 	c.Bind().JSON(&req)
 
-	if err := h.svc.RejectDocument(c.Context(), docID, req.Notes); err != nil {
+	if err := h.svc.RejectDocument(c.Context(), docID, req.Reason, req.Notes); err != nil {
 		return response.Error(c, fiber.StatusInternalServerError, "Failed to reject document", err.Error())
 	}
 

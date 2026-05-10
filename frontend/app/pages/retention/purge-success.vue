@@ -37,11 +37,11 @@
       </div>
 
       <div class="grid grid-cols-3 gap-8">
-        <div class="p-8 bg-slate-50/50 border border-slate-50 rounded-[2rem] space-y-3">
+        <div class="p-8 bg-slate-50/50 border border-slate-50 rounded-lg space-y-3">
           <p class="text-[9px] font-black text-slate-300 uppercase tracking-widest">{{ $t('retention.purge_success.stats.log_id') }}</p>
           <p class="text-lg font-black text-[#1E3A5F] tracking-tight uppercase">TR-PURGE-999</p>
         </div>
-        <div class="p-8 bg-slate-50/50 border border-slate-50 rounded-[2rem] space-y-3">
+        <div class="p-8 bg-slate-50/50 border border-slate-50 rounded-lg space-y-3">
           <p class="text-[9px] font-black text-slate-300 uppercase tracking-widest">{{ $t('retention.purge_success.stats.actor') }}</p>
           <div class="flex items-center gap-3">
             <div class="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center text-primary-600">
@@ -50,7 +50,7 @@
             <p class="text-lg font-black text-[#1E3A5F] tracking-tight uppercase">Admin A</p>
           </div>
         </div>
-        <div class="p-8 bg-slate-50/50 border border-slate-50 rounded-[2rem] space-y-3">
+        <div class="p-8 bg-slate-50/50 border border-slate-50 rounded-lg space-y-3">
           <p class="text-[9px] font-black text-slate-300 uppercase tracking-widest">{{ $t('retention.purge_success.stats.timestamp') }}</p>
           <div class="flex items-center gap-3">
             <LucideClock class="w-5 h-5 text-slate-300" />
@@ -61,7 +61,7 @@
     </div>
 
     <!-- Important Note -->
-    <div class="p-8 bg-blue-50/50 border border-blue-100 rounded-[2rem] flex items-start gap-6" v-motion-fade>
+    <div class="p-8 bg-blue-50/50 border border-blue-100 rounded-lg flex items-start gap-6" v-motion-fade>
       <div class="p-3 bg-white/50 rounded-2xl text-blue-500 shadow-sm">
         <LucideInfo class="w-5 h-5" />
       </div>

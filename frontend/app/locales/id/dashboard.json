@@ -98,9 +98,10 @@
       "alert_desc": "Ada {count} dokumen yang menunggu tinjauan kritis Anda.",
       "btn_review_all": "TINJAU SEMUA",
       "stats": {
-        "priority_pending": "PENDING PRIORITAS",
+        "priority_pending": "MENUNGGU PERSETUJUAN",
         "approved_today": "DISETUJUI HARI INI",
         "team_submissions": "PENGAJUAN TIM",
+        "my_submissions": "PENGAJUAN SAYA",
         "avg_approval_time": "RATA-RATA WAKTU"
       },
       "queue": {

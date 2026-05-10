@@ -29,7 +29,7 @@
 
         <!-- Table Section -->
         <div class="flex-grow p-2.5 overflow-auto custom-scrollbar">
-          <div class="bg-white dark:bg-slate-900 rounded-[1.5rem] shadow-sm border border-slate-100 dark:border-slate-800 overflow-hidden">
+          <div class="bg-white dark:bg-slate-900 rounded-lg shadow-sm border border-slate-100 dark:border-slate-800 overflow-hidden">
             <!-- Filter Bar -->
             <div class="px-8 py-6 border-b border-slate-50 dark:border-slate-800 flex items-center justify-between bg-slate-50/30 dark:bg-slate-900/30">
               <div class="relative w-96 group">

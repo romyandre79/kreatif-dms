@@ -145,7 +145,7 @@
             </div>
             
             <!-- Detail Card -->
-            <div :class="`p-6 border rounded-[2rem] flex gap-4 items-start border-l-4 transition-all ${
+            <div :class="`p-6 border rounded-lg flex gap-4 items-start border-l-4 transition-all ${
               status === 'approved' ? 'bg-emerald-50/30 border-emerald-100 border-l-emerald-500' : 
               status === 'rejected' ? 'bg-red-50/30 border-red-100 border-l-red-500' :
               'bg-slate-50/50 border-slate-100 border-l-primary-500'}`">

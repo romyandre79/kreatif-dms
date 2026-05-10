@@ -326,11 +326,17 @@ const tools = [
   { label: t('dashboard.tools.it_support'), icon: LucideHelpCircle },
 ]
 
+const formatTime = (seconds) => {
+  if (!seconds || seconds <= 0) return '0h'
+  if (seconds < 3600) return `${(seconds / 60).toFixed(1)}m`
+  return `${(seconds / 3600).toFixed(1)}h`
+}
+
 const footerStats = computed(() => [
-  { label: t('dashboard.footer_stats.throughput'), value: statsSummary.value?.daily_scanned + ' pgs' },
-  { label: t('dashboard.footer_stats.turnaround'), value: '5.8 hrs' },
+  { label: t('dashboard.footer_stats.throughput'), value: (statsSummary.value?.daily_scanned || 0) + ' pgs' },
+  { label: t('dashboard.footer_stats.turnaround'), value: formatTime(statsSummary.value?.avg_approval_time) },
   { label: t('dashboard.footer_stats.ocr_accuracy'), value: '99.2%' },
-  { label: t('dashboard.footer_stats.sla_satisfaction'), value: '94.8%' },
+  { label: t('dashboard.footer_stats.sla_satisfaction'), value: (statsSummary.value?.compliance_rate?.toFixed(1) || 100) + '%' },
 ])
 
 // Polling for updates

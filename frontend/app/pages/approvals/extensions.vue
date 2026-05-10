@@ -37,10 +37,10 @@
             </thead>
             <tbody class="divide-y divide-slate-50">
               <tr v-for="req in queue" :key="req.no" 
-                  @click="selectedRequest = req"
-                  :class="`group cursor-pointer transition-all ${selectedRequest?.no === req.no ? 'bg-primary-50/30' : 'hover:bg-slate-50/50'}`">
+                  @click="navigateTo(`/approvals/${req.no}`)"
+                  class="group cursor-pointer transition-all hover:bg-slate-50/50">
                 <td class="px-8 py-8">
-                  <p :class="`text-sm font-black uppercase tracking-tight ${selectedRequest?.no === req.no ? 'text-primary-600' : 'text-[#1E3A5F]'}`">{{ req.no }}</p>
+                  <p class="text-sm font-black uppercase tracking-tight text-[#1E3A5F] group-hover:text-primary-600 transition-colors">{{ req.no }}</p>
                 </td>
                 <td class="px-8 py-8">
                   <div class="flex items-center gap-3">
@@ -59,9 +59,14 @@
                   <p class="text-xs font-bold text-slate-500">{{ req.reason }}</p>
                 </td>
                 <td class="px-8 py-8">
-                  <span :class="`px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest ${req.risk === 'Low' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-orange-50 text-orange-600 border border-orange-100'}`">
-                    {{ $t('approvals.extensions.table.risk_level', { level: req.risk }) }}
-                  </span>
+                  <div class="flex items-center justify-between gap-4">
+                    <span :class="`px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest ${req.risk === 'Low' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-orange-50 text-orange-600 border border-orange-100'}`">
+                      {{ $t('approvals.extensions.table.risk_level', { level: req.risk }) }}
+                    </span>
+                    <button class="px-4 py-1.5 bg-[#1E3A5F] text-white rounded-lg text-[9px] font-black uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-all">
+                      Review
+                    </button>
+                  </div>
                 </td>
               </tr>
             </tbody>

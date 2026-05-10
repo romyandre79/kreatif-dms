@@ -55,10 +55,10 @@ const createDocument = `-- name: CreateDocument :one
 INSERT INTO documents (
     title, description, file_name, file_path, file_size, mime_type, 
     company_id, branch_id, department_id, owner_id, status, batch_id,
-    sensitivity, metadata
+    sensitivity, metadata, type_id
 ) VALUES (
-    $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14
-) RETURNING id, title, description, file_name, file_path, file_size, mime_type, checksum, company_id, branch_id, department_id, rack_id, box_id, ordner_id, owner_id, current_version, status, tags, metadata, extracted_text, is_ocr_processed, created_at, updated_at, batch_id, retention_years, retention_expiry_date, sensitivity, circulation_id, minio_bucket, es_indexed
+    $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15
+) RETURNING id, title, description, file_name, file_path, file_size, mime_type, checksum, company_id, branch_id, department_id, rack_id, box_id, ordner_id, owner_id, current_version, status, tags, metadata, extracted_text, is_ocr_processed, created_at, updated_at, batch_id, retention_years, retention_expiry_date, sensitivity, circulation_id, minio_bucket, es_indexed, type_id
 `
 
 type CreateDocumentParams struct {
@@ -76,6 +76,7 @@ type CreateDocumentParams struct {
 	BatchID      pgtype.UUID     `json:"batch_id"`
 	Sensitivity  pgtype.Text     `json:"sensitivity"`
 	Metadata     json.RawMessage `json:"metadata"`
+	TypeID       pgtype.UUID     `json:"type_id"`
 }
 
 func (q *Queries) CreateDocument(ctx context.Context, arg CreateDocumentParams) (Document, error) {
@@ -94,6 +95,7 @@ func (q *Queries) CreateDocument(ctx context.Context, arg CreateDocumentParams) 
 		arg.BatchID,
 		arg.Sensitivity,
 		arg.Metadata,
+		arg.TypeID,
 	)
 	var i Document
 	err := row.Scan(
@@ -127,6 +129,7 @@ func (q *Queries) CreateDocument(ctx context.Context, arg CreateDocumentParams) 
 		&i.CirculationID,
 		&i.MinioBucket,
 		&i.EsIndexed,
+		&i.TypeID,
 	)
 	return i, err
 }
@@ -224,12 +227,50 @@ func (q *Queries) GetBatch(ctx context.Context, id uuid.UUID) (ProcessingBatch, 
 }
 
 const getDocument = `-- name: GetDocument :one
-SELECT id, title, description, file_name, file_path, file_size, mime_type, checksum, company_id, branch_id, department_id, rack_id, box_id, ordner_id, owner_id, current_version, status, tags, metadata, extracted_text, is_ocr_processed, created_at, updated_at, batch_id, retention_years, retention_expiry_date, sensitivity, circulation_id, minio_bucket, es_indexed FROM documents WHERE id = $1 LIMIT 1
+SELECT d.id, d.title, d.description, d.file_name, d.file_path, d.file_size, d.mime_type, d.checksum, d.company_id, d.branch_id, d.department_id, d.rack_id, d.box_id, d.ordner_id, d.owner_id, d.current_version, d.status, d.tags, d.metadata, d.extracted_text, d.is_ocr_processed, d.created_at, d.updated_at, d.batch_id, d.retention_years, d.retention_expiry_date, d.sensitivity, d.circulation_id, d.minio_bucket, d.es_indexed, d.type_id, dt.name as type_name
+FROM documents d
+LEFT JOIN document_types dt ON d.type_id = dt.id
+WHERE d.id = $1 LIMIT 1
 `
 
-func (q *Queries) GetDocument(ctx context.Context, id uuid.UUID) (Document, error) {
+type GetDocumentRow struct {
+	ID                  uuid.UUID          `json:"id"`
+	Title               string             `json:"title"`
+	Description         pgtype.Text        `json:"description"`
+	FileName            string             `json:"file_name"`
+	FilePath            string             `json:"file_path"`
+	FileSize            int64              `json:"file_size"`
+	MimeType            string             `json:"mime_type"`
+	Checksum            pgtype.Text        `json:"checksum"`
+	CompanyID           uuid.UUID          `json:"company_id"`
+	BranchID            uuid.UUID          `json:"branch_id"`
+	DepartmentID        uuid.UUID          `json:"department_id"`
+	RackID              pgtype.UUID        `json:"rack_id"`
+	BoxID               pgtype.UUID        `json:"box_id"`
+	OrdnerID            pgtype.UUID        `json:"ordner_id"`
+	OwnerID             uuid.UUID          `json:"owner_id"`
+	CurrentVersion      int32              `json:"current_version"`
+	Status              string             `json:"status"`
+	Tags                []string           `json:"tags"`
+	Metadata            json.RawMessage    `json:"metadata"`
+	ExtractedText       pgtype.Text        `json:"extracted_text"`
+	IsOcrProcessed      pgtype.Bool        `json:"is_ocr_processed"`
+	CreatedAt           pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt           pgtype.Timestamptz `json:"updated_at"`
+	BatchID             pgtype.UUID        `json:"batch_id"`
+	RetentionYears      pgtype.Int4        `json:"retention_years"`
+	RetentionExpiryDate pgtype.Date        `json:"retention_expiry_date"`
+	Sensitivity         pgtype.Text        `json:"sensitivity"`
+	CirculationID       pgtype.UUID        `json:"circulation_id"`
+	MinioBucket         pgtype.Text        `json:"minio_bucket"`
+	EsIndexed           pgtype.Bool        `json:"es_indexed"`
+	TypeID              pgtype.UUID        `json:"type_id"`
+	TypeName            pgtype.Text        `json:"type_name"`
+}
+
+func (q *Queries) GetDocument(ctx context.Context, id uuid.UUID) (GetDocumentRow, error) {
 	row := q.db.QueryRow(ctx, getDocument, id)
-	var i Document
+	var i GetDocumentRow
 	err := row.Scan(
 		&i.ID,
 		&i.Title,
@@ -261,6 +302,8 @@ func (q *Queries) GetDocument(ctx context.Context, id uuid.UUID) (Document, erro
 		&i.CirculationID,
 		&i.MinioBucket,
 		&i.EsIndexed,
+		&i.TypeID,
+		&i.TypeName,
 	)
 	return i, err
 }
@@ -324,7 +367,7 @@ func (q *Queries) GetDocumentLoanHistory(ctx context.Context, documentID uuid.UU
 
 const getDocumentWithDetails = `-- name: GetDocumentWithDetails :one
 SELECT 
-    d.id, d.title, d.description, d.file_name, d.file_path, d.file_size, d.mime_type, d.checksum, d.company_id, d.branch_id, d.department_id, d.rack_id, d.box_id, d.ordner_id, d.owner_id, d.current_version, d.status, d.tags, d.metadata, d.extracted_text, d.is_ocr_processed, d.created_at, d.updated_at, d.batch_id, d.retention_years, d.retention_expiry_date, d.sensitivity, d.circulation_id, d.minio_bucket, d.es_indexed,
+    d.id, d.title, d.description, d.file_name, d.file_path, d.file_size, d.mime_type, d.checksum, d.company_id, d.branch_id, d.department_id, d.rack_id, d.box_id, d.ordner_id, d.owner_id, d.current_version, d.status, d.tags, d.metadata, d.extracted_text, d.is_ocr_processed, d.created_at, d.updated_at, d.batch_id, d.retention_years, d.retention_expiry_date, d.sensitivity, d.circulation_id, d.minio_bucket, d.es_indexed, d.type_id,
     dt.name as type_name,
     c.name as company_name,
     b.name as branch_name,
@@ -376,6 +419,7 @@ type GetDocumentWithDetailsRow struct {
 	CirculationID       pgtype.UUID        `json:"circulation_id"`
 	MinioBucket         pgtype.Text        `json:"minio_bucket"`
 	EsIndexed           pgtype.Bool        `json:"es_indexed"`
+	TypeID              pgtype.UUID        `json:"type_id"`
 	TypeName            pgtype.Text        `json:"type_name"`
 	CompanyName         pgtype.Text        `json:"company_name"`
 	BranchName          pgtype.Text        `json:"branch_name"`
@@ -420,6 +464,7 @@ func (q *Queries) GetDocumentWithDetails(ctx context.Context, id uuid.UUID) (Get
 		&i.CirculationID,
 		&i.MinioBucket,
 		&i.EsIndexed,
+		&i.TypeID,
 		&i.TypeName,
 		&i.CompanyName,
 		&i.BranchName,
@@ -433,7 +478,7 @@ func (q *Queries) GetDocumentWithDetails(ctx context.Context, id uuid.UUID) (Get
 }
 
 const getDocumentsByBatch = `-- name: GetDocumentsByBatch :many
-SELECT id, title, description, file_name, file_path, file_size, mime_type, checksum, company_id, branch_id, department_id, rack_id, box_id, ordner_id, owner_id, current_version, status, tags, metadata, extracted_text, is_ocr_processed, created_at, updated_at, batch_id, retention_years, retention_expiry_date, sensitivity, circulation_id, minio_bucket, es_indexed FROM documents WHERE batch_id = $1
+SELECT id, title, description, file_name, file_path, file_size, mime_type, checksum, company_id, branch_id, department_id, rack_id, box_id, ordner_id, owner_id, current_version, status, tags, metadata, extracted_text, is_ocr_processed, created_at, updated_at, batch_id, retention_years, retention_expiry_date, sensitivity, circulation_id, minio_bucket, es_indexed, type_id FROM documents WHERE batch_id = $1
 `
 
 func (q *Queries) GetDocumentsByBatch(ctx context.Context, batchID pgtype.UUID) ([]Document, error) {
@@ -476,6 +521,7 @@ func (q *Queries) GetDocumentsByBatch(ctx context.Context, batchID pgtype.UUID) 
 			&i.CirculationID,
 			&i.MinioBucket,
 			&i.EsIndexed,
+			&i.TypeID,
 		); err != nil {
 			return nil, err
 		}
@@ -531,7 +577,7 @@ func (q *Queries) GetOCRJobByEntity(ctx context.Context, arg GetOCRJobByEntityPa
 }
 
 const listDocumentsByDepartment = `-- name: ListDocumentsByDepartment :many
-SELECT id, title, description, file_name, file_path, file_size, mime_type, checksum, company_id, branch_id, department_id, rack_id, box_id, ordner_id, owner_id, current_version, status, tags, metadata, extracted_text, is_ocr_processed, created_at, updated_at, batch_id, retention_years, retention_expiry_date, sensitivity, circulation_id, minio_bucket, es_indexed FROM documents 
+SELECT id, title, description, file_name, file_path, file_size, mime_type, checksum, company_id, branch_id, department_id, rack_id, box_id, ordner_id, owner_id, current_version, status, tags, metadata, extracted_text, is_ocr_processed, created_at, updated_at, batch_id, retention_years, retention_expiry_date, sensitivity, circulation_id, minio_bucket, es_indexed, type_id FROM documents 
 WHERE department_id = $1 
 ORDER BY created_at DESC
 `
@@ -576,6 +622,7 @@ func (q *Queries) ListDocumentsByDepartment(ctx context.Context, departmentID uu
 			&i.CirculationID,
 			&i.MinioBucket,
 			&i.EsIndexed,
+			&i.TypeID,
 		); err != nil {
 			return nil, err
 		}
@@ -812,5 +859,21 @@ type UpdateDocumentOCRParams struct {
 
 func (q *Queries) UpdateDocumentOCR(ctx context.Context, arg UpdateDocumentOCRParams) error {
 	_, err := q.db.Exec(ctx, updateDocumentOCR, arg.ID, arg.ExtractedText, arg.Metadata)
+	return err
+}
+
+const updateDocumentStatus = `-- name: UpdateDocumentStatus :exec
+UPDATE documents 
+SET status = $2, updated_at = NOW() 
+WHERE id = $1
+`
+
+type UpdateDocumentStatusParams struct {
+	ID     uuid.UUID `json:"id"`
+	Status string    `json:"status"`
+}
+
+func (q *Queries) UpdateDocumentStatus(ctx context.Context, arg UpdateDocumentStatusParams) error {
+	_, err := q.db.Exec(ctx, updateDocumentStatus, arg.ID, arg.Status)
 	return err
 }

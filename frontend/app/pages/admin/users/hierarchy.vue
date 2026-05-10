@@ -131,7 +131,7 @@
             <div class="absolute top-0 right-0 w-32 h-32 bg-slate-100/50 dark:bg-slate-800/30 -rotate-12 translate-x-10 -translate-y-10 rounded-[3rem] flex items-end justify-start p-6 text-slate-200"><LucideNetwork class="w-12 h-12" /></div>
             
             <div class="flex items-center gap-6">
-              <div class="w-16 h-16 rounded-[1.5rem] bg-red-50 text-red-400 flex items-center justify-center border-2 border-red-100 shadow-lg shadow-red-500/5"><LucideAlertTriangle class="w-8 h-8" /></div>
+              <div class="w-16 h-16 rounded-lg bg-red-50 text-red-400 flex items-center justify-center border-2 border-red-100 shadow-lg shadow-red-500/5"><LucideAlertTriangle class="w-8 h-8" /></div>
               <div class="space-y-1">
                 <h4 class="text-xl font-black text-slate-800 dark:text-white uppercase tracking-tight leading-none">Dedi Kurniawan</h4>
                 <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Staff IT Support</p>

@@ -107,7 +107,7 @@
           </div>
 
           <div class="space-y-6">
-            <div class="aspect-video border-2 border-dashed border-slate-100 rounded-[2rem] flex flex-col items-center justify-center text-center p-6 space-y-3 bg-slate-50/50 group hover:border-primary-200 transition-all cursor-pointer">
+            <div class="aspect-video border-2 border-dashed border-slate-100 rounded-lg flex flex-col items-center justify-center text-center p-6 space-y-3 bg-slate-50/50 group hover:border-primary-200 transition-all cursor-pointer">
               <div class="w-12 h-12 bg-white rounded-2xl flex items-center justify-center shadow-sm text-slate-300 group-hover:text-primary-500 transition-colors">
                 <LucideUploadCloud class="w-6 h-6" />
               </div>

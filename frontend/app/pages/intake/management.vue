@@ -13,7 +13,7 @@
         { id: 'bulk', icon: LucideLayoutGrid, color: 'bg-amber-500' },
         { id: 'mailroom', icon: LucideMail, color: 'bg-blue-900' }
       ]" :key="mode.id" class="glass group p-10 rounded-[4rem] space-y-10 shadow-sm hover:shadow-2xl hover:-translate-y-2 transition-all border border-slate-50 dark:border-slate-800 relative overflow-hidden">
-        <div :class="`w-20 h-20 rounded-[2rem] ${mode.color} text-white flex items-center justify-center shadow-2xl transition-transform group-hover:scale-110` ">
+        <div :class="`w-20 h-20 rounded-lg ${mode.color} text-white flex items-center justify-center shadow-2xl transition-transform group-hover:scale-110` ">
           <component :is="mode.icon" class="w-10 h-10" />
         </div>
         <div class="space-y-4 relative z-10">

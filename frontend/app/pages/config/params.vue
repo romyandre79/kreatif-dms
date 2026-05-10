@@ -36,7 +36,7 @@
 
         <!-- Settings Table -->
         <div class="flex-grow p-8 overflow-auto custom-scrollbar">
-          <div class="bg-white dark:bg-slate-900 rounded-[1.5rem] shadow-sm border border-slate-100 dark:border-slate-800 overflow-hidden">
+          <div class="bg-white dark:bg-slate-900 rounded-lg shadow-sm border border-slate-100 dark:border-slate-800 overflow-hidden">
             <div v-if="loading" class="p-20 flex flex-col items-center justify-center space-y-4">
                <LucideRefreshCw class="w-10 h-10 text-blue-500 animate-spin" />
                <p class="text-xs font-black text-slate-400 uppercase tracking-widest">Memuat Pengaturan...</p>

@@ -19,7 +19,7 @@
           </span>
         </div>
 
-        <div class="p-8 bg-slate-50 dark:bg-slate-900 rounded-[2rem] border border-slate-100 dark:border-slate-800 space-y-6">
+        <div class="p-8 bg-slate-50 dark:bg-slate-900 rounded-lg border border-slate-100 dark:border-slate-800 space-y-6">
           <div class="flex items-start gap-6">
             <div class="w-16 h-16 rounded-2xl bg-white dark:bg-slate-800 flex items-center justify-center text-[#1E3A5F] dark:text-white shadow-sm border border-slate-100 dark:border-slate-800">
               <LucidePrinter class="w-8 h-8" />
@@ -145,7 +145,7 @@
 
     <!-- Bottom Status / Idle Gallery -->
     <div class="glass p-20 rounded-[4rem] flex flex-col items-center justify-center text-center space-y-8 opacity-40 shadow-inner">
-      <div class="w-24 h-24 rounded-[2rem] bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-slate-300 border-4 border-dashed border-slate-100 dark:border-slate-800">
+      <div class="w-24 h-24 rounded-lg bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-slate-300 border-4 border-dashed border-slate-100 dark:border-slate-800">
         <LucideScanFace class="w-12 h-12" />
       </div>
       <div class="space-y-2">

@@ -13,11 +13,13 @@ import (
 
 type Querier interface {
 	AddRolePermission(ctx context.Context, arg AddRolePermissionParams) error
+	ApproveTask(ctx context.Context, arg ApproveTaskParams) error
 	ClearRolePermissions(ctx context.Context, roleID int32) error
 	CountOCRJobs(ctx context.Context) (int64, error)
 	CountSsoSyncLogs(ctx context.Context) (int64, error)
 	CreateActivityLog(ctx context.Context, arg CreateActivityLogParams) (ActivityLog, error)
 	CreateAnnouncement(ctx context.Context, arg CreateAnnouncementParams) (Announcement, error)
+	CreateApprovalTask(ctx context.Context, arg CreateApprovalTaskParams) (ApprovalWorkflow, error)
 	CreateBatch(ctx context.Context, arg CreateBatchParams) (ProcessingBatch, error)
 	CreateBox(ctx context.Context, arg CreateBoxParams) (Box, error)
 	CreateBranch(ctx context.Context, arg CreateBranchParams) (Branch, error)
@@ -59,9 +61,7 @@ type Querier interface {
 	GetCompany(ctx context.Context, id uuid.UUID) (Company, error)
 	GetDailyStats(ctx context.Context) (GetDailyStatsRow, error)
 	GetDepartment(ctx context.Context, id uuid.UUID) (Department, error)
-	GetDepartmentRecentActivities(ctx context.Context, arg GetDepartmentRecentActivitiesParams) ([]GetDepartmentRecentActivitiesRow, error)
-	GetDepartmentTopSubmitters(ctx context.Context, arg GetDepartmentTopSubmittersParams) ([]GetDepartmentTopSubmittersRow, error)
-	GetDocument(ctx context.Context, id uuid.UUID) (Document, error)
+	GetDocument(ctx context.Context, id uuid.UUID) (GetDocumentRow, error)
 	GetDocumentLoanHistory(ctx context.Context, documentID uuid.UUID) ([]GetDocumentLoanHistoryRow, error)
 	GetDocumentType(ctx context.Context, id uuid.UUID) (DocumentType, error)
 	GetDocumentWithDetails(ctx context.Context, id uuid.UUID) (GetDocumentWithDetailsRow, error)
@@ -70,9 +70,12 @@ type Querier interface {
 	GetIntegrationNodeByEndpoint(ctx context.Context, arg GetIntegrationNodeByEndpointParams) (IntegrationNode, error)
 	GetIntegrationNodeByType(ctx context.Context, serviceType string) (IntegrationNode, error)
 	GetLastSsoSyncLog(ctx context.Context) (SsoSyncLog, error)
-	GetManagerDailyStats(ctx context.Context, arg GetManagerDailyStatsParams) (GetManagerDailyStatsRow, error)
+	GetManagerDailyStats(ctx context.Context, headID pgtype.UUID) (GetManagerDailyStatsRow, error)
+	GetManagerRecentActivities(ctx context.Context, arg GetManagerRecentActivitiesParams) ([]GetManagerRecentActivitiesRow, error)
+	GetManagerTopSubmitters(ctx context.Context, arg GetManagerTopSubmittersParams) ([]GetManagerTopSubmittersRow, error)
 	GetOCRJobByEntity(ctx context.Context, arg GetOCRJobByEntityParams) (OcrJob, error)
 	GetOrdner(ctx context.Context, id uuid.UUID) (Ordner, error)
+	GetPendingCountsByType(ctx context.Context, approverID uuid.UUID) ([]GetPendingCountsByTypeRow, error)
 	GetPriorityTasks(ctx context.Context, limit int32) ([]GetPriorityTasksRow, error)
 	GetProfileByID(ctx context.Context, id uuid.UUID) (GetProfileByIDRow, error)
 	GetRack(ctx context.Context, id uuid.UUID) (Rack, error)
@@ -135,6 +138,7 @@ type Querier interface {
 	ListUsers(ctx context.Context) ([]ListUsersRow, error)
 	MarkAllAsRead(ctx context.Context, userID uuid.UUID) error
 	MarkAsRead(ctx context.Context, arg MarkAsReadParams) error
+	RejectTask(ctx context.Context, arg RejectTaskParams) error
 	UpdateAnnouncement(ctx context.Context, arg UpdateAnnouncementParams) (Announcement, error)
 	UpdateBatchProgress(ctx context.Context, id uuid.UUID) error
 	UpdateBox(ctx context.Context, arg UpdateBoxParams) (Box, error)
@@ -144,6 +148,7 @@ type Querier interface {
 	UpdateDepartment(ctx context.Context, arg UpdateDepartmentParams) (Department, error)
 	UpdateDocumentMetadata(ctx context.Context, arg UpdateDocumentMetadataParams) error
 	UpdateDocumentOCR(ctx context.Context, arg UpdateDocumentOCRParams) error
+	UpdateDocumentStatus(ctx context.Context, arg UpdateDocumentStatusParams) error
 	UpdateDocumentType(ctx context.Context, arg UpdateDocumentTypeParams) (DocumentType, error)
 	UpdateIntegrationNodeConfig(ctx context.Context, arg UpdateIntegrationNodeConfigParams) (IntegrationNode, error)
 	UpdateIntegrationNodeStatus(ctx context.Context, arg UpdateIntegrationNodeStatusParams) (IntegrationNode, error)

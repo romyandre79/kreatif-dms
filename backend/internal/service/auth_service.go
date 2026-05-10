@@ -286,6 +286,17 @@ func (s *AuthService) GetMenu(ctx context.Context, userID uuid.UUID) ([]MenuItem
 		return nil, err
 	}
 
+	// 3.5 Get counts for badges
+	pendingCounts, _ := s.repo.GetPendingCountsByType(ctx, user.ID)
+	unreadNotifs, _ := s.repo.GetUnreadCount(ctx, user.ID)
+
+	typeCounts := make(map[string]int64)
+	totalPending := int64(0)
+	for _, pc := range pendingCounts {
+		typeCounts[pc.EntityType] = pc.Count
+		totalPending += pc.Count
+	}
+
 	// 4. Create a map of MenuItems
 	menuItems := make(map[string]*MenuItem)
 	for _, m := range allModules {
@@ -301,19 +312,30 @@ func (s *AuthService) GetMenu(ctx context.Context, userID uuid.UUID) ([]MenuItem
 			Children: []MenuItem{},
 		}
 
-		// Mock badges for Manager role as per design
-		if user.RoleName.String == "manajer" {
+		// Dynamic badges for relevant roles
+		roleLower := strings.ToLower(user.RoleName.String)
+		if roleLower == "manajer" || roleLower == "manager" || roleLower == "admin" || roleLower == "superadmin" {
 			switch m.ID {
 			case "cat_approval":
-				item.Badge = "5"
+				if totalPending > 0 {
+					item.Badge = fmt.Sprintf("%d", totalPending)
+				}
 			case "sub_docs":
-				item.Badge = "2"
+				if c := typeCounts["document_upload"]; c > 0 {
+					item.Badge = fmt.Sprintf("%d", c)
+				}
 			case "sub_loans":
-				item.Badge = "2"
+				if c := typeCounts["loan_request"]; c > 0 {
+					item.Badge = fmt.Sprintf("%d", c)
+				}
 			case "sub_ext":
-				item.Badge = "1"
+				if c := typeCounts["retention"]; c > 0 {
+					item.Badge = fmt.Sprintf("%d", c)
+				}
 			case "notifications":
-				item.Badge = "8"
+				if unreadNotifs > 0 {
+					item.Badge = fmt.Sprintf("%d", unreadNotifs)
+				}
 			}
 		}
 

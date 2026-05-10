@@ -86,7 +86,7 @@
               <div class="absolute left-1/2 -translate-x-1/2 w-10 h-10 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-300 z-10">
                 <LucideBell class="w-4 h-4" />
               </div>
-              <div class="w-[45%] glass p-8 rounded-[2rem] border border-slate-50 shadow-xl shadow-slate-100/50 space-y-3" v-motion-slide-right>
+              <div class="w-[45%] glass p-8 rounded-lg border border-slate-50 shadow-xl shadow-slate-100/50 space-y-3" v-motion-slide-right>
                 <div class="flex items-center justify-between">
                   <h4 class="text-sm font-black text-[#1E3A5F] uppercase tracking-tight leading-tight">{{ $t('retention.log_detail.timeline.trigger.title') }}</h4>
                   <p class="text-[10px] font-black text-slate-300">12/01/2024</p>
@@ -100,7 +100,7 @@
               <div class="absolute left-1/2 -translate-x-1/2 w-10 h-10 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-300 z-10">
                 <LucideFileSpreadsheet class="w-4 h-4" />
               </div>
-              <div class="w-[45%] glass p-8 rounded-[2rem] border border-slate-50 shadow-xl shadow-slate-100/50 space-y-3" v-motion-slide-left>
+              <div class="w-[45%] glass p-8 rounded-lg border border-slate-50 shadow-xl shadow-slate-100/50 space-y-3" v-motion-slide-left>
                 <div class="flex items-center justify-between">
                   <h4 class="text-sm font-black text-[#1E3A5F] uppercase tracking-tight leading-tight">{{ $t('retention.log_detail.timeline.export.title') }}</h4>
                   <p class="text-[10px] font-black text-slate-300">14/01/2024</p>
@@ -114,7 +114,7 @@
               <div class="absolute left-1/2 -translate-x-1/2 w-10 h-10 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-300 z-10">
                 <LucideGavel class="w-4 h-4" />
               </div>
-              <div class="w-[45%] glass p-8 rounded-[2rem] border border-slate-50 shadow-xl shadow-slate-100/50 space-y-3" v-motion-slide-right>
+              <div class="w-[45%] glass p-8 rounded-lg border border-slate-50 shadow-xl shadow-slate-100/50 space-y-3" v-motion-slide-right>
                 <div class="flex items-center justify-between">
                   <h4 class="text-sm font-black text-[#1E3A5F] uppercase tracking-tight leading-tight">{{ $t('retention.log_detail.timeline.decision.title') }}</h4>
                   <p class="text-[10px] font-black text-slate-300">20/01/2024</p>
@@ -128,7 +128,7 @@
               <div class="absolute left-1/2 -translate-x-1/2 w-10 h-10 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-300 z-10">
                 <LucideScissors class="w-4 h-4" />
               </div>
-              <div class="w-[45%] glass p-8 rounded-[2rem] border border-slate-50 shadow-xl shadow-slate-100/50 space-y-3" v-motion-slide-left>
+              <div class="w-[45%] glass p-8 rounded-lg border border-slate-50 shadow-xl shadow-slate-100/50 space-y-3" v-motion-slide-left>
                 <div class="flex items-center justify-between">
                   <h4 class="text-sm font-black text-[#1E3A5F] uppercase tracking-tight leading-tight">{{ $t('retention.log_detail.timeline.shredding.title') }}</h4>
                   <p class="text-[10px] font-black text-slate-300">21/01/2024</p>
@@ -142,7 +142,7 @@
               <div class="absolute left-1/2 -translate-x-1/2 w-10 h-10 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-300 z-10">
                 <LucideCloudUpload class="w-4 h-4" />
               </div>
-              <div class="w-[45%] glass p-8 rounded-[2rem] border border-slate-50 shadow-xl shadow-slate-100/50 space-y-3" v-motion-slide-right>
+              <div class="w-[45%] glass p-8 rounded-lg border border-slate-50 shadow-xl shadow-slate-100/50 space-y-3" v-motion-slide-right>
                 <div class="flex items-center justify-between">
                   <h4 class="text-sm font-black text-[#1E3A5F] uppercase tracking-tight leading-tight">{{ $t('retention.log_detail.timeline.bast.title') }}</h4>
                   <p class="text-[10px] font-black text-slate-300">21/01/2024</p>
@@ -156,7 +156,7 @@
               <div class="w-14 h-14 rounded-full bg-emerald-500 text-white flex items-center justify-center shadow-xl shadow-emerald-500/30 z-10" v-motion-pop>
                 <LucideCheck class="w-8 h-8" />
               </div>
-              <div class="mt-8 w-full max-w-sm glass p-8 rounded-[2rem] border-2 border-emerald-500 bg-emerald-50/10 shadow-2xl shadow-emerald-500/10 text-center space-y-3" v-motion-fade>
+              <div class="mt-8 w-full max-w-sm glass p-8 rounded-lg border-2 border-emerald-500 bg-emerald-50/10 shadow-2xl shadow-emerald-500/10 text-center space-y-3" v-motion-fade>
                 <div class="flex items-center justify-between">
                   <h4 class="text-sm font-black text-emerald-600 uppercase tracking-tight leading-tight">{{ $t('retention.log_detail.timeline.purged.title') }}</h4>
                   <p class="text-[10px] font-black text-emerald-500">22/01/2024</p>

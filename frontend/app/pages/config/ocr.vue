@@ -48,7 +48,7 @@
     <!-- Stats Overview -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
       <div v-for="stat in stats" :key="stat.label" 
-           class="bg-white dark:bg-[#0D121F] p-6 rounded-[2rem] border border-slate-200/60 dark:border-slate-800/40 shadow-sm group hover:border-primary-500/30 transition-all duration-500">
+           class="bg-white dark:bg-[#0D121F] p-6 rounded-lg border border-slate-200/60 dark:border-slate-800/40 shadow-sm group hover:border-primary-500/30 transition-all duration-500">
         <div class="flex items-center gap-4">
           <div :class="['w-12 h-12 rounded-2xl flex items-center justify-center transition-transform group-hover:scale-110', stat.bg]">
             <component :is="stat.icon" :class="['w-5 h-5', stat.color]" />

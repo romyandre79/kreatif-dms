@@ -12,7 +12,7 @@
       <div class="space-y-4">
         <div v-for="req in queue" :key="req.no" 
              @click="selectedRequest = req"
-             :class="`group p-6 bg-white rounded-[2rem] border transition-all cursor-pointer shadow-xl shadow-slate-200/20 ${selectedRequest?.no === req.no ? 'border-primary-500 ring-4 ring-primary-500/10' : 'border-slate-100 hover:border-slate-200'}`">
+             :class="`group p-6 bg-white rounded-lg border transition-all cursor-pointer shadow-xl shadow-slate-200/20 ${selectedRequest?.no === req.no ? 'border-primary-500 ring-4 ring-primary-500/10' : 'border-slate-100 hover:border-slate-200'}`">
           <div class="flex items-center justify-between mb-4">
             <p class="text-[11px] font-black text-primary-600 uppercase tracking-tight">{{ req.no }}</p>
             <span class="text-[9px] font-black text-emerald-500 uppercase tracking-widest bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-100">{{ $t('circulation.checkout.status_ready') }}</span>
@@ -129,7 +129,7 @@
           <LucideScanBarcode class="w-4 h-4 text-primary-500" />
           {{ $t('circulation.checkout.scan_confirm') }}
         </div>
-        <div class="aspect-video border-2 border-dashed border-slate-100 rounded-[2rem] flex flex-col items-center justify-center text-center p-6 space-y-3 bg-slate-50/50 group hover:border-primary-200 transition-all cursor-pointer">
+        <div class="aspect-video border-2 border-dashed border-slate-100 rounded-lg flex flex-col items-center justify-center text-center p-6 space-y-3 bg-slate-50/50 group hover:border-primary-200 transition-all cursor-pointer">
           <div class="w-12 h-12 bg-white rounded-2xl flex items-center justify-center shadow-sm text-slate-300 group-hover:text-primary-500 transition-colors">
             <LucideQrCode class="w-6 h-6" />
           </div>

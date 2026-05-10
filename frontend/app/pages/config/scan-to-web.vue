@@ -103,7 +103,7 @@
             <!-- Action Button -->
             <button @click="startScan" 
                     :disabled="scanning || (driverType === 'local' && !selectedScannerID) || (driverType === 'network' && !networkEndpoint)"
-                    class="w-full py-5 bg-primary-500 text-white rounded-[1.5rem] text-sm font-black uppercase tracking-[0.2em] shadow-2xl shadow-primary-500/40 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 disabled:hover:scale-100 flex items-center justify-center gap-4">
+                    class="w-full py-5 bg-primary-500 text-white rounded-lg text-sm font-black uppercase tracking-[0.2em] shadow-2xl shadow-primary-500/40 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 disabled:hover:scale-100 flex items-center justify-center gap-4">
               <LucideLoader2 v-if="scanning" class="w-5 h-5 animate-spin" />
               <LucideZap v-else class="w-5 h-5" />
               {{ scanning ? 'Scanning...' : 'Start Scanning' }}
