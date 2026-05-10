@@ -143,6 +143,9 @@
         "btn_cancel": "Batal",
         "btn_confirm": "Konfirmasi Penolakan"
       }
+    },
+    "actions": {
+      "rejection_reason": "ALASAN PENOLAKAN"
     }
   }
 }

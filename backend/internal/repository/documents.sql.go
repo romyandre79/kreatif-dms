@@ -375,7 +375,9 @@ SELECT
     r.name as rack_name,
     bx.name as box_name,
     o.name as ordner_name,
-    u.full_name as owner_name
+    u.full_name as owner_name,
+    aw.rejection_reason,
+    aw.decision_note as rejection_notes
 FROM documents d
 LEFT JOIN document_types dt ON d.type_id = dt.id
 LEFT JOIN companies c ON d.company_id = c.id
@@ -385,6 +387,12 @@ LEFT JOIN racks r ON d.rack_id = r.id
 LEFT JOIN boxes bx ON d.box_id = bx.id
 LEFT JOIN ordners o ON d.ordner_id = o.id
 LEFT JOIN users u ON d.owner_id = u.id
+LEFT JOIN LATERAL (
+    SELECT rejection_reason, decision_note 
+    FROM approval_workflows 
+    WHERE entity_id = d.id AND status = 'rejected' 
+    ORDER BY created_at DESC LIMIT 1
+) aw ON TRUE
 WHERE d.id = $1 LIMIT 1
 `
 
@@ -428,6 +436,8 @@ type GetDocumentWithDetailsRow struct {
 	BoxName             pgtype.Text        `json:"box_name"`
 	OrdnerName          pgtype.Text        `json:"ordner_name"`
 	OwnerName           pgtype.Text        `json:"owner_name"`
+	RejectionReason     pgtype.Text        `json:"rejection_reason"`
+	RejectionNotes      pgtype.Text        `json:"rejection_notes"`
 }
 
 func (q *Queries) GetDocumentWithDetails(ctx context.Context, id uuid.UUID) (GetDocumentWithDetailsRow, error) {
@@ -473,6 +483,8 @@ func (q *Queries) GetDocumentWithDetails(ctx context.Context, id uuid.UUID) (Get
 		&i.BoxName,
 		&i.OrdnerName,
 		&i.OwnerName,
+		&i.RejectionReason,
+		&i.RejectionNotes,
 	)
 	return i, err
 }
@@ -825,6 +837,86 @@ func (q *Queries) UpdateBatchProgress(ctx context.Context, id uuid.UUID) error {
 	return err
 }
 
+const updateDocument = `-- name: UpdateDocument :one
+UPDATE documents 
+SET title = $2, 
+    description = $3,
+    type_id = $4,
+    sensitivity = $5,
+    metadata = $6,
+    file_name = COALESCE(NULLIF($7::text, ''), file_name),
+    file_path = COALESCE(NULLIF($8::text, ''), file_path),
+    file_size = CASE WHEN $9::bigint > 0 THEN $9::bigint ELSE file_size END,
+    mime_type = COALESCE(NULLIF($10::text, ''), mime_type),
+    status = 'pending',
+    updated_at = NOW() 
+WHERE id = $1 
+RETURNING id, title, description, file_name, file_path, file_size, mime_type, checksum, company_id, branch_id, department_id, rack_id, box_id, ordner_id, owner_id, current_version, status, tags, metadata, extracted_text, is_ocr_processed, created_at, updated_at, batch_id, retention_years, retention_expiry_date, sensitivity, circulation_id, minio_bucket, es_indexed, type_id
+`
+
+type UpdateDocumentParams struct {
+	ID          uuid.UUID       `json:"id"`
+	Title       string          `json:"title"`
+	Description pgtype.Text     `json:"description"`
+	TypeID      pgtype.UUID     `json:"type_id"`
+	Sensitivity pgtype.Text     `json:"sensitivity"`
+	Metadata    json.RawMessage `json:"metadata"`
+	FileName    string          `json:"file_name"`
+	FilePath    string          `json:"file_path"`
+	FileSize    int64           `json:"file_size"`
+	MimeType    string          `json:"mime_type"`
+}
+
+func (q *Queries) UpdateDocument(ctx context.Context, arg UpdateDocumentParams) (Document, error) {
+	row := q.db.QueryRow(ctx, updateDocument,
+		arg.ID,
+		arg.Title,
+		arg.Description,
+		arg.TypeID,
+		arg.Sensitivity,
+		arg.Metadata,
+		arg.FileName,
+		arg.FilePath,
+		arg.FileSize,
+		arg.MimeType,
+	)
+	var i Document
+	err := row.Scan(
+		&i.ID,
+		&i.Title,
+		&i.Description,
+		&i.FileName,
+		&i.FilePath,
+		&i.FileSize,
+		&i.MimeType,
+		&i.Checksum,
+		&i.CompanyID,
+		&i.BranchID,
+		&i.DepartmentID,
+		&i.RackID,
+		&i.BoxID,
+		&i.OrdnerID,
+		&i.OwnerID,
+		&i.CurrentVersion,
+		&i.Status,
+		&i.Tags,
+		&i.Metadata,
+		&i.ExtractedText,
+		&i.IsOcrProcessed,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.BatchID,
+		&i.RetentionYears,
+		&i.RetentionExpiryDate,
+		&i.Sensitivity,
+		&i.CirculationID,
+		&i.MinioBucket,
+		&i.EsIndexed,
+		&i.TypeID,
+	)
+	return i, err
+}
+
 const updateDocumentMetadata = `-- name: UpdateDocumentMetadata :exec
 UPDATE documents 
 SET metadata = $2, updated_at = NOW() 
@@ -875,5 +967,25 @@ type UpdateDocumentStatusParams struct {
 
 func (q *Queries) UpdateDocumentStatus(ctx context.Context, arg UpdateDocumentStatusParams) error {
 	_, err := q.db.Exec(ctx, updateDocumentStatus, arg.ID, arg.Status)
+	return err
+}
+
+const updateTaskStatusByEntity = `-- name: UpdateTaskStatusByEntity :exec
+UPDATE approval_workflows 
+SET status = $2,
+    decided_at = NULL,
+    decision_note = NULL,
+    rejection_reason = NULL,
+    updated_at = NOW()
+WHERE entity_id = $1
+`
+
+type UpdateTaskStatusByEntityParams struct {
+	EntityID uuid.UUID `json:"entity_id"`
+	Status   string    `json:"status"`
+}
+
+func (q *Queries) UpdateTaskStatusByEntity(ctx context.Context, arg UpdateTaskStatusByEntityParams) error {
+	_, err := q.db.Exec(ctx, updateTaskStatusByEntity, arg.EntityID, arg.Status)
 	return err
 }

@@ -70,6 +70,7 @@ type Querier interface {
 	GetIntegrationNodeByEndpoint(ctx context.Context, arg GetIntegrationNodeByEndpointParams) (IntegrationNode, error)
 	GetIntegrationNodeByType(ctx context.Context, serviceType string) (IntegrationNode, error)
 	GetLastSsoSyncLog(ctx context.Context) (SsoSyncLog, error)
+	GetLatestApprovalTaskByEntity(ctx context.Context, arg GetLatestApprovalTaskByEntityParams) (ApprovalWorkflow, error)
 	GetManagerDailyStats(ctx context.Context, headID pgtype.UUID) (GetManagerDailyStatsRow, error)
 	GetManagerRecentActivities(ctx context.Context, arg GetManagerRecentActivitiesParams) ([]GetManagerRecentActivitiesRow, error)
 	GetManagerTopSubmitters(ctx context.Context, arg GetManagerTopSubmittersParams) ([]GetManagerTopSubmittersRow, error)
@@ -146,6 +147,7 @@ type Querier interface {
 	UpdateCompany(ctx context.Context, arg UpdateCompanyParams) (Company, error)
 	UpdateCompanyLogo(ctx context.Context, arg UpdateCompanyLogoParams) error
 	UpdateDepartment(ctx context.Context, arg UpdateDepartmentParams) (Department, error)
+	UpdateDocument(ctx context.Context, arg UpdateDocumentParams) (Document, error)
 	UpdateDocumentMetadata(ctx context.Context, arg UpdateDocumentMetadataParams) error
 	UpdateDocumentOCR(ctx context.Context, arg UpdateDocumentOCRParams) error
 	UpdateDocumentStatus(ctx context.Context, arg UpdateDocumentStatusParams) error
@@ -159,6 +161,7 @@ type Querier interface {
 	UpdateRole(ctx context.Context, arg UpdateRoleParams) (Role, error)
 	UpdateSsoSyncLog(ctx context.Context, arg UpdateSsoSyncLogParams) (SsoSyncLog, error)
 	UpdateSystemModule(ctx context.Context, arg UpdateSystemModuleParams) (SystemModule, error)
+	UpdateTaskStatusByEntity(ctx context.Context, arg UpdateTaskStatusByEntityParams) error
 	UpdateUser(ctx context.Context, arg UpdateUserParams) (User, error)
 	UpdateUserMFASecret(ctx context.Context, arg UpdateUserMFASecretParams) error
 	UpdateUserPIN(ctx context.Context, arg UpdateUserPINParams) error

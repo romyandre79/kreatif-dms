@@ -254,6 +254,7 @@ func main() {
 	docGroup.Post("/", docHandler.Upload)
 	docGroup.Get("/search", docHandler.Search)
 	docGroup.Get("/:id", docHandler.GetByID)
+	docGroup.Put("/:id", docHandler.Update)
 	docGroup.Get("/:id/preview", docHandler.Preview)
 	docGroup.Get("/:id/loans", docHandler.GetLoans)
 	docGroup.Get("/:id/ocr", docHandler.GetOCRData)

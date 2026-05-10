@@ -57,11 +57,26 @@ type UploadDocumentParams struct {
 	PageCount    int
 }
 
+type UpdateDocumentParams struct {
+	ID           uuid.UUID
+	Title        string
+	Description  string
+	TypeID       uuid.UUID
+	Sensitivity  string
+	Urgency      string
+	DocumentDate string
+	Metadata     map[string]interface{}
+	FileContent  io.Reader
+	FileName     string
+	FileSize     int64
+	MimeType     string
+}
+
 func (s *DocumentService) UploadDocument(ctx context.Context, p UploadDocumentParams) (repository.Document, error) {
 	log.Printf("[DocumentService] Uploading document: %s (Size: %d, Owner: %s)", p.FileName, p.FileSize, p.OwnerID)
 
 	// 1. Generate unique file path
-	objectName := fmt.Sprintf("%s/%s", p.DepartmentID, p.FileName)
+	objectName := fmt.Sprintf("%s/%s_%s", p.DepartmentID, uuid.New().String(), p.FileName)
 
 	// 2. Check encryption setting from system_settings
 	encryptEnabled := false
@@ -439,4 +454,92 @@ func (s *DocumentService) BulkRejectDocuments(ctx context.Context, ids []uuid.UU
 		}
 	}
 	return nil
+}
+
+func (s *DocumentService) UpdateDocument(ctx context.Context, params UpdateDocumentParams) (repository.Document, error) {
+	// 1. Get existing document to merge metadata
+	existing, err := s.repo.GetDocument(ctx, params.ID)
+	if err != nil {
+		return repository.Document{}, err
+	}
+
+	metadata := make(map[string]interface{})
+	if len(existing.Metadata) > 0 {
+		json.Unmarshal(existing.Metadata, &metadata)
+	}
+
+	// 2. Update metadata fields
+	metadata["urgency"] = params.Urgency
+	metadata["document_date"] = params.DocumentDate
+	for k, v := range params.Metadata {
+		metadata[k] = v
+	}
+
+	metaJSON, _ := json.Marshal(metadata)
+
+	// 3. Handle file replacement if provided
+	filePath := ""
+	if params.FileContent != nil {
+		objectName := fmt.Sprintf("%s/%s_%s", existing.DepartmentID, uuid.New().String(), params.FileName)
+		_, err := s.storage.Upload(ctx, objectName, params.FileContent, params.FileSize, params.MimeType, false)
+		if err != nil {
+			return repository.Document{}, err
+		}
+		filePath = objectName
+
+		// Cleanup: Delete old file if path is different or even if same to be safe
+		if existing.FilePath != "" && existing.FilePath != filePath {
+			s.storage.Delete(ctx, existing.FilePath)
+		}
+	}
+
+	// 4. Perform update
+	doc, err := s.repo.UpdateDocument(ctx, repository.UpdateDocumentParams{
+		ID:          params.ID,
+		Title:       params.Title,
+		Description: pgtype.Text{String: params.Description, Valid: params.Description != ""},
+		TypeID:      pgtype.UUID{Bytes: params.TypeID, Valid: true},
+		Sensitivity: pgtype.Text{String: params.Sensitivity, Valid: params.Sensitivity != ""},
+		Metadata:    metaJSON,
+		FileName:    params.FileName,
+		FilePath:    filePath,
+		FileSize:    params.FileSize,
+		MimeType:    params.MimeType,
+	})
+	if err != nil {
+		return repository.Document{}, err
+	}
+
+	// 5. Get latest approval task to find previous approver
+	lastTask, err := s.repo.GetLatestApprovalTaskByEntity(ctx, repository.GetLatestApprovalTaskByEntityParams{
+		EntityID:   doc.ID,
+		EntityType: "document",
+	})
+	
+	approverID := pgtype.UUID{Valid: false}
+	if err == nil {
+		approverID = pgtype.UUID{Bytes: lastTask.ApproverID, Valid: true}
+	}
+
+	// 6. Create NEW approval task for the revision (Preserves history of the rejected one)
+	_, err = s.repo.CreateApprovalTask(ctx, repository.CreateApprovalTaskParams{
+		EntityType: "document",
+		EntityID:   doc.ID,
+		ApproverID: approverID,
+		Level:      1,
+	})
+	if err != nil {
+		log.Printf("[DocumentService] Error creating new approval task for revision: %v", err)
+	}
+
+	// 7. Log activity
+	s.repo.CreateActivityLog(ctx, repository.CreateActivityLogParams{
+		UserID:     existing.OwnerID,
+		Action:     "REVISION_SUBMITTED",
+		EntityType: "document",
+		EntityID:   pgtype.UUID{Bytes: doc.ID, Valid: true},
+		Details:    []byte(`{"note": "Document resubmitted after revision"}`),
+	})
+
+	return doc, nil
 }

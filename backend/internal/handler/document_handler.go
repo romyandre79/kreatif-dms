@@ -2,6 +2,7 @@ package handler
 
 import (
 	"fmt"
+	"io"
 	"log"
 	"strconv"
 	"strings"
@@ -357,4 +358,55 @@ func (h *DocumentHandler) BulkReject(c fiber.Ctx) error {
 	}
 
 	return response.Success(c, fiber.StatusOK, "Documents rejected", nil)
+}
+
+func (h *DocumentHandler) Update(c fiber.Ctx) error {
+	docID, err := uuid.Parse(c.Params("id"))
+	if err != nil {
+		return response.Error(c, fiber.StatusBadRequest, "Invalid document ID", err.Error())
+	}
+
+	title := c.FormValue("title")
+	description := c.FormValue("description")
+	typeID, _ := uuid.Parse(c.FormValue("type_id"))
+	sensitivity := c.FormValue("sensitivity")
+	urgency := c.FormValue("urgency")
+	documentDate := c.FormValue("document_date")
+	
+	// Handle optional file replacement
+	file, _ := c.FormFile("file")
+	var fileContent io.Reader
+	var fileName string
+	var fileSize int64
+	var mimeType string
+
+	if file != nil {
+		f, err := file.Open()
+		if err == nil {
+			defer f.Close()
+			fileContent = f
+			fileName = file.Filename
+			fileSize = file.Size
+			mimeType = file.Header.Get("Content-Type")
+		}
+	}
+
+	doc, err := h.svc.UpdateDocument(c.Context(), service.UpdateDocumentParams{
+		ID:           docID,
+		Title:        title,
+		Description:  description,
+		TypeID:       typeID,
+		Sensitivity:  sensitivity,
+		Urgency:      urgency,
+		DocumentDate: documentDate,
+		FileContent:  fileContent,
+		FileName:     fileName,
+		FileSize:     fileSize,
+		MimeType:     mimeType,
+	})
+	if err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to update document", err.Error())
+	}
+
+	return response.Success(c, fiber.StatusOK, "Document updated successfully", doc)
 }

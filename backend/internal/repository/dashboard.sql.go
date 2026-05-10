@@ -104,6 +104,38 @@ func (q *Queries) GetDailyStats(ctx context.Context) (GetDailyStatsRow, error) {
 	return i, err
 }
 
+const getLatestApprovalTaskByEntity = `-- name: GetLatestApprovalTaskByEntity :one
+SELECT id, entity_type, entity_id, level, approver_id, status, decision_note, rejection_reason, requires_pin, pin_verified, decided_at, created_at FROM approval_workflows
+WHERE entity_id = $1 AND entity_type = $2
+ORDER BY created_at DESC
+LIMIT 1
+`
+
+type GetLatestApprovalTaskByEntityParams struct {
+	EntityID   uuid.UUID `json:"entity_id"`
+	EntityType string    `json:"entity_type"`
+}
+
+func (q *Queries) GetLatestApprovalTaskByEntity(ctx context.Context, arg GetLatestApprovalTaskByEntityParams) (ApprovalWorkflow, error) {
+	row := q.db.QueryRow(ctx, getLatestApprovalTaskByEntity, arg.EntityID, arg.EntityType)
+	var i ApprovalWorkflow
+	err := row.Scan(
+		&i.ID,
+		&i.EntityType,
+		&i.EntityID,
+		&i.Level,
+		&i.ApproverID,
+		&i.Status,
+		&i.DecisionNote,
+		&i.RejectionReason,
+		&i.RequiresPin,
+		&i.PinVerified,
+		&i.DecidedAt,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
 const getManagerDailyStats = `-- name: GetManagerDailyStats :one
 SELECT 
     (SELECT COUNT(*) FROM documents d 
@@ -474,6 +506,16 @@ SELECT
     created_at
 FROM approval_workflows
 WHERE status = 'pending' AND (approver_id = $1)
+UNION ALL
+SELECT
+    id,
+    'document_rejection' as entity_type,
+    id as entity_id,
+    1 as level,
+    status,
+    created_at
+FROM documents
+WHERE owner_id = $1 AND status = 'rejected'
 ORDER BY created_at ASC
 LIMIT $2
 `

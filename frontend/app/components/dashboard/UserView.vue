@@ -85,7 +85,7 @@
                 <td class="px-8 py-6">
                   <div class="flex items-center gap-4">
                     <div :class="`w-2.5 h-2.5 rounded-full ring-4 ring-offset-2 ring-transparent group-hover:ring-offset-0 transition-all ${task.level > 1 ? 'bg-orange-500 shadow-[0_0_10px_rgba(249,115,22,0.4)]' : 'bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.4)]'}`"></div>
-                    <span class="font-bold text-sm text-slate-700 dark:text-slate-200">{{ task.entity_type }}</span>
+                    <span class="font-bold text-sm text-slate-700 dark:text-slate-200">{{ formatTaskType(task.entity_type) }}</span>
                   </div>
                 </td>
                 <td class="px-8 py-6">
@@ -99,9 +99,14 @@
                 <td class="px-8 py-6 text-right">
                   <button 
                     @click="handleTaskAction(task)"
-                    class="px-6 py-2.5 rounded-xl text-xs font-black transition-all bg-slate-100 text-slate-600 hover:bg-[#1E3A5F] hover:text-white shadow-sm"
+                    class="px-6 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-[10px] font-black uppercase tracking-widest text-[#1E3A5F] dark:text-white hover:bg-slate-50 transition-all flex items-center gap-2 group/btn shadow-sm"
                   >
-                    {{ task.level > 1 ? $t('dashboard.user.tasks.items.execute') : (task.entity_type.includes('Scan') ? $t('dashboard.user.tasks.items.process') : $t('dashboard.user.tasks.items.verify')) }}
+                    {{ 
+                      task.entity_type === 'document_rejection' ? 'Edit' : 
+                      (task.level > 1 ? $t('dashboard.user.tasks.items.execute') : 
+                      (task.entity_type.includes('Scan') ? $t('dashboard.user.tasks.items.process') : $t('dashboard.user.tasks.items.verify'))) 
+                    }}
+                    <LucideArrowRight class="w-3.5 h-3.5 group-hover/btn:translate-x-1 transition-transform" />
                   </button>
                 </td>
               </tr>
@@ -318,12 +323,24 @@ const quickActions = [
 
 
 const handleTaskAction = (task) => {
-  if (task.entity_type.includes('Scan')) {
+  if (task.entity_type === 'document_rejection') {
+    navigateTo(`/documents/upload?id=${task.entity_id}`)
+  } else if (task.entity_type.includes('Scan')) {
     navigateTo('/stock/scan')
   } else if (task.entity_type.includes('Loan')) {
     navigateTo('/approvals/loans')
   } else {
     navigateTo('/approvals/submissions')
+  }
+}
+
+const formatTaskType = (type) => {
+  switch (type) {
+    case 'document_rejection': return 'Revisi Dokumen'
+    case 'document_upload': return 'Persetujuan Dokumen'
+    case 'bulk_scan': return 'Pemindaian Massal'
+    case 'loan_request': return 'Permohonan Pinjaman'
+    default: return type
   }
 }
 

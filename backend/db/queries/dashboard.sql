@@ -69,6 +69,16 @@ SELECT
     created_at
 FROM approval_workflows
 WHERE status = 'pending' AND (approver_id = $1)
+UNION ALL
+SELECT
+    id,
+    'document_rejection' as entity_type,
+    id as entity_id,
+    1 as level,
+    status,
+    created_at
+FROM documents
+WHERE owner_id = $1 AND status = 'rejected'
 ORDER BY created_at ASC
 LIMIT $2;
 
@@ -146,3 +156,9 @@ INSERT INTO approval_workflows (
 ) VALUES (
     $1, $2, $3, $4, 'pending'
 ) RETURNING *;
+
+-- name: GetLatestApprovalTaskByEntity :one
+SELECT * FROM approval_workflows
+WHERE entity_id = $1 AND entity_type = $2
+ORDER BY created_at DESC
+LIMIT 1;
