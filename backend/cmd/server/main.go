@@ -163,6 +163,7 @@ func main() {
 	notifSvc := service.NewNotificationService(repo, waSvc)
 	integrationMonitorSvc := service.NewIntegrationMonitorService(repo)
 	dashboardSvc := service.NewDashboardService(repo)
+	intakeSvc := service.NewIntakeService(repo)
 
 	
 	// Start Background Workers
@@ -177,6 +178,7 @@ func main() {
 	masterHandler := handler.NewMasterHandler(masterSvc)
 	hardwareHandler := handler.NewHardwareHandler(hardwareSvc)
 	dashboardHandler := handler.NewDashboardHandler(dashboardSvc)
+	intakeHandler := handler.NewIntakeHandler(intakeSvc)
 
 
 	// Create Fiber App
@@ -254,6 +256,7 @@ func main() {
 	docGroup.Post("/", docHandler.Upload)
 	docGroup.Get("/search", docHandler.Search)
 	docGroup.Get("/:id", docHandler.GetByID)
+	docGroup.Put("/:id", docHandler.Update)
 	docGroup.Get("/:id/preview", docHandler.Preview)
 	docGroup.Get("/:id/loans", docHandler.GetLoans)
 	docGroup.Get("/:id/ocr", docHandler.GetOCRData)
@@ -378,6 +381,13 @@ func main() {
 	dashboardGroup := api.Group("/dashboard")
 	dashboardGroup.Use(middleware.AuthMiddleware(cfg.JWTSecret))
 	dashboardGroup.Get("/summary", dashboardHandler.GetSummary)
+
+	// Intake Routes
+	intakeGroup := api.Group("/intake")
+	intakeGroup.Use(middleware.AuthMiddleware(cfg.JWTSecret))
+	intakeGroup.Get("/manifest/:id", intakeHandler.GetManifest)
+	intakeGroup.Get("/stats", intakeHandler.GetStats)
+	intakeGroup.Post("/receive", intakeHandler.Receive)
 
 
 	// Health check

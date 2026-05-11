@@ -106,8 +106,10 @@
       "sub_status": "Submission Status",
       "inbound_pre": "Inbound Pre-Registration",
       "notifications_menu": "Notifications",
+      "notification_menu": "Notifications",
       "notificaton": "Notifications",
-      "announcements": "System Announcements"
+      "announcements": "System Announcements",
+      "inbound_registration": "Inbound Registration"
     }
   }
 }

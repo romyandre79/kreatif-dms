@@ -40,3 +40,13 @@ export const parseMarkdown = (text: string) => {
     .replace(/^- (.*$)/gim, '<li class="ml-4 list-disc text-slate-600 dark:text-slate-400">$1</li>')
     .replace(/\n/gim, '<br>')
 }
+
+export const formatDate = (date: string | Date) => {
+  if (!date) return '-'
+  const d = new Date(date)
+  return d.toLocaleDateString('id-ID', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric'
+  })
+}

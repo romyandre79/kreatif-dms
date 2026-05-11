@@ -296,8 +296,8 @@
                       />
                       <div class="absolute w-2.5 h-2.5 rounded-full bg-red-500 transform scale-0 peer-checked:scale-100 transition-transform"></div>
                     </div>
-                    <span :class="`text-sm font-bold transition-colors ${rejectionReason === reason ? 'text-slate-900' : 'text-slate-500 group-hover:text-slate-700'}`">
-                      {{ reason }}
+                    <span :class="`text-sm font-bold transition-colors ${rejectionReason === reason.label ? 'text-slate-900' : 'text-slate-500 group-hover:text-slate-700'}`">
+                      {{ reason.label }}
                     </span>
                   </label>
                 </div>
@@ -309,7 +309,8 @@
                   v-model="rejectionNotes"
                   rows="4"
                   maxlength="500"
-                  class="w-full bg-white border border-slate-200 rounded-2xl p-6 text-sm font-medium focus:ring-4 focus:ring-red-500/10 focus:border-red-500 transition-all outline-none resize-none"
+                  :disabled="rejectionReason !== $t('approvals.modals.reject.reasons.other')"
+                  :class="`w-full border border-slate-200 rounded-2xl p-6 text-sm font-medium focus:ring-4 focus:ring-red-500/10 focus:border-red-500 transition-all outline-none resize-none ${rejectionReason !== $t('approvals.modals.reject.reasons.other') ? 'bg-slate-50 text-slate-400 cursor-not-allowed' : 'bg-white text-slate-800'}`"
                   :placeholder="$t('approvals.modals.reject.placeholder')"
                 ></textarea>
                 <div class="flex items-center justify-between">
@@ -351,7 +352,7 @@
               </button>
               <button 
                 @click="confirmReject"
-                :disabled="submitting || !rejectionReason"
+                :disabled="submitting || !rejectionReason || (rejectionReason === $t('approvals.modals.reject.reasons.other') && !rejectionNotes.trim())"
                 class="px-10 py-4 bg-[#EF4444] hover:bg-[#DC2626] text-white rounded-2xl text-xs font-black uppercase tracking-widest shadow-xl shadow-red-500/20 transition-all flex items-center gap-3 disabled:opacity-50"
               >
                 <LucideX class="w-4 h-4" />
@@ -527,8 +528,13 @@ const rejectionNotes = ref('')
 
 const confirmReject = async () => {
   if (!rejectionReason.value) {
-    alert('Please select a rejection reason')
-    return
+    alert('Harap pilih alasan penolakan');
+    return;
+  }
+  
+  if (rejectionReason.value === t('approvals.modals.reject.reasons.other') && !rejectionNotes.value.trim()) {
+    alert('Alasan detail wajib diisi jika Anda memilih "Lainnya"');
+    return;
   }
   
   submitting.value = true

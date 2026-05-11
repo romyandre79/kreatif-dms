@@ -380,7 +380,10 @@ onMounted(() => {
   if (auth.accessToken) {
     fetchDynamicMenu()
     notifStore.fetchNotifications()
+    
+    // Periodically refresh menu badges and notifications
     setInterval(() => {
+      fetchDynamicMenu()
       notifStore.fetchNotifications()
     }, 30000)
   }
@@ -388,6 +391,11 @@ onMounted(() => {
 
 // Update browser tab title based on route
 watch(() => route.path, () => {
+  // Refresh menu badges on navigation
+  if (auth.accessToken) {
+    fetchDynamicMenu()
+  }
+
   // Find current menu item label
   const findLabel = (items) => {
     for (const item of items) {

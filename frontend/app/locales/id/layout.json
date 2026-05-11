@@ -113,8 +113,11 @@
       "sub_status": "Submission Status",
       "inbound_pre": "Inbound Pre-Registration",
       "notifications": "Notifikasi",
+      "notifications_menu": "Notifikasi",
+      "notification_menu": "Notifikasi",
       "notificaton": "Notifikasi",
-      "announcements": "Pengumuman Dashboard"
+      "announcements": "Pengumuman Dashboard",
+      "inbound_registration": "Penerimaan Fisik"
     }
   }
 }

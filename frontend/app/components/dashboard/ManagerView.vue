@@ -93,7 +93,7 @@
                     <div class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400">
                        <LucideUser class="w-4 h-4" />
                     </div>
-                    <span class="text-xs font-bold text-slate-700 dark:text-slate-300">{{ $t('common.system') || 'System' }}</span>
+                    <span class="text-xs font-bold text-slate-700 dark:text-slate-300">{{ item.staff_name || 'System' }}</span>
                   </div>
                 </td>
                 <td class="px-8 py-6">

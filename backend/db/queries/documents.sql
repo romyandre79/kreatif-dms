@@ -23,7 +23,9 @@ SELECT
     r.name as rack_name,
     bx.name as box_name,
     o.name as ordner_name,
-    u.full_name as owner_name
+    u.full_name as owner_name,
+    aw.rejection_reason,
+    aw.decision_note as rejection_notes
 FROM documents d
 LEFT JOIN document_types dt ON d.type_id = dt.id
 LEFT JOIN companies c ON d.company_id = c.id
@@ -33,6 +35,12 @@ LEFT JOIN racks r ON d.rack_id = r.id
 LEFT JOIN boxes bx ON d.box_id = bx.id
 LEFT JOIN ordners o ON d.ordner_id = o.id
 LEFT JOIN users u ON d.owner_id = u.id
+LEFT JOIN LATERAL (
+    SELECT rejection_reason, decision_note 
+    FROM approval_workflows 
+    WHERE entity_id = d.id AND status = 'rejected' 
+    ORDER BY created_at DESC LIMIT 1
+) aw ON TRUE
 WHERE d.id = $1 LIMIT 1;
 
 -- name: ListDocumentsByDepartment :many
@@ -108,19 +116,27 @@ SELECT COUNT(*) FROM ocr_jobs;
 
 -- name: ListRecentDocuments :many
 SELECT 
-    id, title, status, created_at, mime_type, file_size, metadata,
-    COALESCE(description, '')::text as category
-FROM documents
-ORDER BY created_at DESC
+    d.id, d.title, d.status, d.created_at, d.mime_type, d.file_size, d.metadata,
+    dt.name as type_name,
+    dept.name as department_name,
+    COALESCE(d.description, '')::text as category
+FROM documents d
+LEFT JOIN document_types dt ON d.type_id = dt.id
+LEFT JOIN departments dept ON d.department_id = dept.id
+ORDER BY d.created_at DESC
 LIMIT $1 OFFSET $2;
 
 -- name: ListRecentDocumentsByOwner :many
 SELECT 
-    id, title, status, created_at, mime_type, file_size, metadata,
-    COALESCE(description, '')::text as category
-FROM documents
-WHERE owner_id = $1
-ORDER BY created_at DESC
+    d.id, d.title, d.status, d.created_at, d.mime_type, d.file_size, d.metadata,
+    dt.name as type_name,
+    dept.name as department_name,
+    COALESCE(d.description, '')::text as category
+FROM documents d
+LEFT JOIN document_types dt ON d.type_id = dt.id
+LEFT JOIN departments dept ON d.department_id = dept.id
+WHERE d.owner_id = $1
+ORDER BY d.created_at DESC
 LIMIT $2 OFFSET $3;
 -- name: GetDocumentLoanHistory :many
 SELECT 
@@ -141,3 +157,28 @@ ORDER BY br.created_at DESC;
 UPDATE documents 
 SET status = $2, updated_at = NOW() 
 WHERE id = $1;
+
+-- name: UpdateTaskStatusByEntity :exec
+UPDATE approval_workflows 
+SET status = $2,
+    decided_at = NULL,
+    decision_note = NULL,
+    rejection_reason = NULL,
+    updated_at = NOW()
+WHERE entity_id = $1;
+
+-- name: UpdateDocument :one
+UPDATE documents 
+SET title = $2, 
+    description = $3,
+    type_id = $4,
+    sensitivity = $5,
+    metadata = $6,
+    file_name = COALESCE(NULLIF(@file_name::text, ''), file_name),
+    file_path = COALESCE(NULLIF(@file_path::text, ''), file_path),
+    file_size = CASE WHEN @file_size::bigint > 0 THEN @file_size::bigint ELSE file_size END,
+    mime_type = COALESCE(NULLIF(@mime_type::text, ''), mime_type),
+    status = COALESCE(NULLIF(@status::text, ''), 'pending'),
+    updated_at = NOW() 
+WHERE id = $1 
+RETURNING *;

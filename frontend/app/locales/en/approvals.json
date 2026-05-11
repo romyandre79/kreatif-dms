@@ -143,6 +143,9 @@
         "btn_cancel": "Cancel",
         "btn_confirm": "Confirm Rejection"
       }
+    },
+    "actions": {
+      "rejection_reason": "REJECTION REASON"
     }
   }
 }

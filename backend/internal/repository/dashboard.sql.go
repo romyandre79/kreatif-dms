@@ -104,6 +104,38 @@ func (q *Queries) GetDailyStats(ctx context.Context) (GetDailyStatsRow, error) {
 	return i, err
 }
 
+const getLatestApprovalTaskByEntity = `-- name: GetLatestApprovalTaskByEntity :one
+SELECT id, entity_type, entity_id, level, approver_id, status, decision_note, rejection_reason, requires_pin, pin_verified, decided_at, created_at FROM approval_workflows
+WHERE entity_id = $1 AND entity_type = $2
+ORDER BY created_at DESC
+LIMIT 1
+`
+
+type GetLatestApprovalTaskByEntityParams struct {
+	EntityID   uuid.UUID `json:"entity_id"`
+	EntityType string    `json:"entity_type"`
+}
+
+func (q *Queries) GetLatestApprovalTaskByEntity(ctx context.Context, arg GetLatestApprovalTaskByEntityParams) (ApprovalWorkflow, error) {
+	row := q.db.QueryRow(ctx, getLatestApprovalTaskByEntity, arg.EntityID, arg.EntityType)
+	var i ApprovalWorkflow
+	err := row.Scan(
+		&i.ID,
+		&i.EntityType,
+		&i.EntityID,
+		&i.Level,
+		&i.ApproverID,
+		&i.Status,
+		&i.DecisionNote,
+		&i.RejectionReason,
+		&i.RequiresPin,
+		&i.PinVerified,
+		&i.DecidedAt,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
 const getManagerDailyStats = `-- name: GetManagerDailyStats :one
 SELECT 
     (SELECT COUNT(*) FROM documents d 
@@ -466,14 +498,29 @@ func (q *Queries) GetUserLoanHistory(ctx context.Context, arg GetUserLoanHistory
 
 const getUserPriorityTasks = `-- name: GetUserPriorityTasks :many
 SELECT 
-    id,
-    entity_type,
-    entity_id,
-    level,
-    status,
-    created_at
-FROM approval_workflows
-WHERE status = 'pending' AND (approver_id = $1)
+    aw.id,
+    aw.entity_type,
+    aw.entity_id,
+    aw.level,
+    aw.status,
+    aw.created_at,
+    u.full_name as staff_name
+FROM approval_workflows aw
+LEFT JOIN documents d ON aw.entity_id = d.id
+LEFT JOIN users u ON d.owner_id = u.id
+WHERE aw.status = 'pending' AND (aw.approver_id = $1)
+UNION ALL
+SELECT
+    d.id,
+    CASE WHEN d.status = 'draft' THEN 'document_draft' ELSE 'document_rejection' END as entity_type,
+    d.id as entity_id,
+    1 as level,
+    d.status,
+    d.created_at,
+    u.full_name as staff_name
+FROM documents d
+LEFT JOIN users u ON d.owner_id = u.id
+WHERE d.owner_id = $1 AND d.status IN ('rejected', 'draft')
 ORDER BY created_at ASC
 LIMIT $2
 `
@@ -490,6 +537,7 @@ type GetUserPriorityTasksRow struct {
 	Level      int32              `json:"level"`
 	Status     string             `json:"status"`
 	CreatedAt  pgtype.Timestamptz `json:"created_at"`
+	StaffName  pgtype.Text        `json:"staff_name"`
 }
 
 func (q *Queries) GetUserPriorityTasks(ctx context.Context, arg GetUserPriorityTasksParams) ([]GetUserPriorityTasksRow, error) {
@@ -508,6 +556,7 @@ func (q *Queries) GetUserPriorityTasks(ctx context.Context, arg GetUserPriorityT
 			&i.Level,
 			&i.Status,
 			&i.CreatedAt,
+			&i.StaffName,
 		); err != nil {
 			return nil, err
 		}

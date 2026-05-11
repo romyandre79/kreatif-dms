@@ -61,14 +61,29 @@ LIMIT $1;
 
 -- name: GetUserPriorityTasks :many
 SELECT 
-    id,
-    entity_type,
-    entity_id,
-    level,
-    status,
-    created_at
-FROM approval_workflows
-WHERE status = 'pending' AND (approver_id = $1)
+    aw.id,
+    aw.entity_type,
+    aw.entity_id,
+    aw.level,
+    aw.status,
+    aw.created_at,
+    u.full_name as staff_name
+FROM approval_workflows aw
+LEFT JOIN documents d ON aw.entity_id = d.id
+LEFT JOIN users u ON d.owner_id = u.id
+WHERE aw.status = 'pending' AND (aw.approver_id = $1)
+UNION ALL
+SELECT
+    d.id,
+    CASE WHEN d.status = 'draft' THEN 'document_draft' ELSE 'document_rejection' END as entity_type,
+    d.id as entity_id,
+    1 as level,
+    d.status,
+    d.created_at,
+    u.full_name as staff_name
+FROM documents d
+LEFT JOIN users u ON d.owner_id = u.id
+WHERE d.owner_id = $1 AND d.status IN ('rejected', 'draft')
 ORDER BY created_at ASC
 LIMIT $2;
 
@@ -146,3 +161,9 @@ INSERT INTO approval_workflows (
 ) VALUES (
     $1, $2, $3, $4, 'pending'
 ) RETURNING *;
+
+-- name: GetLatestApprovalTaskByEntity :one
+SELECT * FROM approval_workflows
+WHERE entity_id = $1 AND entity_type = $2
+ORDER BY created_at DESC
+LIMIT 1;

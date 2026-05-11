@@ -2,6 +2,7 @@ package handler
 
 import (
 	"fmt"
+	"io"
 	"log"
 	"strconv"
 	"strings"
@@ -56,7 +57,8 @@ func (h *DocumentHandler) Search(c fiber.Ctx) error {
 
 func (h *DocumentHandler) Upload(c fiber.Ctx) error {
 	file, err := c.FormFile("file")
-	if err != nil {
+	status := c.FormValue("status")
+	if err != nil && status != "draft" {
 		return response.Error(c, fiber.StatusBadRequest, "File is required", err.Error())
 	}
 
@@ -111,19 +113,30 @@ func (h *DocumentHandler) Upload(c fiber.Ctx) error {
 		return response.Error(c, fiber.StatusBadRequest, "Missing required location data", "Please ensure your profile is complete or select Company, Branch, and Department manually.")
 	}
 
-	f, err := file.Open()
-	if err != nil {
-		return response.Error(c, fiber.StatusInternalServerError, "Failed to open file", err.Error())
+	var fileContent io.Reader
+	var fileName string
+	var fileSize int64
+	var mimeType string
+
+	if file != nil {
+		f, err := file.Open()
+		if err != nil {
+			return response.Error(c, fiber.StatusInternalServerError, "Failed to open file", err.Error())
+		}
+		defer f.Close()
+		fileContent = f
+		fileName = file.Filename
+		fileSize = file.Size
+		mimeType = file.Header.Get("Content-Type")
 	}
-	defer f.Close()
 
 	doc, err := h.svc.UploadDocument(c.Context(), service.UploadDocumentParams{
 		Title:        title,
 		Description:  description,
-		FileName:     file.Filename,
-		FileSize:     file.Size,
-		MimeType:     file.Header.Get("Content-Type"),
-		Content:      f,
+		FileName:     fileName,
+		FileSize:     fileSize,
+		MimeType:     mimeType,
+		Content:      fileContent,
 		OwnerID:      ownerID,
 		CompanyID:    companyID,
 		BranchID:     branchID,
@@ -134,6 +147,7 @@ func (h *DocumentHandler) Upload(c fiber.Ctx) error {
 		Urgency:      urgency,
 		DocumentDate: documentDateStr,
 		PageCount:    pageCount,
+		Status:       status,
 	})
 
 	if err != nil {
@@ -357,4 +371,56 @@ func (h *DocumentHandler) BulkReject(c fiber.Ctx) error {
 	}
 
 	return response.Success(c, fiber.StatusOK, "Documents rejected", nil)
+}
+
+func (h *DocumentHandler) Update(c fiber.Ctx) error {
+	docID, err := uuid.Parse(c.Params("id"))
+	if err != nil {
+		return response.Error(c, fiber.StatusBadRequest, "Invalid document ID", err.Error())
+	}
+
+	title := c.FormValue("title")
+	description := c.FormValue("description")
+	typeID, _ := uuid.Parse(c.FormValue("type_id"))
+	sensitivity := c.FormValue("sensitivity")
+	urgency := c.FormValue("urgency")
+	documentDate := c.FormValue("document_date")
+	
+	// Handle optional file replacement
+	file, _ := c.FormFile("file")
+	var fileContent io.Reader
+	var fileName string
+	var fileSize int64
+	var mimeType string
+
+	if file != nil {
+		f, err := file.Open()
+		if err == nil {
+			defer f.Close()
+			fileContent = f
+			fileName = file.Filename
+			fileSize = file.Size
+			mimeType = file.Header.Get("Content-Type")
+		}
+	}
+
+	doc, err := h.svc.UpdateDocument(c.Context(), service.UpdateDocumentParams{
+		ID:           docID,
+		Title:        title,
+		Description:  description,
+		TypeID:       typeID,
+		Sensitivity:  sensitivity,
+		Urgency:      urgency,
+		DocumentDate: documentDate,
+		FileContent:  fileContent,
+		FileName:     fileName,
+		FileSize:     fileSize,
+		MimeType:     mimeType,
+		Status:       c.FormValue("status"),
+	})
+	if err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to update document", err.Error())
+	}
+
+	return response.Success(c, fiber.StatusOK, "Document updated successfully", doc)
 }

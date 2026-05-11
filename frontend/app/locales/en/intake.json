@@ -1,0 +1,8 @@
+{
+  "intake": {
+    "inbound": {
+      "title": "Physical Document Intake",
+      "subtitle": "Scan QR Code on Manifest to start the receiving process"
+    }
+  }
+}
