@@ -385,9 +385,19 @@ onMounted(() => {
     setInterval(() => {
       fetchDynamicMenu()
       notifStore.fetchNotifications()
-    }, 30000)
+    }, 10000)
   }
 })
+
+// Watch for authentication changes to refresh menu
+watch(() => auth.isAuthenticated, (newVal) => {
+  if (newVal) {
+    fetchDynamicMenu()
+    notifStore.fetchNotifications()
+  } else {
+    dynamicMenu.value = []
+  }
+}, { immediate: true })
 
 // Update browser tab title based on route
 watch(() => route.path, () => {

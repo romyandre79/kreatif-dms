@@ -320,7 +320,7 @@ const currentDate = computed(() => {
 })
 
 // Data Fetching
-const { data: dashboardData, refresh: refreshDashboard } = await useAsyncData('admin-summary', async () => {
+const { data: dashboardData, refresh: refreshDashboard } = await useAsyncData(`admin-summary-${user.value?.id}`, async () => {
   const res = await $api('/dashboard/summary')
   return res.data
 })
@@ -358,10 +358,13 @@ const formatTime = (seconds) => {
 // Polling for updates
 let timer
 onMounted(() => {
+  refreshDashboard()
+  refreshIntegration()
+  
   timer = setInterval(() => {
     refreshDashboard()
     refreshIntegration()
-  }, 30000)
+  }, 10000)
 })
 
 onUnmounted(() => {

@@ -89,7 +89,9 @@
                   </div>
                 </td>
                 <td class="px-8 py-6">
-                  <span class="text-xs font-bold text-slate-400 tracking-tighter">{{ task.id.substring(0, 8) }}...</span>
+                  <p class="text-sm font-black text-slate-800 dark:text-slate-200 line-clamp-1" :title="task.title || task.id">
+                    {{ task.title || task.id.substring(0, 8) + '...' }}
+                  </p>
                 </td>
                 <td class="px-8 py-6">
                   <div class="text-xs font-bold text-slate-500">
@@ -297,7 +299,7 @@ const config = useRuntimeConfig()
 const isNotesOpen = ref(false)
 
 // Data Fetching
-const { data: dashboardData, refresh: refreshDashboard } = await useAsyncData('dashboard-summary', async () => {
+const { data: dashboardData, refresh: refreshDashboard } = await useAsyncData(`dashboard-summary-${user.value?.id}`, async () => {
   const res = await $api('/dashboard/summary')
   return res.data
 })
@@ -348,9 +350,10 @@ const formatTaskType = (type) => {
 // Polling for updates
 let timer
 onMounted(() => {
+  refreshDashboard()
   timer = setInterval(() => {
     refreshDashboard()
-  }, 30000)
+  }, 10000)
 })
 
 onUnmounted(() => {

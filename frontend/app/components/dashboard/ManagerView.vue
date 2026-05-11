@@ -85,7 +85,9 @@
                 :class="`group/row cursor-pointer transition-colors ${item.level > 1 ? 'bg-red-50/50 dark:bg-red-900/10 hover:bg-red-100/50 dark:hover:bg-red-900/20' : 'hover:bg-slate-50 dark:hover:bg-slate-800/50'}`"
               >
                 <td class="px-8 py-6 border-l-4" :class="item.level > 1 ? 'border-red-500' : 'border-transparent'">
-                  <p class="font-black text-sm text-slate-800 dark:text-slate-200">{{ item.id.substring(0, 8) }}...</p>
+                  <p class="font-black text-sm text-slate-800 dark:text-slate-200 line-clamp-1" :title="item.title || item.id">
+                    {{ item.title || item.id.substring(0, 8) + '...' }}
+                  </p>
                   <p class="text-[10px] text-slate-400 font-bold mt-1 uppercase">{{ item.entity_type }}</p>
                 </td>
                 <td class="px-8 py-6">
@@ -277,7 +279,7 @@ const isNotesOpen = ref(false)
 const activeTab = ref('all')
 
 // Data Fetching
-const { data: dashboardData, refresh: refreshDashboard } = await useAsyncData('manager-summary', async () => {
+const { data: dashboardData, refresh: refreshDashboard } = await useAsyncData(`manager-summary-${user.value?.id}`, async () => {
   const res = await $api('/dashboard/summary')
   return res.data
 })
@@ -345,9 +347,12 @@ const getActivityStyles = (action) => {
 // Polling for updates
 let timer
 onMounted(() => {
+  // Immediate refresh on mount to avoid stale data from previous sessions/navigation
+  refreshDashboard()
+  
   timer = setInterval(() => {
     refreshDashboard()
-  }, 30000)
+  }, 10000)
 })
 
 onUnmounted(() => {

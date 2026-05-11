@@ -275,10 +275,14 @@ func main() {
 	masterGroup := api.Group("/master")
 	masterGroup.Use(middleware.AuthMiddleware(cfg.JWTSecret))
 	
-	// Accessible to all authenticated users
+	// --- ROUTES ACCESSIBLE TO MANAGERS & DOC CONTROLLERS ---
 	masterGroup.Get("/document-types", masterHandler.ListDocumentTypes)
+	masterGroup.Get("/settings/:category", middleware.RoleMiddleware("admin", "superadmin", "manajer", "admin doc controller", "kepala doc controller"), masterHandler.GetSettings)
+	masterGroup.Get("/settings/watermark", middleware.RoleMiddleware("admin", "superadmin", "manajer", "admin doc controller", "kepala doc controller"), masterHandler.GetWatermarkSettings)
+	masterGroup.Get("/announcements", masterHandler.ListAnnouncements)
+	masterGroup.Get("/document-types/export", middleware.RoleMiddleware("admin", "superadmin"), masterHandler.ExportDocumentTypes)
 
-	// Restricted to Admin/Superadmin
+	// --- STRICTLY ADMIN/SUPERADMIN ROUTES ---
 	masterGroup.Use(middleware.RoleMiddleware("admin", "superadmin"))
 	masterGroup.Get("/companies", masterHandler.ListCompanies)
 	masterGroup.Post("/companies", masterHandler.CreateCompany)
@@ -340,17 +344,13 @@ func main() {
 	masterGroup.Get("/roles/:role_id/permissions", masterHandler.GetRolePermissions)
 	masterGroup.Post("/roles/:role_id/permissions", masterHandler.UpdateRolePermissions)
 	masterGroup.Get("/retention", masterHandler.ListRetentionPolicies)
-	masterGroup.Get("/settings/:category", masterHandler.GetSettings)
+	
 	masterGroup.Post("/settings/:category", masterHandler.UpdateSetting)
 	
-	// Announcements
-	masterGroup.Get("/announcements", masterHandler.ListAnnouncements)
 	masterGroup.Post("/announcements", masterHandler.CreateAnnouncement)
 	masterGroup.Put("/announcements/:id", masterHandler.UpdateAnnouncement)
 	masterGroup.Delete("/announcements/:id", masterHandler.DeleteAnnouncement)
 	
-	// Watermark Settings
-	masterGroup.Get("/settings/watermark", masterHandler.GetWatermarkSettings)
 	masterGroup.Post("/settings/watermark", masterHandler.UpdateWatermarkSettings)
 	masterGroup.Post("/scanners/register", masterHandler.RegisterScanner)
 	masterGroup.Get("/integration/status", middleware.RoleMiddleware("admin", "superadmin"), masterHandler.GetIntegrationStatus)
