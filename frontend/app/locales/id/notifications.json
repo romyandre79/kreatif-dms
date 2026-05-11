@@ -1,0 +1,8 @@
+{
+  "notifications": {
+    "title": "Pusat Notifikasi",
+    "subtitle": "Kelola semua pemberitahuan dan pembaruan sistem Anda di satu tempat",
+    "empty_title": "Belum Ada Notifikasi",
+    "empty_desc": "Kami akan memberi tahu Anda jika ada aktivitas penting atau pembaruan dokumen yang memerlukan perhatian Anda."
+  }
+}

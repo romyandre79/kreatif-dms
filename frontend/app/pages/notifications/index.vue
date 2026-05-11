@@ -17,4 +17,12 @@
 
 <script setup>
 import { LucideBell } from 'lucide-vue-next'
+import { useAuthStore } from '~/stores/auth'
+import { onMounted } from 'vue'
+
+const auth = useAuthStore()
+
+onMounted(() => {
+  // Access allowed for all authenticated users
+})
 </script>

@@ -1,0 +1,8 @@
+{
+  "notifications": {
+    "title": "Notification Center",
+    "subtitle": "Manage all your system alerts and updates in one place",
+    "empty_title": "No Notifications Yet",
+    "empty_desc": "We'll notify you when there's important activity or document updates that require your attention."
+  }
+}
