@@ -58,7 +58,7 @@ INSERT INTO documents (
     sensitivity, metadata, type_id
 ) VALUES (
     $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15
-) RETURNING id, title, description, file_name, file_path, file_size, mime_type, checksum, company_id, branch_id, department_id, rack_id, box_id, ordner_id, owner_id, current_version, status, tags, metadata, extracted_text, is_ocr_processed, created_at, updated_at, batch_id, retention_years, retention_expiry_date, sensitivity, circulation_id, minio_bucket, es_indexed, type_id
+) RETURNING id, title, description, file_name, file_path, file_size, mime_type, checksum, company_id, branch_id, department_id, rack_id, box_id, ordner_id, owner_id, current_version, status, tags, metadata, extracted_text, is_ocr_processed, created_at, updated_at, batch_id, retention_years, retention_expiry_date, sensitivity, circulation_id, minio_bucket, es_indexed, type_id, current_manifest_id, physical_status
 `
 
 type CreateDocumentParams struct {
@@ -130,6 +130,8 @@ func (q *Queries) CreateDocument(ctx context.Context, arg CreateDocumentParams) 
 		&i.MinioBucket,
 		&i.EsIndexed,
 		&i.TypeID,
+		&i.CurrentManifestID,
+		&i.PhysicalStatus,
 	)
 	return i, err
 }
@@ -227,7 +229,7 @@ func (q *Queries) GetBatch(ctx context.Context, id uuid.UUID) (ProcessingBatch, 
 }
 
 const getDocument = `-- name: GetDocument :one
-SELECT d.id, d.title, d.description, d.file_name, d.file_path, d.file_size, d.mime_type, d.checksum, d.company_id, d.branch_id, d.department_id, d.rack_id, d.box_id, d.ordner_id, d.owner_id, d.current_version, d.status, d.tags, d.metadata, d.extracted_text, d.is_ocr_processed, d.created_at, d.updated_at, d.batch_id, d.retention_years, d.retention_expiry_date, d.sensitivity, d.circulation_id, d.minio_bucket, d.es_indexed, d.type_id, dt.name as type_name
+SELECT d.id, d.title, d.description, d.file_name, d.file_path, d.file_size, d.mime_type, d.checksum, d.company_id, d.branch_id, d.department_id, d.rack_id, d.box_id, d.ordner_id, d.owner_id, d.current_version, d.status, d.tags, d.metadata, d.extracted_text, d.is_ocr_processed, d.created_at, d.updated_at, d.batch_id, d.retention_years, d.retention_expiry_date, d.sensitivity, d.circulation_id, d.minio_bucket, d.es_indexed, d.type_id, d.current_manifest_id, d.physical_status, dt.name as type_name
 FROM documents d
 LEFT JOIN document_types dt ON d.type_id = dt.id
 WHERE d.id = $1 LIMIT 1
@@ -265,6 +267,8 @@ type GetDocumentRow struct {
 	MinioBucket         pgtype.Text        `json:"minio_bucket"`
 	EsIndexed           pgtype.Bool        `json:"es_indexed"`
 	TypeID              pgtype.UUID        `json:"type_id"`
+	CurrentManifestID   pgtype.UUID        `json:"current_manifest_id"`
+	PhysicalStatus      pgtype.Text        `json:"physical_status"`
 	TypeName            pgtype.Text        `json:"type_name"`
 }
 
@@ -303,6 +307,8 @@ func (q *Queries) GetDocument(ctx context.Context, id uuid.UUID) (GetDocumentRow
 		&i.MinioBucket,
 		&i.EsIndexed,
 		&i.TypeID,
+		&i.CurrentManifestID,
+		&i.PhysicalStatus,
 		&i.TypeName,
 	)
 	return i, err
@@ -367,7 +373,7 @@ func (q *Queries) GetDocumentLoanHistory(ctx context.Context, documentID uuid.UU
 
 const getDocumentWithDetails = `-- name: GetDocumentWithDetails :one
 SELECT 
-    d.id, d.title, d.description, d.file_name, d.file_path, d.file_size, d.mime_type, d.checksum, d.company_id, d.branch_id, d.department_id, d.rack_id, d.box_id, d.ordner_id, d.owner_id, d.current_version, d.status, d.tags, d.metadata, d.extracted_text, d.is_ocr_processed, d.created_at, d.updated_at, d.batch_id, d.retention_years, d.retention_expiry_date, d.sensitivity, d.circulation_id, d.minio_bucket, d.es_indexed, d.type_id,
+    d.id, d.title, d.description, d.file_name, d.file_path, d.file_size, d.mime_type, d.checksum, d.company_id, d.branch_id, d.department_id, d.rack_id, d.box_id, d.ordner_id, d.owner_id, d.current_version, d.status, d.tags, d.metadata, d.extracted_text, d.is_ocr_processed, d.created_at, d.updated_at, d.batch_id, d.retention_years, d.retention_expiry_date, d.sensitivity, d.circulation_id, d.minio_bucket, d.es_indexed, d.type_id, d.current_manifest_id, d.physical_status,
     dt.name as type_name,
     c.name as company_name,
     b.name as branch_name,
@@ -428,6 +434,8 @@ type GetDocumentWithDetailsRow struct {
 	MinioBucket         pgtype.Text        `json:"minio_bucket"`
 	EsIndexed           pgtype.Bool        `json:"es_indexed"`
 	TypeID              pgtype.UUID        `json:"type_id"`
+	CurrentManifestID   pgtype.UUID        `json:"current_manifest_id"`
+	PhysicalStatus      pgtype.Text        `json:"physical_status"`
 	TypeName            pgtype.Text        `json:"type_name"`
 	CompanyName         pgtype.Text        `json:"company_name"`
 	BranchName          pgtype.Text        `json:"branch_name"`
@@ -475,6 +483,8 @@ func (q *Queries) GetDocumentWithDetails(ctx context.Context, id uuid.UUID) (Get
 		&i.MinioBucket,
 		&i.EsIndexed,
 		&i.TypeID,
+		&i.CurrentManifestID,
+		&i.PhysicalStatus,
 		&i.TypeName,
 		&i.CompanyName,
 		&i.BranchName,
@@ -490,7 +500,7 @@ func (q *Queries) GetDocumentWithDetails(ctx context.Context, id uuid.UUID) (Get
 }
 
 const getDocumentsByBatch = `-- name: GetDocumentsByBatch :many
-SELECT id, title, description, file_name, file_path, file_size, mime_type, checksum, company_id, branch_id, department_id, rack_id, box_id, ordner_id, owner_id, current_version, status, tags, metadata, extracted_text, is_ocr_processed, created_at, updated_at, batch_id, retention_years, retention_expiry_date, sensitivity, circulation_id, minio_bucket, es_indexed, type_id FROM documents WHERE batch_id = $1
+SELECT id, title, description, file_name, file_path, file_size, mime_type, checksum, company_id, branch_id, department_id, rack_id, box_id, ordner_id, owner_id, current_version, status, tags, metadata, extracted_text, is_ocr_processed, created_at, updated_at, batch_id, retention_years, retention_expiry_date, sensitivity, circulation_id, minio_bucket, es_indexed, type_id, current_manifest_id, physical_status FROM documents WHERE batch_id = $1
 `
 
 func (q *Queries) GetDocumentsByBatch(ctx context.Context, batchID pgtype.UUID) ([]Document, error) {
@@ -534,6 +544,8 @@ func (q *Queries) GetDocumentsByBatch(ctx context.Context, batchID pgtype.UUID) 
 			&i.MinioBucket,
 			&i.EsIndexed,
 			&i.TypeID,
+			&i.CurrentManifestID,
+			&i.PhysicalStatus,
 		); err != nil {
 			return nil, err
 		}
@@ -589,7 +601,7 @@ func (q *Queries) GetOCRJobByEntity(ctx context.Context, arg GetOCRJobByEntityPa
 }
 
 const listDocumentsByDepartment = `-- name: ListDocumentsByDepartment :many
-SELECT id, title, description, file_name, file_path, file_size, mime_type, checksum, company_id, branch_id, department_id, rack_id, box_id, ordner_id, owner_id, current_version, status, tags, metadata, extracted_text, is_ocr_processed, created_at, updated_at, batch_id, retention_years, retention_expiry_date, sensitivity, circulation_id, minio_bucket, es_indexed, type_id FROM documents 
+SELECT id, title, description, file_name, file_path, file_size, mime_type, checksum, company_id, branch_id, department_id, rack_id, box_id, ordner_id, owner_id, current_version, status, tags, metadata, extracted_text, is_ocr_processed, created_at, updated_at, batch_id, retention_years, retention_expiry_date, sensitivity, circulation_id, minio_bucket, es_indexed, type_id, current_manifest_id, physical_status FROM documents 
 WHERE department_id = $1 
 ORDER BY created_at DESC
 `
@@ -635,6 +647,8 @@ func (q *Queries) ListDocumentsByDepartment(ctx context.Context, departmentID uu
 			&i.MinioBucket,
 			&i.EsIndexed,
 			&i.TypeID,
+			&i.CurrentManifestID,
+			&i.PhysicalStatus,
 		); err != nil {
 			return nil, err
 		}
@@ -867,7 +881,7 @@ SET title = $2,
     status = COALESCE(NULLIF($11::text, ''), 'pending'),
     updated_at = NOW() 
 WHERE id = $1 
-RETURNING id, title, description, file_name, file_path, file_size, mime_type, checksum, company_id, branch_id, department_id, rack_id, box_id, ordner_id, owner_id, current_version, status, tags, metadata, extracted_text, is_ocr_processed, created_at, updated_at, batch_id, retention_years, retention_expiry_date, sensitivity, circulation_id, minio_bucket, es_indexed, type_id
+RETURNING id, title, description, file_name, file_path, file_size, mime_type, checksum, company_id, branch_id, department_id, rack_id, box_id, ordner_id, owner_id, current_version, status, tags, metadata, extracted_text, is_ocr_processed, created_at, updated_at, batch_id, retention_years, retention_expiry_date, sensitivity, circulation_id, minio_bucket, es_indexed, type_id, current_manifest_id, physical_status
 `
 
 type UpdateDocumentParams struct {
@@ -931,6 +945,8 @@ func (q *Queries) UpdateDocument(ctx context.Context, arg UpdateDocumentParams) 
 		&i.MinioBucket,
 		&i.EsIndexed,
 		&i.TypeID,
+		&i.CurrentManifestID,
+		&i.PhysicalStatus,
 	)
 	return i, err
 }

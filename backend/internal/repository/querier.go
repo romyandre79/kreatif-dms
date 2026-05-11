@@ -12,6 +12,7 @@ import (
 )
 
 type Querier interface {
+	AddManifestItem(ctx context.Context, arg AddManifestItemParams) (PhysicalManifestItem, error)
 	AddRolePermission(ctx context.Context, arg AddRolePermissionParams) error
 	ApproveTask(ctx context.Context, arg ApproveTaskParams) error
 	ClearRolePermissions(ctx context.Context, roleID int32) error
@@ -31,6 +32,7 @@ type Querier interface {
 	CreateNotification(ctx context.Context, arg CreateNotificationParams) (Notification, error)
 	CreateOCRJob(ctx context.Context, arg CreateOCRJobParams) (OcrJob, error)
 	CreateOrdner(ctx context.Context, arg CreateOrdnerParams) (Ordner, error)
+	CreatePhysicalManifest(ctx context.Context, arg CreatePhysicalManifestParams) (PhysicalManifest, error)
 	CreateRack(ctx context.Context, arg CreateRackParams) (Rack, error)
 	CreateRetentionPolicy(ctx context.Context, arg CreateRetentionPolicyParams) (RetentionPolicy, error)
 	CreateRfidTag(ctx context.Context, arg CreateRfidTagParams) (RfidTag, error)
@@ -62,10 +64,12 @@ type Querier interface {
 	GetDailyStats(ctx context.Context) (GetDailyStatsRow, error)
 	GetDepartment(ctx context.Context, id uuid.UUID) (Department, error)
 	GetDocument(ctx context.Context, id uuid.UUID) (GetDocumentRow, error)
+	GetDocumentByShortID(ctx context.Context, dollar_1 pgtype.Text) (GetDocumentByShortIDRow, error)
 	GetDocumentLoanHistory(ctx context.Context, documentID uuid.UUID) ([]GetDocumentLoanHistoryRow, error)
 	GetDocumentType(ctx context.Context, id uuid.UUID) (DocumentType, error)
 	GetDocumentWithDetails(ctx context.Context, id uuid.UUID) (GetDocumentWithDetailsRow, error)
 	GetDocumentsByBatch(ctx context.Context, batchID pgtype.UUID) ([]Document, error)
+	GetIntakeStats(ctx context.Context) (GetIntakeStatsRow, error)
 	GetIntegrationNode(ctx context.Context, id uuid.UUID) (IntegrationNode, error)
 	GetIntegrationNodeByEndpoint(ctx context.Context, arg GetIntegrationNodeByEndpointParams) (IntegrationNode, error)
 	GetIntegrationNodeByType(ctx context.Context, serviceType string) (IntegrationNode, error)
@@ -150,10 +154,12 @@ type Querier interface {
 	UpdateDocument(ctx context.Context, arg UpdateDocumentParams) (Document, error)
 	UpdateDocumentMetadata(ctx context.Context, arg UpdateDocumentMetadataParams) error
 	UpdateDocumentOCR(ctx context.Context, arg UpdateDocumentOCRParams) error
+	UpdateDocumentPhysicalStatus(ctx context.Context, arg UpdateDocumentPhysicalStatusParams) error
 	UpdateDocumentStatus(ctx context.Context, arg UpdateDocumentStatusParams) error
 	UpdateDocumentType(ctx context.Context, arg UpdateDocumentTypeParams) (DocumentType, error)
 	UpdateIntegrationNodeConfig(ctx context.Context, arg UpdateIntegrationNodeConfigParams) (IntegrationNode, error)
 	UpdateIntegrationNodeStatus(ctx context.Context, arg UpdateIntegrationNodeStatusParams) (IntegrationNode, error)
+	UpdateManifestStatus(ctx context.Context, arg UpdateManifestStatusParams) error
 	UpdateOrdner(ctx context.Context, arg UpdateOrdnerParams) (Ordner, error)
 	UpdateRack(ctx context.Context, arg UpdateRackParams) (Rack, error)
 	UpdateRetentionPolicy(ctx context.Context, arg UpdateRetentionPolicyParams) (RetentionPolicy, error)

@@ -21,27 +21,32 @@ export const useApi = () => {
       return response._data
     } catch (err: any) {
       // Handle 401 Unauthorized
-      if (err.response?.status === 401 && auth.refreshToken) {
-        try {
-          // Attempt to refresh token
-          const refreshRes: any = await $fetch(`${config.public.apiBase}/auth/refresh`, {
-            method: 'POST',
-            body: { refresh_token: auth.refreshToken }
-          })
+      if (err.response?.status === 401) {
+        if (auth.refreshToken) {
+          try {
+            // Attempt to refresh token
+            const refreshRes: any = await $fetch(`${config.public.apiBase}/auth/refresh`, {
+              method: 'POST',
+              body: { refresh_token: auth.refreshToken }
+            })
 
-          if (refreshRes && refreshRes.data) {
-            // Update tokens
-            auth.setTokens(refreshRes.data.access_token, refreshRes.data.refresh_token)
-            
-            // Retry original request with new token
-            options.headers['Authorization'] = `Bearer ${auth.accessToken}`
-            const retryRes = await $fetch.raw(url, options)
-            return retryRes._data
+            if (refreshRes && refreshRes.data) {
+              // Update tokens
+              auth.setTokens(refreshRes.data.access_token, refreshRes.data.refresh_token)
+              
+              // Retry original request with new token
+              options.headers['Authorization'] = `Bearer ${auth.accessToken}`
+              const retryRes = await $fetch.raw(fullUrl, options)
+              return retryRes._data
+            }
+          } catch (refreshErr) {
+            // Refresh failed, logout
+            auth.logout()
+            throw refreshErr
           }
-        } catch (refreshErr) {
-          // Refresh failed, logout
+        } else {
+          // No refresh token, logout immediately
           auth.logout()
-          throw refreshErr
         }
       }
       

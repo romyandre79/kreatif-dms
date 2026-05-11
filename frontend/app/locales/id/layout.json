@@ -116,7 +116,8 @@
       "notifications_menu": "Notifikasi",
       "notification_menu": "Notifikasi",
       "notificaton": "Notifikasi",
-      "announcements": "Pengumuman Dashboard"
+      "announcements": "Pengumuman Dashboard",
+      "inbound_registration": "Penerimaan Fisik"
     }
   }
 }

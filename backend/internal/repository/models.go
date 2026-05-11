@@ -245,6 +245,8 @@ type Document struct {
 	MinioBucket         pgtype.Text        `json:"minio_bucket"`
 	EsIndexed           pgtype.Bool        `json:"es_indexed"`
 	TypeID              pgtype.UUID        `json:"type_id"`
+	CurrentManifestID   pgtype.UUID        `json:"current_manifest_id"`
+	PhysicalStatus      pgtype.Text        `json:"physical_status"`
 }
 
 type DocumentCirculation struct {
@@ -538,6 +540,30 @@ type Ordner struct {
 	BoxID     uuid.UUID          `json:"box_id"`
 	Name      string             `json:"name"`
 	CreatedAt pgtype.Timestamptz `json:"created_at"`
+}
+
+type PhysicalManifest struct {
+	ID           uuid.UUID          `json:"id"`
+	ManifestNo   string             `json:"manifest_no"`
+	SenderID     uuid.UUID          `json:"sender_id"`
+	DepartmentID uuid.UUID          `json:"department_id"`
+	TotalItems   int32              `json:"total_items"`
+	Status       string             `json:"status"`
+	ReceivedBy   pgtype.UUID        `json:"received_by"`
+	ReceivedAt   pgtype.Timestamptz `json:"received_at"`
+	Notes        pgtype.Text        `json:"notes"`
+	CreatedAt    pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt    pgtype.Timestamptz `json:"updated_at"`
+}
+
+type PhysicalManifestItem struct {
+	ID         uuid.UUID          `json:"id"`
+	ManifestID uuid.UUID          `json:"manifest_id"`
+	DocumentID uuid.UUID          `json:"document_id"`
+	Status     string             `json:"status"`
+	VerifiedAt pgtype.Timestamptz `json:"verified_at"`
+	Notes      pgtype.Text        `json:"notes"`
+	CreatedAt  pgtype.Timestamptz `json:"created_at"`
 }
 
 type PrintJob struct {

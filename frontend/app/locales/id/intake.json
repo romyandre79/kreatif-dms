@@ -1,0 +1,8 @@
+{
+  "intake": {
+    "inbound": {
+      "title": "Penerimaan Dokumen Fisik",
+      "subtitle": "Scan QR Code pada Manifest Serah Terima untuk memulai proses penerimaan"
+    }
+  }
+}

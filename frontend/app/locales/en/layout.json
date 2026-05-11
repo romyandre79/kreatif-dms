@@ -108,7 +108,8 @@
       "notifications_menu": "Notifications",
       "notification_menu": "Notifications",
       "notificaton": "Notifications",
-      "announcements": "System Announcements"
+      "announcements": "System Announcements",
+      "inbound_registration": "Inbound Registration"
     }
   }
 }
