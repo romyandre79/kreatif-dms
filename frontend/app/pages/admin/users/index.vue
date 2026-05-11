@@ -118,7 +118,7 @@
     <Transition name="fade-scale">
       <div v-if="showModal" class="fixed inset-0 z-[150] flex items-center justify-center p-6">
         <div class="absolute inset-0 bg-slate-950/60 backdrop-blur-md" @click="showModal = false"></div>
-        <div class="relative w-full max-w-2xl bg-white dark:bg-slate-900 rounded-[3rem] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+        <div class="relative w-full max-w-2xl bg-white dark:bg-slate-900 rounded-lg shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
           <header class="p-10 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
             <div class="space-y-1">
               <h3 class="text-2xl font-black text-[#1E3A5F] dark:text-white uppercase tracking-tight">

@@ -45,7 +45,7 @@ WHERE d.id = $1 LIMIT 1;
 
 -- name: ListDocumentsByDepartment :many
 SELECT * FROM documents 
-WHERE department_id = $1 
+WHERE department_id = $1 AND status = 'active'
 ORDER BY created_at DESC;
 
 -- name: UpdateDocumentOCR :exec
@@ -53,7 +53,7 @@ UPDATE documents
 SET extracted_text = $2, 
     metadata = $3,
     is_ocr_processed = true, 
-    status = 'active', 
+    status = 'pending', 
     updated_at = NOW() 
 WHERE id = $1;
 
@@ -123,6 +123,7 @@ SELECT
 FROM documents d
 LEFT JOIN document_types dt ON d.type_id = dt.id
 LEFT JOIN departments dept ON d.department_id = dept.id
+WHERE d.status = 'active'
 ORDER BY d.created_at DESC
 LIMIT $1 OFFSET $2;
 

@@ -18,7 +18,7 @@
 
     <!-- Info Cards -->
     <div class="grid grid-cols-3 gap-8" v-motion-slide-visible-bottom>
-      <div class="glass p-10 rounded-[3rem] bg-white border border-slate-100 shadow-xl shadow-slate-200/50 flex items-center gap-8 relative overflow-hidden group">
+      <div class="glass p-10 rounded-lg bg-white border border-slate-100 shadow-xl shadow-slate-200/50 flex items-center gap-8 relative overflow-hidden group">
         <div class="p-5 bg-blue-50 text-primary-500 rounded-3xl relative z-10 group-hover:bg-primary-500 group-hover:text-white transition-all duration-500">
           <LucideHash class="w-8 h-8" />
         </div>
@@ -29,7 +29,7 @@
         <LucideHash class="absolute -right-4 -bottom-4 w-32 h-32 text-slate-50 opacity-50 pointer-events-none group-hover:text-primary-50 group-hover:opacity-100 transition-all duration-700" />
       </div>
 
-      <div class="glass p-10 rounded-[3rem] bg-white border border-slate-100 shadow-xl shadow-slate-200/50 flex items-center gap-8 relative overflow-hidden group">
+      <div class="glass p-10 rounded-lg bg-white border border-slate-100 shadow-xl shadow-slate-200/50 flex items-center gap-8 relative overflow-hidden group">
         <div class="p-5 bg-emerald-50 text-emerald-500 rounded-3xl relative z-10 group-hover:bg-emerald-500 group-hover:text-white transition-all duration-500">
           <LucideFileStack class="w-8 h-8" />
         </div>
@@ -40,7 +40,7 @@
         <LucideFileStack class="absolute -right-4 -bottom-4 w-32 h-32 text-slate-50 opacity-50 pointer-events-none group-hover:text-emerald-50 group-hover:opacity-100 transition-all duration-700" />
       </div>
 
-      <div class="glass p-10 rounded-[3rem] bg-white border border-slate-100 shadow-xl shadow-slate-200/50 flex items-center gap-8 relative overflow-hidden group">
+      <div class="glass p-10 rounded-lg bg-white border border-slate-100 shadow-xl shadow-slate-200/50 flex items-center gap-8 relative overflow-hidden group">
         <div class="p-5 bg-orange-50 text-orange-500 rounded-3xl relative z-10 group-hover:bg-orange-500 group-hover:text-white transition-all duration-500">
           <LucideCalendar class="w-8 h-8" />
         </div>
@@ -53,7 +53,7 @@
     </div>
 
     <!-- Document List -->
-    <div class="glass rounded-[3rem] bg-white border border-slate-100 shadow-2xl shadow-slate-200/50 overflow-hidden" v-motion-slide-visible-bottom>
+    <div class="glass rounded-lg bg-white border border-slate-100 shadow-2xl shadow-slate-200/50 overflow-hidden" v-motion-slide-visible-bottom>
       <div class="p-10 border-b border-slate-50 flex items-center justify-between">
         <h2 class="text-xl font-black text-[#1E3A5F] uppercase tracking-tight">{{ $t('retention.batch.table.title') }}</h2>
         <button class="flex items-center gap-2 text-[11px] font-black text-primary-500 uppercase tracking-widest hover:text-primary-600 transition-colors">
@@ -102,7 +102,7 @@
     </div>
 
     <!-- Evaluation Notes -->
-    <div class="glass p-10 rounded-[3rem] bg-white border border-slate-100 shadow-2xl shadow-slate-200/50 space-y-8" v-motion-slide-visible-bottom>
+    <div class="glass p-10 rounded-lg bg-white border border-slate-100 shadow-2xl shadow-slate-200/50 space-y-8" v-motion-slide-visible-bottom>
       <div class="flex items-center gap-4">
         <div class="p-3 bg-slate-50 text-[#1E3A5F] rounded-2xl">
           <LucideMessageSquareText class="w-6 h-6" />

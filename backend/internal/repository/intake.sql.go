@@ -205,6 +205,275 @@ func (q *Queries) GetIntakeStats(ctx context.Context) (GetIntakeStatsRow, error)
 	return i, err
 }
 
+const getManifestByNo = `-- name: GetManifestByNo :one
+SELECT m.id, m.manifest_no, m.sender_id, m.department_id, m.total_items, m.status, m.received_by, m.received_at, m.notes, m.created_at, m.updated_at, u.full_name as sender_name, dept.name as department_name
+FROM physical_manifests m
+JOIN users u ON m.sender_id = u.id
+JOIN departments dept ON m.department_id = dept.id
+WHERE m.manifest_no = $1
+`
+
+type GetManifestByNoRow struct {
+	ID             uuid.UUID          `json:"id"`
+	ManifestNo     string             `json:"manifest_no"`
+	SenderID       uuid.UUID          `json:"sender_id"`
+	DepartmentID   uuid.UUID          `json:"department_id"`
+	TotalItems     int32              `json:"total_items"`
+	Status         string             `json:"status"`
+	ReceivedBy     pgtype.UUID        `json:"received_by"`
+	ReceivedAt     pgtype.Timestamptz `json:"received_at"`
+	Notes          pgtype.Text        `json:"notes"`
+	CreatedAt      pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt      pgtype.Timestamptz `json:"updated_at"`
+	SenderName     string             `json:"sender_name"`
+	DepartmentName string             `json:"department_name"`
+}
+
+func (q *Queries) GetManifestByNo(ctx context.Context, manifestNo string) (GetManifestByNoRow, error) {
+	row := q.db.QueryRow(ctx, getManifestByNo, manifestNo)
+	var i GetManifestByNoRow
+	err := row.Scan(
+		&i.ID,
+		&i.ManifestNo,
+		&i.SenderID,
+		&i.DepartmentID,
+		&i.TotalItems,
+		&i.Status,
+		&i.ReceivedBy,
+		&i.ReceivedAt,
+		&i.Notes,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.SenderName,
+		&i.DepartmentName,
+	)
+	return i, err
+}
+
+const getManifestItems = `-- name: GetManifestItems :many
+SELECT 
+    mi.id, mi.manifest_id, mi.document_id, mi.status, mi.verified_at, mi.notes, mi.created_at, 
+    d.title as document_title, 
+    dt.name as document_type, 
+    d.created_at as document_date,
+    d.physical_status as current_physical_status
+FROM physical_manifest_items mi
+JOIN documents d ON mi.document_id = d.id
+LEFT JOIN document_types dt ON d.type_id = dt.id
+WHERE mi.manifest_id = $1
+`
+
+type GetManifestItemsRow struct {
+	ID                    uuid.UUID          `json:"id"`
+	ManifestID            uuid.UUID          `json:"manifest_id"`
+	DocumentID            uuid.UUID          `json:"document_id"`
+	Status                string             `json:"status"`
+	VerifiedAt            pgtype.Timestamptz `json:"verified_at"`
+	Notes                 pgtype.Text        `json:"notes"`
+	CreatedAt             pgtype.Timestamptz `json:"created_at"`
+	DocumentTitle         string             `json:"document_title"`
+	DocumentType          pgtype.Text        `json:"document_type"`
+	DocumentDate          pgtype.Timestamptz `json:"document_date"`
+	CurrentPhysicalStatus pgtype.Text        `json:"current_physical_status"`
+}
+
+func (q *Queries) GetManifestItems(ctx context.Context, manifestID uuid.UUID) ([]GetManifestItemsRow, error) {
+	rows, err := q.db.Query(ctx, getManifestItems, manifestID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetManifestItemsRow
+	for rows.Next() {
+		var i GetManifestItemsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.ManifestID,
+			&i.DocumentID,
+			&i.Status,
+			&i.VerifiedAt,
+			&i.Notes,
+			&i.CreatedAt,
+			&i.DocumentTitle,
+			&i.DocumentType,
+			&i.DocumentDate,
+			&i.CurrentPhysicalStatus,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listPendingDocumentsWithoutManifest = `-- name: ListPendingDocumentsWithoutManifest :many
+SELECT d.id, d.title, d.description, d.file_name, d.file_path, d.file_size, d.mime_type, d.checksum, d.company_id, d.branch_id, d.department_id, d.rack_id, d.box_id, d.ordner_id, d.owner_id, d.current_version, d.status, d.tags, d.metadata, d.extracted_text, d.is_ocr_processed, d.created_at, d.updated_at, d.batch_id, d.retention_years, d.retention_expiry_date, d.sensitivity, d.circulation_id, d.minio_bucket, d.es_indexed, d.type_id, d.current_manifest_id, d.physical_status, u.full_name as owner_name, dept.name as department_name, dt.name as type_name
+FROM documents d
+JOIN users u ON d.owner_id = u.id
+JOIN departments dept ON d.department_id = dept.id
+LEFT JOIN document_types dt ON d.type_id = dt.id
+WHERE d.physical_status = 'pending' AND d.current_manifest_id IS NULL
+ORDER BY d.created_at DESC
+`
+
+type ListPendingDocumentsWithoutManifestRow struct {
+	ID                  uuid.UUID          `json:"id"`
+	Title               string             `json:"title"`
+	Description         pgtype.Text        `json:"description"`
+	FileName            pgtype.Text        `json:"file_name"`
+	FilePath            pgtype.Text        `json:"file_path"`
+	FileSize            pgtype.Int8        `json:"file_size"`
+	MimeType            pgtype.Text        `json:"mime_type"`
+	Checksum            pgtype.Text        `json:"checksum"`
+	CompanyID           uuid.UUID          `json:"company_id"`
+	BranchID            uuid.UUID          `json:"branch_id"`
+	DepartmentID        uuid.UUID          `json:"department_id"`
+	RackID              pgtype.UUID        `json:"rack_id"`
+	BoxID               pgtype.UUID        `json:"box_id"`
+	OrdnerID            pgtype.UUID        `json:"ordner_id"`
+	OwnerID             uuid.UUID          `json:"owner_id"`
+	CurrentVersion      int32              `json:"current_version"`
+	Status              string             `json:"status"`
+	Tags                []string           `json:"tags"`
+	Metadata            json.RawMessage    `json:"metadata"`
+	ExtractedText       pgtype.Text        `json:"extracted_text"`
+	IsOcrProcessed      pgtype.Bool        `json:"is_ocr_processed"`
+	CreatedAt           pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt           pgtype.Timestamptz `json:"updated_at"`
+	BatchID             pgtype.UUID        `json:"batch_id"`
+	RetentionYears      pgtype.Int4        `json:"retention_years"`
+	RetentionExpiryDate pgtype.Date        `json:"retention_expiry_date"`
+	Sensitivity         pgtype.Text        `json:"sensitivity"`
+	CirculationID       pgtype.UUID        `json:"circulation_id"`
+	MinioBucket         pgtype.Text        `json:"minio_bucket"`
+	EsIndexed           pgtype.Bool        `json:"es_indexed"`
+	TypeID              pgtype.UUID        `json:"type_id"`
+	CurrentManifestID   pgtype.UUID        `json:"current_manifest_id"`
+	PhysicalStatus      pgtype.Text        `json:"physical_status"`
+	OwnerName           string             `json:"owner_name"`
+	DepartmentName      string             `json:"department_name"`
+	TypeName            pgtype.Text        `json:"type_name"`
+}
+
+func (q *Queries) ListPendingDocumentsWithoutManifest(ctx context.Context) ([]ListPendingDocumentsWithoutManifestRow, error) {
+	rows, err := q.db.Query(ctx, listPendingDocumentsWithoutManifest)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListPendingDocumentsWithoutManifestRow
+	for rows.Next() {
+		var i ListPendingDocumentsWithoutManifestRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Title,
+			&i.Description,
+			&i.FileName,
+			&i.FilePath,
+			&i.FileSize,
+			&i.MimeType,
+			&i.Checksum,
+			&i.CompanyID,
+			&i.BranchID,
+			&i.DepartmentID,
+			&i.RackID,
+			&i.BoxID,
+			&i.OrdnerID,
+			&i.OwnerID,
+			&i.CurrentVersion,
+			&i.Status,
+			&i.Tags,
+			&i.Metadata,
+			&i.ExtractedText,
+			&i.IsOcrProcessed,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.BatchID,
+			&i.RetentionYears,
+			&i.RetentionExpiryDate,
+			&i.Sensitivity,
+			&i.CirculationID,
+			&i.MinioBucket,
+			&i.EsIndexed,
+			&i.TypeID,
+			&i.CurrentManifestID,
+			&i.PhysicalStatus,
+			&i.OwnerName,
+			&i.DepartmentName,
+			&i.TypeName,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listPendingManifests = `-- name: ListPendingManifests :many
+SELECT m.id, m.manifest_no, m.sender_id, m.department_id, m.total_items, m.status, m.received_by, m.received_at, m.notes, m.created_at, m.updated_at, u.full_name as sender_name, dept.name as department_name
+FROM physical_manifests m
+JOIN users u ON m.sender_id = u.id
+JOIN departments dept ON m.department_id = dept.id
+WHERE m.status = 'pending'
+ORDER BY m.created_at DESC
+`
+
+type ListPendingManifestsRow struct {
+	ID             uuid.UUID          `json:"id"`
+	ManifestNo     string             `json:"manifest_no"`
+	SenderID       uuid.UUID          `json:"sender_id"`
+	DepartmentID   uuid.UUID          `json:"department_id"`
+	TotalItems     int32              `json:"total_items"`
+	Status         string             `json:"status"`
+	ReceivedBy     pgtype.UUID        `json:"received_by"`
+	ReceivedAt     pgtype.Timestamptz `json:"received_at"`
+	Notes          pgtype.Text        `json:"notes"`
+	CreatedAt      pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt      pgtype.Timestamptz `json:"updated_at"`
+	SenderName     string             `json:"sender_name"`
+	DepartmentName string             `json:"department_name"`
+}
+
+func (q *Queries) ListPendingManifests(ctx context.Context) ([]ListPendingManifestsRow, error) {
+	rows, err := q.db.Query(ctx, listPendingManifests)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListPendingManifestsRow
+	for rows.Next() {
+		var i ListPendingManifestsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.ManifestNo,
+			&i.SenderID,
+			&i.DepartmentID,
+			&i.TotalItems,
+			&i.Status,
+			&i.ReceivedBy,
+			&i.ReceivedAt,
+			&i.Notes,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.SenderName,
+			&i.DepartmentName,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const updateDocumentPhysicalStatus = `-- name: UpdateDocumentPhysicalStatus :exec
 UPDATE documents
 SET physical_status = $2, current_manifest_id = $3, updated_at = NOW()
@@ -219,6 +488,23 @@ type UpdateDocumentPhysicalStatusParams struct {
 
 func (q *Queries) UpdateDocumentPhysicalStatus(ctx context.Context, arg UpdateDocumentPhysicalStatusParams) error {
 	_, err := q.db.Exec(ctx, updateDocumentPhysicalStatus, arg.ID, arg.PhysicalStatus, arg.CurrentManifestID)
+	return err
+}
+
+const updateManifestItemStatus = `-- name: UpdateManifestItemStatus :exec
+UPDATE physical_manifest_items
+SET status = $2, verified_at = NOW(), notes = $3
+WHERE id = $1
+`
+
+type UpdateManifestItemStatusParams struct {
+	ID     uuid.UUID   `json:"id"`
+	Status string      `json:"status"`
+	Notes  pgtype.Text `json:"notes"`
+}
+
+func (q *Queries) UpdateManifestItemStatus(ctx context.Context, arg UpdateManifestItemStatusParams) error {
+	_, err := q.db.Exec(ctx, updateManifestItemStatus, arg.ID, arg.Status, arg.Notes)
 	return err
 }
 

@@ -10,7 +10,7 @@
       </div>
 
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <div class="glass p-10 rounded-[3rem] space-y-8">
+        <div class="glass p-10 rounded-lg space-y-8">
           <div class="flex items-center gap-4"><div class="w-12 h-12 rounded-2xl bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center text-[#1E3A5F] dark:text-blue-400"><LucideFileText class="w-6 h-6" /></div><h3 class="text-xl font-black text-[#1E3A5F] dark:text-white uppercase tracking-tight">{{ $t('upload.bulk.success.summary_title') }}</h3></div>
           <div class="w-full p-8 border border-slate-100 dark:border-slate-800 rounded-3xl bg-slate-50/50 dark:bg-slate-950/30">
             <div class="flex items-center justify-between mb-8">
@@ -31,7 +31,7 @@
           </div>
         </div>
 
-        <div class="glass p-10 rounded-[3rem] space-y-8 border-l-8 border-orange-500/20">
+        <div class="glass p-10 rounded-lg space-y-8 border-l-8 border-orange-500/20">
           <div class="flex items-center gap-4"><div class="w-12 h-12 rounded-2xl bg-orange-50 dark:bg-orange-900/20 flex items-center justify-center text-orange-500"><LucideClipboardCheck class="w-6 h-6" /></div><h3 class="text-xl font-black text-[#1E3A5F] dark:text-white uppercase tracking-tight">{{ $t('upload.bulk.success.next_steps_title') }}</h3></div>
           <div class="space-y-6">
             <p class="text-slate-500 font-medium leading-relaxed">{{ $t('upload.bulk.success.next_steps_text') }}</p>
@@ -65,7 +65,7 @@
     </div>
 
     <!-- Rejection Alert -->
-    <div v-if="editId && editDoc?.rejection_reason" class="glass p-8 rounded-[2rem] border-l-8 border-red-500 bg-red-50/30 flex items-start gap-6 shadow-xl shadow-red-500/5" v-motion-fade>
+    <div v-if="editId && editDoc?.rejection_reason" class="glass p-8 rounded-lg border-l-8 border-red-500 bg-red-50/30 flex items-start gap-6 shadow-xl shadow-red-500/5" v-motion-fade>
       <div class="w-12 h-12 rounded-2xl bg-red-500 flex items-center justify-center text-white shadow-lg shadow-red-500/20">
         <LucideAlertTriangle class="w-6 h-6" />
       </div>

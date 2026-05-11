@@ -386,6 +386,7 @@ func main() {
 	intakeGroup := api.Group("/intake")
 	intakeGroup.Use(middleware.AuthMiddleware(cfg.JWTSecret))
 	intakeGroup.Get("/manifest/:id", intakeHandler.GetManifest)
+	intakeGroup.Get("/pending", intakeHandler.ListPending)
 	intakeGroup.Get("/stats", intakeHandler.GetStats)
 	intakeGroup.Post("/receive", intakeHandler.Receive)
 

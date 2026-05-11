@@ -77,7 +77,7 @@
     </div>
 
     <!-- Sidebar Detail Panel -->
-    <aside class="w-[480px] h-[calc(100vh-10rem)] sticky top-32 flex flex-col glass bg-white border border-slate-100 rounded-[3rem] shadow-2xl shadow-slate-200/50 overflow-hidden" v-motion-slide-right>
+    <aside class="w-[480px] h-[calc(100vh-10rem)] sticky top-32 flex flex-col glass bg-white border border-slate-100 rounded-lg shadow-2xl shadow-slate-200/50 overflow-hidden" v-motion-slide-right>
       <div v-if="selectedRequest" class="flex flex-col h-full">
         <!-- Sidebar Header -->
         <div class="px-10 py-8 border-b border-slate-50 flex items-center justify-between">

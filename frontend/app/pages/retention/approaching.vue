@@ -14,7 +14,7 @@
       </div>
     </div>
 
-      <div class="glass p-10 rounded-[3rem] bg-white border border-slate-100 shadow-xl shadow-slate-200/50 space-y-6 relative overflow-hidden group">
+      <div class="glass p-10 rounded-lg bg-white border border-slate-100 shadow-xl shadow-slate-200/50 space-y-6 relative overflow-hidden group">
         <div class="absolute right-0 top-0 p-8 text-slate-50 group-hover:text-orange-50 transition-colors">
           <LucideHand class="w-20 h-20" />
         </div>
@@ -44,7 +44,7 @@
     </div>
 
     <!-- Main List -->
-    <div class="glass rounded-[3rem] bg-white border border-slate-100 shadow-2xl shadow-slate-200/50 overflow-hidden" v-motion-slide-visible-bottom>
+    <div class="glass rounded-lg bg-white border border-slate-100 shadow-2xl shadow-slate-200/50 overflow-hidden" v-motion-slide-visible-bottom>
       <div class="p-10 border-b border-slate-50 flex items-center justify-between">
         <div class="flex items-center gap-4">
           <h2 class="text-xl font-black text-[#1E3A5F] uppercase tracking-tight">{{ $t('retention.approaching.table.title') }}</h2>

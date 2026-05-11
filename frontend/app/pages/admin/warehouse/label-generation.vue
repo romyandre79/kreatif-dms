@@ -21,7 +21,7 @@
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-10">
       <!-- Left Column: Template Selector & Batch Controls -->
       <div class="lg:col-span-3 space-y-10">
-        <div class="glass p-10 rounded-[3rem] space-y-8 shadow-sm border border-slate-50 dark:border-slate-800">
+        <div class="glass p-10 rounded-lg space-y-8 shadow-sm border border-slate-50 dark:border-slate-800">
           <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest">{{ $t('warehouse.generation.templates.title') }}</h3>
           <div class="space-y-4">
             <div v-for="t in [
@@ -42,7 +42,7 @@
           </div>
         </div>
 
-        <div class="glass p-10 rounded-[3rem] space-y-8 shadow-sm border border-slate-50 dark:border-slate-800">
+        <div class="glass p-10 rounded-lg space-y-8 shadow-sm border border-slate-50 dark:border-slate-800">
           <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest">{{ $t('warehouse.generation.batch.title') }}</h3>
           <div class="space-y-6">
             <div class="space-y-3">
@@ -146,7 +146,7 @@
 
       <!-- Right Column: Encoding Options & Queue -->
       <div class="lg:col-span-3 space-y-10">
-        <div class="glass p-10 rounded-[3rem] space-y-10 shadow-sm border border-slate-50 dark:border-slate-800">
+        <div class="glass p-10 rounded-lg space-y-10 shadow-sm border border-slate-50 dark:border-slate-800">
           <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest">{{ $t('warehouse.generation.encoding.title') }}</h3>
           <div class="space-y-4">
             <div v-for="o in ['ref', 'full']" :key="o" :class="`p-6 rounded-2xl border-2 transition-all cursor-pointer ${o === 'ref' ? 'border-blue-500 bg-blue-50/30 shadow-lg shadow-blue-500/5' : 'border-slate-50 dark:border-slate-800 hover:border-slate-100'}`">
@@ -179,7 +179,7 @@
         </div>
 
         <!-- Print Queue -->
-        <div class="glass rounded-[3rem] overflow-hidden shadow-sm border border-slate-50 dark:border-slate-800 flex flex-col h-[400px]">
+        <div class="glass rounded-lg overflow-hidden shadow-sm border border-slate-50 dark:border-slate-800 flex flex-col h-[400px]">
           <div class="p-8 border-b border-slate-50 dark:border-slate-800 flex items-center justify-between bg-white/50 dark:bg-slate-900/50">
             <h3 class="text-[10px] font-black text-[#1E3A5F] dark:text-white uppercase tracking-widest">{{ $t('warehouse.generation.queue.title') }}</h3>
             <span class="px-3 py-1 bg-blue-50 text-blue-500 rounded text-[8px] font-black uppercase tracking-widest">{{ $t('warehouse.generation.queue.count', { count: 12 }) }}</span>

@@ -46,7 +46,7 @@
       <!-- Center Column: Score & History -->
       <div class="lg:col-span-6 space-y-10">
         <!-- Score Card -->
-        <div class="glass p-10 rounded-[3rem] space-y-10 shadow-xl border-t-8 border-[#1E3A5F]">
+        <div class="glass p-10 rounded-lg space-y-10 shadow-xl border-t-8 border-[#1E3A5F]">
           <div class="flex items-center justify-between">
             <h3 class="text-xs font-black text-[#1E3A5F] dark:text-white uppercase tracking-widest">{{ $t('compliance.score.title') }}</h3>
             <div class="flex items-center gap-2 text-[8px] font-bold text-slate-400 uppercase">
@@ -82,7 +82,7 @@
         </div>
 
         <!-- History Table -->
-        <div class="glass rounded-[3rem] overflow-hidden shadow-sm">
+        <div class="glass rounded-lg overflow-hidden shadow-sm">
           <div class="p-8 flex items-center justify-between border-b border-slate-50 dark:border-slate-800">
             <h3 class="text-xs font-black text-[#1E3A5F] dark:text-white uppercase tracking-widest">{{ $t('compliance.history.title') }}</h3>
             <button class="text-[9px] font-black text-blue-500 uppercase tracking-widest hover:underline transition-all">{{ $t('compliance.history.view_all') }}</button>

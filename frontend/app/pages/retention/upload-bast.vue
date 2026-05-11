@@ -11,13 +11,13 @@
     <div class="grid grid-cols-12 gap-10 items-start">
       <div class="col-span-6 space-y-8">
         <!-- Upload Dropzone -->
-        <div class="glass p-10 rounded-[3rem] bg-white border border-slate-100 shadow-2xl shadow-slate-200/50 space-y-8" v-motion-slide-left>
+        <div class="glass p-10 rounded-lg bg-white border border-slate-100 shadow-2xl shadow-slate-200/50 space-y-8" v-motion-slide-left>
           <div class="flex items-center gap-3 text-[10px] font-black text-slate-400 uppercase tracking-widest">
             <LucideFilePlus class="w-4 h-4 text-primary-500" />
             {{ $t('retention.upload_bast.dropzone.title') }}
           </div>
 
-          <div class="aspect-square border-2 border-dashed border-slate-100 rounded-[3rem] flex flex-col items-center justify-center text-center p-12 space-y-6 bg-slate-50/30 group hover:border-primary-200 transition-all cursor-pointer">
+          <div class="aspect-square border-2 border-dashed border-slate-100 rounded-lg flex flex-col items-center justify-center text-center p-12 space-y-6 bg-slate-50/30 group hover:border-primary-200 transition-all cursor-pointer">
             <div class="w-20 h-20 bg-white rounded-lg flex items-center justify-center shadow-sm text-slate-200 group-hover:text-primary-500 transition-colors">
               <LucideUploadCloud class="w-10 h-10" />
             </div>
@@ -34,7 +34,7 @@
         </div>
 
         <!-- Validation Checklist -->
-        <div class="glass p-10 rounded-[3rem] bg-white border border-slate-100 shadow-2xl shadow-slate-200/50 space-y-8" v-motion-slide-visible-bottom>
+        <div class="glass p-10 rounded-lg bg-white border border-slate-100 shadow-2xl shadow-slate-200/50 space-y-8" v-motion-slide-visible-bottom>
           <div class="flex items-center gap-3 text-[10px] font-black text-slate-400 uppercase tracking-widest">
             <LucideClipboardCheck class="w-4 h-4 text-emerald-500" />
             {{ $t('retention.upload_bast.checklist.title') }}
@@ -70,7 +70,7 @@
 
       <!-- Right Side: File Preview -->
       <div class="col-span-6 space-y-8" v-motion-slide-right>
-        <div class="glass p-10 rounded-[3rem] bg-white border border-slate-100 shadow-2xl shadow-slate-200/50 space-y-8">
+        <div class="glass p-10 rounded-lg bg-white border border-slate-100 shadow-2xl shadow-slate-200/50 space-y-8">
           <div class="flex items-center gap-3 text-[10px] font-black text-slate-400 uppercase tracking-widest">
             <LucideEye class="w-4 h-4 text-primary-500" />
             {{ $t('retention.upload_bast.preview.title') }}

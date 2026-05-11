@@ -41,7 +41,7 @@
     </div>
 
     <!-- History Table -->
-    <div class="glass rounded-[3rem] bg-white border border-slate-100 shadow-2xl shadow-slate-200/50 overflow-hidden" v-motion-slide-visible-bottom>
+    <div class="glass rounded-lg bg-white border border-slate-100 shadow-2xl shadow-slate-200/50 overflow-hidden" v-motion-slide-visible-bottom>
       <div class="p-10 border-b border-slate-50 flex items-center justify-between">
         <h2 class="text-xl font-black text-[#1E3A5F] uppercase tracking-tight">{{ $t('retention.history.table.title') }}</h2>
         <div class="flex items-center gap-4">

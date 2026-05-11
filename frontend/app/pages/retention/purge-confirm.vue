@@ -89,7 +89,7 @@
     <!-- Real Functional Modal -->
     <Transition name="scale">
       <div v-if="showModal" class="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-[#1E3A5F]/60 backdrop-blur-md">
-        <div class="glass max-w-lg w-full bg-white rounded-[3rem] p-12 shadow-2xl border border-red-50 flex flex-col items-center text-center space-y-10" v-motion-pop>
+        <div class="glass max-w-lg w-full bg-white rounded-lg p-12 shadow-2xl border border-red-50 flex flex-col items-center text-center space-y-10" v-motion-pop>
           <div class="w-24 h-24 bg-red-50 rounded-full flex items-center justify-center text-red-500">
             <LucideAlertTriangle class="w-12 h-12" />
           </div>

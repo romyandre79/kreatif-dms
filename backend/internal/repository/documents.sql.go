@@ -602,7 +602,7 @@ func (q *Queries) GetOCRJobByEntity(ctx context.Context, arg GetOCRJobByEntityPa
 
 const listDocumentsByDepartment = `-- name: ListDocumentsByDepartment :many
 SELECT id, title, description, file_name, file_path, file_size, mime_type, checksum, company_id, branch_id, department_id, rack_id, box_id, ordner_id, owner_id, current_version, status, tags, metadata, extracted_text, is_ocr_processed, created_at, updated_at, batch_id, retention_years, retention_expiry_date, sensitivity, circulation_id, minio_bucket, es_indexed, type_id, current_manifest_id, physical_status FROM documents 
-WHERE department_id = $1 
+WHERE department_id = $1 AND status = 'active'
 ORDER BY created_at DESC
 `
 
@@ -737,6 +737,7 @@ SELECT
 FROM documents d
 LEFT JOIN document_types dt ON d.type_id = dt.id
 LEFT JOIN departments dept ON d.department_id = dept.id
+WHERE d.status = 'active'
 ORDER BY d.created_at DESC
 LIMIT $1 OFFSET $2
 `
@@ -972,7 +973,7 @@ UPDATE documents
 SET extracted_text = $2, 
     metadata = $3,
     is_ocr_processed = true, 
-    status = 'active', 
+    status = 'pending', 
     updated_at = NOW() 
 WHERE id = $1
 `

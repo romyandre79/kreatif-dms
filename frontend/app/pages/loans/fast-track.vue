@@ -409,7 +409,7 @@
       </div>
       <!-- SUCCESS VIEW -->
       <div v-else class="max-w-4xl mx-auto py-10" v-motion-pop>
-        <div class="glass rounded-[3rem] p-16 bg-white border border-slate-100 shadow-2xl shadow-slate-200/50 flex flex-col items-center text-center space-y-12 relative overflow-hidden">
+        <div class="glass rounded-lg p-16 bg-white border border-slate-100 shadow-2xl shadow-slate-200/50 flex flex-col items-center text-center space-y-12 relative overflow-hidden">
           <!-- Success Header -->
           <div class="space-y-6">
             <div class="w-24 h-24 bg-emerald-500 rounded-full flex items-center justify-center text-white mx-auto shadow-xl shadow-emerald-500/20">

@@ -99,7 +99,7 @@
     <!-- Bottom Section: Stats & Guide -->
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-10">
       <div class="lg:col-span-3">
-        <div class="glass p-10 rounded-[3rem] space-y-10 shadow-sm border border-slate-50 dark:border-slate-800 h-full flex flex-col justify-between bg-[#1E3A5F] text-white">
+        <div class="glass p-10 rounded-lg space-y-10 shadow-sm border border-slate-50 dark:border-slate-800 h-full flex flex-col justify-between bg-[#1E3A5F] text-white">
           <div class="space-y-4">
             <p class="text-[10px] font-black text-blue-300 uppercase tracking-widest">{{ $t('intake.management.stats.today') }}</p>
             <div class="space-y-1">
@@ -140,7 +140,7 @@
               </button>
             </div>
           </div>
-          <div class="w-full md:w-64 aspect-square rounded-[3rem] bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800 flex items-center justify-center p-10 group overflow-hidden">
+          <div class="w-full md:w-64 aspect-square rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800 flex items-center justify-center p-10 group overflow-hidden">
             <div class="relative w-full h-full">
               <div class="absolute inset-0 bg-blue-500/10 blur-3xl rounded-full scale-150 animate-pulse"></div>
               <LucidePrinter class="w-full h-full text-[#1E3A5F] relative z-10 group-hover:scale-110 transition-transform duration-700" />

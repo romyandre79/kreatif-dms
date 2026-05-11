@@ -199,7 +199,7 @@
     <!-- PIN Input Modal -->
     <Transition name="fade">
       <div v-if="showPinModal" class="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-slate-900/60 backdrop-blur-sm">
-        <div class="bg-[#EDF1F7] dark:bg-[#151B2B] w-full max-w-md rounded-[3rem] p-10 shadow-2xl border border-white/20 relative" v-motion-pop>
+        <div class="bg-[#EDF1F7] dark:bg-[#151B2B] w-full max-w-md rounded-lg p-10 shadow-2xl border border-white/20 relative" v-motion-pop>
           <button @click="showPinModal = false" class="absolute right-8 top-8 p-2 text-slate-400 hover:text-slate-600 dark:hover:text-white transition-colors">
             <LucideX class="w-6 h-6" />
           </button>

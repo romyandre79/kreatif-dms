@@ -38,10 +38,20 @@ func (h *IntakeHandler) GetStats(c fiber.Ctx) error {
 	return response.Success(c, fiber.StatusOK, "Intake stats retrieved", stats)
 }
 
+func (h *IntakeHandler) ListPending(c fiber.Ctx) error {
+	manifests, err := h.svc.ListPendingManifests(c.Context())
+	if err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to fetch pending manifests", err.Error())
+	}
+
+	return response.Success(c, fiber.StatusOK, "Pending manifests retrieved", manifests)
+}
+
 func (h *IntakeHandler) Receive(c fiber.Ctx) error {
 	var req struct {
-		DocumentID uuid.UUID `json:"document_id"`
-		Notes      string    `json:"notes"`
+		ManifestID uuid.UUID                    `json:"manifest_id"`
+		Notes      string                       `json:"notes"`
+		Items      []service.ReceiveRequestItem `json:"items"`
 	}
 
 	if err := c.Bind().JSON(&req); err != nil {
@@ -49,10 +59,10 @@ func (h *IntakeHandler) Receive(c fiber.Ctx) error {
 	}
 
 	receivedBy := c.Locals("user_id").(uuid.UUID)
-	err := h.svc.ReceiveDocument(c.Context(), req.DocumentID, receivedBy, req.Notes)
+	err := h.svc.ReceiveDocument(c.Context(), req.ManifestID, receivedBy, req.Notes, req.Items)
 	if err != nil {
 		return response.Error(c, fiber.StatusInternalServerError, "Failed to process intake", err.Error())
 	}
 
-	return response.Success(c, fiber.StatusOK, "Document received successfully", nil)
+	return response.Success(c, fiber.StatusOK, "Manifest/Documents received successfully", nil)
 }

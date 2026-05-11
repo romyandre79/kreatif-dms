@@ -18,7 +18,7 @@
       </div>
 
       <!-- Download Card -->
-      <div class="glass p-10 rounded-[3rem] bg-white border border-slate-100 shadow-2xl shadow-slate-200/50 relative overflow-hidden group" v-motion-slide-visible-bottom>
+      <div class="glass p-10 rounded-lg bg-white border border-slate-100 shadow-2xl shadow-slate-200/50 relative overflow-hidden group" v-motion-slide-visible-bottom>
         <div class="absolute top-0 left-0 right-0 h-1.5 bg-emerald-500"></div>
         <div class="flex items-center gap-8">
           <div class="w-24 h-24 bg-emerald-50 rounded-lg flex items-center justify-center text-emerald-500 shadow-lg shadow-emerald-500/10 group-hover:scale-110 transition-transform duration-500">
@@ -45,7 +45,7 @@
       </div>
 
       <!-- Compliance Checklist Reminder -->
-      <div class="glass p-10 rounded-[3rem] bg-white border border-slate-100 shadow-2xl shadow-slate-200/50 space-y-10" v-motion-slide-visible-bottom>
+      <div class="glass p-10 rounded-lg bg-white border border-slate-100 shadow-2xl shadow-slate-200/50 space-y-10" v-motion-slide-visible-bottom>
         <div class="flex items-center gap-4">
           <div class="p-3 bg-orange-50 text-orange-500 rounded-2xl">
             <LucideCheckSquare class="w-6 h-6" />
@@ -97,7 +97,7 @@
     <!-- Right Sidebar -->
     <div class="col-span-4 space-y-8" v-motion-slide-right>
       <!-- Offline Process Note -->
-      <div class="glass p-10 rounded-[3rem] bg-slate-50/50 border border-slate-100 shadow-xl space-y-8">
+      <div class="glass p-10 rounded-lg bg-slate-50/50 border border-slate-100 shadow-xl space-y-8">
         <div class="flex items-center gap-3 text-slate-400 uppercase tracking-widest text-[10px] font-black">
           <LucideInfo class="w-4 h-4 text-primary-500" />
           {{ $t('retention.export.sidebar.note_title') }}
@@ -121,7 +121,7 @@
       </div>
 
       <!-- Export Visualization -->
-      <div class="glass p-8 rounded-[3rem] bg-white border border-slate-100 shadow-2xl shadow-slate-200/50 space-y-8">
+      <div class="glass p-8 rounded-lg bg-white border border-slate-100 shadow-2xl shadow-slate-200/50 space-y-8">
         <div class="flex items-center gap-3 text-slate-400 uppercase tracking-widest text-[10px] font-black">
           <LucideLineChart class="w-4 h-4 text-primary-500" />
           {{ $t('retention.export.sidebar.viz_title') }}

@@ -16,7 +16,7 @@
 
     <div class="grid grid-cols-12 gap-10 items-start">
       <!-- Left Sidebar: Process Tracker -->
-      <aside class="col-span-3 glass p-10 rounded-[3rem] bg-white border border-slate-100 shadow-2xl shadow-slate-200/50 space-y-10" v-motion-slide-left>
+      <aside class="col-span-3 glass p-10 rounded-lg bg-white border border-slate-100 shadow-2xl shadow-slate-200/50 space-y-10" v-motion-slide-left>
         <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">{{ $t('retention.decision.tracker.title') }}</h3>
         
         <div class="space-y-0 relative">

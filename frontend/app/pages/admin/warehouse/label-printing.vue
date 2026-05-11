@@ -9,7 +9,7 @@
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-10">
       <!-- Left Column: Hardware Status -->
       <div class="lg:col-span-3 space-y-10">
-        <div class="glass p-10 rounded-[3rem] space-y-10 shadow-sm border border-slate-50 dark:border-slate-800">
+        <div class="glass p-10 rounded-lg space-y-10 shadow-sm border border-slate-50 dark:border-slate-800">
           <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest">{{ $t('warehouse.printing.hardware.title') }}</h3>
           
           <div class="flex flex-col items-center text-center space-y-6">
@@ -51,7 +51,7 @@
         </div>
 
         <!-- Encoding Config -->
-        <div class="glass p-10 rounded-[3rem] space-y-8 shadow-sm border border-slate-50 dark:border-slate-800">
+        <div class="glass p-10 rounded-lg space-y-8 shadow-sm border border-slate-50 dark:border-slate-800">
           <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest">{{ $t('warehouse.printing.config.title') }}</h3>
           <div class="grid grid-cols-2 gap-4">
             <div class="p-6 bg-slate-50/50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-800 space-y-2">
@@ -68,7 +68,7 @@
 
       <!-- Center Column: Batch Execution Panel -->
       <div class="lg:col-span-6 space-y-10">
-        <div class="glass rounded-[3rem] overflow-hidden shadow-sm border border-slate-50 dark:border-slate-800 border-t-8 border-blue-500">
+        <div class="glass rounded-lg overflow-hidden shadow-sm border border-slate-50 dark:border-slate-800 border-t-8 border-blue-500">
           <div class="p-10 flex items-center justify-between border-b border-slate-50 dark:border-slate-800">
             <div class="space-y-1">
               <h3 class="text-xl font-black text-[#1E3A5F] dark:text-white uppercase tracking-tight">{{ $t('warehouse.printing.execution.title') }}</h3>
@@ -168,7 +168,7 @@
           <LucideChevronDown class="w-4 h-4 text-slate-300" />
         </div>
         
-        <div class="flex-grow glass rounded-[3rem] p-6 overflow-y-auto custom-scrollbar space-y-4 border border-slate-50 dark:border-slate-800">
+        <div class="flex-grow glass rounded-lg p-6 overflow-y-auto custom-scrollbar space-y-4 border border-slate-50 dark:border-slate-800">
           <div v-for="(log, idx) in [
             { time: '14:22:15', status: 'OK', msg: 'Batch ID 8842 processed. EPC verified.' },
             { time: '14:21:58', status: 'FAIL', msg: 'Asset JKT-8839: Encoding Timeout.', retry: true },

@@ -1,7 +1,7 @@
 <template>
   <div class="space-y-10 pb-20" v-motion-fade>
     <!-- Header Banner -->
-    <div class="bg-red-50 border border-red-100 p-10 rounded-[3rem] flex flex-col md:flex-row md:items-center gap-10 relative overflow-hidden group">
+    <div class="bg-red-50 border border-red-100 p-10 rounded-lg flex flex-col md:flex-row md:items-center gap-10 relative overflow-hidden group">
       <div class="absolute top-0 right-0 w-64 h-64 bg-red-100/50 rounded-full -translate-x-10 -translate-y-20 group-hover:scale-110 transition-transform"></div>
       <div class="w-16 h-16 rounded-lg bg-red-500 text-white flex items-center justify-center shrink-0 shadow-xl shadow-red-500/20 z-10">
         <LucideAlertTriangle class="w-8 h-8" />
@@ -19,7 +19,7 @@
 
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-10">
       <!-- Left Top: Data Comparison Matrix -->
-      <div class="lg:col-span-8 glass rounded-[3rem] overflow-hidden shadow-sm">
+      <div class="lg:col-span-8 glass rounded-lg overflow-hidden shadow-sm">
         <div class="p-8 flex items-center justify-between border-b border-slate-50 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/50">
           <h3 class="text-xs font-black text-[#1E3A5F] dark:text-white uppercase tracking-widest">{{ $t('intake.duplicate.matrix.title') }}</h3>
           <span class="px-4 py-1 bg-blue-50 text-blue-500 rounded-lg text-[9px] font-black font-mono">REF-0982-X</span>
@@ -51,7 +51,7 @@
       <!-- Right Column: Decision & Audit -->
       <div class="lg:col-span-4 space-y-10">
         <!-- Decision Engine -->
-        <div class="glass p-10 rounded-[3rem] space-y-10 shadow-sm border border-slate-50 dark:border-slate-800">
+        <div class="glass p-10 rounded-lg space-y-10 shadow-sm border border-slate-50 dark:border-slate-800">
           <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest">{{ $t('intake.duplicate.decision.title') }}</h3>
           <div class="space-y-4">
             <button class="w-full py-5 bg-[#1E3A5F] text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-2xl shadow-blue-900/20 hover:bg-[#152943] transition-all flex items-center justify-center gap-4 group">
@@ -75,7 +75,7 @@
         </div>
 
         <!-- Audit Context -->
-        <div class="bg-[#1E3A5F] p-10 rounded-[3rem] text-white space-y-6 relative overflow-hidden group shadow-2xl shadow-blue-900/40">
+        <div class="bg-[#1E3A5F] p-10 rounded-lg text-white space-y-6 relative overflow-hidden group shadow-2xl shadow-blue-900/40">
           <LucideSearch class="absolute top-0 right-0 w-32 h-32 text-white/5 -rotate-12 translate-x-10 -translate-y-10 group-hover:scale-110 transition-transform" />
           <div class="space-y-1">
             <p class="text-[10px] font-black uppercase tracking-widest opacity-60">{{ $t('intake.duplicate.audit.title') }}</p>
@@ -96,7 +96,7 @@
           <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-widest">{{ $t('intake.duplicate.preview.curr') }}</h4>
           <LucideEye class="w-4 h-4 text-slate-300" />
         </div>
-        <div class="glass rounded-[3rem] h-[500px] relative overflow-hidden border border-slate-50 dark:border-slate-800 flex items-center justify-center">
+        <div class="glass rounded-lg h-[500px] relative overflow-hidden border border-slate-50 dark:border-slate-800 flex items-center justify-center">
           <!-- Skeleton Content with Overlay -->
           <div class="w-full h-full p-16 space-y-8 opacity-20">
             <div class="h-10 bg-slate-200 rounded-lg w-3/4"></div>
@@ -121,7 +121,7 @@
           <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-widest">{{ $t('intake.duplicate.preview.matched', { id: 'AKR-ADM-2023' }) }}</h4>
           <LucideHistory class="w-4 h-4 text-slate-300" />
         </div>
-        <div class="glass rounded-[3rem] h-[500px] border border-slate-50 dark:border-slate-800 flex items-center justify-center">
+        <div class="glass rounded-lg h-[500px] border border-slate-50 dark:border-slate-800 flex items-center justify-center">
           <div class="p-10 bg-white dark:bg-slate-900 rounded-lg shadow-2xl border border-slate-100 dark:border-slate-800 flex flex-col items-center gap-6 group hover:scale-105 transition-all">
             <div class="w-20 h-20 rounded-lg bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-slate-200 group-hover:text-blue-500 transition-colors">
               <LucideLock class="w-10 h-10" />

@@ -48,7 +48,7 @@
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-10">
       <!-- Main Table -->
       <div class="lg:col-span-8 space-y-8">
-        <div class="glass rounded-[3rem] overflow-hidden shadow-sm border border-slate-50 dark:border-slate-800" v-motion-slide-visible-bottom>
+        <div class="glass rounded-lg overflow-hidden shadow-sm border border-slate-50 dark:border-slate-800" v-motion-slide-visible-bottom>
           <div class="px-10 py-8 border-b border-slate-50 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-900/50">
             <h3 class="text-xs font-black text-[#1E3A5F] dark:text-white uppercase tracking-widest">{{ $t('admin.integration.table.title') || 'Integration Service Table' }}</h3>
             <div class="flex items-center gap-2">
@@ -107,7 +107,7 @@
       <!-- Right Sidebar -->
       <div class="lg:col-span-4 space-y-10">
         <!-- Live Alert Feed -->
-        <div class="glass p-10 rounded-[3rem] space-y-8" v-motion-slide-visible-bottom>
+        <div class="glass p-10 rounded-lg space-y-8" v-motion-slide-visible-bottom>
           <div class="flex items-center justify-between border-b border-slate-50 dark:border-slate-800 pb-6">
             <div class="flex items-center gap-3">
               <LucideRadio class="w-4 h-4 text-red-500 animate-pulse" />
@@ -135,7 +135,7 @@
         </div>
 
         <!-- Latency Trend -->
-        <div class="glass p-10 rounded-[3rem] space-y-8" v-motion-slide-visible-bottom>
+        <div class="glass p-10 rounded-lg space-y-8" v-motion-slide-visible-bottom>
           <div class="space-y-1">
             <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest">{{ $t('admin.integration.trend.title') || 'Latency Trend (60M)' }}</h3>
           </div>

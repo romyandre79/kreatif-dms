@@ -430,10 +430,18 @@ func (s *DocumentService) ApproveDocument(ctx context.Context, docID uuid.UUID, 
 		return err
 	}
 
-	// 2. Update document status to active
-	return s.repo.UpdateDocumentStatus(ctx, repository.UpdateDocumentStatusParams{
+	// 2. Update document status to 'approved' (waiting physical) and physical_status to 'pending'
+	err := s.repo.UpdateDocumentStatus(ctx, repository.UpdateDocumentStatusParams{
 		ID:     docID,
-		Status: "active",
+		Status: "approved",
+	})
+	if err != nil {
+		return err
+	}
+
+	return s.repo.UpdateDocumentPhysicalStatus(ctx, repository.UpdateDocumentPhysicalStatusParams{
+		ID:             docID,
+		PhysicalStatus: pgtype.Text{String: "pending", Valid: true},
 	})
 }
 

@@ -33,7 +33,49 @@ SELECT
     COUNT(*) FILTER (WHERE physical_status = 'rejected' AND updated_at::date = CURRENT_DATE) as rejected_today
 FROM documents;
 
+
 -- name: UpdateDocumentPhysicalStatus :exec
 UPDATE documents
 SET physical_status = $2, current_manifest_id = $3, updated_at = NOW()
 WHERE id = $1;
+
+-- name: GetManifestByNo :one
+SELECT m.*, u.full_name as sender_name, dept.name as department_name
+FROM physical_manifests m
+JOIN users u ON m.sender_id = u.id
+JOIN departments dept ON m.department_id = dept.id
+WHERE m.manifest_no = $1;
+
+-- name: GetManifestItems :many
+SELECT 
+    mi.*, 
+    d.title as document_title, 
+    dt.name as document_type, 
+    d.created_at as document_date,
+    d.physical_status as current_physical_status
+FROM physical_manifest_items mi
+JOIN documents d ON mi.document_id = d.id
+LEFT JOIN document_types dt ON d.type_id = dt.id
+WHERE mi.manifest_id = $1;
+
+-- name: UpdateManifestItemStatus :exec
+UPDATE physical_manifest_items
+SET status = $2, verified_at = NOW(), notes = $3
+WHERE id = $1;
+
+-- name: ListPendingManifests :many
+SELECT m.*, u.full_name as sender_name, dept.name as department_name
+FROM physical_manifests m
+JOIN users u ON m.sender_id = u.id
+JOIN departments dept ON m.department_id = dept.id
+WHERE m.status = 'pending'
+ORDER BY m.created_at DESC;
+
+-- name: ListPendingDocumentsWithoutManifest :many
+SELECT d.*, u.full_name as owner_name, dept.name as department_name, dt.name as type_name
+FROM documents d
+JOIN users u ON d.owner_id = u.id
+JOIN departments dept ON d.department_id = dept.id
+LEFT JOIN document_types dt ON d.type_id = dt.id
+WHERE d.physical_status = 'pending' AND d.current_manifest_id IS NULL
+ORDER BY d.created_at DESC;

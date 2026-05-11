@@ -52,7 +52,7 @@
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-10">
       <!-- Center Area: Topology Map -->
       <div class="lg:col-span-8 space-y-10">
-        <div class="glass p-10 rounded-[3rem] space-y-10 border border-slate-50 dark:border-slate-800">
+        <div class="glass p-10 rounded-lg space-y-10 border border-slate-50 dark:border-slate-800">
           <div class="flex items-center gap-4 border-b border-slate-50 dark:border-slate-800 pb-8">
             <LucideNetwork class="w-6 h-6 text-[#1E3A5F]" />
             <h3 class="text-sm font-black text-[#1E3A5F] dark:text-white uppercase tracking-widest">{{ $t('deployment.readiness.topology.title') }}</h3>
@@ -72,7 +72,7 @@
         </div>
 
         <!-- Server Inventory -->
-        <div class="glass rounded-[3rem] overflow-hidden">
+        <div class="glass rounded-lg overflow-hidden">
           <div class="p-10 flex items-center gap-4 border-b border-slate-50 dark:border-slate-800">
             <LucideBox class="w-6 h-6 text-[#1E3A5F]" />
             <h3 class="text-xs font-black text-[#1E3A5F] dark:text-white uppercase tracking-widest">{{ $t('deployment.readiness.inventory.title') }}</h3>
@@ -115,7 +115,7 @@
 
       <!-- Right Column: Checklist & Advisory -->
       <div class="lg:col-span-4 space-y-10">
-        <div class="glass p-10 rounded-[3rem] space-y-10 border border-slate-50 dark:border-slate-800">
+        <div class="glass p-10 rounded-lg space-y-10 border border-slate-50 dark:border-slate-800">
           <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest">{{ $t('deployment.readiness.checklist.title') }}</h3>
           <div class="space-y-8">
             <div v-for="item in [
@@ -136,7 +136,7 @@
         </div>
 
         <!-- Historical Readiness -->
-        <div class="bg-[#1E3A5F] p-10 rounded-[3rem] space-y-8 text-white relative overflow-hidden group shadow-2xl shadow-blue-900/40">
+        <div class="bg-[#1E3A5F] p-10 rounded-lg space-y-8 text-white relative overflow-hidden group shadow-2xl shadow-blue-900/40">
           <LucideHistory class="absolute top-0 right-0 w-32 h-32 text-white/5 -rotate-12 translate-x-10 -translate-y-10 group-hover:scale-110 transition-transform" />
           <h4 class="text-[10px] font-black uppercase tracking-widest opacity-60">{{ $t('deployment.readiness.historical') }}</h4>
           <div class="h-32 flex items-end gap-3">
@@ -149,7 +149,7 @@
         </div>
 
         <!-- Technical Advisory -->
-        <div class="p-10 bg-slate-100/50 dark:bg-slate-900/50 rounded-[3rem] border border-slate-200 dark:border-slate-800 space-y-6">
+        <div class="p-10 bg-slate-100/50 dark:bg-slate-900/50 rounded-lg border border-slate-200 dark:border-slate-800 space-y-6">
           <div class="flex items-center gap-4">
             <LucideInfo class="w-6 h-6 text-[#1E3A5F]" />
             <h4 class="text-[10px] font-black text-[#1E3A5F] dark:text-white uppercase tracking-widest">{{ $t('deployment.readiness.advisory.title') }}</h4>

@@ -21,7 +21,7 @@
       <!-- Left Sidebar: Document Snapshot & Evidence -->
       <div class="col-span-4 space-y-8" v-motion-slide-left>
         <!-- Document Snapshot -->
-        <div class="glass p-10 rounded-[3rem] bg-white border border-slate-100 shadow-2xl shadow-slate-200/50 space-y-10">
+        <div class="glass p-10 rounded-lg bg-white border border-slate-100 shadow-2xl shadow-slate-200/50 space-y-10">
           <div class="flex items-center gap-3 text-[10px] font-black text-slate-400 uppercase tracking-widest">
             <LucideFileText class="w-4 h-4 text-primary-500" />
             {{ $t('retention.log_detail.snapshot.title') }}
@@ -48,7 +48,7 @@
         </div>
 
         <!-- Disposal Evidence -->
-        <div class="glass p-10 rounded-[3rem] bg-white border border-slate-100 shadow-2xl shadow-slate-200/50 space-y-8">
+        <div class="glass p-10 rounded-lg bg-white border border-slate-100 shadow-2xl shadow-slate-200/50 space-y-8">
           <div class="flex items-center gap-3 text-[10px] font-black text-slate-400 uppercase tracking-widest">
             <LucidePaperclip class="w-4 h-4 text-primary-500" />
             {{ $t('retention.log_detail.evidence.title') }}

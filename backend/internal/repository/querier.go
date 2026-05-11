@@ -78,6 +78,8 @@ type Querier interface {
 	GetManagerDailyStats(ctx context.Context, headID pgtype.UUID) (GetManagerDailyStatsRow, error)
 	GetManagerRecentActivities(ctx context.Context, arg GetManagerRecentActivitiesParams) ([]GetManagerRecentActivitiesRow, error)
 	GetManagerTopSubmitters(ctx context.Context, arg GetManagerTopSubmittersParams) ([]GetManagerTopSubmittersRow, error)
+	GetManifestByNo(ctx context.Context, manifestNo string) (GetManifestByNoRow, error)
+	GetManifestItems(ctx context.Context, manifestID uuid.UUID) ([]GetManifestItemsRow, error)
 	GetOCRJobByEntity(ctx context.Context, arg GetOCRJobByEntityParams) (OcrJob, error)
 	GetOrdner(ctx context.Context, id uuid.UUID) (Ordner, error)
 	GetPendingCountsByType(ctx context.Context, approverID uuid.UUID) ([]GetPendingCountsByTypeRow, error)
@@ -125,6 +127,8 @@ type Querier interface {
 	ListOCRJobs(ctx context.Context, arg ListOCRJobsParams) ([]ListOCRJobsRow, error)
 	// Ordners
 	ListOrdners(ctx context.Context, boxID uuid.UUID) ([]Ordner, error)
+	ListPendingDocumentsWithoutManifest(ctx context.Context) ([]ListPendingDocumentsWithoutManifestRow, error)
+	ListPendingManifests(ctx context.Context) ([]ListPendingManifestsRow, error)
 	ListPendingUsers(ctx context.Context) ([]User, error)
 	ListPermissionsByRole(ctx context.Context, roleID int32) ([]ListPermissionsByRoleRow, error)
 	// Racks
@@ -159,6 +163,7 @@ type Querier interface {
 	UpdateDocumentType(ctx context.Context, arg UpdateDocumentTypeParams) (DocumentType, error)
 	UpdateIntegrationNodeConfig(ctx context.Context, arg UpdateIntegrationNodeConfigParams) (IntegrationNode, error)
 	UpdateIntegrationNodeStatus(ctx context.Context, arg UpdateIntegrationNodeStatusParams) (IntegrationNode, error)
+	UpdateManifestItemStatus(ctx context.Context, arg UpdateManifestItemStatusParams) error
 	UpdateManifestStatus(ctx context.Context, arg UpdateManifestStatusParams) error
 	UpdateOrdner(ctx context.Context, arg UpdateOrdnerParams) (Ordner, error)
 	UpdateRack(ctx context.Context, arg UpdateRackParams) (Rack, error)

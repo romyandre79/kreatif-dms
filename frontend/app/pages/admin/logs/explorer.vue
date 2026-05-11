@@ -41,7 +41,7 @@
     <div class="flex flex-grow overflow-hidden">
       <!-- Main Content: History Log Table -->
       <main class="flex-grow flex flex-col p-10 overflow-hidden gap-8">
-        <div class="bg-white dark:bg-slate-900 rounded-[3rem] shadow-sm border border-slate-100 dark:border-slate-800 flex flex-col overflow-hidden flex-grow">
+        <div class="bg-white dark:bg-slate-900 rounded-lg shadow-sm border border-slate-100 dark:border-slate-800 flex flex-col overflow-hidden flex-grow">
           <!-- Table Header -->
           <div class="px-10 py-8 border-b border-slate-50 dark:border-slate-800 flex items-center justify-between bg-slate-50/30 dark:bg-slate-900/30">
             <h3 class="text-xs font-black text-[#1E3A5F] dark:text-white uppercase tracking-[0.2em]">Riwayat Aktivitas Sistem</h3>

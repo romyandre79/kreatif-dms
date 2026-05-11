@@ -96,7 +96,7 @@
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-10">
       <!-- Textual Diff Preview -->
       <div class="lg:col-span-8 space-y-8">
-        <div class="glass rounded-[3rem] overflow-hidden" v-motion-slide-visible-bottom>
+        <div class="glass rounded-lg overflow-hidden" v-motion-slide-visible-bottom>
           <div class="px-10 py-8 border-b border-slate-50 dark:border-slate-800 flex items-center justify-between bg-slate-50/30 dark:bg-slate-900/30">
             <h3 class="text-xs font-black text-[#1E3A5F] dark:text-white uppercase tracking-widest flex items-center gap-3">
               <LucideFileText class="w-5 h-5 text-blue-500" />
@@ -147,7 +147,7 @@
       <!-- Right Sidebar -->
       <div class="lg:col-span-4 space-y-10">
         <!-- Action History Log -->
-        <div class="glass p-10 rounded-[3rem] space-y-10" v-motion-slide-visible-bottom>
+        <div class="glass p-10 rounded-lg space-y-10" v-motion-slide-visible-bottom>
           <div class="flex items-center justify-between border-b border-slate-50 dark:border-slate-800 pb-6">
             <h3 class="text-xs font-black text-[#1E3A5F] dark:text-white uppercase tracking-widest">Action History Log</h3>
             <LucideHistory class="w-4 h-4 text-slate-400" />
@@ -170,7 +170,7 @@
         </div>
 
         <!-- Scan CTA -->
-        <div class="bg-gradient-to-br from-[#1E3A5F] to-[#152943] p-10 rounded-[3rem] space-y-6 shadow-2xl shadow-blue-900/30 relative overflow-hidden group" v-motion-slide-visible-bottom :delay="300">
+        <div class="bg-gradient-to-br from-[#1E3A5F] to-[#152943] p-10 rounded-lg space-y-6 shadow-2xl shadow-blue-900/30 relative overflow-hidden group" v-motion-slide-visible-bottom :delay="300">
           <div class="space-y-2 relative z-10">
             <h3 class="text-lg font-black text-white uppercase tracking-tight">Butuh Dokumen Baru?</h3>
             <p class="text-[11px] font-bold text-blue-200 leading-relaxed uppercase">Pindai dokumen fisik Anda langsung ke sistem repository untuk perbandingan versi instan.</p>

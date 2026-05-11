@@ -10,7 +10,7 @@
 
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
       <!-- Left Column: Scanner Connection -->
-      <div class="lg:col-span-4 glass p-10 rounded-[3rem] space-y-10 shadow-sm border border-slate-50 dark:border-slate-800">
+      <div class="lg:col-span-4 glass p-10 rounded-lg space-y-10 shadow-sm border border-slate-50 dark:border-slate-800">
         <div class="flex items-center justify-between">
           <h3 class="text-[10px] font-black text-[#1E3A5F] dark:text-white uppercase tracking-widest">{{ $t('intake.scan_web.connection.title') }}</h3>
           <span class="flex items-center gap-2 px-3 py-1 bg-green-50 text-green-500 rounded-full text-[8px] font-black uppercase tracking-widest border border-green-100">
@@ -54,7 +54,7 @@
       </div>
 
       <!-- Right Column: Scan Configuration -->
-      <div class="lg:col-span-8 glass p-10 rounded-[3rem] space-y-10 shadow-sm border border-slate-50 dark:border-slate-800">
+      <div class="lg:col-span-8 glass p-10 rounded-lg space-y-10 shadow-sm border border-slate-50 dark:border-slate-800">
         <h3 class="text-[10px] font-black text-[#1E3A5F] dark:text-white uppercase tracking-widest">{{ $t('intake.scan_web.config.title') }}</h3>
         
         <div class="grid grid-cols-1 md:grid-cols-2 gap-10">

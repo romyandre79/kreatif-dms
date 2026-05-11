@@ -256,7 +256,7 @@
           </div>
 
           <!-- State: Success -->
-          <div v-else-if="state === 'success'" class="bg-white dark:bg-slate-900 rounded-[3rem] p-0 overflow-hidden shadow-2xl border border-slate-100 dark:border-slate-800">
+          <div v-else-if="state === 'success'" class="bg-white dark:bg-slate-900 rounded-lg p-0 overflow-hidden shadow-2xl border border-slate-100 dark:border-slate-800">
             <div class="bg-green-50/30 dark:bg-green-900/5 p-16 flex flex-col items-center text-center space-y-6">
               <div class="w-20 h-20 rounded-full bg-green-500 flex items-center justify-center text-white shadow-xl shadow-green-500/20"><LucideCheckCircle2 class="w-10 h-10" /></div>
               <div class="space-y-2">

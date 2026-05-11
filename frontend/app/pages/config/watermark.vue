@@ -89,7 +89,7 @@
 
       <!-- Right Column: Live Preview -->
       <div class="lg:col-span-7">
-        <div class="glass rounded-[3rem] overflow-hidden border border-white/10 shadow-2xl h-full flex flex-col bg-white dark:bg-slate-900">
+        <div class="glass rounded-lg overflow-hidden border border-white/10 shadow-2xl h-full flex flex-col bg-white dark:bg-slate-900">
           <div class="p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
             <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Live Visual Preview</h3>
             <div class="flex gap-2">

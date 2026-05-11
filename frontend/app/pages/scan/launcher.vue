@@ -17,7 +17,7 @@
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
       <!-- Left Sidebar: Scanner Connection -->
       <div class="lg:col-span-4 h-full">
-        <div class="glass p-10 rounded-[3rem] space-y-10 h-full flex flex-col" v-motion-slide-visible-bottom>
+        <div class="glass p-10 rounded-lg space-y-10 h-full flex flex-col" v-motion-slide-visible-bottom>
           <div class="flex items-center justify-between">
             <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Scanner Connection</h3>
             <div class="flex items-center gap-2">
@@ -60,7 +60,7 @@
 
       <!-- Right Panel: Configuration -->
       <div class="lg:col-span-8 h-full">
-        <div class="glass p-10 rounded-[3rem] space-y-10 h-full flex flex-col" v-motion-slide-visible-bottom :delay="100">
+        <div class="glass p-10 rounded-lg space-y-10 h-full flex flex-col" v-motion-slide-visible-bottom :delay="100">
           <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Scan Configuration</h3>
 
           <div class="grid grid-cols-2 gap-x-10 gap-y-8">

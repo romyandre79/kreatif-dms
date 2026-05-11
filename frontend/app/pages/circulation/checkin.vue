@@ -1,7 +1,7 @@
 <template>
   <div class="max-w-[1600px] mx-auto space-y-8 pb-20">
     <!-- Return Intake Information Header -->
-    <div class="glass p-10 rounded-[3rem] bg-white border border-slate-100 shadow-2xl shadow-slate-200/50" v-motion-slide-top>
+    <div class="glass p-10 rounded-lg bg-white border border-slate-100 shadow-2xl shadow-slate-200/50" v-motion-slide-top>
       <div class="flex items-center justify-between mb-10">
         <div class="flex items-center gap-4">
           <div class="p-3 bg-blue-50 text-blue-600 rounded-2xl">
@@ -41,7 +41,7 @@
 
     <div class="grid grid-cols-12 gap-8 items-start">
       <!-- Left Section: Document Checklist -->
-      <div class="col-span-8 glass p-10 rounded-[3rem] bg-white border border-slate-100 shadow-2xl shadow-slate-200/50 space-y-8" v-motion-slide-left>
+      <div class="col-span-8 glass p-10 rounded-lg bg-white border border-slate-100 shadow-2xl shadow-slate-200/50 space-y-8" v-motion-slide-left>
         <div class="flex items-center justify-between">
           <h2 class="text-xl font-black text-[#1E3A5F] uppercase tracking-tight">{{ $t('circulation.checkin.checklist_title') }}</h2>
           <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{{ $t('circulation.checkin.checklist_hint') }}</span>
@@ -140,7 +140,7 @@
         </div>
 
         <!-- Sticky Actions -->
-        <div class="glass p-10 bg-white rounded-[3rem] border border-slate-100 shadow-2xl shadow-slate-200/50 space-y-6">
+        <div class="glass p-10 bg-white rounded-lg border border-slate-100 shadow-2xl shadow-slate-200/50 space-y-6">
           <button @click="showSuccessModal = true" class="w-full py-5 bg-[#1E3A5F] hover:bg-[#152943] text-white rounded-2xl text-[11px] font-black uppercase tracking-[0.2em] shadow-xl shadow-blue-900/20 transition-all flex items-center justify-center gap-3">
             <LucideCheckCircle2 class="w-4 h-4" /> {{ $t('circulation.checkin.footer.btn_complete') }}
           </button>
@@ -157,7 +157,7 @@
     <!-- Check-in Success Modal -->
     <Transition name="scale">
       <div v-if="showSuccessModal" class="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-[#1E3A5F]/40 backdrop-blur-sm">
-        <div class="glass max-w-md w-full bg-white rounded-[3rem] p-12 shadow-2xl border border-white flex flex-col items-center text-center space-y-10" v-motion-pop>
+        <div class="glass max-w-md w-full bg-white rounded-lg p-12 shadow-2xl border border-white flex flex-col items-center text-center space-y-10" v-motion-pop>
           <!-- Success Icon -->
           <div class="w-24 h-24 bg-emerald-50 rounded-full flex items-center justify-center text-emerald-500 shadow-xl shadow-emerald-500/20">
             <LucideCheckCircle2 class="w-12 h-12" />

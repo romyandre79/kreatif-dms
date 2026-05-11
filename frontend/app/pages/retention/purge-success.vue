@@ -28,7 +28,7 @@
     </div>
 
     <!-- Transaction Summary -->
-    <div class="glass p-12 rounded-[3rem] bg-white border border-slate-100 shadow-2xl shadow-slate-200/50 space-y-10" v-motion-slide-visible-bottom>
+    <div class="glass p-12 rounded-lg bg-white border border-slate-100 shadow-2xl shadow-slate-200/50 space-y-10" v-motion-slide-visible-bottom>
       <div class="flex items-center gap-4">
         <div class="p-3 bg-slate-50 text-[#1E3A5F] rounded-2xl">
           <LucideClipboardList class="w-6 h-6" />

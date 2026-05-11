@@ -32,7 +32,7 @@
     <!-- Main Content: Verification & Handover -->
     <div class="col-span-6 space-y-8" v-motion-fade>
       <!-- Pickup Verification Card -->
-      <div class="glass p-10 rounded-[3rem] bg-white border border-slate-100 shadow-2xl shadow-slate-200/50 space-y-10">
+      <div class="glass p-10 rounded-lg bg-white border border-slate-100 shadow-2xl shadow-slate-200/50 space-y-10">
         <div class="flex items-center gap-4">
           <div class="p-3 bg-blue-50 text-blue-600 rounded-2xl">
             <LucideShieldCheck class="w-6 h-6" />
@@ -79,7 +79,7 @@
       </div>
 
       <!-- Document Handover Table -->
-      <div class="glass p-10 rounded-[3rem] bg-white border border-slate-100 shadow-2xl shadow-slate-200/50 space-y-10">
+      <div class="glass p-10 rounded-lg bg-white border border-slate-100 shadow-2xl shadow-slate-200/50 space-y-10">
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-4">
             <div class="p-3 bg-slate-50 text-slate-400 rounded-2xl">

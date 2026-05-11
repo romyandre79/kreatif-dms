@@ -13,7 +13,7 @@
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-10">
       <!-- Left Column: Numbering & Collision -->
       <div class="lg:col-span-7 space-y-10">
-        <div class="glass p-12 rounded-[3rem] space-y-12 relative overflow-hidden">
+        <div class="glass p-12 rounded-lg space-y-12 relative overflow-hidden">
           <div class="absolute top-0 right-0 w-64 h-64 bg-[#1E3A5F]/5 -translate-y-1/2 translate-x-1/2 rounded-full flex items-end justify-start p-12 opacity-10">
             <LucideFingerprint class="w-32 h-32" />
           </div>
@@ -51,7 +51,7 @@
         </div>
 
         <!-- Collision Checker -->
-        <div class="p-10 bg-slate-50/50 dark:bg-slate-900/50 rounded-[3rem] border border-slate-100 dark:border-slate-800 space-y-8 shadow-inner">
+        <div class="p-10 bg-slate-50/50 dark:bg-slate-900/50 rounded-lg border border-slate-100 dark:border-slate-800 space-y-8 shadow-inner">
           <div class="flex items-center gap-4">
             <LucideShieldCheck class="w-5 h-5 text-[#1E3A5F] dark:text-white" />
             <h3 class="text-sm font-black text-[#1E3A5F] dark:text-white uppercase tracking-widest">{{ $t('admin.archival.numbering.collision.title') }}</h3>
@@ -73,7 +73,7 @@
       </div>
 
       <!-- Right Column: Folder Path Preview -->
-      <div class="lg:col-span-5 bg-slate-100/50 dark:bg-slate-900/50 rounded-[3rem] p-10 border border-slate-100 dark:border-slate-800 flex flex-col gap-10">
+      <div class="lg:col-span-5 bg-slate-100/50 dark:bg-slate-900/50 rounded-lg p-10 border border-slate-100 dark:border-slate-800 flex flex-col gap-10">
         <div class="space-y-8 flex-grow">
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-4">
@@ -128,7 +128,7 @@
     </div>
 
     <!-- Final Confirmation Bar -->
-    <div class="bg-white dark:bg-slate-900 p-10 rounded-[3rem] border border-slate-100 dark:border-slate-800 shadow-2xl flex flex-col md:flex-row items-center justify-between gap-10">
+    <div class="bg-white dark:bg-slate-900 p-10 rounded-lg border border-slate-100 dark:border-slate-800 shadow-2xl flex flex-col md:flex-row items-center justify-between gap-10">
       <div class="flex items-center gap-8">
         <div class="w-20 h-20 rounded-2xl bg-slate-100 dark:bg-slate-800 overflow-hidden shadow-inner flex items-center justify-center">
           <LucidePrinter class="w-10 h-10 text-slate-300" />
