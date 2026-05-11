@@ -66,3 +66,26 @@ func (h *IntakeHandler) Receive(c fiber.Ctx) error {
 
 	return response.Success(c, fiber.StatusOK, "Manifest/Documents received successfully", nil)
 }
+
+func (h *IntakeHandler) Reject(c fiber.Ctx) error {
+	idStr := c.Params("id")
+	manifestID, err := uuid.Parse(idStr)
+	if err != nil {
+		return response.Error(c, fiber.StatusBadRequest, "Invalid manifest ID", err.Error())
+	}
+
+	var req struct {
+		Reason string `json:"reason"`
+	}
+	if err := c.Bind().JSON(&req); err != nil {
+		return response.Error(c, fiber.StatusBadRequest, "Invalid request", err.Error())
+	}
+
+	rejectedBy := c.Locals("user_id").(uuid.UUID)
+	err = h.svc.RejectManifest(c.Context(), manifestID, rejectedBy, req.Reason)
+	if err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to reject manifest", err.Error())
+	}
+
+	return response.Success(c, fiber.StatusOK, "Manifest rejected successfully", nil)
+}

@@ -12,11 +12,12 @@ import (
 )
 
 type IntakeService struct {
-	repo repository.Querier
+	repo     repository.Querier
+	notifSvc *NotificationService
 }
 
-func NewIntakeService(repo repository.Querier) *IntakeService {
-	return &IntakeService{repo: repo}
+func NewIntakeService(repo repository.Querier, notifSvc *NotificationService) *IntakeService {
+	return &IntakeService{repo: repo, notifSvc: notifSvc}
 }
 
 type ManifestItem struct {
@@ -38,6 +39,7 @@ type ManifestDetail struct {
 	OwnerName      string         `json:"owner_name"`
 	DepartmentName string         `json:"department_name"`
 	Status         string         `json:"status"`
+	CreatedAt      string         `json:"created_at"`
 	Items          []ManifestItem `json:"items"`
 }
 
@@ -53,7 +55,7 @@ func (s *IntakeService) GetDocumentByManifestID(ctx context.Context, shortID str
 				DocumentID:     item.DocumentID,
 				Title:          item.DocumentTitle,
 				TypeName:       item.DocumentType.String,
-				Date:           item.DocumentDate.Time.Format("2006-01-02"),
+				Date:           item.DocumentDate.Time.Format("02/01/2006"),
 				Status:         item.Status,
 				PhysicalStatus: item.CurrentPhysicalStatus.String,
 				Notes:          item.Notes.String,
@@ -68,6 +70,7 @@ func (s *IntakeService) GetDocumentByManifestID(ctx context.Context, shortID str
 			OwnerName:      manifest.SenderName,
 			DepartmentName: manifest.DepartmentName,
 			Status:         manifest.Status,
+			CreatedAt:      manifest.CreatedAt.Time.Format("02/01/2006 15:04"),
 			Items:          manifestItems,
 		}, nil
 	}
@@ -86,13 +89,14 @@ func (s *IntakeService) GetDocumentByManifestID(ctx context.Context, shortID str
 		OwnerName:      doc.OwnerName,
 		DepartmentName: doc.DepartmentName.String,
 		Status:         doc.Status,
+		CreatedAt:      doc.CreatedAt.Time.Format("02/01/2006 15:04"),
 		Items: []ManifestItem{
 			{
 				ID:             uuid.Nil,
 				DocumentID:     doc.ID,
 				Title:          doc.Title,
 				TypeName:       doc.TypeName.String,
-				Date:           doc.CreatedAt.Time.Format("2006-01-02"),
+				Date:           doc.CreatedAt.Time.Format("02/01/2006"),
 				Status:         doc.Status,
 				PhysicalStatus: doc.PhysicalStatus.String,
 			},
@@ -137,6 +141,32 @@ func (s *IntakeService) ReceiveDocument(ctx context.Context, manifestID uuid.UUI
 			})
 			if err != nil {
 				log.Printf("Failed to activate doc %s: %v", item.DocumentID, err)
+			}
+		}
+
+		// SEND NOTIFICATIONS
+		manifest, _ := s.repo.GetManifest(ctx, manifestID)
+		if manifest.ID != uuid.Nil {
+			count := len(items)
+			notifMsg := fmt.Sprintf("Berkas fisik manifest %s (%d dokumen) telah diterima oleh Document Controller.", manifest.ManifestNo, count)
+			
+			// 1. To Sender/Owner
+			s.notifSvc.CreateNotification(ctx, repository.CreateNotificationParams{
+				UserID: manifest.SenderID,
+				Title:  "Berkas Fisik Diterima",
+				Body:   notifMsg,
+				Type:   "intake",
+			})
+
+			// 2. To Department Manager
+			dept, err := s.repo.GetDepartment(ctx, manifest.DepartmentID)
+			if err == nil && dept.ManagerID.Valid {
+				s.notifSvc.CreateNotification(ctx, repository.CreateNotificationParams{
+					UserID: dept.ManagerID.Bytes,
+					Title:  "Notifikasi Penerimaan Berkas (Departemen)",
+					Body:   fmt.Sprintf("Dokumen dari %s telah diterima oleh Central Document.", manifest.SenderName),
+					Type:   "intake",
+				})
 			}
 		}
 
@@ -197,6 +227,30 @@ func (s *IntakeService) ReceiveDocument(ctx context.Context, manifestID uuid.UUI
 	return nil
 }
 
+func (s *IntakeService) RejectManifest(ctx context.Context, manifestID uuid.UUID, rejectedBy uuid.UUID, reason string) error {
+	// Update manifest status to rejected
+	err := s.repo.UpdateManifestStatus(ctx, repository.UpdateManifestStatusParams{
+		ID:         manifestID,
+		Status:     "rejected",
+		ReceivedBy: pgtype.UUID{Bytes: rejectedBy, Valid: true},
+	})
+	if err != nil {
+		return err
+	}
+
+	// Optionally update items/docs status to reflect rejection
+	items, _ := s.repo.GetManifestItems(ctx, manifestID)
+	for _, item := range items {
+		_ = s.repo.UpdateDocumentPhysicalStatus(ctx, repository.UpdateDocumentPhysicalStatusParams{
+			ID:                item.DocumentID,
+			PhysicalStatus:    pgtype.Text{String: "rejected", Valid: true},
+			CurrentManifestID: pgtype.UUID{Bytes: manifestID, Valid: true},
+		})
+	}
+
+	return nil
+}
+
 func (s *IntakeService) ListPendingManifests(ctx context.Context) ([]ManifestDetail, error) {
 	// 1. Get real manifests
 	manifests, err := s.repo.ListPendingManifests(ctx)
@@ -214,6 +268,7 @@ func (s *IntakeService) ListPendingManifests(ctx context.Context) ([]ManifestDet
 			OwnerName:      m.SenderName,
 			DepartmentName: m.DepartmentName,
 			Status:         m.Status,
+			CreatedAt:      m.CreatedAt.Time.Format("02/01/2006 15:04"),
 		})
 	}
 
@@ -229,6 +284,7 @@ func (s *IntakeService) ListPendingManifests(ctx context.Context) ([]ManifestDet
 				OwnerName:      d.OwnerName,
 				DepartmentName: d.DepartmentName,
 				Status:         "pending",
+				CreatedAt:      d.CreatedAt.Time.Format("02/01/2006 15:04"),
 			})
 		}
 	}

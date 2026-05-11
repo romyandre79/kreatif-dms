@@ -163,7 +163,7 @@ func main() {
 	notifSvc := service.NewNotificationService(repo, waSvc)
 	integrationMonitorSvc := service.NewIntegrationMonitorService(repo)
 	dashboardSvc := service.NewDashboardService(repo)
-	intakeSvc := service.NewIntakeService(repo)
+	intakeSvc := service.NewIntakeService(repo, notifSvc)
 
 	
 	// Start Background Workers
@@ -389,6 +389,7 @@ func main() {
 	intakeGroup.Get("/pending", intakeHandler.ListPending)
 	intakeGroup.Get("/stats", intakeHandler.GetStats)
 	intakeGroup.Post("/receive", intakeHandler.Receive)
+	intakeGroup.Post("/reject/:id", intakeHandler.Reject)
 
 
 	// Health check
