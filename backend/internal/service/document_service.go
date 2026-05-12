@@ -11,6 +11,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/hibiken/asynq"
 	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/kreatif/dms-backend/internal/config"
 	"github.com/kreatif/dms-backend/internal/infra"
 	"github.com/kreatif/dms-backend/internal/repository"
 	"github.com/kreatif/dms-backend/internal/worker"
@@ -29,13 +30,15 @@ import (
 )
 
 type DocumentService struct {
-	repo    repository.Querier
-	storage *infra.StorageService
-	asynq   *asynq.Client
+	cfg      config.Config
+	repo     repository.Querier
+	storage  *infra.StorageService
+	asynq    *asynq.Client
+	notifSvc *NotificationService
 }
 
-func NewDocumentService(repo repository.Querier, storage *infra.StorageService, asynqClient *asynq.Client) *DocumentService {
-	return &DocumentService{repo: repo, storage: storage, asynq: asynqClient}
+func NewDocumentService(cfg config.Config, repo repository.Querier, storage *infra.StorageService, asynqClient *asynq.Client, notifSvc *NotificationService) *DocumentService {
+	return &DocumentService{cfg: cfg, repo: repo, storage: storage, asynq: asynqClient, notifSvc: notifSvc}
 }
 
 type UploadDocumentParams struct {
@@ -181,6 +184,29 @@ func (s *DocumentService) UploadDocument(ctx context.Context, p UploadDocumentPa
 		})
 		if err != nil {
 			log.Printf("[DocumentService] Error creating approval task: %v", err)
+		} else {
+			// Trigger Notification for Approver
+			owner, _ := s.repo.GetUserByID(ctx, doc.OwnerID)
+			approveLink := fmt.Sprintf("%s/approvals/%s", s.cfg.AppURL, doc.ID)
+			
+			meta := map[string]string{
+				"docTitle":       doc.Title,
+				"departmentName": dept.Name,
+				"ownerName":      owner.FullName,
+				"approveLink":    approveLink,
+			}
+			metaJSON, _ := json.Marshal(meta)
+
+			_, _ = s.notifSvc.CreateNotification(ctx, repository.CreateNotificationParams{
+				UserID:     dept.HeadID.Bytes,
+				Title:      "Permintaan Persetujuan Dokumen",
+				Body:       pgtype.Text{String: fmt.Sprintf("Dokumen '%s' memerlukan persetujuan Anda.", doc.Title), Valid: true},
+				Type:       "doc-pending-approval",
+				EntityType: pgtype.Text{String: "document", Valid: true},
+				EntityID:   pgtype.UUID{Bytes: doc.ID, Valid: true},
+				Channel:    pgtype.Text{String: "email", Valid: true},
+				Metadata:   metaJSON,
+			})
 		}
 	} else {
 		log.Printf("[DocumentService] WARNING: No department head found for approval task. Document ID: %s", doc.ID)
@@ -569,6 +595,29 @@ func (s *DocumentService) UpdateDocument(ctx context.Context, params UpdateDocum
 			log.Printf("[DocumentService] Error creating new approval task for revision: %v", err)
 			return doc, fmt.Errorf("failed to create approval task: %v", err)
 		}
+
+		// Trigger Notification for Approver (Revision)
+		owner, _ := s.repo.GetUserByID(ctx, doc.OwnerID)
+		approveLink := fmt.Sprintf("%s/approvals/%s", s.cfg.AppURL, doc.ID)
+		
+		meta := map[string]string{
+			"docTitle":       doc.Title,
+			"departmentName": dept.Name,
+			"ownerName":      owner.FullName,
+			"approveLink":    approveLink,
+		}
+		metaJSON, _ := json.Marshal(meta)
+
+		_, _ = s.notifSvc.CreateNotification(ctx, repository.CreateNotificationParams{
+			UserID:     dept.HeadID.Bytes,
+			Title:      "Revisi Dokumen Memerlukan Persetujuan",
+			Body:       pgtype.Text{String: fmt.Sprintf("Dokumen '%s' telah direvisi dan memerlukan persetujuan ulang.", doc.Title), Valid: true},
+			Type:       "doc-pending-approval",
+			EntityType: pgtype.Text{String: "document", Valid: true},
+			EntityID:   pgtype.UUID{Bytes: doc.ID, Valid: true},
+			Channel:    pgtype.Text{String: "email", Valid: true},
+			Metadata:   metaJSON,
+		})
 	} else {
 		log.Printf("[DocumentService] WARNING: No department head found for revision approval. Document ID: %s", doc.ID)
 	}

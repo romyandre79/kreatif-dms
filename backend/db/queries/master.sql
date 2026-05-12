@@ -307,6 +307,14 @@ INSERT INTO document_categories (code, name, description)
 VALUES ($1, $2, $3)
 RETURNING *;
 
+-- name: UpdateDocumentCategory :one
+UPDATE document_categories SET code = $2, name = $3, description = $4, updated_at = NOW()
+WHERE id = $1
+RETURNING *;
+
+-- name: DeleteDocumentCategory :exec
+DELETE FROM document_categories WHERE id = $1;
+
 -- Document Types
 -- name: ListDocumentTypes :many
 SELECT 
@@ -320,12 +328,12 @@ ORDER BY dt.name;
 SELECT * FROM document_types WHERE id = $1;
 
 -- name: CreateDocumentType :one
-INSERT INTO document_types (code, name, description)
-VALUES ($1, $2, $3)
+INSERT INTO document_types (code, name, description, category_id)
+VALUES ($1, $2, $3, $4)
 RETURNING *;
 
 -- name: UpdateDocumentType :one
-UPDATE document_types SET code = $2, name = $3, description = $4, updated_at = NOW()
+UPDATE document_types SET code = $2, name = $3, description = $4, category_id = $5, updated_at = NOW()
 WHERE id = $1
 RETURNING *;
 

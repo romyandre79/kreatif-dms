@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"encoding/json"
 	"log"
 
 	"github.com/google/uuid"
@@ -62,8 +63,17 @@ func (s *NotificationService) CreateNotification(ctx context.Context, arg reposi
 			"title":    notif.Title,
 		}
 
+		// Merge metadata if present
+		if len(notif.Metadata) > 0 {
+			var meta map[string]string
+			if err := json.Unmarshal(notif.Metadata, &meta); err == nil {
+				for k, v := range meta {
+					data[k] = v
+				}
+			}
+		}
+
 		// Try to send using the specific slug if provided in notification type
-		// For now, we use simple mapping or check if slug exists
 		_ = s.emailSvc.SendTemplatedEmail(context.Background(), notif.Type, user.Email, data)
 	}()
 

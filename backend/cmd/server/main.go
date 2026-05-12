@@ -154,13 +154,13 @@ func main() {
 	emailSvc := infra.NewEmailService(cfg, repo)
 	waSvc := infra.NewWhatsAppService(repo)
 	authSvc := service.NewAuthService(repo, cfg, ldapSvc, emailSvc)
-	docSvc := service.NewDocumentService(repo, storageSvc, asynqClient)
+	notifSvc := service.NewNotificationService(repo, waSvc, emailSvc)
+	docSvc := service.NewDocumentService(cfg, repo, storageSvc, asynqClient, notifSvc)
 	searchSvc := infra.NewSearchService(es)
 	aiSvc := infra.NewAIService(repo, cfg)
 	_ = service.NewCacheService(rdb) // Initialized for performance later
 	masterSvc := service.NewMasterService(repo, ldapSvc, aiSvc, searchSvc, storageSvc, waSvc, emailSvc)
 	hardwareSvc := service.NewHardwareService(repo)
-	notifSvc := service.NewNotificationService(repo, waSvc, emailSvc)
 	integrationMonitorSvc := service.NewIntegrationMonitorService(repo)
 	dashboardSvc := service.NewDashboardService(repo)
 	intakeSvc := service.NewIntakeService(repo, notifSvc)
@@ -179,7 +179,7 @@ func main() {
 	hardwareHandler := handler.NewHardwareHandler(hardwareSvc)
 	dashboardHandler := handler.NewDashboardHandler(dashboardSvc)
 	intakeHandler := handler.NewIntakeHandler(intakeSvc)
-	emailTemplateHandler := handler.NewEmailTemplateHandler(repo)
+	emailTemplateHandler := handler.NewEmailTemplateHandler(repo, emailSvc)
 
 
 	// Create Fiber App
@@ -337,6 +337,12 @@ func main() {
 	masterGroup.Get("/document-types/export", masterHandler.ExportDocumentTypes)
 	masterGroup.Post("/document-types/import", masterHandler.ImportDocumentTypes)
 
+	masterGroup.Post("/document-categories", masterHandler.CreateDocumentCategory)
+	masterGroup.Put("/document-categories/:id", masterHandler.UpdateDocumentCategory)
+	masterGroup.Delete("/document-categories/:id", masterHandler.DeleteDocumentCategory)
+	masterGroup.Get("/document-categories/export", masterHandler.ExportDocumentCategories)
+	masterGroup.Post("/document-categories/import", masterHandler.ImportDocumentCategories)
+
 	masterGroup.Get("/topology", masterHandler.GetTopology)
 	masterGroup.Get("/roles", masterHandler.ListRoles)
 	masterGroup.Get("/modules", masterHandler.ListSystemModules)
@@ -352,6 +358,7 @@ func main() {
 	masterGroup.Get("/email-templates", emailTemplateHandler.ListTemplates)
 	masterGroup.Get("/email-templates/:slug", emailTemplateHandler.GetTemplate)
 	masterGroup.Put("/email-templates/:id", emailTemplateHandler.UpdateTemplate)
+	masterGroup.Post("/email-templates/:slug/test", emailTemplateHandler.TestTemplate)
 	
 	masterGroup.Post("/settings/:category", masterHandler.UpdateSetting)
 	

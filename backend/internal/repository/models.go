@@ -361,7 +361,7 @@ type EmailTemplate struct {
 	Name         string             `json:"name"`
 	Subject      string             `json:"subject"`
 	BodyHtml     string             `json:"body_html"`
-	Placeholders []byte             `json:"placeholders"`
+	Placeholders json.RawMessage    `json:"placeholders"`
 	CreatedAt    pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt    pgtype.Timestamptz `json:"updated_at"`
 }
@@ -536,6 +536,7 @@ type Notification struct {
 	IsRead     pgtype.Bool        `json:"is_read"`
 	ReadAt     pgtype.Timestamptz `json:"read_at"`
 	CreatedAt  pgtype.Timestamptz `json:"created_at"`
+	Metadata   []byte             `json:"metadata"`
 }
 
 type OcrJob struct {

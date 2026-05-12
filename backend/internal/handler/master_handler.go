@@ -1456,6 +1456,18 @@ type CreateOrdnerRequest struct {
 	Name  string `json:"name"`
 }
 
+type CreateDocumentCategoryRequest struct {
+	Code        string `json:"code"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
+}
+
+type UpdateDocumentCategoryRequest struct {
+	Code        string `json:"code"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
+}
+
 type UpdateOrdnerRequest struct {
 	BoxID string `json:"box_id"`
 	Name  string `json:"name"`
@@ -1494,6 +1506,94 @@ func (h *MasterHandler) ListDocumentCategories(c fiber.Ctx) error {
 	return response.Success(c, fiber.StatusOK, "Document categories listed", categories)
 }
 
+func (h *MasterHandler) CreateDocumentCategory(c fiber.Ctx) error {
+	req := new(CreateDocumentCategoryRequest)
+	if err := c.Bind().JSON(req); err != nil {
+		return response.Error(c, fiber.StatusBadRequest, "Invalid request body", err.Error())
+	}
+
+	category, err := h.svc.CreateDocumentCategory(c.Context(), req.Code, req.Name, req.Description)
+	if err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to create document category", err.Error())
+	}
+
+	// Log Activity
+	userID := c.Locals("user_id").(uuid.UUID)
+	h.svc.LogActivity(c.Context(), userID, "CREATE", "document_category", &category.ID, req, c.IP())
+
+	return response.Success(c, fiber.StatusCreated, "Document category created", category)
+}
+
+func (h *MasterHandler) UpdateDocumentCategory(c fiber.Ctx) error {
+	id, err := uuid.Parse(c.Params("id"))
+	if err != nil {
+		return response.Error(c, fiber.StatusBadRequest, "Invalid document category ID", err.Error())
+	}
+	req := new(UpdateDocumentCategoryRequest)
+	if err := c.Bind().JSON(req); err != nil {
+		return response.Error(c, fiber.StatusBadRequest, "Invalid request body", err.Error())
+	}
+
+	category, err := h.svc.UpdateDocumentCategory(c.Context(), id, req.Code, req.Name, req.Description)
+	if err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to update document category", err.Error())
+	}
+
+	// Log Activity
+	userID := c.Locals("user_id").(uuid.UUID)
+	h.svc.LogActivity(c.Context(), userID, "UPDATE", "document_category", &id, req, c.IP())
+
+	return response.Success(c, fiber.StatusOK, "Document category updated", category)
+}
+
+func (h *MasterHandler) DeleteDocumentCategory(c fiber.Ctx) error {
+	id, err := uuid.Parse(c.Params("id"))
+	if err != nil {
+		return response.Error(c, fiber.StatusBadRequest, "Invalid document category ID", err.Error())
+	}
+
+	if err := h.svc.DeleteDocumentCategory(c.Context(), id); err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to delete document category", err.Error())
+	}
+
+	// Log Activity
+	userID := c.Locals("user_id").(uuid.UUID)
+	h.svc.LogActivity(c.Context(), userID, "DELETE", "document_category", &id, nil, c.IP())
+
+	return response.Success(c, fiber.StatusOK, "Document category deleted", nil)
+}
+
+func (h *MasterHandler) ExportDocumentCategories(c fiber.Ctx) error {
+	data, fileName, err := h.svc.ExportDocumentCategories(c.Context())
+	if err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to export document categories", err.Error())
+	}
+
+	c.Set("Content-Type", "text/csv")
+	c.Set("Content-Disposition", fmt.Sprintf("attachment; filename=%s", fileName))
+	return c.Send(data)
+}
+
+func (h *MasterHandler) ImportDocumentCategories(c fiber.Ctx) error {
+	file, err := c.FormFile("file")
+	if err != nil {
+		return response.Error(c, fiber.StatusBadRequest, "Failed to get file from request", err.Error())
+	}
+
+	f, err := file.Open()
+	if err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to open file", err.Error())
+	}
+	defer f.Close()
+
+	count, err := h.svc.ImportDocumentCategories(c.Context(), f)
+	if err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to import document categories", err.Error())
+	}
+
+	return response.Success(c, fiber.StatusOK, fmt.Sprintf("Successfully imported %d document categories", count), nil)
+}
+
 // Document Types
 func (h *MasterHandler) ListDocumentTypes(c fiber.Ctx) error {
 	types, err := h.svc.ListDocumentTypes(c.Context())
@@ -1509,7 +1609,15 @@ func (h *MasterHandler) CreateDocumentType(c fiber.Ctx) error {
 		return response.Error(c, fiber.StatusBadRequest, "Invalid request body", err.Error())
 	}
 
-	docType, err := h.svc.CreateDocumentType(c.Context(), req.Code, req.Name, req.Description)
+	var catID *uuid.UUID
+	if req.CategoryID != "" {
+		id, err := uuid.Parse(req.CategoryID)
+		if err == nil {
+			catID = &id
+		}
+	}
+
+	docType, err := h.svc.CreateDocumentType(c.Context(), req.Code, req.Name, req.Description, catID)
 	if err != nil {
 		return response.Error(c, fiber.StatusInternalServerError, "Failed to create document type", err.Error())
 	}
@@ -1531,7 +1639,15 @@ func (h *MasterHandler) UpdateDocumentType(c fiber.Ctx) error {
 		return response.Error(c, fiber.StatusBadRequest, "Invalid request body", err.Error())
 	}
 
-	docType, err := h.svc.UpdateDocumentType(c.Context(), id, req.Code, req.Name, req.Description)
+	var catID *uuid.UUID
+	if req.CategoryID != "" {
+		cid, err := uuid.Parse(req.CategoryID)
+		if err == nil {
+			catID = &cid
+		}
+	}
+
+	docType, err := h.svc.UpdateDocumentType(c.Context(), id, req.Code, req.Name, req.Description, catID)
 	if err != nil {
 		return response.Error(c, fiber.StatusInternalServerError, "Failed to update document type", err.Error())
 	}
@@ -1631,12 +1747,14 @@ type CreateDocumentTypeRequest struct {
 	Code        string `json:"code"`
 	Name        string `json:"name"`
 	Description string `json:"description"`
+	CategoryID  string `json:"category_id"`
 }
 
 type UpdateDocumentTypeRequest struct {
 	Code        string `json:"code"`
 	Name        string `json:"name"`
 	Description string `json:"description"`
+	CategoryID  string `json:"category_id"`
 }
 func (h *MasterHandler) FetchAIModels(c fiber.Ctx) error {
 	driver := c.Query("driver")

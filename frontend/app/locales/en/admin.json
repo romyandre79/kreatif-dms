@@ -397,6 +397,25 @@
         "error_delete": "Failed to delete data",
         "error_fetch": "Failed to fetch data",
         "confirm_delete": "Delete this document type?"
+      },
+      "document_category": {
+        "title": "Document Category Master",
+        "subtitle": "Configure document categories in the system.",
+        "add_btn": "Add Category",
+        "filter_placeholder": "Filter document categories...",
+        "table": {
+          "code": "Code",
+          "name": "Category Name",
+          "description": "Description"
+        },
+        "displaying": "Showing {start}-{end} of {total} categories",
+        "rows": "Rows",
+        "error_code": "Code is required",
+        "error_name": "Name is required",
+        "error_save": "Failed to save data",
+        "error_delete": "Failed to delete data",
+        "error_fetch": "Failed to fetch data",
+        "confirm_delete": "Delete this document category?"
       }
     },
     "pin": {

@@ -61,6 +61,7 @@ type Config struct {
 
 	WorkerConcurrency int `mapstructure:"WORKER_CONCURRENCY"`
 	CORSAllowedOrigins string `mapstructure:"CORS_ALLOWED_ORIGINS"`
+	AppURL             string `mapstructure:"APP_URL"`
 }
 
 func LoadConfig(path string) (config Config, err error) {

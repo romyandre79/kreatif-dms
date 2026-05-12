@@ -20,7 +20,7 @@ WHERE user_id = $1 AND is_read = false;
 
 -- name: CreateNotification :one
 INSERT INTO notifications (
-    user_id, title, body, type, entity_type, entity_id, channel
+    user_id, title, body, type, entity_type, entity_id, channel, metadata
 ) VALUES (
-    $1, $2, $3, $4, $5, $6, $7
+    $1, $2, $3, $4, $5, $6, $7, $8
 ) RETURNING *;

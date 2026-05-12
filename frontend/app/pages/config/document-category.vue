@@ -10,9 +10,9 @@
         <header class="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-10 py-8 flex items-center justify-between shadow-sm relative z-10">
           <div class="space-y-1">
             <h1 class="text-3xl font-black text-[#1E3A5F] dark:text-white tracking-tight uppercase">
-              {{ $t('admin.config.document_type.title') }}
+              {{ $t('admin.config.document_category.title') }}
             </h1>
-            <p class="text-sm font-bold text-slate-500 uppercase tracking-tighter">{{ $t('admin.config.document_type.subtitle') }}</p>
+            <p class="text-sm font-bold text-slate-500 uppercase tracking-tighter">{{ $t('admin.config.document_category.subtitle') }}</p>
           </div>
           <div class="flex items-center gap-4">
             <button @click="triggerImport" class="px-6 py-4 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-slate-50 transition-all flex items-center gap-2 shadow-sm cursor-pointer">
@@ -21,7 +21,7 @@
             </button>
             <button @click="addRow" class="px-8 py-3 bg-[#1E3A5F] text-white rounded-2xl text-xs font-black uppercase tracking-widest shadow-xl shadow-blue-900/20 hover:bg-[#152943] transition-all flex items-center gap-3 active:scale-95 cursor-pointer">
               <LucidePlus class="w-4 h-4" />
-              {{ $t('admin.config.document_type.add_btn') }}
+              {{ $t('admin.config.document_category.add_btn') }}
             </button>
           </div>
         </header>
@@ -36,7 +36,7 @@
                 <input 
                   type="text" 
                   v-model="searchQuery"
-                  :placeholder="$t('admin.config.document_type.filter_placeholder')" 
+                  :placeholder="$t('admin.config.document_category.filter_placeholder')" 
                   class="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl pl-12 pr-6 py-3 text-xs font-bold outline-none focus:ring-2 focus:ring-blue-500/20 transition-all" 
                 />
               </div>
@@ -57,16 +57,15 @@
               <table class="w-full text-left border-collapse">
                 <thead>
                   <tr class="bg-slate-50/50 dark:bg-slate-900/50 text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] border-b border-slate-50 dark:border-slate-800">
-                    <th class="p-4 pl-8">{{ $t('admin.config.document_type.table.code') }}</th>
-                    <th class="p-4">{{ $t('admin.config.document_type.table.name') }}</th>
-                    <th class="p-4">{{ $t('admin.config.document_category.title') }}</th>
-                    <th class="p-4">{{ $t('admin.config.document_type.table.description') }}</th>
+                    <th class="p-4 pl-8">{{ $t('admin.config.document_category.table.code') }}</th>
+                    <th class="p-4">{{ $t('admin.config.document_category.table.name') }}</th>
+                    <th class="p-4">{{ $t('admin.config.document_category.table.description') }}</th>
                     <th class="p-4">{{ $t('admin.metadata.table.created_at') }}</th>
                     <th class="p-4 pr-10 text-right">{{ $t('admin.metadata.table.actions') }}</th>
                   </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-50 dark:divide-slate-800">
-                  <tr v-if="filteredTypes.length === 0" class="hover:bg-transparent">
+                  <tr v-if="filteredCategories.length === 0" class="hover:bg-transparent">
                      <td colspan="5" class="p-20 text-center">
                         <div class="flex flex-col items-center justify-center space-y-3 opacity-30">
                            <LucideArchive class="w-12 h-12 text-slate-300" />
@@ -74,7 +73,7 @@
                         </div>
                      </td>
                   </tr>
-                  <tr v-else v-for="row in paginatedTypes" :key="row.id" 
+                  <tr v-else v-for="row in paginatedCategories" :key="row.id" 
                     class="group transition-all"
                     :class="row.isNew ? 'bg-blue-50/50 dark:bg-blue-900/10' : 'hover:bg-slate-50/50 dark:hover:bg-slate-800/30'"
                   >
@@ -84,7 +83,7 @@
                           type="text" 
                           v-model="row.code" 
                           class="w-full bg-white dark:bg-slate-800 border-2 border-blue-500 rounded-xl px-4 py-2 text-xs font-black text-blue-500 font-mono outline-none shadow-md" 
-                          :placeholder="$t('admin.config.document_type.table.code')"
+                          :placeholder="$t('admin.config.document_category.table.code')"
                         />
                       </div>
                       <span v-else class="text-sm font-black text-blue-500 font-mono tracking-tighter">{{ row.code }}</span>
@@ -95,22 +94,10 @@
                           type="text" 
                           v-model="row.name" 
                           class="w-full bg-white dark:bg-slate-800 border-2 border-blue-500 rounded-xl px-4 py-3 text-sm font-black text-[#1E3A5F] dark:text-white uppercase outline-none shadow-lg shadow-blue-900/10" 
-                          :placeholder="$t('admin.config.document_type.table.name')"
+                          :placeholder="$t('admin.config.document_category.table.name')"
                         />
                       </div>
                       <p v-else class="text-sm font-black text-[#1E3A5F] dark:text-white uppercase tracking-tight">{{ row.name }}</p>
-                    </td>
-                    <td class="p-4">
-                      <div v-if="row.editing" class="max-w-[200px]">
-                        <select 
-                          v-model="row.category_id" 
-                          class="w-full bg-white dark:bg-slate-800 border-2 border-blue-500 rounded-xl px-4 py-2 text-xs font-black outline-none shadow-md"
-                        >
-                          <option value="">-- No Category --</option>
-                          <option v-for="cat in docCategories" :key="cat.id" :value="cat.id">{{ cat.name }}</option>
-                        </select>
-                      </div>
-                      <span v-else class="px-3 py-1 bg-slate-100 dark:bg-slate-800 text-[10px] font-black text-slate-500 rounded-lg uppercase tracking-widest">{{ row.category_name || '-' }}</span>
                     </td>
                     <td class="p-4">
                       <div v-if="row.editing">
@@ -118,7 +105,7 @@
                           type="text" 
                           v-model="row.description" 
                           class="w-full bg-white dark:bg-slate-800 border border-slate-200 rounded-xl px-4 py-2 text-xs font-bold" 
-                          :placeholder="$t('admin.config.document_type.table.description')"
+                          :placeholder="$t('admin.config.document_category.table.description')"
                         />
                       </div>
                       <p v-else class="text-sm font-bold text-slate-500 uppercase tracking-tight">{{ row.description || '-' }}</p>
@@ -145,10 +132,10 @@
             <div class="px-10 py-2.5 bg-slate-50/50 dark:bg-slate-900/50 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
               <div class="flex items-center gap-4">
                 <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
-                  {{ $t('admin.config.document_type.displaying', { start: filteredTypes.length > 0 ? startIndex + 1 : 0, end: endIndex, total: filteredTypes.length }) }}
+                  {{ $t('admin.config.document_category.displaying', { start: filteredCategories.length > 0 ? startIndex + 1 : 0, end: endIndex, total: filteredCategories.length }) }}
                 </p>
                 <div class="flex items-center gap-2 ml-4">
-                  <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest">{{ $t('admin.config.document_type.rows') }}:</span>
+                  <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest">{{ $t('admin.config.document_category.rows') }}:</span>
                   <select v-model="itemsPerPage" class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-2 py-1 text-[10px] font-black outline-none focus:ring-1 focus:ring-blue-500/30 transition-all cursor-pointer">
                     <option :value="10">10</option>
                     <option :value="20">20</option>
@@ -216,7 +203,7 @@
                 <h4 class="text-[11px] font-black text-[#1E3A5F] dark:text-white uppercase tracking-tight">Naming</h4>
                 <LucideInfo class="w-3.5 h-3.5 text-slate-300" />
               </div>
-              <p class="text-[10px] font-bold text-slate-500 leading-relaxed">Nama tipe dokumen akan muncul di pilihan registrasi dan pencarian.</p>
+              <p class="text-[10px] font-bold text-slate-500 leading-relaxed">Nama kategori dokumen akan muncul di pilihan registrasi dan pencarian.</p>
               <div class="flex gap-2">
                 <span class="px-2 py-1 bg-green-100 dark:bg-green-800 text-[8px] font-black text-green-600 dark:text-green-300 rounded uppercase tracking-widest shadow-sm">Standard</span>
                 <span class="px-2 py-1 bg-green-100 dark:bg-green-800 text-[8px] font-black text-green-600 dark:text-green-300 rounded uppercase tracking-widest shadow-sm">Visible</span>
@@ -271,7 +258,6 @@ const { t } = useI18n()
 const searchQuery = ref('')
 const loading = ref(false)
 const error = ref('')
-const docTypes = ref([])
 const docCategories = ref([])
 const fileInput = ref(null)
 
@@ -286,19 +272,14 @@ const auth = useAuthStore()
 const fetchData = async () => {
   loading.value = true
   try {
-    const [typesRes, catsRes] = await Promise.all([
-      $api(`${config.public.apiBase}/master/document-types`),
-      $api(`${config.public.apiBase}/master/document-categories`)
-    ])
-    
-    docTypes.value = (typesRes.data || []).map(t => ({
+    const res = await $api(`${config.public.apiBase}/master/document-categories`)
+    docCategories.value = (res.data || []).map(t => ({
       ...t,
       editing: false,
       isNew: false
     }))
-    docCategories.value = catsRes.data || []
   } catch (err) {
-    error.value = err.data?.message || t('admin.config.document_type.error_fetch')
+    error.value = err.data?.message || t('admin.config.document_category.error_fetch')
   } finally {
     loading.value = false
   }
@@ -314,12 +295,11 @@ const formatDate = (dateStr) => {
 }
 
 const addRow = () => {
-  docTypes.value.unshift({
+  docCategories.value.unshift({
     id: '', 
     code: '',
     name: '',
     description: '',
-    category_id: '',
     editing: true,
     isNew: true
   })
@@ -332,7 +312,7 @@ const editRow = (row) => {
 
 const cancelEdit = (row) => {
   if (row.isNew) {
-    docTypes.value = docTypes.value.filter(t => t !== row)
+    docCategories.value = docCategories.value.filter(t => t !== row)
   } else {
     row.editing = false
     fetchData()
@@ -341,27 +321,26 @@ const cancelEdit = (row) => {
 
 const saveRow = async (row) => {
   if (!row.code.trim()) {
-    error.value = t('admin.config.document_type.error_code')
+    error.value = t('admin.config.document_category.error_code')
     return
   }
   if (!row.name.trim()) {
-    error.value = t('admin.config.document_type.error_name')
+    error.value = t('admin.config.document_category.error_name')
     return
   }
 
   try {
     const method = row.isNew ? 'POST' : 'PUT'
     const url = row.isNew 
-      ? `${config.public.apiBase}/master/document-types` 
-      : `${config.public.apiBase}/master/document-types/${row.id}`
+      ? `${config.public.apiBase}/master/document-categories` 
+      : `${config.public.apiBase}/master/document-categories/${row.id}`
 
     await $api(url, {
       method,
       body: {
         code: row.code,
         name: row.name,
-        description: row.description,
-        category_id: row.category_id || ''
+        description: row.description
       }
     })
 
@@ -369,33 +348,33 @@ const saveRow = async (row) => {
     row.isNew = false
     fetchData()
   } catch (err) {
-    error.value = err.data?.message || t('admin.config.document_type.error_save')
+    error.value = err.data?.message || t('admin.config.document_category.error_save')
   }
 }
 
 const deleteRow = async (id) => {
-  if (!confirm(t('admin.config.document_type.confirm_delete'))) return
+  if (!confirm(t('admin.config.document_category.confirm_delete'))) return
 
   try {
-    await $api(`${config.public.apiBase}/master/document-types/${id}`, {
+    await $api(`${config.public.apiBase}/master/document-categories/${id}`, {
       method: 'DELETE'
     })
     fetchData()
   } catch (err) {
-    error.value = t('admin.config.document_type.error_delete')
+    error.value = t('admin.config.document_category.error_delete')
   }
 }
 
 const exportCSV = async () => {
   try {
-    const res = await fetch(`${config.public.apiBase}/master/document-types/export`, {
+    const res = await fetch(`${config.public.apiBase}/master/document-categories/export`, {
       headers: { Authorization: `Bearer ${auth.accessToken}` }
     })
     const blob = await res.blob()
     const url = window.URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = `document_types_${new Date().getTime()}.csv`
+    a.download = `document_categories_${new Date().getTime()}.csv`
     document.body.appendChild(a)
     a.click()
     window.URL.revokeObjectURL(url)
@@ -417,7 +396,7 @@ const handleImport = async (event) => {
 
   loading.value = true
   try {
-    await $api(`${config.public.apiBase}/master/document-types/import`, {
+    await $api(`${config.public.apiBase}/master/document-categories/import`, {
       method: 'POST',
       body: formData
     })
@@ -430,21 +409,20 @@ const handleImport = async (event) => {
   }
 }
 
-const filteredTypes = computed(() => {
-  if (!searchQuery.value) return docTypes.value
+const filteredCategories = computed(() => {
+  if (!searchQuery.value) return docCategories.value
   const q = searchQuery.value.toLowerCase()
-  return docTypes.value.filter(t => 
+  return docCategories.value.filter(t => 
     (t.code || '').toLowerCase().includes(q) || 
     (t.name || '').toLowerCase().includes(q) ||
-    (t.description || '').toLowerCase().includes(q) ||
-    (t.category_name || '').toLowerCase().includes(q)
+    (t.description || '').toLowerCase().includes(q)
   )
 })
 
-const totalPages = computed(() => Math.ceil(filteredTypes.value.length / itemsPerPage.value) || 1)
+const totalPages = computed(() => Math.ceil(filteredCategories.value.length / itemsPerPage.value) || 1)
 const startIndex = computed(() => (currentPage.value - 1) * itemsPerPage.value)
-const endIndex = computed(() => Math.min(startIndex.value + itemsPerPage.value, filteredTypes.value.length))
-const paginatedTypes = computed(() => filteredTypes.value.slice(startIndex.value, endIndex.value))
+const endIndex = computed(() => Math.min(startIndex.value + itemsPerPage.value, filteredCategories.value.length))
+const paginatedCategories = computed(() => filteredCategories.value.slice(startIndex.value, endIndex.value))
 
 watch([searchQuery, itemsPerPage], () => {
   currentPage.value = 1

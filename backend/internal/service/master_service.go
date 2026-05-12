@@ -1160,6 +1160,87 @@ func (s *MasterService) ListDocumentCategories(ctx context.Context) ([]repositor
 	return s.repo.ListDocumentCategories(ctx)
 }
 
+func (s *MasterService) CreateDocumentCategory(ctx context.Context, code, name, description string) (repository.DocumentCategory, error) {
+	return s.repo.CreateDocumentCategory(ctx, repository.CreateDocumentCategoryParams{
+		Code:        code,
+		Name:        name,
+		Description: pgtype.Text{String: description, Valid: description != ""},
+	})
+}
+
+func (s *MasterService) UpdateDocumentCategory(ctx context.Context, id uuid.UUID, code, name, description string) (repository.DocumentCategory, error) {
+	return s.repo.UpdateDocumentCategory(ctx, repository.UpdateDocumentCategoryParams{
+		ID:          id,
+		Code:        code,
+		Name:        name,
+		Description: pgtype.Text{String: description, Valid: description != ""},
+	})
+}
+
+func (s *MasterService) DeleteDocumentCategory(ctx context.Context, id uuid.UUID) error {
+	return s.repo.DeleteDocumentCategory(ctx, id)
+}
+
+func (s *MasterService) ExportDocumentCategories(ctx context.Context) ([]byte, string, error) {
+	categories, err := s.repo.ListDocumentCategories(ctx)
+	if err != nil {
+		return nil, "", err
+	}
+
+	buf := new(bytes.Buffer)
+	writer := csv.NewWriter(buf)
+	writer.Write([]string{"Code", "Name", "Description"})
+
+	for _, c := range categories {
+		writer.Write([]string{
+			c.Code,
+			c.Name,
+			c.Description.String,
+		})
+	}
+
+	writer.Flush()
+	fileName := fmt.Sprintf("document_categories_%s.csv", time.Now().Format("20060102_150405"))
+	return buf.Bytes(), fileName, nil
+}
+
+func (s *MasterService) ImportDocumentCategories(ctx context.Context, r io.Reader) (int, error) {
+	reader := csv.NewReader(r)
+	records, err := reader.ReadAll()
+	if err != nil {
+		return 0, err
+	}
+
+	if len(records) <= 1 {
+		return 0, nil
+	}
+
+	count := 0
+	for i, record := range records {
+		if i == 0 || len(record) < 2 {
+			continue
+		}
+
+		code := record[0]
+		name := record[1]
+		description := ""
+		if len(record) > 2 {
+			description = record[2]
+		}
+
+		_, err := s.repo.CreateDocumentCategory(ctx, repository.CreateDocumentCategoryParams{
+			Code:        code,
+			Name:        name,
+			Description: pgtype.Text{String: description, Valid: description != ""},
+		})
+		if err == nil {
+			count++
+		}
+	}
+
+	return count, nil
+}
+
 type DocumentTypeResponse struct {
 	ID           uuid.UUID `json:"id"`
 	Code         string    `json:"code"`
@@ -1196,21 +1277,29 @@ func (s *MasterService) ListDocumentTypes(ctx context.Context) ([]DocumentTypeRe
 	return res, nil
 }
 
-func (s *MasterService) CreateDocumentType(ctx context.Context, code, name, description string) (repository.DocumentType, error) {
-	return s.repo.CreateDocumentType(ctx, repository.CreateDocumentTypeParams{
+func (s *MasterService) CreateDocumentType(ctx context.Context, code, name, description string, categoryID *uuid.UUID) (repository.DocumentType, error) {
+	params := repository.CreateDocumentTypeParams{
 		Code:        code,
 		Name:        name,
 		Description: pgtype.Text{String: description, Valid: description != ""},
-	})
+	}
+	if categoryID != nil {
+		params.CategoryID = pgtype.UUID{Bytes: *categoryID, Valid: true}
+	}
+	return s.repo.CreateDocumentType(ctx, params)
 }
 
-func (s *MasterService) UpdateDocumentType(ctx context.Context, id uuid.UUID, code, name, description string) (repository.DocumentType, error) {
-	return s.repo.UpdateDocumentType(ctx, repository.UpdateDocumentTypeParams{
+func (s *MasterService) UpdateDocumentType(ctx context.Context, id uuid.UUID, code, name, description string, categoryID *uuid.UUID) (repository.DocumentType, error) {
+	params := repository.UpdateDocumentTypeParams{
 		ID:          id,
 		Code:        code,
 		Name:        name,
 		Description: pgtype.Text{String: description, Valid: description != ""},
-	})
+	}
+	if categoryID != nil {
+		params.CategoryID = pgtype.UUID{Bytes: *categoryID, Valid: true}
+	}
+	return s.repo.UpdateDocumentType(ctx, params)
 }
 
 func (s *MasterService) DeleteDocumentType(ctx context.Context, id uuid.UUID) error {

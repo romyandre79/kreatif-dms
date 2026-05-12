@@ -422,6 +422,25 @@
         "error_delete": "Gagal menghapus data",
         "error_fetch": "Gagal mengambil data",
         "confirm_delete": "Hapus tipe dokumen ini?"
+      },
+      "document_category": {
+        "title": "Master Kategori Dokumen",
+        "subtitle": "Pengaturan kategori dokumen dalam sistem.",
+        "add_btn": "Tambah Kategori",
+        "filter_placeholder": "Filter kategori dokumen...",
+        "table": {
+          "code": "Kode",
+          "name": "Nama Kategori",
+          "description": "Deskripsi"
+        },
+        "displaying": "Menampilkan {start}-{end} dari {total} kategori",
+        "rows": "Baris",
+        "error_code": "Kode wajib diisi",
+        "error_name": "Nama wajib diisi",
+        "error_save": "Gagal menyimpan data",
+        "error_delete": "Gagal menghapus data",
+        "error_fetch": "Gagal mengambil data",
+        "confirm_delete": "Hapus kategori dokumen ini?"
       }
     },
     "pin": {

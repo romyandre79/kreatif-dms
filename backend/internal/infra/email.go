@@ -9,6 +9,7 @@ import (
 
 	"github.com/kreatif/dms-backend/internal/config"
 	"github.com/kreatif/dms-backend/internal/repository"
+	"time"
 )
 
 type EmailService struct {
@@ -58,11 +59,14 @@ func (s *EmailService) SendEmail(ctx context.Context, to, subject, body string) 
 		nodeCfg.Auth = s.cfg.SMTPUser != ""
 	}
 
-	msg := "From: " + nodeCfg.FromEmail + "\n" +
-		"To: " + to + "\n" +
-		"Subject: " + subject + "\n" +
-		"MIME-version: 1.0;\n" +
-		"Content-Type: text/html; charset=\"UTF-8\";\n\n" +
+	date := time.Now().Format(time.RFC1123Z)
+	msg := "From: " + nodeCfg.FromEmail + "\r\n" +
+		"To: " + to + "\r\n" +
+		"Subject: " + subject + "\r\n" +
+		"Date: " + date + "\r\n" +
+		"MIME-version: 1.0\r\n" +
+		"Content-Type: text/html; charset=\"UTF-8\"\r\n" +
+		"\r\n" +
 		body
 
 	var auth smtp.Auth

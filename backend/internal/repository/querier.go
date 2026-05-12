@@ -47,6 +47,7 @@ type Querier interface {
 	DeleteBranch(ctx context.Context, id uuid.UUID) error
 	DeleteCompany(ctx context.Context, id uuid.UUID) error
 	DeleteDepartment(ctx context.Context, id uuid.UUID) error
+	DeleteDocumentCategory(ctx context.Context, id uuid.UUID) error
 	DeleteDocumentType(ctx context.Context, id uuid.UUID) error
 	DeleteIntegrationNode(ctx context.Context, id uuid.UUID) error
 	DeleteOrdner(ctx context.Context, id uuid.UUID) error
@@ -171,6 +172,7 @@ type Querier interface {
 	UpdateCompanyLogo(ctx context.Context, arg UpdateCompanyLogoParams) error
 	UpdateDepartment(ctx context.Context, arg UpdateDepartmentParams) (Department, error)
 	UpdateDocument(ctx context.Context, arg UpdateDocumentParams) (Document, error)
+	UpdateDocumentCategory(ctx context.Context, arg UpdateDocumentCategoryParams) (DocumentCategory, error)
 	UpdateDocumentIndexing(ctx context.Context, arg UpdateDocumentIndexingParams) error
 	UpdateDocumentMetadata(ctx context.Context, arg UpdateDocumentMetadataParams) error
 	UpdateDocumentOCR(ctx context.Context, arg UpdateDocumentOCRParams) error

@@ -12,8 +12,8 @@
       "type_placeholder": "Select document type",
       "subject": "Subject / Title",
       "subject_placeholder": "Enter a short title for the document",
-      "category": "Confidentiality Category",
-      "category_placeholder": "Select category",
+      "category": "Document Category",
+      "category_placeholder": "Select document category",
       "department": "Owner Department",
       "department_hint": "Automatically determined based on your department",
       "count": "Number of Pages",
@@ -40,7 +40,9 @@
           "personnel": "Personnel Documents",
           "financial": "Financial Reports"
         },
-        "options": {
+        "categories": {
+          "label": "Sensitivity Level",
+          "placeholder": "Select sensitivity level",
           "confidential": "Strictly Confidential",
           "internal": "Internal",
           "public": "Public"

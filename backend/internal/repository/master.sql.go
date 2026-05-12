@@ -193,8 +193,8 @@ func (q *Queries) CreateDocumentCategory(ctx context.Context, arg CreateDocument
 }
 
 const createDocumentType = `-- name: CreateDocumentType :one
-INSERT INTO document_types (code, name, description)
-VALUES ($1, $2, $3)
+INSERT INTO document_types (code, name, description, category_id)
+VALUES ($1, $2, $3, $4)
 RETURNING id, code, name, description, created_at, updated_at, category_id
 `
 
@@ -202,10 +202,16 @@ type CreateDocumentTypeParams struct {
 	Code        string      `json:"code"`
 	Name        string      `json:"name"`
 	Description pgtype.Text `json:"description"`
+	CategoryID  pgtype.UUID `json:"category_id"`
 }
 
 func (q *Queries) CreateDocumentType(ctx context.Context, arg CreateDocumentTypeParams) (DocumentType, error) {
-	row := q.db.QueryRow(ctx, createDocumentType, arg.Code, arg.Name, arg.Description)
+	row := q.db.QueryRow(ctx, createDocumentType,
+		arg.Code,
+		arg.Name,
+		arg.Description,
+		arg.CategoryID,
+	)
 	var i DocumentType
 	err := row.Scan(
 		&i.ID,
@@ -431,6 +437,15 @@ DELETE FROM departments WHERE id = $1
 
 func (q *Queries) DeleteDepartment(ctx context.Context, id uuid.UUID) error {
 	_, err := q.db.Exec(ctx, deleteDepartment, id)
+	return err
+}
+
+const deleteDocumentCategory = `-- name: DeleteDocumentCategory :exec
+DELETE FROM document_categories WHERE id = $1
+`
+
+func (q *Queries) DeleteDocumentCategory(ctx context.Context, id uuid.UUID) error {
+	_, err := q.db.Exec(ctx, deleteDocumentCategory, id)
 	return err
 }
 
@@ -1730,8 +1745,40 @@ func (q *Queries) UpdateDepartment(ctx context.Context, arg UpdateDepartmentPara
 	return i, err
 }
 
+const updateDocumentCategory = `-- name: UpdateDocumentCategory :one
+UPDATE document_categories SET code = $2, name = $3, description = $4, updated_at = NOW()
+WHERE id = $1
+RETURNING id, code, name, description, created_at, updated_at
+`
+
+type UpdateDocumentCategoryParams struct {
+	ID          uuid.UUID   `json:"id"`
+	Code        string      `json:"code"`
+	Name        string      `json:"name"`
+	Description pgtype.Text `json:"description"`
+}
+
+func (q *Queries) UpdateDocumentCategory(ctx context.Context, arg UpdateDocumentCategoryParams) (DocumentCategory, error) {
+	row := q.db.QueryRow(ctx, updateDocumentCategory,
+		arg.ID,
+		arg.Code,
+		arg.Name,
+		arg.Description,
+	)
+	var i DocumentCategory
+	err := row.Scan(
+		&i.ID,
+		&i.Code,
+		&i.Name,
+		&i.Description,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
 const updateDocumentType = `-- name: UpdateDocumentType :one
-UPDATE document_types SET code = $2, name = $3, description = $4, updated_at = NOW()
+UPDATE document_types SET code = $2, name = $3, description = $4, category_id = $5, updated_at = NOW()
 WHERE id = $1
 RETURNING id, code, name, description, created_at, updated_at, category_id
 `
@@ -1741,6 +1788,7 @@ type UpdateDocumentTypeParams struct {
 	Code        string      `json:"code"`
 	Name        string      `json:"name"`
 	Description pgtype.Text `json:"description"`
+	CategoryID  pgtype.UUID `json:"category_id"`
 }
 
 func (q *Queries) UpdateDocumentType(ctx context.Context, arg UpdateDocumentTypeParams) (DocumentType, error) {
@@ -1749,6 +1797,7 @@ func (q *Queries) UpdateDocumentType(ctx context.Context, arg UpdateDocumentType
 		arg.Code,
 		arg.Name,
 		arg.Description,
+		arg.CategoryID,
 	)
 	var i DocumentType
 	err := row.Scan(

@@ -12,8 +12,8 @@
       "type_placeholder": "Pilih jenis dokumen",
       "subject": "Subjek / Judul",
       "subject_placeholder": "Masukkan judul singkat dokumen",
-      "category": "Kategori Kerahasiaan",
-      "category_placeholder": "Pilih kategori",
+      "category": "Kategori Dokumen",
+      "category_placeholder": "Pilih kategori dokumen",
       "department": "Departemen Pemilik",
       "department_hint": "Otomatis ditentukan berdasarkan departemen Anda",
       "count": "Jumlah Lembar",
@@ -41,6 +41,8 @@
           "financial": "Laporan Keuangan"
         },
         "categories": {
+          "label": "Tingkat Kerahasiaan",
+          "placeholder": "Pilih tingkat kerahasiaan",
           "confidential": "Sangat Rahasia",
           "internal": "Internal",
           "public": "Publik"

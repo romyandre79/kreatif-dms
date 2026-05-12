@@ -119,7 +119,8 @@
       "announcements": "Pengumuman Dashboard",
       "inbound_registration": "Penerimaan Fisik",
       "staging_area": "Staging Area",
-      "email_templates": "Email Templates"
+      "email_templates": "Email Templates",
+      "doc_category": "Master Kategori Dokumen"
     }
   }
 }

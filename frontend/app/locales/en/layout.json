@@ -110,7 +110,8 @@
       "notificaton": "Notifications",
       "announcements": "System Announcements",
       "inbound_registration": "Inbound Registration",
-      "email_templates": "Email Templates"
+      "email_templates": "Email Templates",
+      "doc_category": "Document Category Master"
     }
   }
 }
