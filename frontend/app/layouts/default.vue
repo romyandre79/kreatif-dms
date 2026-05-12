@@ -304,6 +304,9 @@ const iconMap = {
   'Submit': LucideUpload,
   'Loans': LucideFileText,
   'Tracking': LucideQrCode,
+  'tracking': LucideQrCode,
+  'cat_warehouse': LucideHome,
+  'Warehouse Management': LucideHome,
   'LucideBell': LucideBell,
   'LucideMegaphone': LucideMegaphone
 }
