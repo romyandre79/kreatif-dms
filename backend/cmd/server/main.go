@@ -399,6 +399,9 @@ func main() {
 	intakeGroup.Get("/labels", intakeHandler.GetLabelingDocuments)
 	intakeGroup.Get("/labels/stats", intakeHandler.GetLabelingStats)
 	intakeGroup.Post("/labels/print", intakeHandler.MarkAsLabeled)
+	intakeGroup.Get("/boxes/search", intakeHandler.SearchBoxes)
+	intakeGroup.Post("/boxes/assign", intakeHandler.AssignToBox)
+	intakeGroup.Get("/boxes/recommend", intakeHandler.GetRecommendation)
 
 
 	// Health check

@@ -8,7 +8,7 @@ INSERT INTO documents (
 ) RETURNING *;
 
 -- name: GetDocument :one
-SELECT d.*, dt.name as type_name
+SELECT d.*, dt.name as type_name, dt.category_id
 FROM documents d
 LEFT JOIN document_types dt ON d.type_id = dt.id
 WHERE d.id = $1 LIMIT 1;
@@ -17,6 +17,7 @@ WHERE d.id = $1 LIMIT 1;
 SELECT 
     d.*,
     dt.name as type_name,
+    dt.category_id,
     c.name as company_name,
     b.name as branch_name,
     dept.name as department_name,

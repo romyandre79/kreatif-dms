@@ -5,6 +5,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/kreatif/dms-backend/internal/service"
 	"github.com/kreatif/dms-backend/pkg/response"
+	"strings"
 )
 
 type IntakeHandler struct {
@@ -162,4 +163,52 @@ func (h *IntakeHandler) GetLabelingStats(c fiber.Ctx) error {
 	}
 	return response.Success(c, fiber.StatusOK, "Stats retrieved successfully", stats)
 }
+
+func (h *IntakeHandler) SearchBoxes(c fiber.Ctx) error {
+	query := c.Query("q")
+	boxes, err := h.svc.SearchBoxes(c.Context(), query)
+	if err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to search boxes", err.Error())
+	}
+	return response.Success(c, fiber.StatusOK, "Boxes retrieved successfully", boxes)
+}
+
+func (h *IntakeHandler) AssignToBox(c fiber.Ctx) error {
+	var req struct {
+		DocumentIDs []uuid.UUID `json:"document_ids"`
+		BoxID       *uuid.UUID  `json:"box_id"`
+	}
+	if err := c.Bind().JSON(&req); err != nil {
+		return response.Error(c, fiber.StatusBadRequest, "Invalid request", err.Error())
+	}
+
+	err := h.svc.MarkAsArchivedBulk(c.Context(), req.DocumentIDs, req.BoxID)
+	if err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to assign to box", err.Error())
+	}
+	return response.Success(c, fiber.StatusOK, "Documents assigned to box successfully", nil)
+}
+
+func (h *IntakeHandler) GetRecommendation(c fiber.Ctx) error {
+	idsStr := c.Query("ids")
+	if idsStr == "" {
+		return response.Error(c, fiber.StatusBadRequest, "No IDs provided", "")
+	}
+
+	idStrs := strings.Split(idsStr, ",")
+	docIDs := make([]uuid.UUID, 0, len(idStrs))
+	for _, s := range idStrs {
+		if id, err := uuid.Parse(s); err == nil {
+			docIDs = append(docIDs, id)
+		}
+	}
+
+	recommendation, err := h.svc.GetSmartRecommendation(c.Context(), docIDs)
+	if err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to get recommendation", err.Error())
+	}
+	return response.Success(c, fiber.StatusOK, "Recommendation retrieved", recommendation)
+}
+
+
 

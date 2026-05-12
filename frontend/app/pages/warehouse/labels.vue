@@ -203,29 +203,16 @@ const toggleSelectItem = (id) => {
   }
 }
 
-const handleBulkPrint = async () => {
+const handleBulkPrint = () => {
   if (selectedItems.value.length === 0) return
   
-  printing.value = true
-  try {
-    // Simulate printing delay
-    await new Promise(resolve => setTimeout(resolve, 2000))
-    
-    await $api('/intake/labels/print', {
-      method: 'POST',
-      body: {
-        document_ids: selectedItems.value
-      }
-    })
-    
-    selectedItems.value = []
-    await fetchData()
-    alert('Label berhasil dicetak dan status diperbarui.')
-  } catch (err) {
-    alert('Gagal mencetak label: ' + err.message)
-  } finally {
-    printing.value = false
-  }
+  // Navigate to assignment page with selected IDs
+  navigateTo({
+    path: '/warehouse/labels-print-assignment',
+    query: {
+      ids: selectedItems.value.join(',')
+    }
+  })
 }
 
 watch(activeTab, () => {

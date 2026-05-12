@@ -55,6 +55,7 @@ type Querier interface {
 	DeleteRole(ctx context.Context, id int32) error
 	DeleteSystemModule(ctx context.Context, id string) error
 	DeleteUser(ctx context.Context, id uuid.UUID) error
+	FindEligibleBoxes(ctx context.Context, arg FindEligibleBoxesParams) ([]FindEligibleBoxesRow, error)
 	GetActiveAnnouncement(ctx context.Context) (Announcement, error)
 	GetActiveDocControllers(ctx context.Context) ([]GetActiveDocControllersRow, error)
 	GetActivityLogsByEntity(ctx context.Context, arg GetActivityLogsByEntityParams) ([]GetActivityLogsByEntityRow, error)
@@ -159,6 +160,7 @@ type Querier interface {
 	MarkAllAsRead(ctx context.Context, userID uuid.UUID) error
 	MarkAsRead(ctx context.Context, arg MarkAsReadParams) error
 	RejectTask(ctx context.Context, arg RejectTaskParams) error
+	SearchBoxes(ctx context.Context, dollar_1 pgtype.Text) ([]SearchBoxesRow, error)
 	UpdateAnnouncement(ctx context.Context, arg UpdateAnnouncementParams) (Announcement, error)
 	UpdateBatchProgress(ctx context.Context, id uuid.UUID) error
 	UpdateBox(ctx context.Context, arg UpdateBoxParams) (Box, error)

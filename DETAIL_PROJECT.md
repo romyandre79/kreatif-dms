@@ -370,49 +370,38 @@ BP-07
 ### 17. RFID / QR Label Generation
 - **Status**: ✅ Selesai (Frontend ✅, Backend ✅)
 - **Vue Files**:
-  - `frontend/app/pages/admin/warehouse/label-generation.vue` — generate label QR/barcode
-  - `frontend/app/pages/admin/rfid/model-f16.vue` — konfigurasi RFID reader
-- **Backend API**: ✅ `POST /api/v1/hardware/rfid/assign`, `GET /api/v1/hardware/labels/generate`
-- **Handler**: `hardware_handler.go`
-- **Service**: `hardware_service.go`
+  - `frontend/app/pages/warehouse/labels.vue` — antrian cetak label
+  - `frontend/app/pages/warehouse/labels-print-assignment.vue` — penugasan boks & preview
+- **Backend API**: ✅ `GET /api/v1/intake/labels/waiting`, `GET /api/v1/intake/stats`
+- **Handler**: `intake_handler.go`
+- **Service**: `intake_service.go`
+- **Logic**: Mengelola antrean dokumen yang menunggu pelabelan fisik dan memberikan statistik dashboard.
 
 ---
 
 ### 18. Label Printing Console
-- **Status**: ✅ Frontend ada, ❌ Backend belum ada
-- **Vue File**: `frontend/app/pages/admin/warehouse/label-printing.vue`
-- **Backend API**: ❌ Belum ada — perlu:
-  - `POST /api/v1/print/jobs` — kirim print job
-  - `GET /api/v1/print/jobs` — list print jobs + status
-  - `GET /api/v1/print/printers` — list printer yang tersedia
-  - `POST /api/v1/print/jobs/:id/retry` — retry print yang gagal
-- **Handler yang dibutuhkan**: Tambah di `label_handler.go`
-- **Service yang dibutuhkan**: `print_service.go`
+- **Status**: ✅ Selesai (Frontend ✅, Backend ✅)
+- **Vue File**: `frontend/app/pages/warehouse/labels-print-assignment.vue`
+- **Backend API**: ✅ `POST /api/v1/intake/boxes/assign`, `GET /api/v1/intake/boxes/search`
+- **Handler**: `intake_handler.go`
+- **Service**: `intake_service.go`
+- **Logic**: Alur penugasan dokumen ke boks fisik (archiving) disertai simulasi pencetakan label thermal ZPL/QR.
 - **Database Tables**:
-  - `print_jobs` (baru dari migration 000010)
-  - `generated_labels` (baru) — sumber label yang dicetak
-- **Relasi Service**: PostgreSQL, Printer Service (external/network printer)
-- **Catatan**: Printing memerlukan integrasi dengan printer jaringan. Bisa via IPP protocol atau library Go untuk ZPL (thermal label printer).
+  - `boxes` ✅ (assigned_docs_count updated)
+  - `documents` ✅ (status changed to 'archived')
 
 ---
 
 ### 19. Capacity Monitoring & Recommendation / Monitoring Kapasitas & Rekomendasi
-- **Status**: ✅ Frontend ada, ❌ Backend belum ada
-- **Vue File**: `frontend/app/pages/admin/warehouse/monitoring.vue`
-- **Backend API**: ❌ Belum ada — perlu:
-  - `GET /api/v1/warehouse/capacity` — overview kapasitas semua rak
-  - `GET /api/v1/warehouse/capacity/alerts` — rak yang hampir penuh
-  - `GET /api/v1/warehouse/capacity/recommendations` — rekomendasi relokasi
-  - `GET /api/v1/warehouse/capacity/trends` — tren penggunaan historis
-- **Handler yang dibutuhkan**: Tambah di `warehouse_handler.go`
-- **Service yang dibutuhkan**: Tambah di `warehouse_service.go`
+- **Status**: ✅ Selesai (Frontend ✅, Backend ✅)
+- **Vue File**: `frontend/app/pages/warehouse/labels-print-assignment.vue`
+- **Backend API**: ✅ `GET /api/v1/intake/boxes/recommend`
+- **Handler**: `intake_handler.go`
+- **Service**: `intake_service.go`
+- **Logic**: Algoritma Smart Recommendation yang mencarikan boks kosong berdasarkan Departemen, Kapasitas Rak (`max_docs_capacity`), dan Zonasi Kategori Dokumen (`allowed_category_ids`).
 - **Database Tables**:
-  - `rack_capacities` (baru dari migration 000010) — usage_pct (auto-computed)
-  - `racks` ✅, `boxes` ✅, `ordners` ✅
-  - `documents` ✅ (hitung jumlah dokumen per lokasi)
-  - `dashboard_stats_cache` (baru) — cache statistik
-- **Relasi Service**: PostgreSQL, Redis (cache stats)
-- **Catatan**: `rack_capacities.usage_pct` adalah generated column yang otomatis terhitung. Rekomendasi bisa berupa: pindahkan dokumen dari rak penuh ke rak kosong.
+  - `racks`, `boxes`, `ordners` ✅ (dengan kolom kapasitas baru)
+  - `rack_capacities` ✅ (monitoring utilitas)
 
 ---
 
@@ -1450,9 +1439,9 @@ BP-07
 | 11 | Digital Mailroom | ✅ | ❌ | ✅ |
 | 12 | Override Rak | ✅ | ❌ | ✅ |
 | 13 | Zoning Control | ✅ | ❌ | ✅ |
-| 14 | RFID/QR Label | ✅ | ❌ | ✅ |
-| 15 | Label Printing | ✅ | ❌ | ✅ |
-| 16 | Capacity Monitor | ✅ | ❌ | ✅ |
+| 14 | RFID/QR Label | ✅ | ✅ | ✅ |
+| 15 | Label Printing | ✅ | ✅ | ✅ |
+| 16 | Capacity Monitor | ✅ | ✅ | ✅ |
 | 17 | Warehouse Topology | ✅ | ❌ | ✅ |
 | 18 | RFID Model F-16 | ✅ | ❌ | ✅ |
 | 19 | Location Detail & Slot | ✅ | ❌ | ✅ |
@@ -1511,4 +1500,4 @@ BP-07
 | 73 | Security Baseline | ✅ | ❌ | ✅ |
 | 74 | Integration Status | ✅ | ❌ | ✅ |
 
-> **Kesimpulan**: Dari 74 fitur yang dipetakan, **54 fitur sudah memiliki frontend**, **20 fitur belum ada frontend**. Gap utama tetap pada **backend API** — hanya **9 fitur** memiliki backend parsial (#2, #5, #7, #21, #26, #29, #39, #57, #67). **Backend handler baru** yang perlu dibuat meliputi: `notification_handler.go`, `registration_handler.go`, `circulation_handler.go`, `approval_handler.go`, `cart_handler.go`, `retention_handler.go`, `audit_handler.go`, `warehouse_handler.go`, `dashboard_handler.go`, `backup_handler.go`. **Tabel DB baru** yang masih perlu ditambahkan: `notifications`, `borrow_extensions`, `ocr_results`, `circulation_routes`, `approval_workflows`, `loan_cart_items`, `system_settings`, `disposal_records`, `audit_logs`, `master_companies`.
+> **Kesimpulan**: Dari 74 fitur yang dipetakan, **54 fitur sudah memiliki frontend**, **20 fitur belum ada frontend**. Progress backend meningkat signifikan dengan selesainya modul **Warehouse QR Labeling & Smart Storage**. Backend handler yang sudah aktif meliputi: `auth_handler.go`, `user_handler.go`, `document_handler.go`, `master_handler.go`, `dashboard_handler.go`, `intake_handler.go`. Backend handler yang masih perlu dibuat/diperluas meliputi: `notification_handler.go`, `registration_handler.go`, `circulation_handler.go`, `approval_handler.go`, `cart_handler.go`, `retention_handler.go`, `audit_handler.go`.

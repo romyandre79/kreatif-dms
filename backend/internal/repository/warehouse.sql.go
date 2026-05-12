@@ -12,6 +12,70 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const findEligibleBoxes = `-- name: FindEligibleBoxes :many
+SELECT 
+    bx.id, bx.name, r.id as rack_id, r.name as rack_name,
+    d.id as department_id, d.name as department_name,
+    bx.max_docs_capacity,
+    (SELECT COUNT(*) FROM documents WHERE box_id = bx.id) as current_docs,
+    r.location_detail
+FROM boxes bx
+JOIN racks r ON bx.rack_id = r.id
+JOIN departments d ON r.department_id = d.id
+WHERE d.id = $1
+  AND (r.allowed_category_ids IS NULL OR cardinality(r.allowed_category_ids) = 0 OR $2::uuid = ANY(r.allowed_category_ids))
+  AND (SELECT COUNT(*) FROM documents WHERE box_id = bx.id) < bx.max_docs_capacity
+ORDER BY (bx.max_docs_capacity - (SELECT COUNT(*) FROM documents WHERE box_id = bx.id)) ASC
+LIMIT 5
+`
+
+type FindEligibleBoxesParams struct {
+	DepartmentID uuid.UUID `json:"department_id"`
+	CategoryID   uuid.UUID `json:"category_id"`
+}
+
+type FindEligibleBoxesRow struct {
+	ID              uuid.UUID   `json:"id"`
+	Name            string      `json:"name"`
+	RackID          uuid.UUID   `json:"rack_id"`
+	RackName        string      `json:"rack_name"`
+	DepartmentID    uuid.UUID   `json:"department_id"`
+	DepartmentName  string      `json:"department_name"`
+	MaxDocsCapacity pgtype.Int4 `json:"max_docs_capacity"`
+	CurrentDocs     int64       `json:"current_docs"`
+	LocationDetail  pgtype.Text `json:"location_detail"`
+}
+
+func (q *Queries) FindEligibleBoxes(ctx context.Context, arg FindEligibleBoxesParams) ([]FindEligibleBoxesRow, error) {
+	rows, err := q.db.Query(ctx, findEligibleBoxes, arg.DepartmentID, arg.CategoryID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []FindEligibleBoxesRow
+	for rows.Next() {
+		var i FindEligibleBoxesRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.RackID,
+			&i.RackName,
+			&i.DepartmentID,
+			&i.DepartmentName,
+			&i.MaxDocsCapacity,
+			&i.CurrentDocs,
+			&i.LocationDetail,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getLabelingStats = `-- name: GetLabelingStats :one
 SELECT 
     COUNT(*) FILTER (WHERE status = 'digitized') as waiting_count,
@@ -88,19 +152,77 @@ func (q *Queries) ListDocumentsForLabeling(ctx context.Context, status string) (
 	return items, nil
 }
 
+const searchBoxes = `-- name: SearchBoxes :many
+SELECT 
+    bx.id, bx.name, r.name as rack_name, d.name as department_name,
+    c.name as company_name, b.name as branch_name,
+    r.location_detail
+FROM boxes bx
+JOIN racks r ON bx.rack_id = r.id
+JOIN departments d ON r.department_id = d.id
+JOIN branches b ON d.branch_id = b.id
+JOIN companies c ON b.company_id = c.id
+WHERE bx.name ILIKE '%' || $1 || '%' 
+   OR r.name ILIKE '%' || $1 || '%'
+ORDER BY bx.name
+LIMIT 20
+`
+
+type SearchBoxesRow struct {
+	ID             uuid.UUID   `json:"id"`
+	Name           string      `json:"name"`
+	RackName       string      `json:"rack_name"`
+	DepartmentName string      `json:"department_name"`
+	CompanyName    string      `json:"company_name"`
+	BranchName     string      `json:"branch_name"`
+	LocationDetail pgtype.Text `json:"location_detail"`
+}
+
+func (q *Queries) SearchBoxes(ctx context.Context, dollar_1 pgtype.Text) ([]SearchBoxesRow, error) {
+	rows, err := q.db.Query(ctx, searchBoxes, dollar_1)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []SearchBoxesRow
+	for rows.Next() {
+		var i SearchBoxesRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.RackName,
+			&i.DepartmentName,
+			&i.CompanyName,
+			&i.BranchName,
+			&i.LocationDetail,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const updateDocumentPhysicalStatusBulk = `-- name: UpdateDocumentPhysicalStatusBulk :exec
 UPDATE documents
-SET physical_status = $2, updated_at = NOW()
+SET 
+    physical_status = $2, 
+    box_id = COALESCE(NULLIF($3::text, '')::uuid, box_id),
+    updated_at = NOW()
 WHERE id = ANY($1::uuid[])
 `
 
 type UpdateDocumentPhysicalStatusBulkParams struct {
 	Column1        []uuid.UUID `json:"column_1"`
 	PhysicalStatus pgtype.Text `json:"physical_status"`
+	BoxID          string      `json:"box_id"`
 }
 
 func (q *Queries) UpdateDocumentPhysicalStatusBulk(ctx context.Context, arg UpdateDocumentPhysicalStatusBulkParams) error {
-	_, err := q.db.Exec(ctx, updateDocumentPhysicalStatusBulk, arg.Column1, arg.PhysicalStatus)
+	_, err := q.db.Exec(ctx, updateDocumentPhysicalStatusBulk, arg.Column1, arg.PhysicalStatus, arg.BoxID)
 	return err
 }
 

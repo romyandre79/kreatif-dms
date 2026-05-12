@@ -109,19 +109,21 @@ type BorrowRequest struct {
 }
 
 type Box struct {
-	ID        uuid.UUID          `json:"id"`
-	RackID    uuid.UUID          `json:"rack_id"`
-	Name      string             `json:"name"`
-	CreatedAt pgtype.Timestamptz `json:"created_at"`
+	ID              uuid.UUID          `json:"id"`
+	RackID          uuid.UUID          `json:"rack_id"`
+	Name            string             `json:"name"`
+	CreatedAt       pgtype.Timestamptz `json:"created_at"`
+	MaxDocsCapacity pgtype.Int4        `json:"max_docs_capacity"`
 }
 
 type Branch struct {
-	ID        uuid.UUID          `json:"id"`
-	CompanyID uuid.UUID          `json:"company_id"`
-	Name      string             `json:"name"`
-	Location  pgtype.Text        `json:"location"`
-	HeadID    pgtype.UUID        `json:"head_id"`
-	CreatedAt pgtype.Timestamptz `json:"created_at"`
+	ID              uuid.UUID          `json:"id"`
+	CompanyID       uuid.UUID          `json:"company_id"`
+	Name            string             `json:"name"`
+	Location        pgtype.Text        `json:"location"`
+	HeadID          pgtype.UUID        `json:"head_id"`
+	CreatedAt       pgtype.Timestamptz `json:"created_at"`
+	MaxDocsCapacity pgtype.Int4        `json:"max_docs_capacity"`
 }
 
 type Company struct {
@@ -135,6 +137,7 @@ type Company struct {
 	Status               pgtype.Text        `json:"status"`
 	LogoUrl              pgtype.Text        `json:"logo_url"`
 	DeliveryInstructions pgtype.Text        `json:"delivery_instructions"`
+	MaxDocsCapacity      pgtype.Int4        `json:"max_docs_capacity"`
 }
 
 type ComplianceCheck struct {
@@ -172,11 +175,12 @@ type DashboardStatsCache struct {
 }
 
 type Department struct {
-	ID        uuid.UUID          `json:"id"`
-	BranchID  uuid.UUID          `json:"branch_id"`
-	Name      string             `json:"name"`
-	HeadID    pgtype.UUID        `json:"head_id"`
-	CreatedAt pgtype.Timestamptz `json:"created_at"`
+	ID              uuid.UUID          `json:"id"`
+	BranchID        uuid.UUID          `json:"branch_id"`
+	Name            string             `json:"name"`
+	HeadID          pgtype.UUID        `json:"head_id"`
+	CreatedAt       pgtype.Timestamptz `json:"created_at"`
+	MaxDocsCapacity pgtype.Int4        `json:"max_docs_capacity"`
 }
 
 type DestructionLog struct {
@@ -546,10 +550,11 @@ type OcrJob struct {
 }
 
 type Ordner struct {
-	ID        uuid.UUID          `json:"id"`
-	BoxID     uuid.UUID          `json:"box_id"`
-	Name      string             `json:"name"`
-	CreatedAt pgtype.Timestamptz `json:"created_at"`
+	ID              uuid.UUID          `json:"id"`
+	BoxID           uuid.UUID          `json:"box_id"`
+	Name            string             `json:"name"`
+	CreatedAt       pgtype.Timestamptz `json:"created_at"`
+	MaxDocsCapacity pgtype.Int4        `json:"max_docs_capacity"`
 }
 
 type PhysicalManifest struct {
@@ -600,11 +605,14 @@ type ProcessingBatch struct {
 }
 
 type Rack struct {
-	ID             uuid.UUID          `json:"id"`
-	DepartmentID   uuid.UUID          `json:"department_id"`
-	Name           string             `json:"name"`
-	LocationDetail pgtype.Text        `json:"location_detail"`
-	CreatedAt      pgtype.Timestamptz `json:"created_at"`
+	ID                 uuid.UUID          `json:"id"`
+	DepartmentID       uuid.UUID          `json:"department_id"`
+	Name               string             `json:"name"`
+	LocationDetail     pgtype.Text        `json:"location_detail"`
+	CreatedAt          pgtype.Timestamptz `json:"created_at"`
+	MaxBoxesCapacity   pgtype.Int4        `json:"max_boxes_capacity"`
+	AllowedCategoryIds []uuid.UUID        `json:"allowed_category_ids"`
+	AllowedTypeIds     []uuid.UUID        `json:"allowed_type_ids"`
 }
 
 type RackCapacity struct {
@@ -773,6 +781,17 @@ type StockOpnameSession struct {
 	ResolutionNote pgtype.Text        `json:"resolution_note"`
 	CreatedAt      pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt      pgtype.Timestamptz `json:"updated_at"`
+}
+
+type StorageOccupancy struct {
+	RackID           uuid.UUID   `json:"rack_id"`
+	RackName         string      `json:"rack_name"`
+	MaxBoxesCapacity pgtype.Int4 `json:"max_boxes_capacity"`
+	CurrentBoxes     int64       `json:"current_boxes"`
+	BoxID            pgtype.UUID `json:"box_id"`
+	BoxName          pgtype.Text `json:"box_name"`
+	BoxMaxDocs       pgtype.Int4 `json:"box_max_docs"`
+	CurrentDocs      int64       `json:"current_docs"`
 }
 
 type SystemModule struct {

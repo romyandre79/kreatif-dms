@@ -11,6 +11,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/kreatif/dms-backend/internal/repository"
+	"errors"
 )
 
 type IntakeService struct {
@@ -74,6 +75,16 @@ type LabelingStats struct {
 	WaitingCount int64 `json:"waiting_count"`
 	PrintedCount int64 `json:"printed_count"`
 	StoredCount  int64 `json:"stored_count"`
+}
+
+type BoxInfo struct {
+	ID             uuid.UUID `json:"id"`
+	Name           string    `json:"name"`
+	RackName       string    `json:"rack_name"`
+	DepartmentName string    `json:"department_name"`
+	CompanyName    string    `json:"company_name"`
+	BranchName     string    `json:"branch_name"`
+	LocationDetail string    `json:"location_detail"`
 }
 
 func (s *IntakeService) GetDocumentByManifestID(ctx context.Context, idStr string) (*ManifestDetail, error) {
@@ -600,4 +611,86 @@ func (s *IntakeService) GetLabelingStats(ctx context.Context) (*LabelingStats, e
 		StoredCount:  stats.StoredCount,
 	}, nil
 }
+
+func (s *IntakeService) SearchBoxes(ctx context.Context, query string) ([]BoxInfo, error) {
+	items, err := s.repo.SearchBoxes(ctx, pgtype.Text{String: query, Valid: true})
+	if err != nil {
+		return nil, err
+	}
+
+	result := make([]BoxInfo, 0, len(items))
+	for _, item := range items {
+		result = append(result, BoxInfo{
+			ID:             item.ID,
+			Name:           item.Name,
+			RackName:       item.RackName,
+			DepartmentName: item.DepartmentName,
+			CompanyName:    item.CompanyName,
+			BranchName:     item.BranchName,
+			LocationDetail: item.LocationDetail.String,
+		})
+	}
+	return result, nil
+}
+
+func (s *IntakeService) MarkAsArchivedBulk(ctx context.Context, docIDs []uuid.UUID, boxID *uuid.UUID) error {
+	// 1. Update manifest items status to 'archived'
+	err := s.repo.UpdateManifestItemStatusBulk(ctx, repository.UpdateManifestItemStatusBulkParams{
+		Column1: docIDs,
+		Status:  "archived",
+	})
+	if err != nil {
+		return err
+	}
+
+	// 2. Update documents physical status and box_id
+	boxIDStr := ""
+	if boxID != nil {
+		boxIDStr = boxID.String()
+	}
+
+	return s.repo.UpdateDocumentPhysicalStatusBulk(ctx, repository.UpdateDocumentPhysicalStatusBulkParams{
+		Column1:        docIDs,
+		PhysicalStatus: pgtype.Text{String: "archived", Valid: true},
+		BoxID:          boxIDStr,
+	})
+}
+
+func (s *IntakeService) GetSmartRecommendation(ctx context.Context, docIDs []uuid.UUID) (*BoxInfo, error) {
+	if len(docIDs) == 0 {
+		return nil, errors.New("no documents provided")
+	}
+
+	// 1. Get first document metadata to determine zonation requirements
+	doc, err := s.repo.GetDocument(ctx, docIDs[0])
+	if err != nil {
+		return nil, err
+	}
+
+	// 2. Find eligible boxes based on department, category zonation, and capacity
+	var categoryID uuid.UUID
+	if doc.CategoryID.Valid {
+		categoryID = doc.CategoryID.Bytes
+	}
+
+	boxes, err := s.repo.FindEligibleBoxes(ctx, repository.FindEligibleBoxesParams{
+		DepartmentID: doc.DepartmentID,
+		CategoryID:   categoryID,
+	})
+	if err != nil || len(boxes) == 0 {
+		return nil, nil // No recommendation found
+	}
+
+	// 3. Return the best one (highest occupancy first to fill partially empty boxes)
+	best := boxes[0]
+	return &BoxInfo{
+		ID:             best.ID,
+		Name:           best.Name,
+		RackName:       best.RackName,
+		DepartmentName: best.DepartmentName,
+		LocationDetail: best.LocationDetail.String,
+	}, nil
+}
+
+
 
