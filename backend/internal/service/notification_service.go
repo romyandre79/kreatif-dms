@@ -10,12 +10,13 @@ import (
 )
 
 type NotificationService struct {
-	repo    repository.Querier
-	waSvc   *infra.WhatsAppService
+	repo     repository.Querier
+	waSvc    *infra.WhatsAppService
+	emailSvc *infra.EmailService
 }
 
-func NewNotificationService(repo repository.Querier, waSvc *infra.WhatsAppService) *NotificationService {
-	return &NotificationService{repo: repo, waSvc: waSvc}
+func NewNotificationService(repo repository.Querier, waSvc *infra.WhatsAppService, emailSvc *infra.EmailService) *NotificationService {
+	return &NotificationService{repo: repo, waSvc: waSvc, emailSvc: emailSvc}
 }
 
 func (s *NotificationService) GetUserNotifications(ctx context.Context, userID uuid.UUID, limit, offset int32) ([]repository.Notification, error) {
@@ -47,5 +48,24 @@ func (s *NotificationService) CreateNotification(ctx context.Context, arg reposi
 		log.Printf("[NotificationService] Failed to create notification: %v", err)
 		return repository.Notification{}, err
 	}
+
+	// Trigger Email if type matches a template slug
+	go func() {
+		user, err := s.repo.GetUserByID(context.Background(), notif.UserID)
+		if err != nil {
+			return
+		}
+
+		data := map[string]string{
+			"fullName": user.FullName,
+			"body":     notif.Body.String,
+			"title":    notif.Title,
+		}
+
+		// Try to send using the specific slug if provided in notification type
+		// For now, we use simple mapping or check if slug exists
+		_ = s.emailSvc.SendTemplatedEmail(context.Background(), notif.Type, user.Email, data)
+	}()
+
 	return notif, nil
 }

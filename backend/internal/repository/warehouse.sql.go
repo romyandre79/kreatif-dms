@@ -14,18 +14,17 @@ import (
 
 const findEligibleBoxes = `-- name: FindEligibleBoxes :many
 SELECT 
-    bx.id, bx.name, r.id as rack_id, r.name as rack_name,
-    d.id as department_id, d.name as department_name,
-    bx.max_docs_capacity,
-    (SELECT COUNT(*) FROM documents WHERE box_id = bx.id) as current_docs,
-    r.location_detail
-FROM boxes bx
-JOIN racks r ON bx.rack_id = r.id
+    b.id, b.rack_id, b.name, b.created_at, b.max_docs_capacity, b.current_docs_count, 
+    r.name as rack_name, 
+    r.location_detail,
+    d.name as department_name
+FROM boxes b
+JOIN racks r ON b.rack_id = r.id
 JOIN departments d ON r.department_id = d.id
-WHERE d.id = $1
-  AND (r.allowed_category_ids IS NULL OR cardinality(r.allowed_category_ids) = 0 OR $2::uuid = ANY(r.allowed_category_ids))
-  AND (SELECT COUNT(*) FROM documents WHERE box_id = bx.id) < bx.max_docs_capacity
-ORDER BY (bx.max_docs_capacity - (SELECT COUNT(*) FROM documents WHERE box_id = bx.id)) ASC
+WHERE r.department_id = $1
+  AND (r.allowed_category_ids IS NULL OR $2::uuid = ANY(r.allowed_category_ids))
+  AND b.current_docs_count < b.max_docs_capacity
+ORDER BY (b.max_docs_capacity - b.current_docs_count) DESC
 LIMIT 5
 `
 
@@ -35,15 +34,15 @@ type FindEligibleBoxesParams struct {
 }
 
 type FindEligibleBoxesRow struct {
-	ID              uuid.UUID   `json:"id"`
-	Name            string      `json:"name"`
-	RackID          uuid.UUID   `json:"rack_id"`
-	RackName        string      `json:"rack_name"`
-	DepartmentID    uuid.UUID   `json:"department_id"`
-	DepartmentName  string      `json:"department_name"`
-	MaxDocsCapacity pgtype.Int4 `json:"max_docs_capacity"`
-	CurrentDocs     int64       `json:"current_docs"`
-	LocationDetail  pgtype.Text `json:"location_detail"`
+	ID               uuid.UUID          `json:"id"`
+	RackID           uuid.UUID          `json:"rack_id"`
+	Name             string             `json:"name"`
+	CreatedAt        pgtype.Timestamptz `json:"created_at"`
+	MaxDocsCapacity  pgtype.Int4        `json:"max_docs_capacity"`
+	CurrentDocsCount pgtype.Int4        `json:"current_docs_count"`
+	RackName         string             `json:"rack_name"`
+	LocationDetail   pgtype.Text        `json:"location_detail"`
+	DepartmentName   string             `json:"department_name"`
 }
 
 func (q *Queries) FindEligibleBoxes(ctx context.Context, arg FindEligibleBoxesParams) ([]FindEligibleBoxesRow, error) {
@@ -57,14 +56,14 @@ func (q *Queries) FindEligibleBoxes(ctx context.Context, arg FindEligibleBoxesPa
 		var i FindEligibleBoxesRow
 		if err := rows.Scan(
 			&i.ID,
-			&i.Name,
 			&i.RackID,
-			&i.RackName,
-			&i.DepartmentID,
-			&i.DepartmentName,
+			&i.Name,
+			&i.CreatedAt,
 			&i.MaxDocsCapacity,
-			&i.CurrentDocs,
+			&i.CurrentDocsCount,
+			&i.RackName,
 			&i.LocationDetail,
+			&i.DepartmentName,
 		); err != nil {
 			return nil, err
 		}

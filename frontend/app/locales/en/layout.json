@@ -109,7 +109,8 @@
       "notification_menu": "Notifications",
       "notificaton": "Notifications",
       "announcements": "System Announcements",
-      "inbound_registration": "Inbound Registration"
+      "inbound_registration": "Inbound Registration",
+      "email_templates": "Email Templates"
     }
   }
 }

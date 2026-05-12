@@ -73,6 +73,7 @@ type Querier interface {
 	GetDocumentType(ctx context.Context, id uuid.UUID) (DocumentType, error)
 	GetDocumentWithDetails(ctx context.Context, id uuid.UUID) (GetDocumentWithDetailsRow, error)
 	GetDocumentsByBatch(ctx context.Context, batchID pgtype.UUID) ([]Document, error)
+	GetEmailTemplateBySlug(ctx context.Context, slug string) (EmailTemplate, error)
 	GetIntakeStats(ctx context.Context) (GetIntakeStatsRow, error)
 	GetIntegrationNode(ctx context.Context, id uuid.UUID) (IntegrationNode, error)
 	GetIntegrationNodeByEndpoint(ctx context.Context, arg GetIntegrationNodeByEndpointParams) (IntegrationNode, error)
@@ -133,6 +134,7 @@ type Querier interface {
 	ListDocumentTypes(ctx context.Context) ([]ListDocumentTypesRow, error)
 	ListDocumentsByDepartment(ctx context.Context, departmentID uuid.UUID) ([]Document, error)
 	ListDocumentsForLabeling(ctx context.Context, status string) ([]ListDocumentsForLabelingRow, error)
+	ListEmailTemplates(ctx context.Context) ([]EmailTemplate, error)
 	ListIntegrationNodes(ctx context.Context) ([]IntegrationNode, error)
 	ListNotifications(ctx context.Context, arg ListNotificationsParams) ([]Notification, error)
 	ListOCRJobs(ctx context.Context, arg ListOCRJobsParams) ([]ListOCRJobsRow, error)
@@ -176,6 +178,7 @@ type Querier interface {
 	UpdateDocumentPhysicalStatusBulk(ctx context.Context, arg UpdateDocumentPhysicalStatusBulkParams) error
 	UpdateDocumentStatus(ctx context.Context, arg UpdateDocumentStatusParams) error
 	UpdateDocumentType(ctx context.Context, arg UpdateDocumentTypeParams) (DocumentType, error)
+	UpdateEmailTemplate(ctx context.Context, arg UpdateEmailTemplateParams) (EmailTemplate, error)
 	UpdateIntegrationNodeConfig(ctx context.Context, arg UpdateIntegrationNodeConfigParams) (IntegrationNode, error)
 	UpdateIntegrationNodeStatus(ctx context.Context, arg UpdateIntegrationNodeStatusParams) (IntegrationNode, error)
 	UpdateManifestItemStatus(ctx context.Context, arg UpdateManifestItemStatusParams) error

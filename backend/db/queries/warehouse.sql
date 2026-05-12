@@ -51,17 +51,15 @@ LIMIT 20;
 
 -- name: FindEligibleBoxes :many
 SELECT 
-    bx.id, bx.name, r.id as rack_id, r.name as rack_name,
-    d.id as department_id, d.name as department_name,
-    bx.max_docs_capacity,
-    (SELECT COUNT(*) FROM documents WHERE box_id = bx.id) as current_docs,
-    r.location_detail
-FROM boxes bx
-JOIN racks r ON bx.rack_id = r.id
+    b.*, 
+    r.name as rack_name, 
+    r.location_detail,
+    d.name as department_name
+FROM boxes b
+JOIN racks r ON b.rack_id = r.id
 JOIN departments d ON r.department_id = d.id
-WHERE d.id = @department_id
-  AND (r.allowed_category_ids IS NULL OR cardinality(r.allowed_category_ids) = 0 OR @category_id::uuid = ANY(r.allowed_category_ids))
-  AND (SELECT COUNT(*) FROM documents WHERE box_id = bx.id) < bx.max_docs_capacity
-ORDER BY (bx.max_docs_capacity - (SELECT COUNT(*) FROM documents WHERE box_id = bx.id)) ASC
+WHERE r.department_id = @department_id
+  AND (r.allowed_category_ids IS NULL OR @category_id::uuid = ANY(r.allowed_category_ids))
+  AND b.current_docs_count < b.max_docs_capacity
+ORDER BY (b.max_docs_capacity - b.current_docs_count) DESC
 LIMIT 5;
-

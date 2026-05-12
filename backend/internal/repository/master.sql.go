@@ -39,7 +39,7 @@ func (q *Queries) ClearRolePermissions(ctx context.Context, roleID int32) error 
 const createBox = `-- name: CreateBox :one
 INSERT INTO boxes (rack_id, name)
 VALUES ($1, $2)
-RETURNING id, rack_id, name, created_at, max_docs_capacity
+RETURNING id, rack_id, name, created_at, max_docs_capacity, current_docs_count
 `
 
 type CreateBoxParams struct {
@@ -56,6 +56,7 @@ func (q *Queries) CreateBox(ctx context.Context, arg CreateBoxParams) (Box, erro
 		&i.Name,
 		&i.CreatedAt,
 		&i.MaxDocsCapacity,
+		&i.CurrentDocsCount,
 	)
 	return i, err
 }
@@ -63,7 +64,7 @@ func (q *Queries) CreateBox(ctx context.Context, arg CreateBoxParams) (Box, erro
 const createBranch = `-- name: CreateBranch :one
 INSERT INTO branches (company_id, name, location, head_id)
 VALUES ($1, $2, $3, $4)
-RETURNING id, company_id, name, location, head_id, created_at, max_docs_capacity
+RETURNING id, company_id, name, location, head_id, created_at, max_docs_capacity, current_docs_count
 `
 
 type CreateBranchParams struct {
@@ -89,6 +90,7 @@ func (q *Queries) CreateBranch(ctx context.Context, arg CreateBranchParams) (Bra
 		&i.HeadID,
 		&i.CreatedAt,
 		&i.MaxDocsCapacity,
+		&i.CurrentDocsCount,
 	)
 	return i, err
 }
@@ -96,7 +98,7 @@ func (q *Queries) CreateBranch(ctx context.Context, arg CreateBranchParams) (Bra
 const createCompany = `-- name: CreateCompany :one
 INSERT INTO companies (name, entity_id, npwp_status, location, status, address, delivery_instructions)
 VALUES ($1, $2, $3, $4, $5, $6, $7)
-RETURNING id, name, address, created_at, entity_id, npwp_status, location, status, logo_url, delivery_instructions, max_docs_capacity
+RETURNING id, name, address, created_at, entity_id, npwp_status, location, status, logo_url, delivery_instructions, max_docs_capacity, current_docs_count
 `
 
 type CreateCompanyParams struct {
@@ -132,6 +134,7 @@ func (q *Queries) CreateCompany(ctx context.Context, arg CreateCompanyParams) (C
 		&i.LogoUrl,
 		&i.DeliveryInstructions,
 		&i.MaxDocsCapacity,
+		&i.CurrentDocsCount,
 	)
 	return i, err
 }
@@ -139,7 +142,7 @@ func (q *Queries) CreateCompany(ctx context.Context, arg CreateCompanyParams) (C
 const createDepartment = `-- name: CreateDepartment :one
 INSERT INTO departments (branch_id, name, head_id)
 VALUES ($1, $2, $3)
-RETURNING id, branch_id, name, head_id, created_at, max_docs_capacity
+RETURNING id, branch_id, name, head_id, created_at, max_docs_capacity, current_docs_count
 `
 
 type CreateDepartmentParams struct {
@@ -158,6 +161,7 @@ func (q *Queries) CreateDepartment(ctx context.Context, arg CreateDepartmentPara
 		&i.HeadID,
 		&i.CreatedAt,
 		&i.MaxDocsCapacity,
+		&i.CurrentDocsCount,
 	)
 	return i, err
 }
@@ -242,7 +246,7 @@ func (q *Queries) CreateOrdner(ctx context.Context, arg CreateOrdnerParams) (Ord
 const createRack = `-- name: CreateRack :one
 INSERT INTO racks (department_id, name, location_detail)
 VALUES ($1, $2, $3)
-RETURNING id, department_id, name, location_detail, created_at, max_boxes_capacity, allowed_category_ids, allowed_type_ids
+RETURNING id, department_id, name, location_detail, created_at, max_boxes_capacity, allowed_category_ids, allowed_type_ids, current_boxes_count
 `
 
 type CreateRackParams struct {
@@ -263,6 +267,7 @@ func (q *Queries) CreateRack(ctx context.Context, arg CreateRackParams) (Rack, e
 		&i.MaxBoxesCapacity,
 		&i.AllowedCategoryIds,
 		&i.AllowedTypeIds,
+		&i.CurrentBoxesCount,
 	)
 	return i, err
 }
@@ -484,7 +489,7 @@ func (q *Queries) DeleteSystemModule(ctx context.Context, id string) error {
 }
 
 const getBox = `-- name: GetBox :one
-SELECT id, rack_id, name, created_at, max_docs_capacity FROM boxes WHERE id = $1
+SELECT id, rack_id, name, created_at, max_docs_capacity, current_docs_count FROM boxes WHERE id = $1
 `
 
 func (q *Queries) GetBox(ctx context.Context, id uuid.UUID) (Box, error) {
@@ -496,12 +501,13 @@ func (q *Queries) GetBox(ctx context.Context, id uuid.UUID) (Box, error) {
 		&i.Name,
 		&i.CreatedAt,
 		&i.MaxDocsCapacity,
+		&i.CurrentDocsCount,
 	)
 	return i, err
 }
 
 const getBranch = `-- name: GetBranch :one
-SELECT id, company_id, name, location, head_id, created_at, max_docs_capacity FROM branches WHERE id = $1
+SELECT id, company_id, name, location, head_id, created_at, max_docs_capacity, current_docs_count FROM branches WHERE id = $1
 `
 
 func (q *Queries) GetBranch(ctx context.Context, id uuid.UUID) (Branch, error) {
@@ -515,12 +521,13 @@ func (q *Queries) GetBranch(ctx context.Context, id uuid.UUID) (Branch, error) {
 		&i.HeadID,
 		&i.CreatedAt,
 		&i.MaxDocsCapacity,
+		&i.CurrentDocsCount,
 	)
 	return i, err
 }
 
 const getCompany = `-- name: GetCompany :one
-SELECT id, name, address, created_at, entity_id, npwp_status, location, status, logo_url, delivery_instructions, max_docs_capacity FROM companies WHERE id = $1
+SELECT id, name, address, created_at, entity_id, npwp_status, location, status, logo_url, delivery_instructions, max_docs_capacity, current_docs_count FROM companies WHERE id = $1
 `
 
 func (q *Queries) GetCompany(ctx context.Context, id uuid.UUID) (Company, error) {
@@ -538,12 +545,13 @@ func (q *Queries) GetCompany(ctx context.Context, id uuid.UUID) (Company, error)
 		&i.LogoUrl,
 		&i.DeliveryInstructions,
 		&i.MaxDocsCapacity,
+		&i.CurrentDocsCount,
 	)
 	return i, err
 }
 
 const getDepartment = `-- name: GetDepartment :one
-SELECT id, branch_id, name, head_id, created_at, max_docs_capacity FROM departments WHERE id = $1
+SELECT id, branch_id, name, head_id, created_at, max_docs_capacity, current_docs_count FROM departments WHERE id = $1
 `
 
 func (q *Queries) GetDepartment(ctx context.Context, id uuid.UUID) (Department, error) {
@@ -556,6 +564,7 @@ func (q *Queries) GetDepartment(ctx context.Context, id uuid.UUID) (Department, 
 		&i.HeadID,
 		&i.CreatedAt,
 		&i.MaxDocsCapacity,
+		&i.CurrentDocsCount,
 	)
 	return i, err
 }
@@ -615,7 +624,7 @@ func (q *Queries) GetOrdner(ctx context.Context, id uuid.UUID) (Ordner, error) {
 }
 
 const getRack = `-- name: GetRack :one
-SELECT id, department_id, name, location_detail, created_at, max_boxes_capacity, allowed_category_ids, allowed_type_ids FROM racks WHERE id = $1
+SELECT id, department_id, name, location_detail, created_at, max_boxes_capacity, allowed_category_ids, allowed_type_ids, current_boxes_count FROM racks WHERE id = $1
 `
 
 func (q *Queries) GetRack(ctx context.Context, id uuid.UUID) (Rack, error) {
@@ -630,6 +639,7 @@ func (q *Queries) GetRack(ctx context.Context, id uuid.UUID) (Rack, error) {
 		&i.MaxBoxesCapacity,
 		&i.AllowedCategoryIds,
 		&i.AllowedTypeIds,
+		&i.CurrentBoxesCount,
 	)
 	return i, err
 }
@@ -840,7 +850,7 @@ func (q *Queries) GetWarehouseTopology(ctx context.Context) ([]GetWarehouseTopol
 }
 
 const listAllBoxesGlobal = `-- name: ListAllBoxesGlobal :many
-SELECT bx.id, bx.rack_id, bx.name, bx.created_at, bx.max_docs_capacity, r.name as rack_name, d.name as department_name
+SELECT bx.id, bx.rack_id, bx.name, bx.created_at, bx.max_docs_capacity, bx.current_docs_count, r.name as rack_name, d.name as department_name
 FROM boxes bx
 JOIN racks r ON bx.rack_id = r.id
 JOIN departments d ON r.department_id = d.id
@@ -848,13 +858,14 @@ ORDER BY bx.name
 `
 
 type ListAllBoxesGlobalRow struct {
-	ID              uuid.UUID          `json:"id"`
-	RackID          uuid.UUID          `json:"rack_id"`
-	Name            string             `json:"name"`
-	CreatedAt       pgtype.Timestamptz `json:"created_at"`
-	MaxDocsCapacity pgtype.Int4        `json:"max_docs_capacity"`
-	RackName        string             `json:"rack_name"`
-	DepartmentName  string             `json:"department_name"`
+	ID               uuid.UUID          `json:"id"`
+	RackID           uuid.UUID          `json:"rack_id"`
+	Name             string             `json:"name"`
+	CreatedAt        pgtype.Timestamptz `json:"created_at"`
+	MaxDocsCapacity  pgtype.Int4        `json:"max_docs_capacity"`
+	CurrentDocsCount pgtype.Int4        `json:"current_docs_count"`
+	RackName         string             `json:"rack_name"`
+	DepartmentName   string             `json:"department_name"`
 }
 
 func (q *Queries) ListAllBoxesGlobal(ctx context.Context) ([]ListAllBoxesGlobalRow, error) {
@@ -872,6 +883,7 @@ func (q *Queries) ListAllBoxesGlobal(ctx context.Context) ([]ListAllBoxesGlobalR
 			&i.Name,
 			&i.CreatedAt,
 			&i.MaxDocsCapacity,
+			&i.CurrentDocsCount,
 			&i.RackName,
 			&i.DepartmentName,
 		); err != nil {
@@ -887,7 +899,7 @@ func (q *Queries) ListAllBoxesGlobal(ctx context.Context) ([]ListAllBoxesGlobalR
 
 const listAllBranchesGlobal = `-- name: ListAllBranchesGlobal :many
 SELECT 
-    b.id, b.company_id, b.name, b.location, b.head_id, b.created_at, b.max_docs_capacity, 
+    b.id, b.company_id, b.name, b.location, b.head_id, b.created_at, b.max_docs_capacity, b.current_docs_count, 
     c.name as company_name,
     u.full_name as head_name
 FROM branches b
@@ -897,15 +909,16 @@ ORDER BY b.name
 `
 
 type ListAllBranchesGlobalRow struct {
-	ID              uuid.UUID          `json:"id"`
-	CompanyID       uuid.UUID          `json:"company_id"`
-	Name            string             `json:"name"`
-	Location        pgtype.Text        `json:"location"`
-	HeadID          pgtype.UUID        `json:"head_id"`
-	CreatedAt       pgtype.Timestamptz `json:"created_at"`
-	MaxDocsCapacity pgtype.Int4        `json:"max_docs_capacity"`
-	CompanyName     string             `json:"company_name"`
-	HeadName        pgtype.Text        `json:"head_name"`
+	ID               uuid.UUID          `json:"id"`
+	CompanyID        uuid.UUID          `json:"company_id"`
+	Name             string             `json:"name"`
+	Location         pgtype.Text        `json:"location"`
+	HeadID           pgtype.UUID        `json:"head_id"`
+	CreatedAt        pgtype.Timestamptz `json:"created_at"`
+	MaxDocsCapacity  pgtype.Int4        `json:"max_docs_capacity"`
+	CurrentDocsCount pgtype.Int4        `json:"current_docs_count"`
+	CompanyName      string             `json:"company_name"`
+	HeadName         pgtype.Text        `json:"head_name"`
 }
 
 func (q *Queries) ListAllBranchesGlobal(ctx context.Context) ([]ListAllBranchesGlobalRow, error) {
@@ -925,6 +938,7 @@ func (q *Queries) ListAllBranchesGlobal(ctx context.Context) ([]ListAllBranchesG
 			&i.HeadID,
 			&i.CreatedAt,
 			&i.MaxDocsCapacity,
+			&i.CurrentDocsCount,
 			&i.CompanyName,
 			&i.HeadName,
 		); err != nil {
@@ -940,7 +954,7 @@ func (q *Queries) ListAllBranchesGlobal(ctx context.Context) ([]ListAllBranchesG
 
 const listAllDepartments = `-- name: ListAllDepartments :many
 SELECT 
-    d.id, d.branch_id, d.name, d.head_id, d.created_at, d.max_docs_capacity, 
+    d.id, d.branch_id, d.name, d.head_id, d.created_at, d.max_docs_capacity, d.current_docs_count, 
     b.name as branch_name,
     u.full_name as head_name
 FROM departments d
@@ -950,14 +964,15 @@ ORDER BY d.name
 `
 
 type ListAllDepartmentsRow struct {
-	ID              uuid.UUID          `json:"id"`
-	BranchID        uuid.UUID          `json:"branch_id"`
-	Name            string             `json:"name"`
-	HeadID          pgtype.UUID        `json:"head_id"`
-	CreatedAt       pgtype.Timestamptz `json:"created_at"`
-	MaxDocsCapacity pgtype.Int4        `json:"max_docs_capacity"`
-	BranchName      string             `json:"branch_name"`
-	HeadName        pgtype.Text        `json:"head_name"`
+	ID               uuid.UUID          `json:"id"`
+	BranchID         uuid.UUID          `json:"branch_id"`
+	Name             string             `json:"name"`
+	HeadID           pgtype.UUID        `json:"head_id"`
+	CreatedAt        pgtype.Timestamptz `json:"created_at"`
+	MaxDocsCapacity  pgtype.Int4        `json:"max_docs_capacity"`
+	CurrentDocsCount pgtype.Int4        `json:"current_docs_count"`
+	BranchName       string             `json:"branch_name"`
+	HeadName         pgtype.Text        `json:"head_name"`
 }
 
 func (q *Queries) ListAllDepartments(ctx context.Context) ([]ListAllDepartmentsRow, error) {
@@ -976,6 +991,7 @@ func (q *Queries) ListAllDepartments(ctx context.Context) ([]ListAllDepartmentsR
 			&i.HeadID,
 			&i.CreatedAt,
 			&i.MaxDocsCapacity,
+			&i.CurrentDocsCount,
 			&i.BranchName,
 			&i.HeadName,
 		); err != nil {
@@ -1036,7 +1052,7 @@ func (q *Queries) ListAllOrdnersGlobal(ctx context.Context) ([]ListAllOrdnersGlo
 }
 
 const listAllRacksGlobal = `-- name: ListAllRacksGlobal :many
-SELECT r.id, r.department_id, r.name, r.location_detail, r.created_at, r.max_boxes_capacity, r.allowed_category_ids, r.allowed_type_ids, d.name as department_name, b.name as branch_name
+SELECT r.id, r.department_id, r.name, r.location_detail, r.created_at, r.max_boxes_capacity, r.allowed_category_ids, r.allowed_type_ids, r.current_boxes_count, d.name as department_name, b.name as branch_name
 FROM racks r
 JOIN departments d ON r.department_id = d.id
 JOIN branches b ON d.branch_id = b.id
@@ -1052,6 +1068,7 @@ type ListAllRacksGlobalRow struct {
 	MaxBoxesCapacity   pgtype.Int4        `json:"max_boxes_capacity"`
 	AllowedCategoryIds []uuid.UUID        `json:"allowed_category_ids"`
 	AllowedTypeIds     []uuid.UUID        `json:"allowed_type_ids"`
+	CurrentBoxesCount  pgtype.Int4        `json:"current_boxes_count"`
 	DepartmentName     string             `json:"department_name"`
 	BranchName         string             `json:"branch_name"`
 }
@@ -1074,6 +1091,7 @@ func (q *Queries) ListAllRacksGlobal(ctx context.Context) ([]ListAllRacksGlobalR
 			&i.MaxBoxesCapacity,
 			&i.AllowedCategoryIds,
 			&i.AllowedTypeIds,
+			&i.CurrentBoxesCount,
 			&i.DepartmentName,
 			&i.BranchName,
 		); err != nil {
@@ -1088,7 +1106,7 @@ func (q *Queries) ListAllRacksGlobal(ctx context.Context) ([]ListAllRacksGlobalR
 }
 
 const listBoxes = `-- name: ListBoxes :many
-SELECT id, rack_id, name, created_at, max_docs_capacity FROM boxes WHERE rack_id = $1 ORDER BY name
+SELECT id, rack_id, name, created_at, max_docs_capacity, current_docs_count FROM boxes WHERE rack_id = $1 ORDER BY name
 `
 
 // Boxes
@@ -1107,6 +1125,7 @@ func (q *Queries) ListBoxes(ctx context.Context, rackID uuid.UUID) ([]Box, error
 			&i.Name,
 			&i.CreatedAt,
 			&i.MaxDocsCapacity,
+			&i.CurrentDocsCount,
 		); err != nil {
 			return nil, err
 		}
@@ -1119,7 +1138,7 @@ func (q *Queries) ListBoxes(ctx context.Context, rackID uuid.UUID) ([]Box, error
 }
 
 const listBranches = `-- name: ListBranches :many
-SELECT id, company_id, name, location, head_id, created_at, max_docs_capacity FROM branches WHERE company_id = $1 ORDER BY name
+SELECT id, company_id, name, location, head_id, created_at, max_docs_capacity, current_docs_count FROM branches WHERE company_id = $1 ORDER BY name
 `
 
 // Branches
@@ -1140,6 +1159,7 @@ func (q *Queries) ListBranches(ctx context.Context, companyID uuid.UUID) ([]Bran
 			&i.HeadID,
 			&i.CreatedAt,
 			&i.MaxDocsCapacity,
+			&i.CurrentDocsCount,
 		); err != nil {
 			return nil, err
 		}
@@ -1152,7 +1172,7 @@ func (q *Queries) ListBranches(ctx context.Context, companyID uuid.UUID) ([]Bran
 }
 
 const listCompanies = `-- name: ListCompanies :many
-SELECT id, name, address, created_at, entity_id, npwp_status, location, status, logo_url, delivery_instructions, max_docs_capacity FROM companies ORDER BY name
+SELECT id, name, address, created_at, entity_id, npwp_status, location, status, logo_url, delivery_instructions, max_docs_capacity, current_docs_count FROM companies ORDER BY name
 `
 
 // Companies
@@ -1177,6 +1197,7 @@ func (q *Queries) ListCompanies(ctx context.Context) ([]Company, error) {
 			&i.LogoUrl,
 			&i.DeliveryInstructions,
 			&i.MaxDocsCapacity,
+			&i.CurrentDocsCount,
 		); err != nil {
 			return nil, err
 		}
@@ -1189,7 +1210,7 @@ func (q *Queries) ListCompanies(ctx context.Context) ([]Company, error) {
 }
 
 const listDepartments = `-- name: ListDepartments :many
-SELECT id, branch_id, name, head_id, created_at, max_docs_capacity FROM departments WHERE branch_id = $1 ORDER BY name
+SELECT id, branch_id, name, head_id, created_at, max_docs_capacity, current_docs_count FROM departments WHERE branch_id = $1 ORDER BY name
 `
 
 // Departments
@@ -1209,6 +1230,7 @@ func (q *Queries) ListDepartments(ctx context.Context, branchID uuid.UUID) ([]De
 			&i.HeadID,
 			&i.CreatedAt,
 			&i.MaxDocsCapacity,
+			&i.CurrentDocsCount,
 		); err != nil {
 			return nil, err
 		}
@@ -1373,7 +1395,7 @@ func (q *Queries) ListPermissionsByRole(ctx context.Context, roleID int32) ([]Li
 }
 
 const listRacks = `-- name: ListRacks :many
-SELECT id, department_id, name, location_detail, created_at, max_boxes_capacity, allowed_category_ids, allowed_type_ids FROM racks WHERE department_id = $1 ORDER BY name
+SELECT id, department_id, name, location_detail, created_at, max_boxes_capacity, allowed_category_ids, allowed_type_ids, current_boxes_count FROM racks WHERE department_id = $1 ORDER BY name
 `
 
 // Racks
@@ -1395,6 +1417,7 @@ func (q *Queries) ListRacks(ctx context.Context, departmentID uuid.UUID) ([]Rack
 			&i.MaxBoxesCapacity,
 			&i.AllowedCategoryIds,
 			&i.AllowedTypeIds,
+			&i.CurrentBoxesCount,
 		); err != nil {
 			return nil, err
 		}
@@ -1548,7 +1571,7 @@ func (q *Queries) ListSystemModules(ctx context.Context) ([]SystemModule, error)
 const updateBox = `-- name: UpdateBox :one
 UPDATE boxes SET name = $2, rack_id = $3
 WHERE id = $1
-RETURNING id, rack_id, name, created_at, max_docs_capacity
+RETURNING id, rack_id, name, created_at, max_docs_capacity, current_docs_count
 `
 
 type UpdateBoxParams struct {
@@ -1566,6 +1589,7 @@ func (q *Queries) UpdateBox(ctx context.Context, arg UpdateBoxParams) (Box, erro
 		&i.Name,
 		&i.CreatedAt,
 		&i.MaxDocsCapacity,
+		&i.CurrentDocsCount,
 	)
 	return i, err
 }
@@ -1573,7 +1597,7 @@ func (q *Queries) UpdateBox(ctx context.Context, arg UpdateBoxParams) (Box, erro
 const updateBranch = `-- name: UpdateBranch :one
 UPDATE branches SET name = $2, location = $3, head_id = $4, company_id = $5
 WHERE id = $1
-RETURNING id, company_id, name, location, head_id, created_at, max_docs_capacity
+RETURNING id, company_id, name, location, head_id, created_at, max_docs_capacity, current_docs_count
 `
 
 type UpdateBranchParams struct {
@@ -1601,6 +1625,7 @@ func (q *Queries) UpdateBranch(ctx context.Context, arg UpdateBranchParams) (Bra
 		&i.HeadID,
 		&i.CreatedAt,
 		&i.MaxDocsCapacity,
+		&i.CurrentDocsCount,
 	)
 	return i, err
 }
@@ -1615,7 +1640,7 @@ UPDATE companies SET
     address = $7,
     delivery_instructions = $8
 WHERE id = $1
-RETURNING id, name, address, created_at, entity_id, npwp_status, location, status, logo_url, delivery_instructions, max_docs_capacity
+RETURNING id, name, address, created_at, entity_id, npwp_status, location, status, logo_url, delivery_instructions, max_docs_capacity, current_docs_count
 `
 
 type UpdateCompanyParams struct {
@@ -1653,6 +1678,7 @@ func (q *Queries) UpdateCompany(ctx context.Context, arg UpdateCompanyParams) (C
 		&i.LogoUrl,
 		&i.DeliveryInstructions,
 		&i.MaxDocsCapacity,
+		&i.CurrentDocsCount,
 	)
 	return i, err
 }
@@ -1674,7 +1700,7 @@ func (q *Queries) UpdateCompanyLogo(ctx context.Context, arg UpdateCompanyLogoPa
 const updateDepartment = `-- name: UpdateDepartment :one
 UPDATE departments SET name = $2, head_id = $3, branch_id = $4
 WHERE id = $1
-RETURNING id, branch_id, name, head_id, created_at, max_docs_capacity
+RETURNING id, branch_id, name, head_id, created_at, max_docs_capacity, current_docs_count
 `
 
 type UpdateDepartmentParams struct {
@@ -1699,6 +1725,7 @@ func (q *Queries) UpdateDepartment(ctx context.Context, arg UpdateDepartmentPara
 		&i.HeadID,
 		&i.CreatedAt,
 		&i.MaxDocsCapacity,
+		&i.CurrentDocsCount,
 	)
 	return i, err
 }
@@ -1764,7 +1791,7 @@ func (q *Queries) UpdateOrdner(ctx context.Context, arg UpdateOrdnerParams) (Ord
 const updateRack = `-- name: UpdateRack :one
 UPDATE racks SET name = $2, location_detail = $3, department_id = $4
 WHERE id = $1
-RETURNING id, department_id, name, location_detail, created_at, max_boxes_capacity, allowed_category_ids, allowed_type_ids
+RETURNING id, department_id, name, location_detail, created_at, max_boxes_capacity, allowed_category_ids, allowed_type_ids, current_boxes_count
 `
 
 type UpdateRackParams struct {
@@ -1791,6 +1818,7 @@ func (q *Queries) UpdateRack(ctx context.Context, arg UpdateRackParams) (Rack, e
 		&i.MaxBoxesCapacity,
 		&i.AllowedCategoryIds,
 		&i.AllowedTypeIds,
+		&i.CurrentBoxesCount,
 	)
 	return i, err
 }

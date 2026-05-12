@@ -91,20 +91,30 @@ func (s *EmailService) SendRegistrationNotification(ctx context.Context, email, 
 }
 
 func (s *EmailService) SendPasswordResetEmail(ctx context.Context, email, resetLink string) error {
-	subject := "Kreatif DMS - Password Reset Request"
-	body := fmt.Sprintf(`
-		<div style="font-family: sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
-			<h2 style="color: #1E3A5F;">Reset Your Password</h2>
-			<p>We received a request to reset your password for your Kreatif DMS account.</p>
-			<p>Click the button below to reset it:</p>
-			<div style="text-align: center; margin: 30px 0;">
-				<a href="%s" style="background: #1E3A5F; color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">Reset Password</a>
-			</div>
-			<p style="color: #666; font-size: 12px;">If you didn't request this, you can safely ignore this email. The link will expire in 1 hour.</p>
-			<p>Best regards,<br>Kreatif DMS Team</p>
-		</div>
-	`, resetLink)
-	return s.SendEmail(ctx, email, subject, body)
+	return s.SendTemplatedEmail(ctx, "password-reset", email, map[string]string{
+		"resetLink": resetLink,
+	})
+}
+
+func (s *EmailService) SendTemplatedEmail(ctx context.Context, slug, to string, data map[string]string) error {
+	// 1. Get template from DB
+	tpl, err := s.repo.GetEmailTemplateBySlug(ctx, slug)
+	if err != nil {
+		return fmt.Errorf("email template %s not found: %v", slug, err)
+	}
+
+	subject := tpl.Subject
+	body := tpl.BodyHtml
+
+	// 2. Replace placeholders
+	for k, v := range data {
+		placeholder := "{{" + k + "}}"
+		subject = strings.ReplaceAll(subject, placeholder, v)
+		body = strings.ReplaceAll(body, placeholder, v)
+	}
+
+	// 3. Send
+	return s.SendEmail(ctx, to, subject, body)
 }
 func (s *EmailService) TestConnection(ctx context.Context, addr, host, user, pass string, useAuth bool) error {
 	c, err := smtp.Dial(addr)

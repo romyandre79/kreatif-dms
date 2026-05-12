@@ -160,7 +160,7 @@ func main() {
 	_ = service.NewCacheService(rdb) // Initialized for performance later
 	masterSvc := service.NewMasterService(repo, ldapSvc, aiSvc, searchSvc, storageSvc, waSvc, emailSvc)
 	hardwareSvc := service.NewHardwareService(repo)
-	notifSvc := service.NewNotificationService(repo, waSvc)
+	notifSvc := service.NewNotificationService(repo, waSvc, emailSvc)
 	integrationMonitorSvc := service.NewIntegrationMonitorService(repo)
 	dashboardSvc := service.NewDashboardService(repo)
 	intakeSvc := service.NewIntakeService(repo, notifSvc)
@@ -179,6 +179,7 @@ func main() {
 	hardwareHandler := handler.NewHardwareHandler(hardwareSvc)
 	dashboardHandler := handler.NewDashboardHandler(dashboardSvc)
 	intakeHandler := handler.NewIntakeHandler(intakeSvc)
+	emailTemplateHandler := handler.NewEmailTemplateHandler(repo)
 
 
 	// Create Fiber App
@@ -346,10 +347,16 @@ func main() {
 	masterGroup.Get("/roles/:role_id/permissions", masterHandler.GetRolePermissions)
 	masterGroup.Post("/roles/:role_id/permissions", masterHandler.UpdateRolePermissions)
 	masterGroup.Get("/retention", masterHandler.ListRetentionPolicies)
+
+	// Email Template Routes
+	masterGroup.Get("/email-templates", emailTemplateHandler.ListTemplates)
+	masterGroup.Get("/email-templates/:slug", emailTemplateHandler.GetTemplate)
+	masterGroup.Put("/email-templates/:id", emailTemplateHandler.UpdateTemplate)
 	
 	masterGroup.Post("/settings/:category", masterHandler.UpdateSetting)
 	
 	masterGroup.Post("/announcements", masterHandler.CreateAnnouncement)
+	masterGroup.Get("/announcements", masterHandler.ListAnnouncements)
 	masterGroup.Put("/announcements/:id", masterHandler.UpdateAnnouncement)
 	masterGroup.Delete("/announcements/:id", masterHandler.DeleteAnnouncement)
 	
