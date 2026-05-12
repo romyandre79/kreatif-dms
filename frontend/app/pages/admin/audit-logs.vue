@@ -43,7 +43,7 @@
     <div class="flex flex-col gap-10">
       <!-- Main Content: History Log Table -->
       <main class="flex flex-col gap-8">
-        <div class="bg-white dark:bg-slate-900 rounded-[3rem] shadow-sm border border-slate-100 dark:border-slate-800 flex flex-col overflow-hidden flex-grow">
+        <div class="bg-white dark:bg-slate-900 rounded-lg shadow-sm border border-slate-100 dark:border-slate-800 flex flex-col overflow-hidden flex-grow">
           <!-- Table Header -->
           <div class="px-10 py-8 border-b border-slate-50 dark:border-slate-800 flex items-center justify-between bg-slate-50/30 dark:bg-slate-900/30">
             <h3 class="text-xs font-black text-[#1E3A5F] dark:text-white uppercase tracking-[0.2em]">{{ $t('layout.menu.audit_logs') }}</h3>
@@ -156,7 +156,7 @@
       </main>
 
       <!-- Right Sidebar: Event Details -->
-      <aside v-if="selectedLog" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex flex-col p-10 rounded-[3rem] gap-10 shadow-2xl relative z-30">
+      <aside v-if="selectedLog" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex flex-col p-10 rounded-lg gap-10 shadow-2xl relative z-30">
         <div class="flex items-center justify-between pb-8 border-b border-slate-50 dark:border-slate-800">
           <div class="space-y-1">
             <h2 class="text-xl font-black text-[#1E3A5F] dark:text-white uppercase tracking-tight">Audit Details</h2>
@@ -242,7 +242,7 @@
       </aside>
 
       <!-- Empty State for Details -->
-      <aside v-else class="bg-slate-50 dark:bg-slate-900/50 border border-dashed border-slate-200 dark:border-slate-800 flex flex-col items-center justify-center p-20 text-center opacity-30 rounded-[3rem]">
+      <aside v-else class="bg-slate-50 dark:bg-slate-900/50 border border-dashed border-slate-200 dark:border-slate-800 flex flex-col items-center justify-center p-20 text-center opacity-30 rounded-lg">
          <LucideHistory class="w-16 h-16 text-slate-300 mb-6" />
          <h2 class="text-xs font-black text-slate-400 uppercase tracking-[0.3em]">Select an activity to view technical details</h2>
       </aside>

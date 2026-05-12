@@ -341,7 +341,7 @@
     <!-- PIN Confirmation Modal -->
     <Transition name="scale">
       <div v-if="showPinModal" class="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-[#1E3A5F]/40 backdrop-blur-sm">
-        <div class="glass max-w-md w-full bg-white rounded-[3rem] p-12 shadow-2xl border border-white flex flex-col items-center text-center space-y-8" v-motion-pop>
+        <div class="glass max-w-md w-full bg-white rounded-lg p-12 shadow-2xl border border-white flex flex-col items-center text-center space-y-8" v-motion-pop>
           <!-- Modal Icon -->
           <div class="w-20 h-20 bg-slate-50 rounded-2xl flex items-center justify-center text-[#1E3A5F] border border-slate-100">
             <LucideShieldCheck class="w-10 h-10" />

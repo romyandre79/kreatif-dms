@@ -59,6 +59,7 @@
                   <tr class="bg-slate-50/50 dark:bg-slate-900/50 text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] border-b border-slate-50 dark:border-slate-800">
                     <th class="p-4 pl-8">{{ $t('admin.config.document_type.table.code') }}</th>
                     <th class="p-4">{{ $t('admin.config.document_type.table.name') }}</th>
+                    <th class="p-4">{{ $t('admin.config.document_category.title') }}</th>
                     <th class="p-4">{{ $t('admin.config.document_type.table.description') }}</th>
                     <th class="p-4">{{ $t('admin.metadata.table.created_at') }}</th>
                     <th class="p-4 pr-10 text-right">{{ $t('admin.metadata.table.actions') }}</th>
@@ -98,6 +99,18 @@
                         />
                       </div>
                       <p v-else class="text-sm font-black text-[#1E3A5F] dark:text-white uppercase tracking-tight">{{ row.name }}</p>
+                    </td>
+                    <td class="p-4">
+                      <div v-if="row.editing" class="max-w-[200px]">
+                        <select 
+                          v-model="row.category_id" 
+                          class="w-full bg-white dark:bg-slate-800 border-2 border-blue-500 rounded-xl px-4 py-2 text-xs font-black outline-none shadow-md"
+                        >
+                          <option value="">-- No Category --</option>
+                          <option v-for="cat in docCategories" :key="cat.id" :value="cat.id">{{ cat.name }}</option>
+                        </select>
+                      </div>
+                      <span v-else class="px-3 py-1 bg-slate-100 dark:bg-slate-800 text-[10px] font-black text-slate-500 rounded-lg uppercase tracking-widest">{{ row.category_name || '-' }}</span>
                     </td>
                     <td class="p-4">
                       <div v-if="row.editing">
@@ -259,6 +272,7 @@ const searchQuery = ref('')
 const loading = ref(false)
 const error = ref('')
 const docTypes = ref([])
+const docCategories = ref([])
 const fileInput = ref(null)
 
 // Pagination state
@@ -272,12 +286,17 @@ const auth = useAuthStore()
 const fetchData = async () => {
   loading.value = true
   try {
-    const res = await $api(`${config.public.apiBase}/master/document-types`)
-    docTypes.value = (res.data || []).map(t => ({
+    const [typesRes, catsRes] = await Promise.all([
+      $api(`${config.public.apiBase}/master/document-types`),
+      $api(`${config.public.apiBase}/master/document-categories`)
+    ])
+    
+    docTypes.value = (typesRes.data || []).map(t => ({
       ...t,
       editing: false,
       isNew: false
     }))
+    docCategories.value = catsRes.data || []
   } catch (err) {
     error.value = err.data?.message || t('admin.config.document_type.error_fetch')
   } finally {
@@ -300,6 +319,7 @@ const addRow = () => {
     code: '',
     name: '',
     description: '',
+    category_id: '',
     editing: true,
     isNew: true
   })
@@ -340,7 +360,8 @@ const saveRow = async (row) => {
       body: {
         code: row.code,
         name: row.name,
-        description: row.description
+        description: row.description,
+        category_id: row.category_id || ''
       }
     })
 
@@ -415,7 +436,8 @@ const filteredTypes = computed(() => {
   return docTypes.value.filter(t => 
     (t.code || '').toLowerCase().includes(q) || 
     (t.name || '').toLowerCase().includes(q) ||
-    (t.description || '').toLowerCase().includes(q)
+    (t.description || '').toLowerCase().includes(q) ||
+    (t.category_name || '').toLowerCase().includes(q)
   )
 })
 

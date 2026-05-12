@@ -115,7 +115,7 @@
       <!-- Right Column: Preview & History -->
       <div class="lg:col-span-8 space-y-8">
         <!-- Preview Window -->
-        <div class="glass rounded-[3rem] overflow-hidden border border-white/10 shadow-2xl bg-white dark:bg-slate-900 min-h-[500px] flex flex-col">
+        <div class="glass rounded-lg overflow-hidden border border-white/10 shadow-2xl bg-white dark:bg-slate-900 min-h-[500px] flex flex-col">
           <div class="p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
             <div class="flex items-center gap-3">
               <div class="w-2 h-2 rounded-full bg-primary-500"></div>

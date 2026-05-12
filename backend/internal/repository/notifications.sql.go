@@ -14,10 +14,10 @@ import (
 
 const createNotification = `-- name: CreateNotification :one
 INSERT INTO notifications (
-    user_id, title, body, type, entity_type, entity_id, channel
+    user_id, title, body, type, entity_type, entity_id, channel, metadata
 ) VALUES (
-    $1, $2, $3, $4, $5, $6, $7
-) RETURNING id, user_id, title, body, type, entity_type, entity_id, channel, is_read, read_at, created_at
+    $1, $2, $3, $4, $5, $6, $7, $8
+) RETURNING id, user_id, title, body, type, entity_type, entity_id, channel, is_read, read_at, created_at, metadata
 `
 
 type CreateNotificationParams struct {
@@ -28,6 +28,7 @@ type CreateNotificationParams struct {
 	EntityType pgtype.Text `json:"entity_type"`
 	EntityID   pgtype.UUID `json:"entity_id"`
 	Channel    pgtype.Text `json:"channel"`
+	Metadata   []byte      `json:"metadata"`
 }
 
 func (q *Queries) CreateNotification(ctx context.Context, arg CreateNotificationParams) (Notification, error) {
@@ -39,6 +40,7 @@ func (q *Queries) CreateNotification(ctx context.Context, arg CreateNotification
 		arg.EntityType,
 		arg.EntityID,
 		arg.Channel,
+		arg.Metadata,
 	)
 	var i Notification
 	err := row.Scan(
@@ -53,6 +55,7 @@ func (q *Queries) CreateNotification(ctx context.Context, arg CreateNotification
 		&i.IsRead,
 		&i.ReadAt,
 		&i.CreatedAt,
+		&i.Metadata,
 	)
 	return i, err
 }
@@ -70,7 +73,7 @@ func (q *Queries) GetUnreadCount(ctx context.Context, userID uuid.UUID) (int64, 
 }
 
 const listNotifications = `-- name: ListNotifications :many
-SELECT id, user_id, title, body, type, entity_type, entity_id, channel, is_read, read_at, created_at FROM notifications 
+SELECT id, user_id, title, body, type, entity_type, entity_id, channel, is_read, read_at, created_at, metadata FROM notifications 
 WHERE user_id = $1 
 ORDER BY created_at DESC 
 LIMIT $2 OFFSET $3
@@ -103,6 +106,7 @@ func (q *Queries) ListNotifications(ctx context.Context, arg ListNotificationsPa
 			&i.IsRead,
 			&i.ReadAt,
 			&i.CreatedAt,
+			&i.Metadata,
 		); err != nil {
 			return nil, err
 		}

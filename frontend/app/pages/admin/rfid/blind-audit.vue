@@ -1,6 +1,6 @@
 <template>
   <div class="min-h-screen bg-[#F8FAFC] flex justify-center p-4">
-    <div class="w-full max-w-md bg-white shadow-2xl rounded-[3rem] overflow-hidden flex flex-col relative border border-slate-100" v-motion-fade>
+    <div class="w-full max-w-md bg-white shadow-2xl rounded-lg overflow-hidden flex flex-col relative border border-slate-100" v-motion-fade>
       
       <!-- Header -->
       <header class="p-8 border-b border-slate-50 flex items-center justify-between">

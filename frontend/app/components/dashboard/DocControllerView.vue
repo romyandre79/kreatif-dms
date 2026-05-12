@@ -105,7 +105,9 @@
           </thead>
           <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
             <tr v-for="item in dashboardData?.tasks" :key="item.id" class="hover:bg-slate-50/50 dark:hover:bg-slate-900/50 transition-colors">
-              <td class="px-8 py-6 font-black text-sm text-slate-800 dark:text-slate-200">{{ item.id.substring(0, 8) }}...</td>
+              <td class="px-8 py-6 font-black text-sm text-slate-800 dark:text-slate-200 line-clamp-1" :title="item.title || item.id">
+                {{ item.title || item.id.substring(0, 8) + '...' }}
+              </td>
               <td class="px-8 py-6">
                 <p class="text-sm font-black text-slate-700 dark:text-slate-300">{{ $t('common.system_entity') || 'System Entity' }}</p>
                 <p class="text-[10px] text-slate-400 font-bold uppercase">{{ item.entity_type }}</p>
@@ -289,7 +291,7 @@ const config = useRuntimeConfig()
 const isNotesOpen = ref(false)
 
 // Data Fetching
-const { data: dashboardData, refresh: refreshDashboard } = await useAsyncData('controller-summary', async () => {
+const { data: dashboardData, refresh: refreshDashboard } = await useAsyncData(`controller-summary-${user.value?.id}`, async () => {
   const res = await $api('/dashboard/summary')
   return res.data
 })
@@ -342,9 +344,10 @@ const footerStats = computed(() => [
 // Polling for updates
 let timer
 onMounted(() => {
+  refreshDashboard()
   timer = setInterval(() => {
     refreshDashboard()
-  }, 30000)
+  }, 10000)
 })
 
 onUnmounted(() => {

@@ -8,7 +8,7 @@ INSERT INTO documents (
 ) RETURNING *;
 
 -- name: GetDocument :one
-SELECT d.*, dt.name as type_name
+SELECT d.*, dt.name as type_name, dt.category_id
 FROM documents d
 LEFT JOIN document_types dt ON d.type_id = dt.id
 WHERE d.id = $1 LIMIT 1;
@@ -17,6 +17,7 @@ WHERE d.id = $1 LIMIT 1;
 SELECT 
     d.*,
     dt.name as type_name,
+    dt.category_id,
     c.name as company_name,
     b.name as branch_name,
     dept.name as department_name,
@@ -45,7 +46,7 @@ WHERE d.id = $1 LIMIT 1;
 
 -- name: ListDocumentsByDepartment :many
 SELECT * FROM documents 
-WHERE department_id = $1 
+WHERE department_id = $1 AND status = 'active'
 ORDER BY created_at DESC;
 
 -- name: UpdateDocumentOCR :exec
@@ -53,7 +54,7 @@ UPDATE documents
 SET extracted_text = $2, 
     metadata = $3,
     is_ocr_processed = true, 
-    status = 'active', 
+    status = 'pending', 
     updated_at = NOW() 
 WHERE id = $1;
 
@@ -123,6 +124,7 @@ SELECT
 FROM documents d
 LEFT JOIN document_types dt ON d.type_id = dt.id
 LEFT JOIN departments dept ON d.department_id = dept.id
+WHERE d.status = 'active'
 ORDER BY d.created_at DESC
 LIMIT $1 OFFSET $2;
 

@@ -154,16 +154,16 @@ func main() {
 	emailSvc := infra.NewEmailService(cfg, repo)
 	waSvc := infra.NewWhatsAppService(repo)
 	authSvc := service.NewAuthService(repo, cfg, ldapSvc, emailSvc)
-	docSvc := service.NewDocumentService(repo, storageSvc, asynqClient)
+	notifSvc := service.NewNotificationService(repo, waSvc, emailSvc)
+	docSvc := service.NewDocumentService(cfg, repo, storageSvc, asynqClient, notifSvc)
 	searchSvc := infra.NewSearchService(es)
 	aiSvc := infra.NewAIService(repo, cfg)
 	_ = service.NewCacheService(rdb) // Initialized for performance later
 	masterSvc := service.NewMasterService(repo, ldapSvc, aiSvc, searchSvc, storageSvc, waSvc, emailSvc)
 	hardwareSvc := service.NewHardwareService(repo)
-	notifSvc := service.NewNotificationService(repo, waSvc)
 	integrationMonitorSvc := service.NewIntegrationMonitorService(repo)
 	dashboardSvc := service.NewDashboardService(repo)
-	intakeSvc := service.NewIntakeService(repo)
+	intakeSvc := service.NewIntakeService(repo, notifSvc)
 
 	
 	// Start Background Workers
@@ -179,6 +179,7 @@ func main() {
 	hardwareHandler := handler.NewHardwareHandler(hardwareSvc)
 	dashboardHandler := handler.NewDashboardHandler(dashboardSvc)
 	intakeHandler := handler.NewIntakeHandler(intakeSvc)
+	emailTemplateHandler := handler.NewEmailTemplateHandler(repo, emailSvc)
 
 
 	// Create Fiber App
@@ -258,6 +259,7 @@ func main() {
 	docGroup.Get("/:id", docHandler.GetByID)
 	docGroup.Put("/:id", docHandler.Update)
 	docGroup.Get("/:id/preview", docHandler.Preview)
+	docGroup.Get("/:id/image", docHandler.GetImage)
 	docGroup.Get("/:id/loans", docHandler.GetLoans)
 	docGroup.Get("/:id/ocr", docHandler.GetOCRData)
 	docGroup.Post("/:id/approve", docHandler.Approve)
@@ -275,10 +277,15 @@ func main() {
 	masterGroup := api.Group("/master")
 	masterGroup.Use(middleware.AuthMiddleware(cfg.JWTSecret))
 	
-	// Accessible to all authenticated users
+	// --- ROUTES ACCESSIBLE TO MANAGERS & DOC CONTROLLERS ---
+	masterGroup.Get("/document-categories", masterHandler.ListDocumentCategories)
 	masterGroup.Get("/document-types", masterHandler.ListDocumentTypes)
+	masterGroup.Get("/settings/:category", middleware.RoleMiddleware("admin", "superadmin", "manajer", "admin doc controller", "kepala doc controller"), masterHandler.GetSettings)
+	masterGroup.Get("/settings/watermark", middleware.RoleMiddleware("admin", "superadmin", "manajer", "admin doc controller", "kepala doc controller"), masterHandler.GetWatermarkSettings)
+	masterGroup.Get("/announcements", masterHandler.ListAnnouncements)
+	masterGroup.Get("/document-types/export", middleware.RoleMiddleware("admin", "superadmin"), masterHandler.ExportDocumentTypes)
 
-	// Restricted to Admin/Superadmin
+	// --- STRICTLY ADMIN/SUPERADMIN ROUTES ---
 	masterGroup.Use(middleware.RoleMiddleware("admin", "superadmin"))
 	masterGroup.Get("/companies", masterHandler.ListCompanies)
 	masterGroup.Post("/companies", masterHandler.CreateCompany)
@@ -330,6 +337,12 @@ func main() {
 	masterGroup.Get("/document-types/export", masterHandler.ExportDocumentTypes)
 	masterGroup.Post("/document-types/import", masterHandler.ImportDocumentTypes)
 
+	masterGroup.Post("/document-categories", masterHandler.CreateDocumentCategory)
+	masterGroup.Put("/document-categories/:id", masterHandler.UpdateDocumentCategory)
+	masterGroup.Delete("/document-categories/:id", masterHandler.DeleteDocumentCategory)
+	masterGroup.Get("/document-categories/export", masterHandler.ExportDocumentCategories)
+	masterGroup.Post("/document-categories/import", masterHandler.ImportDocumentCategories)
+
 	masterGroup.Get("/topology", masterHandler.GetTopology)
 	masterGroup.Get("/roles", masterHandler.ListRoles)
 	masterGroup.Get("/modules", masterHandler.ListSystemModules)
@@ -340,17 +353,20 @@ func main() {
 	masterGroup.Get("/roles/:role_id/permissions", masterHandler.GetRolePermissions)
 	masterGroup.Post("/roles/:role_id/permissions", masterHandler.UpdateRolePermissions)
 	masterGroup.Get("/retention", masterHandler.ListRetentionPolicies)
-	masterGroup.Get("/settings/:category", masterHandler.GetSettings)
+
+	// Email Template Routes
+	masterGroup.Get("/email-templates", emailTemplateHandler.ListTemplates)
+	masterGroup.Get("/email-templates/:slug", emailTemplateHandler.GetTemplate)
+	masterGroup.Put("/email-templates/:id", emailTemplateHandler.UpdateTemplate)
+	masterGroup.Post("/email-templates/:slug/test", emailTemplateHandler.TestTemplate)
+	
 	masterGroup.Post("/settings/:category", masterHandler.UpdateSetting)
 	
-	// Announcements
-	masterGroup.Get("/announcements", masterHandler.ListAnnouncements)
 	masterGroup.Post("/announcements", masterHandler.CreateAnnouncement)
+	masterGroup.Get("/announcements", masterHandler.ListAnnouncements)
 	masterGroup.Put("/announcements/:id", masterHandler.UpdateAnnouncement)
 	masterGroup.Delete("/announcements/:id", masterHandler.DeleteAnnouncement)
 	
-	// Watermark Settings
-	masterGroup.Get("/settings/watermark", masterHandler.GetWatermarkSettings)
 	masterGroup.Post("/settings/watermark", masterHandler.UpdateWatermarkSettings)
 	masterGroup.Post("/scanners/register", masterHandler.RegisterScanner)
 	masterGroup.Get("/integration/status", middleware.RoleMiddleware("admin", "superadmin"), masterHandler.GetIntegrationStatus)
@@ -386,8 +402,20 @@ func main() {
 	intakeGroup := api.Group("/intake")
 	intakeGroup.Use(middleware.AuthMiddleware(cfg.JWTSecret))
 	intakeGroup.Get("/manifest/:id", intakeHandler.GetManifest)
+	intakeGroup.Get("/pending", intakeHandler.ListPending)
 	intakeGroup.Get("/stats", intakeHandler.GetStats)
 	intakeGroup.Post("/receive", intakeHandler.Receive)
+	intakeGroup.Post("/reject/:id", intakeHandler.Reject)
+	intakeGroup.Get("/staging", intakeHandler.ListStaging)
+	intakeGroup.Get("/staging/stats", intakeHandler.StagingStats)
+	intakeGroup.Post("/index", intakeHandler.Index)
+	intakeGroup.Put("/indexing/:id", intakeHandler.Index)
+	intakeGroup.Get("/labels", intakeHandler.GetLabelingDocuments)
+	intakeGroup.Get("/labels/stats", intakeHandler.GetLabelingStats)
+	intakeGroup.Post("/labels/print", intakeHandler.MarkAsLabeled)
+	intakeGroup.Get("/boxes/search", intakeHandler.SearchBoxes)
+	intakeGroup.Post("/boxes/assign", intakeHandler.AssignToBox)
+	intakeGroup.Get("/boxes/recommend", intakeHandler.GetRecommendation)
 
 
 	// Health check

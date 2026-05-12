@@ -3,7 +3,7 @@
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-10">
       <!-- Left Column: Location Info -->
       <div class="lg:col-span-3 space-y-10">
-        <div class="glass p-10 rounded-[3rem] space-y-10 shadow-sm border border-slate-50 dark:border-slate-800">
+        <div class="glass p-10 rounded-lg space-y-10 shadow-sm border border-slate-50 dark:border-slate-800">
           <div class="flex items-center justify-between">
             <h3 class="text-sm font-black text-[#1E3A5F] dark:text-white uppercase tracking-widest">{{ $t('warehouse.detail.title') }}</h3>
             <span class="px-4 py-1.5 bg-blue-50 text-blue-500 rounded-lg text-[9px] font-black uppercase tracking-widest">{{ $t('warehouse.detail.active') }}</span>
@@ -56,7 +56,7 @@
 
       <!-- Center Column: Slot Configuration -->
       <div class="lg:col-span-6 space-y-10">
-        <div class="glass rounded-[3rem] overflow-hidden shadow-sm border border-slate-50 dark:border-slate-800 h-full flex flex-col">
+        <div class="glass rounded-lg overflow-hidden shadow-sm border border-slate-50 dark:border-slate-800 h-full flex flex-col">
           <div class="p-10 flex items-center justify-between border-b border-slate-50 dark:border-slate-800 bg-white/50 dark:bg-slate-900/50 backdrop-blur-md">
             <h3 class="text-sm font-black text-[#1E3A5F] dark:text-white uppercase tracking-widest">{{ $t('warehouse.detail.container.title') }}</h3>
             <div class="flex items-center gap-4">

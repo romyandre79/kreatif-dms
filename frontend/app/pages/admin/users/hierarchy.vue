@@ -127,8 +127,8 @@
           </div>
 
           <!-- Impact Header Card -->
-          <div class="p-10 bg-slate-50 dark:bg-slate-800/50 rounded-[3rem] border border-slate-100 dark:border-slate-800 space-y-10 relative overflow-hidden shadow-sm">
-            <div class="absolute top-0 right-0 w-32 h-32 bg-slate-100/50 dark:bg-slate-800/30 -rotate-12 translate-x-10 -translate-y-10 rounded-[3rem] flex items-end justify-start p-6 text-slate-200"><LucideNetwork class="w-12 h-12" /></div>
+          <div class="p-10 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-100 dark:border-slate-800 space-y-10 relative overflow-hidden shadow-sm">
+            <div class="absolute top-0 right-0 w-32 h-32 bg-slate-100/50 dark:bg-slate-800/30 -rotate-12 translate-x-10 -translate-y-10 rounded-lg flex items-end justify-start p-6 text-slate-200"><LucideNetwork class="w-12 h-12" /></div>
             
             <div class="flex items-center gap-6">
               <div class="w-16 h-16 rounded-lg bg-red-50 text-red-400 flex items-center justify-center border-2 border-red-100 shadow-lg shadow-red-500/5"><LucideAlertTriangle class="w-8 h-8" /></div>

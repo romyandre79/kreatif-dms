@@ -22,13 +22,13 @@
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-10">
       <!-- Left Column: Container Preview -->
       <div class="lg:col-span-4 space-y-10">
-        <div class="glass p-10 rounded-[3rem] space-y-10 shadow-sm border border-slate-50 dark:border-slate-800">
+        <div class="glass p-10 rounded-lg space-y-10 shadow-sm border border-slate-50 dark:border-slate-800">
           <div class="flex items-center justify-between">
             <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest">{{ $t('rfid.model_f16.container.title') }}</h3>
             <span class="px-3 py-1 bg-blue-50 text-blue-500 rounded text-[8px] font-black uppercase tracking-widest">{{ $t('rfid.model_f16.container.parent') }}</span>
           </div>
 
-          <div class="aspect-square bg-slate-50/50 dark:bg-slate-900/50 rounded-[3rem] border-4 border-dashed border-slate-100 dark:border-slate-800 flex flex-col items-center justify-center gap-6 group cursor-pointer hover:bg-slate-100/50 transition-all">
+          <div class="aspect-square bg-slate-50/50 dark:bg-slate-900/50 rounded-lg border-4 border-dashed border-slate-100 dark:border-slate-800 flex flex-col items-center justify-center gap-6 group cursor-pointer hover:bg-slate-100/50 transition-all">
             <div class="w-32 h-32 bg-white dark:bg-slate-800 rounded-lg shadow-xl flex items-center justify-center text-slate-100 dark:text-slate-700 group-hover:scale-110 transition-transform">
               <LucideBox class="w-16 h-16" />
             </div>
@@ -110,7 +110,7 @@
 
       <!-- Right Column: Summary & Network -->
       <div class="lg:col-span-3 space-y-10">
-        <div class="glass p-10 rounded-[3rem] space-y-10 shadow-sm border border-slate-50 dark:border-slate-800">
+        <div class="glass p-10 rounded-lg space-y-10 shadow-sm border border-slate-50 dark:border-slate-800">
           <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest">{{ $t('rfid.model_f16.summary.title') }}</h3>
           
           <div class="space-y-10">

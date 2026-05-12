@@ -120,7 +120,7 @@
         </div>
 
         <!-- Viewer Canvas -->
-        <div class="bg-slate-100 dark:bg-slate-950 rounded-[3rem] aspect-[1/1.4] relative shadow-inner overflow-hidden border border-slate-200 dark:border-slate-800 flex items-center justify-center group">
+        <div class="bg-slate-100 dark:bg-slate-950 rounded-lg aspect-[1/1.4] relative shadow-inner overflow-hidden border border-slate-200 dark:border-slate-800 flex items-center justify-center group">
           <div class="absolute inset-0 bg-primary-500/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
           
           <!-- Mock Document -->

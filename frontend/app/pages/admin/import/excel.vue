@@ -27,7 +27,7 @@
       <!-- Main Area: Upload & Mapping -->
       <div class="lg:col-span-8 space-y-10">
         <!-- Upload Card -->
-        <div class="glass p-12 rounded-[3rem] border-2 border-dashed border-slate-200 dark:border-slate-800 flex flex-col items-center justify-center text-center space-y-8 group hover:border-[#1E3A5F] transition-all">
+        <div class="glass p-12 rounded-lg border-2 border-dashed border-slate-200 dark:border-slate-800 flex flex-col items-center justify-center text-center space-y-8 group hover:border-[#1E3A5F] transition-all">
           <div class="w-24 h-24 bg-slate-50 dark:bg-slate-800 rounded-lg flex items-center justify-center text-slate-300 group-hover:scale-110 transition-transform"><LucideUploadCloud class="w-10 h-10" /></div>
           <div class="space-y-2">
             <h3 class="text-xl font-black text-[#1E3A5F] dark:text-white uppercase tracking-tight">{{ $t('admin.import.excel.upload.title') }}</h3>
@@ -40,7 +40,7 @@
         </div>
 
         <!-- Mapping Interface -->
-        <div class="glass rounded-[3rem] overflow-hidden">
+        <div class="glass rounded-lg overflow-hidden">
           <div class="p-8 flex items-center justify-between border-b border-slate-50 dark:border-slate-800">
             <h3 class="text-xs font-black text-[#1E3A5F] dark:text-white uppercase tracking-widest">{{ $t('admin.import.excel.mapping.title') }}</h3>
             <button class="text-[9px] font-black text-blue-500 uppercase tracking-widest flex items-center gap-2 hover:underline transition-all">
@@ -81,7 +81,7 @@
       <!-- Right Column: Analysis & Security -->
       <div class="lg:col-span-4 space-y-10">
         <!-- Validation Summary -->
-        <div class="glass p-10 rounded-[3rem] space-y-10 shadow-sm">
+        <div class="glass p-10 rounded-lg space-y-10 shadow-sm">
           <div class="flex items-center justify-between">
             <div class="space-y-1">
               <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest">{{ $t('admin.import.excel.summary.title') }}</h3>
@@ -107,8 +107,8 @@
         </div>
 
         <!-- Confidence Score -->
-        <div class="bg-[#1E3A5F] p-10 rounded-[3rem] space-y-10 text-white shadow-2xl shadow-blue-900/40 relative overflow-hidden group">
-          <div class="absolute top-0 right-0 w-32 h-32 bg-white/5 -rotate-12 translate-x-10 -translate-y-10 rounded-[3rem] flex items-end justify-start p-6 text-white/10 group-hover:scale-110 transition-transform"><LucideShieldCheck class="w-12 h-12" /></div>
+        <div class="bg-[#1E3A5F] p-10 rounded-lg space-y-10 text-white shadow-2xl shadow-blue-900/40 relative overflow-hidden group">
+          <div class="absolute top-0 right-0 w-32 h-32 bg-white/5 -rotate-12 translate-x-10 -translate-y-10 rounded-lg flex items-end justify-start p-6 text-white/10 group-hover:scale-110 transition-transform"><LucideShieldCheck class="w-12 h-12" /></div>
           <div class="space-y-2">
             <h3 class="text-[10px] font-black uppercase tracking-widest opacity-60">{{ $t('admin.import.excel.confidence.title') }}</h3>
             <p class="text-5xl font-black tracking-tighter">88.4 <span class="text-xl opacity-40">/ 100</span></p>
@@ -120,7 +120,7 @@
         </div>
 
         <!-- Execution Security -->
-        <div class="glass p-10 rounded-[3rem] space-y-8">
+        <div class="glass p-10 rounded-lg space-y-8">
           <div class="flex items-center gap-4">
             <LucideLock class="w-5 h-5 text-amber-500" />
             <h3 class="text-[10px] font-black text-[#1E3A5F] dark:text-white uppercase tracking-widest">{{ $t('admin.import.excel.security.title') }}</h3>
@@ -139,7 +139,7 @@
     </div>
 
     <!-- Job Queue Monitor -->
-    <div class="bg-slate-50/50 dark:bg-slate-900/50 p-10 rounded-[3rem] border border-slate-100 dark:border-slate-800 space-y-10 shadow-inner" v-motion-slide-visible-bottom>
+    <div class="bg-slate-50/50 dark:bg-slate-900/50 p-10 rounded-lg border border-slate-100 dark:border-slate-800 space-y-10 shadow-inner" v-motion-slide-visible-bottom>
       <div class="flex items-center justify-between">
         <div class="space-y-1">
           <h3 class="text-xl font-black text-[#1E3A5F] dark:text-white uppercase tracking-tight">{{ $t('admin.import.excel.queue.title') }}</h3>

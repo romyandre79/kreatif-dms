@@ -1,7 +1,7 @@
 <template>
   <div class="max-w-7xl mx-auto space-y-8 pb-32">
     <!-- Rejection Alert -->
-    <div v-if="doc?.rejection_reason" class="glass p-8 rounded-[2rem] border-l-8 border-red-500 bg-red-50/30 flex items-start gap-6 shadow-xl shadow-red-500/5" v-motion-slide-visible-bottom>
+    <div v-if="doc?.rejection_reason" class="glass p-8 rounded-lg border-l-8 border-red-500 bg-red-50/30 flex items-start gap-6 shadow-xl shadow-red-500/5" v-motion-slide-visible-bottom>
       <div class="w-16 h-16 rounded-2xl bg-red-500 flex items-center justify-center text-white shadow-lg shadow-red-500/20">
         <LucideAlertTriangle class="w-8 h-8" />
       </div>
@@ -26,7 +26,7 @@
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
       <!-- Main Form -->
       <div class="lg:col-span-2 space-y-8">
-        <div class="glass p-10 rounded-[3rem] space-y-10" v-motion-slide-visible-bottom>
+        <div class="glass p-10 rounded-lg space-y-10" v-motion-slide-visible-bottom>
           <div class="space-y-8">
             <!-- Title -->
             <div class="space-y-3">

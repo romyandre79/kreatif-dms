@@ -9,7 +9,7 @@
         <p class="text-xs font-bold text-slate-500">{{ $t('stock.scan_execution.subtitle') }}</p>
       </div>
 
-      <div class="glass rounded-[3rem] p-10 flex flex-col lg:flex-row items-center gap-16 shadow-2xl shadow-blue-900/5 overflow-hidden relative">
+      <div class="glass rounded-lg p-10 flex flex-col lg:flex-row items-center gap-16 shadow-2xl shadow-blue-900/5 overflow-hidden relative">
         <LucideQrCode class="absolute -top-10 -right-10 w-64 h-64 text-slate-50 dark:text-slate-800/20 rotate-12 -z-10" />
 
         <div class="w-full lg:w-1/3 space-y-8">
@@ -102,7 +102,7 @@
         </div>
       </div>
 
-      <div class="bg-white dark:bg-slate-900 rounded-[3rem] p-16 shadow-2xl border border-slate-100 dark:border-slate-800 max-w-4xl mx-auto flex flex-col items-center text-center space-y-10 relative overflow-hidden" v-motion-fade>
+      <div class="bg-white dark:bg-slate-900 rounded-lg p-16 shadow-2xl border border-slate-100 dark:border-slate-800 max-w-4xl mx-auto flex flex-col items-center text-center space-y-10 relative overflow-hidden" v-motion-fade>
         <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-primary-500/5 rounded-full blur-3xl -z-10"></div>
         <div class="relative">
           <div class="w-40 h-40 rounded-full bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-primary-500 shadow-inner">
@@ -165,7 +165,7 @@
         </span>
       </div>
 
-      <div class="bg-white dark:bg-slate-900 rounded-[3rem] p-16 shadow-2xl border border-slate-100 dark:border-slate-800 text-center space-y-8" v-motion-fade>
+      <div class="bg-white dark:bg-slate-900 rounded-lg p-16 shadow-2xl border border-slate-100 dark:border-slate-800 text-center space-y-8" v-motion-fade>
         <p class="text-xs font-black text-slate-400 uppercase tracking-widest">{{ $t('stock.scan_execution.active_session.counter.title') }}</p>
         <h2 class="text-[120px] font-black text-[#1E3A5F] dark:text-white leading-none tracking-tighter" v-motion-pop>14</h2>
         <p class="text-[10px] font-bold text-slate-400 italic">{{ $t('stock.scan_execution.active_session.counter.blind_hint') }}</p>
@@ -239,7 +239,7 @@
 
     <!-- Misplaced Alert Overlay -->
     <div v-if="showMisplacedAlert" class="fixed inset-0 bg-[#1E3A5F]/40 backdrop-blur-sm z-50 flex items-center justify-center p-10" @click.self="showMisplacedAlert = false">
-      <div class="bg-white dark:bg-slate-900 rounded-[3rem] w-full max-w-4xl overflow-hidden shadow-2xl border-4 border-red-500" v-motion-pop>
+      <div class="bg-white dark:bg-slate-900 rounded-lg w-full max-w-4xl overflow-hidden shadow-2xl border-4 border-red-500" v-motion-pop>
         <div class="bg-red-500 px-10 py-6 flex items-center justify-center gap-4 text-white">
           <LucideAlertTriangle class="w-6 h-6 animate-bounce" />
           <h3 class="text-xl font-black uppercase tracking-widest">{{ $t('stock.scan_execution.misplaced_alert.header') }}</h3>

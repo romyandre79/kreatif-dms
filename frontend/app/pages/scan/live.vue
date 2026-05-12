@@ -71,7 +71,7 @@
 
       <!-- Main Preview Area -->
       <div class="lg:col-span-6 space-y-6">
-        <div class="glass rounded-[3rem] overflow-hidden flex flex-col h-[850px]" v-motion-slide-visible-bottom>
+        <div class="glass rounded-lg overflow-hidden flex flex-col h-[850px]" v-motion-slide-visible-bottom>
           <!-- Toolbar -->
           <div class="px-8 py-6 border-b border-slate-50 dark:border-slate-800 flex items-center justify-between bg-slate-50/30 dark:bg-slate-900/30">
             <div class="flex items-center gap-6">

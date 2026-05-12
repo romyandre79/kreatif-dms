@@ -88,7 +88,7 @@
     </div>
 
     <!-- Recommendations Table -->
-    <div class="glass rounded-[3rem] overflow-hidden shadow-sm border border-slate-50 dark:border-slate-800">
+    <div class="glass rounded-lg overflow-hidden shadow-sm border border-slate-50 dark:border-slate-800">
       <div class="p-10 border-b border-slate-50 dark:border-slate-800 space-y-1">
         <h3 class="text-sm font-black text-[#1E3A5F] dark:text-white uppercase tracking-widest">{{ $t('warehouse.monitoring.reco.title') }}</h3>
         <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">

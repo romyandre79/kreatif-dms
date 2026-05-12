@@ -312,15 +312,19 @@ func (q *Queries) GetPendingCountsByType(ctx context.Context, approverID uuid.UU
 
 const getPriorityTasks = `-- name: GetPriorityTasks :many
 SELECT 
-    id,
-    entity_type,
-    entity_id,
-    level,
-    status,
-    created_at
-FROM approval_workflows
-WHERE status = 'pending'
-ORDER BY created_at ASC
+    aw.id,
+    aw.entity_type,
+    aw.entity_id,
+    aw.level,
+    aw.status,
+    aw.created_at,
+    COALESCE(d.title, '')::text as title,
+    u.full_name as staff_name
+FROM approval_workflows aw
+LEFT JOIN documents d ON aw.entity_id = d.id
+LEFT JOIN users u ON d.owner_id = u.id
+WHERE aw.status = 'pending'
+ORDER BY aw.created_at ASC
 LIMIT $1
 `
 
@@ -331,6 +335,8 @@ type GetPriorityTasksRow struct {
 	Level      int32              `json:"level"`
 	Status     string             `json:"status"`
 	CreatedAt  pgtype.Timestamptz `json:"created_at"`
+	Title      string             `json:"title"`
+	StaffName  pgtype.Text        `json:"staff_name"`
 }
 
 func (q *Queries) GetPriorityTasks(ctx context.Context, limit int32) ([]GetPriorityTasksRow, error) {
@@ -349,6 +355,8 @@ func (q *Queries) GetPriorityTasks(ctx context.Context, limit int32) ([]GetPrior
 			&i.Level,
 			&i.Status,
 			&i.CreatedAt,
+			&i.Title,
+			&i.StaffName,
 		); err != nil {
 			return nil, err
 		}
@@ -504,7 +512,8 @@ SELECT
     aw.level,
     aw.status,
     aw.created_at,
-    u.full_name as staff_name
+    u.full_name as staff_name,
+    COALESCE(d.title, '')::text as title
 FROM approval_workflows aw
 LEFT JOIN documents d ON aw.entity_id = d.id
 LEFT JOIN users u ON d.owner_id = u.id
@@ -517,7 +526,8 @@ SELECT
     1 as level,
     d.status,
     d.created_at,
-    u.full_name as staff_name
+    u.full_name as staff_name,
+    d.title
 FROM documents d
 LEFT JOIN users u ON d.owner_id = u.id
 WHERE d.owner_id = $1 AND d.status IN ('rejected', 'draft')
@@ -538,6 +548,7 @@ type GetUserPriorityTasksRow struct {
 	Status     string             `json:"status"`
 	CreatedAt  pgtype.Timestamptz `json:"created_at"`
 	StaffName  pgtype.Text        `json:"staff_name"`
+	Title      string             `json:"title"`
 }
 
 func (q *Queries) GetUserPriorityTasks(ctx context.Context, arg GetUserPriorityTasksParams) ([]GetUserPriorityTasksRow, error) {
@@ -557,6 +568,7 @@ func (q *Queries) GetUserPriorityTasks(ctx context.Context, arg GetUserPriorityT
 			&i.Status,
 			&i.CreatedAt,
 			&i.StaffName,
+			&i.Title,
 		); err != nil {
 			return nil, err
 		}

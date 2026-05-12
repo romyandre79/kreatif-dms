@@ -9,7 +9,7 @@
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-10">
       <!-- Left Column: Timeline & SOP -->
       <div class="lg:col-span-3 space-y-10">
-        <div class="glass p-10 rounded-[3rem] space-y-10 shadow-sm border border-slate-50 dark:border-slate-800">
+        <div class="glass p-10 rounded-lg space-y-10 shadow-sm border border-slate-50 dark:border-slate-800">
           <h3 class="text-[10px] font-black text-blue-500 uppercase tracking-widest">{{ $t('intake.external.timeline.title') }}</h3>
           <div class="space-y-8 relative">
             <div class="absolute left-4 top-2 bottom-2 w-0.5 bg-slate-100 dark:bg-slate-800"></div>
@@ -30,7 +30,7 @@
           </div>
         </div>
 
-        <div class="p-10 bg-blue-50/50 dark:bg-blue-900/10 rounded-[3rem] border border-blue-100 dark:border-blue-800 space-y-6 relative overflow-hidden group">
+        <div class="p-10 bg-blue-50/50 dark:bg-blue-900/10 rounded-lg border border-blue-100 dark:border-blue-800 space-y-6 relative overflow-hidden group">
           <LucideInfo class="absolute top-0 right-0 w-24 h-24 text-blue-500/10 -rotate-12 translate-x-6 -translate-y-6 group-hover:scale-110 transition-transform" />
           <div class="flex items-center gap-4">
             <div class="w-10 h-10 rounded-xl bg-blue-500 text-white flex items-center justify-center shadow-lg shadow-blue-500/20">
@@ -47,7 +47,7 @@
       <!-- Center Column: Form & Scan -->
       <div class="lg:col-span-6 space-y-10">
         <!-- Registration Form -->
-        <div class="glass p-10 rounded-[3rem] space-y-10 shadow-sm border border-slate-50 dark:border-slate-800">
+        <div class="glass p-10 rounded-lg space-y-10 shadow-sm border border-slate-50 dark:border-slate-800">
           <div class="flex items-center justify-between">
             <h3 class="text-xs font-black text-[#1E3A5F] dark:text-white uppercase tracking-widest">{{ $t('intake.external.form.title') }}</h3>
             <span class="px-4 py-1.5 bg-blue-50 text-blue-500 rounded-lg text-[9px] font-black uppercase tracking-widest">{{ $t('intake.external.form.mandatory') }}</span>
@@ -81,7 +81,7 @@
         </div>
 
         <!-- Scan Panel -->
-        <div class="glass p-10 rounded-[3rem] space-y-10 shadow-sm border border-slate-50 dark:border-slate-800">
+        <div class="glass p-10 rounded-lg space-y-10 shadow-sm border border-slate-50 dark:border-slate-800">
           <div class="flex items-center justify-between">
             <h3 class="text-xs font-black text-[#1E3A5F] dark:text-white uppercase tracking-widest">{{ $t('intake.external.scan.title') }}</h3>
             <div class="flex items-center gap-4">
@@ -141,7 +141,7 @@
 
       <!-- Right Column: Readiness & Actions -->
       <div class="lg:col-span-3 space-y-10">
-        <div class="glass p-10 rounded-[3rem] space-y-10 shadow-sm border border-slate-50 dark:border-slate-800">
+        <div class="glass p-10 rounded-lg space-y-10 shadow-sm border border-slate-50 dark:border-slate-800">
           <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest">{{ $t('intake.external.readiness.title') }}</h3>
           
           <div class="space-y-8">

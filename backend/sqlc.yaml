@@ -27,3 +27,7 @@ sql:
             go_type:
               import: "encoding/json"
               type: "RawMessage"
+          - column: "email_templates.placeholders"
+            go_type:
+              import: "encoding/json"
+              type: "RawMessage"

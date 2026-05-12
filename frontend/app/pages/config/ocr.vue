@@ -173,7 +173,7 @@
       <div v-if="showVisualizer" class="fixed inset-0 z-[200] flex items-center justify-center p-4 lg:p-12">
         <div class="absolute inset-0 bg-[#020617]/95 backdrop-blur-xl" @click="closeVisualizer"></div>
         
-        <div class="relative w-full h-full glass rounded-[3rem] border border-white/10 shadow-2xl flex flex-col overflow-hidden">
+        <div class="relative w-full h-full glass rounded-lg border border-white/10 shadow-2xl flex flex-col overflow-hidden">
             <!-- Modal Header -->
             <div class="px-8 py-6 border-b border-white/5 bg-white/5 flex items-center justify-between shrink-0">
               <div class="flex items-center gap-6">

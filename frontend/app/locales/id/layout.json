@@ -72,7 +72,7 @@
       "ocr": "Kecerdasan OCR",
       "submit": "Ajukan Dokumen",
       "loans": "Pinjaman Saya",
-      "tracking": "Pelacakan Dokumen",
+      "tracking": "Cetak Label QR",
       "approvals": "Persetujuan",
       "submissions": "Pengajuan Masuk",
       "extensions": "Perpanjangan",
@@ -91,7 +91,7 @@
       "admin_pin": "Pendaftaran PIN Pengguna",
       "cat_dashboard": "Dashboard",
       "cat_registration": "Registrasi",
-      "cat_warehouse": "Gudang",
+      "cat_warehouse": "Warehouse Management",
       "cat_search": "Pencarian",
       "cat_circulation": "Sirkulasi",
       "cat_stock": "Stock Take",
@@ -117,7 +117,10 @@
       "notification_menu": "Notifikasi",
       "notificaton": "Notifikasi",
       "announcements": "Pengumuman Dashboard",
-      "inbound_registration": "Penerimaan Fisik"
+      "inbound_registration": "Penerimaan Fisik",
+      "staging_area": "Staging Area",
+      "email_templates": "Email Templates",
+      "doc_category": "Master Kategori Dokumen"
     }
   }
 }

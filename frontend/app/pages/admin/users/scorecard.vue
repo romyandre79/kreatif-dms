@@ -53,7 +53,7 @@
 
       <!-- Timeline Section -->
       <div class="flex-grow p-10 overflow-auto custom-scrollbar flex flex-col gap-10">
-        <div class="glass rounded-[3rem] p-10 space-y-12 min-h-full flex flex-col">
+        <div class="glass rounded-lg p-10 space-y-12 min-h-full flex flex-col">
           <div class="flex items-center justify-between px-4 border-b border-slate-50 dark:border-slate-800 pb-8 bg-slate-50/30 dark:bg-slate-900/30 rounded-t-[2.5rem] -mx-10 -mt-10 p-10">
             <h3 class="text-xs font-black text-[#1E3A5F] dark:text-white uppercase tracking-[0.2em]">Activity Stream</h3>
             <div class="flex items-center gap-8">
@@ -131,7 +131,7 @@
       </div>
 
       <!-- Risk Assessment -->
-      <div class="bg-[#1E3A5F] p-8 rounded-[3rem] space-y-8 shadow-2xl shadow-blue-900/30 mt-auto">
+      <div class="bg-[#1E3A5F] p-8 rounded-lg space-y-8 shadow-2xl shadow-blue-900/30 mt-auto">
         <h3 class="text-xs font-black text-white uppercase tracking-[0.2em]">Risk Assessment</h3>
         <div class="flex gap-4">
           <div class="flex-grow p-4 bg-white/5 rounded-2xl border border-white/10 space-y-1">

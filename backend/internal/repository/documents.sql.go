@@ -229,7 +229,7 @@ func (q *Queries) GetBatch(ctx context.Context, id uuid.UUID) (ProcessingBatch, 
 }
 
 const getDocument = `-- name: GetDocument :one
-SELECT d.id, d.title, d.description, d.file_name, d.file_path, d.file_size, d.mime_type, d.checksum, d.company_id, d.branch_id, d.department_id, d.rack_id, d.box_id, d.ordner_id, d.owner_id, d.current_version, d.status, d.tags, d.metadata, d.extracted_text, d.is_ocr_processed, d.created_at, d.updated_at, d.batch_id, d.retention_years, d.retention_expiry_date, d.sensitivity, d.circulation_id, d.minio_bucket, d.es_indexed, d.type_id, d.current_manifest_id, d.physical_status, dt.name as type_name
+SELECT d.id, d.title, d.description, d.file_name, d.file_path, d.file_size, d.mime_type, d.checksum, d.company_id, d.branch_id, d.department_id, d.rack_id, d.box_id, d.ordner_id, d.owner_id, d.current_version, d.status, d.tags, d.metadata, d.extracted_text, d.is_ocr_processed, d.created_at, d.updated_at, d.batch_id, d.retention_years, d.retention_expiry_date, d.sensitivity, d.circulation_id, d.minio_bucket, d.es_indexed, d.type_id, d.current_manifest_id, d.physical_status, dt.name as type_name, dt.category_id
 FROM documents d
 LEFT JOIN document_types dt ON d.type_id = dt.id
 WHERE d.id = $1 LIMIT 1
@@ -270,6 +270,7 @@ type GetDocumentRow struct {
 	CurrentManifestID   pgtype.UUID        `json:"current_manifest_id"`
 	PhysicalStatus      pgtype.Text        `json:"physical_status"`
 	TypeName            pgtype.Text        `json:"type_name"`
+	CategoryID          pgtype.UUID        `json:"category_id"`
 }
 
 func (q *Queries) GetDocument(ctx context.Context, id uuid.UUID) (GetDocumentRow, error) {
@@ -310,6 +311,7 @@ func (q *Queries) GetDocument(ctx context.Context, id uuid.UUID) (GetDocumentRow
 		&i.CurrentManifestID,
 		&i.PhysicalStatus,
 		&i.TypeName,
+		&i.CategoryID,
 	)
 	return i, err
 }
@@ -375,6 +377,7 @@ const getDocumentWithDetails = `-- name: GetDocumentWithDetails :one
 SELECT 
     d.id, d.title, d.description, d.file_name, d.file_path, d.file_size, d.mime_type, d.checksum, d.company_id, d.branch_id, d.department_id, d.rack_id, d.box_id, d.ordner_id, d.owner_id, d.current_version, d.status, d.tags, d.metadata, d.extracted_text, d.is_ocr_processed, d.created_at, d.updated_at, d.batch_id, d.retention_years, d.retention_expiry_date, d.sensitivity, d.circulation_id, d.minio_bucket, d.es_indexed, d.type_id, d.current_manifest_id, d.physical_status,
     dt.name as type_name,
+    dt.category_id,
     c.name as company_name,
     b.name as branch_name,
     dept.name as department_name,
@@ -437,6 +440,7 @@ type GetDocumentWithDetailsRow struct {
 	CurrentManifestID   pgtype.UUID        `json:"current_manifest_id"`
 	PhysicalStatus      pgtype.Text        `json:"physical_status"`
 	TypeName            pgtype.Text        `json:"type_name"`
+	CategoryID          pgtype.UUID        `json:"category_id"`
 	CompanyName         pgtype.Text        `json:"company_name"`
 	BranchName          pgtype.Text        `json:"branch_name"`
 	DepartmentName      pgtype.Text        `json:"department_name"`
@@ -486,6 +490,7 @@ func (q *Queries) GetDocumentWithDetails(ctx context.Context, id uuid.UUID) (Get
 		&i.CurrentManifestID,
 		&i.PhysicalStatus,
 		&i.TypeName,
+		&i.CategoryID,
 		&i.CompanyName,
 		&i.BranchName,
 		&i.DepartmentName,
@@ -602,7 +607,7 @@ func (q *Queries) GetOCRJobByEntity(ctx context.Context, arg GetOCRJobByEntityPa
 
 const listDocumentsByDepartment = `-- name: ListDocumentsByDepartment :many
 SELECT id, title, description, file_name, file_path, file_size, mime_type, checksum, company_id, branch_id, department_id, rack_id, box_id, ordner_id, owner_id, current_version, status, tags, metadata, extracted_text, is_ocr_processed, created_at, updated_at, batch_id, retention_years, retention_expiry_date, sensitivity, circulation_id, minio_bucket, es_indexed, type_id, current_manifest_id, physical_status FROM documents 
-WHERE department_id = $1 
+WHERE department_id = $1 AND status = 'active'
 ORDER BY created_at DESC
 `
 
@@ -737,6 +742,7 @@ SELECT
 FROM documents d
 LEFT JOIN document_types dt ON d.type_id = dt.id
 LEFT JOIN departments dept ON d.department_id = dept.id
+WHERE d.status = 'active'
 ORDER BY d.created_at DESC
 LIMIT $1 OFFSET $2
 `
@@ -972,7 +978,7 @@ UPDATE documents
 SET extracted_text = $2, 
     metadata = $3,
     is_ocr_processed = true, 
-    status = 'active', 
+    status = 'pending', 
     updated_at = NOW() 
 WHERE id = $1
 `

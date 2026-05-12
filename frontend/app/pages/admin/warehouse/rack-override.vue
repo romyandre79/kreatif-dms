@@ -147,7 +147,7 @@
         </div>
 
         <!-- Alert Notification Box -->
-        <div class="glass p-8 rounded-[3rem] border border-amber-100 bg-amber-50/20 flex items-start gap-6">
+        <div class="glass p-8 rounded-lg border border-amber-100 bg-amber-50/20 flex items-start gap-6">
           <div class="w-12 h-12 rounded-2xl bg-amber-500/10 flex items-center justify-center text-amber-600">
             <LucideInfo class="w-6 h-6" />
           </div>

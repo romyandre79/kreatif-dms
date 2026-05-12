@@ -50,7 +50,7 @@
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-10">
       <!-- Monthly Growth Chart -->
       <div class="lg:col-span-8">
-        <div class="glass p-10 rounded-[3rem] space-y-10" v-motion-slide-visible-bottom>
+        <div class="glass p-10 rounded-lg space-y-10" v-motion-slide-visible-bottom>
           <div class="flex items-center justify-between px-2">
             <div class="space-y-1">
               <h3 class="text-sm font-black text-[#1E3A5F] dark:text-white uppercase tracking-widest">Monthly Growth by Department</h3>
@@ -84,7 +84,7 @@
       <!-- Sidebar Info -->
       <div class="lg:col-span-4 space-y-10">
         <!-- Access Activity -->
-        <div class="glass p-10 rounded-[3rem] space-y-10" v-motion-slide-visible-bottom :delay="100">
+        <div class="glass p-10 rounded-lg space-y-10" v-motion-slide-visible-bottom :delay="100">
           <h3 class="text-xs font-black text-[#1E3A5F] dark:text-white uppercase tracking-[0.2em] border-b border-slate-50 dark:border-slate-800 pb-6">Access Activity by Role</h3>
           <div class="space-y-8">
             <div v-for="role in roles" :key="role.name" class="space-y-3">
@@ -100,7 +100,7 @@
         </div>
 
         <!-- SLA Performance -->
-        <div class="glass p-10 rounded-[3rem] space-y-8" v-motion-slide-visible-bottom :delay="200">
+        <div class="glass p-10 rounded-lg space-y-8" v-motion-slide-visible-bottom :delay="200">
           <h3 class="text-xs font-black text-[#1E3A5F] dark:text-white uppercase tracking-widest">Approval SLA Performance</h3>
           <div class="flex items-center justify-between">
             <div class="space-y-1">
@@ -125,7 +125,7 @@
         <button class="text-[10px] font-black text-blue-500 hover:text-blue-600 uppercase tracking-widest transition-colors">View All Protocols</button>
       </div>
 
-      <div class="glass rounded-[3rem] overflow-hidden shadow-sm border border-slate-50 dark:border-slate-800">
+      <div class="glass rounded-lg overflow-hidden shadow-sm border border-slate-50 dark:border-slate-800">
         <div class="overflow-x-auto">
           <table class="w-full text-left">
             <thead>

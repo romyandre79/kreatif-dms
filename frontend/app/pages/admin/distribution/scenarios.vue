@@ -154,7 +154,7 @@
 
     <!-- Sticky Bottom Bar -->
     <div class="fixed bottom-10 left-1/2 -translate-x-1/2 w-full max-w-5xl px-6 z-50">
-      <div class="glass p-8 rounded-[3rem] shadow-2xl shadow-blue-900/20 border border-white/20 dark:border-white/5 flex items-center justify-between" v-motion-slide-bottom>
+      <div class="glass p-8 rounded-lg shadow-2xl shadow-blue-900/20 border border-white/20 dark:border-white/5 flex items-center justify-between" v-motion-slide-bottom>
         <div class="flex items-center gap-6">
           <div class="w-12 h-12 rounded-2xl bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-[#1E3A5F] dark:text-blue-400 shadow-inner">
             <LucideShieldCheck class="w-6 h-6" />
@@ -195,7 +195,7 @@
       </div>
 
       <div class="lg:col-span-8">
-        <div class="glass p-10 rounded-[3rem] bg-gradient-to-br from-white/50 to-slate-50/50 dark:from-slate-900/50 dark:to-slate-800/50 relative overflow-hidden group">
+        <div class="glass p-10 rounded-lg bg-gradient-to-br from-white/50 to-slate-50/50 dark:from-slate-900/50 dark:to-slate-800/50 relative overflow-hidden group">
           <div class="max-w-xl space-y-4 relative z-10">
             <h2 class="text-3xl font-black text-[#1E3A5F] dark:text-white uppercase tracking-tight">Keamanan Berlapis</h2>
             <p class="text-sm font-bold text-slate-500 leading-relaxed">

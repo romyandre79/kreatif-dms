@@ -62,7 +62,7 @@
       "ocr": "OCR Intelligence",
       "submit": "Submit Document",
       "loans": "My Loans",
-      "tracking": "Document Tracking",
+      "tracking": "Print QR Label",
       "approvals": "Approvals",
       "submissions": "Inbound Submissions",
       "extensions": "Extensions",
@@ -84,7 +84,7 @@
       "admin_pin": "User PIN Management",
       "cat_dashboard": "Dashboard",
       "cat_registration": "Registration",
-      "cat_warehouse": "Warehouse",
+      "cat_warehouse": "Warehouse Management",
       "cat_search": "Search",
       "cat_circulation": "Circulation",
       "cat_stock": "Stock Take",
@@ -109,7 +109,9 @@
       "notification_menu": "Notifications",
       "notificaton": "Notifications",
       "announcements": "System Announcements",
-      "inbound_registration": "Inbound Registration"
+      "inbound_registration": "Inbound Registration",
+      "email_templates": "Email Templates",
+      "doc_category": "Document Category Master"
     }
   }
 }

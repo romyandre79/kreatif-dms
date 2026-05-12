@@ -19,7 +19,7 @@
         { id: 's2', status: 'active', icon: LucideTarget, progress: 84 },
         { id: 's3', status: 'waiting', icon: LucideLanguages },
         { id: 's4', status: 'waiting', icon: LucideBadgeCheck }
-      ]" :key="step.id" :class="`glass p-8 rounded-[3rem] space-y-6 shadow-sm border-2 transition-all ${step.status === 'active' ? 'border-blue-500 shadow-xl shadow-blue-500/10 scale-105' : 'border-slate-50 dark:border-slate-800'}`">
+      ]" :key="step.id" :class="`glass p-8 rounded-lg space-y-6 shadow-sm border-2 transition-all ${step.status === 'active' ? 'border-blue-500 shadow-xl shadow-blue-500/10 scale-105' : 'border-slate-50 dark:border-slate-800'}`">
         <div class="flex items-center justify-between">
           <div :class="`w-12 h-12 rounded-2xl flex items-center justify-center transition-colors ${step.status === 'done' ? 'bg-green-500 text-white shadow-lg shadow-green-500/20' : step.status === 'active' ? 'bg-[#1E3A5F] text-white shadow-lg shadow-blue-900/20' : 'bg-slate-50 dark:bg-slate-800 text-slate-300'}`">
             <component :is="step.icon" class="w-6 h-6" />
@@ -151,7 +151,7 @@
     </div>
 
     <!-- Footer Actions -->
-    <div class="glass p-10 rounded-[3rem] shadow-sm border border-slate-50 dark:border-slate-800 bg-slate-50/30 dark:bg-slate-800/30 flex flex-col md:flex-row items-center justify-between gap-10">
+    <div class="glass p-10 rounded-lg shadow-sm border border-slate-50 dark:border-slate-800 bg-slate-50/30 dark:bg-slate-800/30 flex flex-col md:flex-row items-center justify-between gap-10">
       <div class="flex items-center gap-6">
         <button class="px-8 py-4 bg-white dark:bg-slate-800 border-2 border-slate-50 dark:border-slate-700 text-[10px] font-black text-[#1E3A5F] dark:text-white uppercase tracking-widest rounded-2xl hover:bg-slate-50 transition-all flex items-center gap-3">
           <LucideRotateCcw class="w-4 h-4" />

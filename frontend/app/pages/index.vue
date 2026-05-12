@@ -36,10 +36,18 @@
           </div>
         </div>
 
-        <NuxtLink to="/login" class="text-sm font-semibold hover:text-primary-400 transition-colors">{{ $t('landing.nav.sign_in') }}</NuxtLink>
-        <NuxtLink to="/dashboard" class="px-5 py-2.5 rounded-full bg-white text-slate-950 text-sm font-bold hover:bg-slate-200 transition-all">
-          {{ $t('landing.nav.get_started') }}
-        </NuxtLink>
+        <template v-if="!auth.isAuthenticated">
+          <NuxtLink to="/login" class="text-sm font-semibold hover:text-primary-400 transition-colors">{{ $t('landing.nav.sign_in') }}</NuxtLink>
+          <NuxtLink to="/login" class="px-5 py-2.5 rounded-full bg-white text-slate-950 text-sm font-bold hover:bg-slate-200 transition-all">
+            {{ $t('landing.nav.get_started') }}
+          </NuxtLink>
+        </template>
+        <template v-else>
+          <NuxtLink to="/dashboard" class="px-5 py-2.5 rounded-full bg-primary-500 text-white text-sm font-bold hover:bg-primary-400 transition-all flex items-center gap-2">
+            <LucideLayoutDashboard class="w-4 h-4" />
+            Ke Dashboard
+          </NuxtLink>
+        </template>
       </div>
     </nav>
 
@@ -142,7 +150,7 @@
             </div>
           </div>
           <div v-motion-slide-visible-right class="relative">
-            <div class="aspect-square glass rounded-[3rem] p-8 flex items-center justify-center relative overflow-hidden">
+            <div class="aspect-square glass rounded-lg p-8 flex items-center justify-center relative overflow-hidden">
                <div class="absolute inset-0 bg-primary-500/5 animate-pulse"></div>
                <LucideCpu class="w-48 h-48 text-primary-500/20" />
                <div class="absolute inset-0 flex items-center justify-center">
@@ -249,10 +257,12 @@ import {
   LucideCpu, 
   LucideCloud,
   LucideLanguages,
-  LucideCheck
+  LucideCheck,
+  LucideLayoutDashboard
 } from 'lucide-vue-next'
 
 const { locale, locales, setLocale, t } = useI18n()
+const auth = useAuthStore()
 
 useHead({
   title: t('landing.hero.badge') + ' - Enterprise Document Management'

@@ -85,7 +85,7 @@
 
     <!-- Right Sidebar: Details & Timeline -->
     <div class="col-span-4 space-y-8" v-motion-slide-right>
-      <div v-if="selectedLoan" class="glass bg-white border border-slate-100 rounded-[3rem] shadow-2xl shadow-slate-200/50 overflow-hidden flex flex-col">
+      <div v-if="selectedLoan" class="glass bg-white border border-slate-100 rounded-lg shadow-2xl shadow-slate-200/50 overflow-hidden flex flex-col">
         <div class="p-10 space-y-10">
           <div class="flex items-center justify-between">
             <h3 class="text-sm font-black text-[#1E3A5F] uppercase tracking-tight">{{ $t('loans.my.detail.title') }}</h3>
@@ -176,7 +176,7 @@
       </div>
 
       <!-- Footer CTA (Changes when pending) -->
-      <div v-if="selectedLoan?.status === 'EXTENSION PENDING'" class="glass p-10 bg-slate-50 rounded-[3rem] border border-slate-100 shadow-xl space-y-6" v-motion-slide-bottom>
+      <div v-if="selectedLoan?.status === 'EXTENSION PENDING'" class="glass p-10 bg-slate-50 rounded-lg border border-slate-100 shadow-xl space-y-6" v-motion-slide-bottom>
         <div class="space-y-2">
           <h3 class="text-xl font-black text-slate-700 uppercase tracking-tight">{{ $t('loans.my.detail.ext_pending.title') }}</h3>
           <p class="text-xs font-medium text-slate-500 leading-relaxed">
@@ -184,7 +184,7 @@
           </p>
         </div>
       </div>
-      <div v-else class="glass p-10 bg-[#1E3A5F] rounded-[3rem] text-white shadow-2xl shadow-blue-900/30 space-y-6" v-motion-slide-bottom>
+      <div v-else class="glass p-10 bg-[#1E3A5F] rounded-lg text-white shadow-2xl shadow-blue-900/30 space-y-6" v-motion-slide-bottom>
         <div class="space-y-2">
           <h3 class="text-xl font-black uppercase tracking-tight">{{ $t('loans.my.detail.ext_promo.title') }}</h3>
           <p class="text-xs font-medium text-blue-200/80 leading-relaxed">
@@ -200,7 +200,7 @@
     <!-- Request Extension Modal -->
     <Transition name="scale">
       <div v-if="showExtensionModal" class="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-[#1E3A5F]/40 backdrop-blur-sm">
-        <div class="glass max-w-lg w-full bg-white rounded-[3rem] p-12 shadow-2xl border border-white space-y-10" v-motion-pop>
+        <div class="glass max-w-lg w-full bg-white rounded-lg p-12 shadow-2xl border border-white space-y-10" v-motion-pop>
           <!-- Modal Header -->
           <div class="flex items-start justify-between">
             <div class="space-y-1">

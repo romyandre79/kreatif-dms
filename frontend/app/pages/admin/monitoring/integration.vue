@@ -39,7 +39,7 @@
 
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-10">
       <!-- Left Column: Service Table -->
-      <div class="lg:col-span-8 glass rounded-[3rem] overflow-hidden">
+      <div class="lg:col-span-8 glass rounded-lg overflow-hidden">
         <div class="p-8 flex items-center justify-between border-b border-slate-50 dark:border-slate-800">
           <h3 class="text-xs font-black text-[#1E3A5F] dark:text-white uppercase tracking-widest">{{ $t('admin.monitoring.integration.table.title') }}</h3>
           <span class="flex items-center gap-2 text-[8px] font-black text-green-500 uppercase tracking-widest">
@@ -93,7 +93,7 @@
 
       <!-- Right Column: Alert Feed & Trend -->
       <div class="lg:col-span-4 space-y-10">
-        <div class="glass p-10 rounded-[3rem] space-y-8">
+        <div class="glass p-10 rounded-lg space-y-8">
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-4">
               <div class="w-8 h-8 rounded-lg bg-red-50 text-red-500 flex items-center justify-center shadow-sm"><LucideActivity class="w-4 h-4" /></div>
@@ -120,7 +120,7 @@
           </div>
         </div>
 
-        <div class="glass p-10 rounded-[3rem] space-y-8">
+        <div class="glass p-10 rounded-lg space-y-8">
           <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-widest">{{ $t('admin.monitoring.integration.feed.trend') }}</h4>
           <div class="h-48 flex items-end gap-2 px-2">
             <div v-for="i in 15" :key="i" :class="`flex-grow rounded-sm transition-all hover:scale-y-110 cursor-pointer ${i === 8 ? 'bg-blue-400 h-[80%]' : i === 7 ? 'bg-[#1E3A5F] h-[60%]' : 'bg-slate-200 dark:bg-slate-800 h-[' + (Math.random() * 40 + 20) + '%]'}`"></div>

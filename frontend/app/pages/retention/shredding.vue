@@ -17,7 +17,7 @@
 
     <div class="grid grid-cols-12 gap-10 items-start">
       <!-- Left Sidebar: Batch Identity -->
-      <aside class="col-span-3 glass p-10 rounded-[3rem] bg-white border border-slate-100 shadow-2xl shadow-slate-200/50 space-y-10" v-motion-slide-left>
+      <aside class="col-span-3 glass p-10 rounded-lg bg-white border border-slate-100 shadow-2xl shadow-slate-200/50 space-y-10" v-motion-slide-left>
         <div class="space-y-1">
           <p class="text-[10px] font-black text-slate-300 uppercase tracking-widest">{{ $t('retention.shredding.identity.title') }}</p>
           <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">{{ $t('retention.shredding.identity.label') }}</p>
@@ -44,7 +44,7 @@
       <!-- Main Content -->
       <div class="col-span-9 space-y-8" v-motion-fade>
         <!-- Pre-Execution Checklist -->
-        <div class="glass p-10 rounded-[3rem] bg-white border border-slate-100 shadow-2xl shadow-slate-200/50 space-y-8">
+        <div class="glass p-10 rounded-lg bg-white border border-slate-100 shadow-2xl shadow-slate-200/50 space-y-8">
           <h3 class="text-sm font-black text-[#1E3A5F] uppercase tracking-[0.2em]">{{ $t('retention.shredding.checklist.title') }}</h3>
           
           <div class="space-y-4">
@@ -75,7 +75,7 @@
         </div>
 
         <!-- Execution Log Details -->
-        <div class="glass p-10 rounded-[3rem] bg-white border border-slate-100 shadow-2xl shadow-slate-200/50 space-y-10">
+        <div class="glass p-10 rounded-lg bg-white border border-slate-100 shadow-2xl shadow-slate-200/50 space-y-10">
           <h3 class="text-sm font-black text-[#1E3A5F] uppercase tracking-[0.2em]">{{ $t('retention.shredding.log.title') }}</h3>
           
           <div class="grid grid-cols-2 gap-10">

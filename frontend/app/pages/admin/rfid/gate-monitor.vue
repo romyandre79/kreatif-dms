@@ -40,7 +40,7 @@
       </div>
 
       <!-- Incident Alert Module -->
-      <div class="bg-white dark:bg-slate-900 rounded-[3rem] shadow-2xl shadow-red-900/10 border border-red-500/20 overflow-hidden relative group max-w-4xl" v-motion-pop>
+      <div class="bg-white dark:bg-slate-900 rounded-lg shadow-2xl shadow-red-900/10 border border-red-500/20 overflow-hidden relative group max-w-4xl" v-motion-pop>
         <div class="bg-red-500 px-8 py-5 flex items-center justify-between text-white">
           <div class="flex items-center gap-3">
             <LucideShieldAlert class="w-6 h-6 animate-pulse" />
@@ -96,7 +96,7 @@
 
       <!-- Bottom Grid: Heatmap & Health -->
       <div class="grid grid-cols-2 gap-10 max-w-4xl">
-        <div class="glass p-10 rounded-[3rem] space-y-8">
+        <div class="glass p-10 rounded-lg space-y-8">
           <h3 class="text-[11px] font-black text-[#1E3A5F] dark:text-white uppercase tracking-[0.2em]">Frequency Heatmap</h3>
           <div class="h-40 flex items-end justify-between gap-2 px-4">
             <div v-for="(val, i) in [30, 45, 60, 55, 90, 40, 35]" :key="i" 
@@ -108,7 +108,7 @@
           <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest italic text-center">Spike detected at current timestamp.</p>
         </div>
 
-        <div class="glass p-10 rounded-[3rem] space-y-8">
+        <div class="glass p-10 rounded-lg space-y-8">
           <h3 class="text-[11px] font-black text-[#1E3A5F] dark:text-white uppercase tracking-[0.2em]">Gate Hardware Health</h3>
           <div class="space-y-8">
             <div class="space-y-3">

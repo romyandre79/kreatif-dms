@@ -44,7 +44,7 @@
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-10">
       <!-- Left Column: Document Viewer -->
       <div class="lg:col-span-7 flex flex-col gap-6">
-        <div class="glass rounded-[3rem] overflow-hidden flex flex-col shadow-xl border border-slate-50 dark:border-slate-800 h-[800px]">
+        <div class="glass rounded-lg overflow-hidden flex flex-col shadow-xl border border-slate-50 dark:border-slate-800 h-[800px]">
           <!-- Viewer Toolbar -->
           <div class="p-6 bg-slate-50/50 dark:bg-slate-800/50 flex items-center justify-between border-b border-slate-100 dark:border-slate-700">
             <div class="flex items-center gap-6">
@@ -123,7 +123,7 @@
 
       <!-- Right Column: Suggestions Panel -->
       <div class="lg:col-span-5 space-y-8">
-        <div class="glass p-10 rounded-[3rem] space-y-10 shadow-sm border border-slate-50 dark:border-slate-800 h-full flex flex-col">
+        <div class="glass p-10 rounded-lg space-y-10 shadow-sm border border-slate-50 dark:border-slate-800 h-full flex flex-col">
           <div class="flex items-center justify-between">
             <div class="space-y-1">
               <h3 class="text-xs font-black text-[#1E3A5F] dark:text-white uppercase tracking-widest">{{ $t('intake.ocr_review.suggestions.title') }}</h3>

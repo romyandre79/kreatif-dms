@@ -39,7 +39,7 @@
 
     <!-- Center Section: Warehouse Map -->
     <div class="flex-grow flex flex-col gap-8">
-      <div class="glass p-10 rounded-[3rem] flex items-center justify-between shadow-sm border border-slate-50 dark:border-slate-800">
+      <div class="glass p-10 rounded-lg flex items-center justify-between shadow-sm border border-slate-50 dark:border-slate-800">
         <div class="flex items-center gap-8">
           <div v-for="l in ['legal', 'finance', 'generic', 'locked']" :key="l" class="flex items-center gap-3">
             <div :class="`w-6 h-6 rounded-lg ${l === 'legal' ? 'bg-blue-500 shadow-lg shadow-blue-500/20' : l === 'finance' ? 'bg-[#1E3A5F]' : l === 'generic' ? 'bg-amber-500' : 'bg-slate-200'} flex items-center justify-center` ">
@@ -85,7 +85,7 @@
 
     <!-- Right Section: Rule Editor -->
     <div class="w-96 space-y-10 shrink-0">
-      <div class="glass p-10 rounded-[3rem] space-y-10 shadow-sm border border-slate-50 dark:border-slate-800">
+      <div class="glass p-10 rounded-lg space-y-10 shadow-sm border border-slate-50 dark:border-slate-800">
         <div class="flex items-center gap-4">
           <LucideEdit class="w-6 h-6 text-[#1E3A5F]" />
           <h3 class="text-sm font-black text-[#1E3A5F] dark:text-white uppercase tracking-widest">{{ $t('warehouse.departments.editor.title') }}</h3>

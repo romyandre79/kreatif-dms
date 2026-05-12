@@ -23,7 +23,7 @@
 
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-10">
       <!-- Connection Settings -->
-      <div class="lg:col-span-4 glass p-10 rounded-[3rem] space-y-10">
+      <div class="lg:col-span-4 glass p-10 rounded-lg space-y-10">
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-4">
             <div class="w-12 h-12 rounded-xl bg-blue-50 text-blue-500 flex items-center justify-center"><LucideNetwork class="w-6 h-6" /></div>
@@ -85,7 +85,7 @@
 
       <!-- Mapping & Filters -->
       <div class="lg:col-span-8 space-y-10">
-        <div class="glass p-10 rounded-[3rem] space-y-8">
+        <div class="glass p-10 rounded-lg space-y-8">
           <div class="flex items-center gap-4">
             <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-500 flex items-center justify-center"><LucideLink2 class="w-5 h-5" /></div>
             <h3 class="text-sm font-black text-[#1E3A5F] dark:text-white uppercase tracking-widest">{{ $t('settings.sso.mapping.title') }}</h3>
@@ -126,7 +126,7 @@
           </div>
         </div>
 
-        <div class="glass p-10 rounded-[3rem] space-y-8">
+        <div class="glass p-10 rounded-lg space-y-8">
           <div class="flex items-center gap-4">
             <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-500 flex items-center justify-center"><LucideFilter class="w-5 h-5" /></div>
             <h3 class="text-sm font-black text-[#1E3A5F] dark:text-white uppercase tracking-widest">{{ $t('settings.sso.filters.title') }}</h3>
@@ -173,7 +173,7 @@
     </div>
 
     <!-- Last Sync Activity Footer -->
-    <div class="bg-slate-100/50 dark:bg-slate-900/50 p-10 rounded-[3rem] border border-slate-100 dark:border-slate-800 flex flex-col md:flex-row items-center justify-between gap-10">
+    <div class="bg-slate-100/50 dark:bg-slate-900/50 p-10 rounded-lg border border-slate-100 dark:border-slate-800 flex flex-col md:flex-row items-center justify-between gap-10">
       <div class="flex items-center gap-10 flex-grow">
         <div class="space-y-1">
           <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest">{{ $t('settings.sso.footer.last_sync') }}</p>

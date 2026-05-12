@@ -76,7 +76,7 @@
 
       <!-- Detail Panel -->
       <aside class="col-span-4" v-motion-slide-right>
-        <div v-if="selectedRequest" class="glass bg-white border border-slate-100 rounded-[3rem] shadow-2xl shadow-slate-200/50 overflow-hidden flex flex-col">
+        <div v-if="selectedRequest" class="glass bg-white border border-slate-100 rounded-lg shadow-2xl shadow-slate-200/50 overflow-hidden flex flex-col">
           <!-- Detail Header -->
           <div class="px-10 py-8 border-b border-slate-50 flex items-center justify-between">
             <h3 class="text-sm font-black text-[#1E3A5F] uppercase tracking-tight">{{ $t('approvals.extensions.detail.title') }}</h3>
@@ -169,7 +169,7 @@
         </div>
 
         <!-- Empty State -->
-        <div v-else class="h-full glass rounded-[3rem] border border-slate-100 bg-white flex flex-col items-center justify-center text-center p-12 space-y-6">
+        <div v-else class="h-full glass rounded-lg border border-slate-100 bg-white flex flex-col items-center justify-center text-center p-12 space-y-6">
           <div class="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center text-slate-200">
             <LucideHistory class="w-10 h-10" />
           </div>
@@ -184,7 +184,7 @@
     <!-- PIN Confirmation Modal -->
     <Transition name="scale">
       <div v-if="showPinModal" class="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-[#1E3A5F]/40 backdrop-blur-sm">
-        <div class="glass max-w-md w-full bg-white rounded-[3rem] p-12 shadow-2xl border border-white flex flex-col items-center text-center space-y-8" v-motion-pop>
+        <div class="glass max-w-md w-full bg-white rounded-lg p-12 shadow-2xl border border-white flex flex-col items-center text-center space-y-8" v-motion-pop>
           <!-- Modal Icon -->
           <div class="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center text-[#1E3A5F] border border-slate-100">
             <LucideLock class="w-10 h-10" />
