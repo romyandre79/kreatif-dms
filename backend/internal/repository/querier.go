@@ -27,6 +27,7 @@ type Querier interface {
 	CreateCompany(ctx context.Context, arg CreateCompanyParams) (Company, error)
 	CreateDepartment(ctx context.Context, arg CreateDepartmentParams) (Department, error)
 	CreateDocument(ctx context.Context, arg CreateDocumentParams) (Document, error)
+	CreateDocumentCategory(ctx context.Context, arg CreateDocumentCategoryParams) (DocumentCategory, error)
 	CreateDocumentType(ctx context.Context, arg CreateDocumentTypeParams) (DocumentType, error)
 	CreateIntegrationNode(ctx context.Context, arg CreateIntegrationNodeParams) (IntegrationNode, error)
 	CreateNotification(ctx context.Context, arg CreateNotificationParams) (Notification, error)
@@ -55,6 +56,7 @@ type Querier interface {
 	DeleteSystemModule(ctx context.Context, id string) error
 	DeleteUser(ctx context.Context, id uuid.UUID) error
 	GetActiveAnnouncement(ctx context.Context) (Announcement, error)
+	GetActiveDocControllers(ctx context.Context) ([]GetActiveDocControllersRow, error)
 	GetActivityLogsByEntity(ctx context.Context, arg GetActivityLogsByEntityParams) ([]GetActivityLogsByEntityRow, error)
 	GetAnnouncement(ctx context.Context, id uuid.UUID) (Announcement, error)
 	GetBatch(ctx context.Context, id uuid.UUID) (ProcessingBatch, error)
@@ -65,6 +67,7 @@ type Querier interface {
 	GetDepartment(ctx context.Context, id uuid.UUID) (Department, error)
 	GetDocument(ctx context.Context, id uuid.UUID) (GetDocumentRow, error)
 	GetDocumentByShortID(ctx context.Context, dollar_1 pgtype.Text) (GetDocumentByShortIDRow, error)
+	GetDocumentCategory(ctx context.Context, id uuid.UUID) (DocumentCategory, error)
 	GetDocumentLoanHistory(ctx context.Context, documentID uuid.UUID) ([]GetDocumentLoanHistoryRow, error)
 	GetDocumentType(ctx context.Context, id uuid.UUID) (DocumentType, error)
 	GetDocumentWithDetails(ctx context.Context, id uuid.UUID) (GetDocumentWithDetailsRow, error)
@@ -73,13 +76,16 @@ type Querier interface {
 	GetIntegrationNode(ctx context.Context, id uuid.UUID) (IntegrationNode, error)
 	GetIntegrationNodeByEndpoint(ctx context.Context, arg GetIntegrationNodeByEndpointParams) (IntegrationNode, error)
 	GetIntegrationNodeByType(ctx context.Context, serviceType string) (IntegrationNode, error)
+	GetLabelingStats(ctx context.Context) (GetLabelingStatsRow, error)
 	GetLastSsoSyncLog(ctx context.Context) (SsoSyncLog, error)
 	GetLatestApprovalTaskByEntity(ctx context.Context, arg GetLatestApprovalTaskByEntityParams) (ApprovalWorkflow, error)
 	GetManagerDailyStats(ctx context.Context, headID pgtype.UUID) (GetManagerDailyStatsRow, error)
 	GetManagerRecentActivities(ctx context.Context, arg GetManagerRecentActivitiesParams) ([]GetManagerRecentActivitiesRow, error)
 	GetManagerTopSubmitters(ctx context.Context, arg GetManagerTopSubmittersParams) ([]GetManagerTopSubmittersRow, error)
+	GetManifest(ctx context.Context, id uuid.UUID) (GetManifestRow, error)
 	GetManifestByNo(ctx context.Context, manifestNo string) (GetManifestByNoRow, error)
 	GetManifestItems(ctx context.Context, manifestID uuid.UUID) ([]GetManifestItemsRow, error)
+	GetManifestProgress(ctx context.Context, manifestID uuid.UUID) (GetManifestProgressRow, error)
 	GetOCRJobByEntity(ctx context.Context, arg GetOCRJobByEntityParams) (OcrJob, error)
 	GetOrdner(ctx context.Context, id uuid.UUID) (Ordner, error)
 	GetPendingCountsByType(ctx context.Context, approverID uuid.UUID) ([]GetPendingCountsByTypeRow, error)
@@ -91,6 +97,7 @@ type Querier interface {
 	GetRole(ctx context.Context, id int32) (Role, error)
 	GetRoleIDByName(ctx context.Context, name string) (int32, error)
 	GetRolePermissions(ctx context.Context, roleID int32) ([]GetRolePermissionsRow, error)
+	GetStagingStats(ctx context.Context) (GetStagingStatsRow, error)
 	GetSystemModule(ctx context.Context, id string) (SystemModule, error)
 	GetSystemSetting(ctx context.Context, arg GetSystemSettingParams) (SystemSetting, error)
 	// System Settings
@@ -119,9 +126,12 @@ type Querier interface {
 	ListCompanies(ctx context.Context) ([]Company, error)
 	// Departments
 	ListDepartments(ctx context.Context, branchID uuid.UUID) ([]Department, error)
+	// Document Categories
+	ListDocumentCategories(ctx context.Context) ([]DocumentCategory, error)
 	// Document Types
-	ListDocumentTypes(ctx context.Context) ([]DocumentType, error)
+	ListDocumentTypes(ctx context.Context) ([]ListDocumentTypesRow, error)
 	ListDocumentsByDepartment(ctx context.Context, departmentID uuid.UUID) ([]Document, error)
+	ListDocumentsForLabeling(ctx context.Context, status string) ([]ListDocumentsForLabelingRow, error)
 	ListIntegrationNodes(ctx context.Context) ([]IntegrationNode, error)
 	ListNotifications(ctx context.Context, arg ListNotificationsParams) ([]Notification, error)
 	ListOCRJobs(ctx context.Context, arg ListOCRJobsParams) ([]ListOCRJobsRow, error)
@@ -142,6 +152,7 @@ type Querier interface {
 	// Roles
 	ListRoles(ctx context.Context) ([]ListRolesRow, error)
 	ListSsoSyncLogs(ctx context.Context, arg ListSsoSyncLogsParams) ([]SsoSyncLog, error)
+	ListStagingManifests(ctx context.Context) ([]ListStagingManifestsRow, error)
 	// System Modules & Permissions
 	ListSystemModules(ctx context.Context) ([]SystemModule, error)
 	ListUsers(ctx context.Context) ([]ListUsersRow, error)
@@ -156,14 +167,18 @@ type Querier interface {
 	UpdateCompanyLogo(ctx context.Context, arg UpdateCompanyLogoParams) error
 	UpdateDepartment(ctx context.Context, arg UpdateDepartmentParams) (Department, error)
 	UpdateDocument(ctx context.Context, arg UpdateDocumentParams) (Document, error)
+	UpdateDocumentIndexing(ctx context.Context, arg UpdateDocumentIndexingParams) error
 	UpdateDocumentMetadata(ctx context.Context, arg UpdateDocumentMetadataParams) error
 	UpdateDocumentOCR(ctx context.Context, arg UpdateDocumentOCRParams) error
 	UpdateDocumentPhysicalStatus(ctx context.Context, arg UpdateDocumentPhysicalStatusParams) error
+	UpdateDocumentPhysicalStatusBulk(ctx context.Context, arg UpdateDocumentPhysicalStatusBulkParams) error
 	UpdateDocumentStatus(ctx context.Context, arg UpdateDocumentStatusParams) error
 	UpdateDocumentType(ctx context.Context, arg UpdateDocumentTypeParams) (DocumentType, error)
 	UpdateIntegrationNodeConfig(ctx context.Context, arg UpdateIntegrationNodeConfigParams) (IntegrationNode, error)
 	UpdateIntegrationNodeStatus(ctx context.Context, arg UpdateIntegrationNodeStatusParams) (IntegrationNode, error)
 	UpdateManifestItemStatus(ctx context.Context, arg UpdateManifestItemStatusParams) error
+	UpdateManifestItemStatusBulk(ctx context.Context, arg UpdateManifestItemStatusBulkParams) error
+	UpdateManifestItemStatusByDocID(ctx context.Context, arg UpdateManifestItemStatusByDocIDParams) error
 	UpdateManifestStatus(ctx context.Context, arg UpdateManifestStatusParams) error
 	UpdateOrdner(ctx context.Context, arg UpdateOrdnerParams) (Ordner, error)
 	UpdateRack(ctx context.Context, arg UpdateRackParams) (Rack, error)

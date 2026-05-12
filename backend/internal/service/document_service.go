@@ -584,3 +584,28 @@ func (s *DocumentService) UpdateDocument(ctx context.Context, params UpdateDocum
 
 	return doc, nil
 }
+
+func (s *DocumentService) GetRawFile(ctx context.Context, path string) ([]byte, string, error) {
+	reader, err := s.storage.Download(ctx, path)
+	if err != nil {
+		return nil, "", err
+	}
+	defer reader.Close()
+
+	data, err := io.ReadAll(reader)
+	if err != nil {
+		return nil, "", err
+	}
+
+	// Simple mime type detection based on extension
+	mime := "application/octet-stream"
+	if strings.HasSuffix(strings.ToLower(path), ".jpg") || strings.HasSuffix(strings.ToLower(path), ".jpeg") {
+		mime = "image/jpeg"
+	} else if strings.HasSuffix(strings.ToLower(path), ".png") {
+		mime = "image/png"
+	} else if strings.HasSuffix(strings.ToLower(path), ".pdf") {
+		mime = "application/pdf"
+	}
+
+	return data, mime, nil
+}

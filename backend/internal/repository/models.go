@@ -249,6 +249,15 @@ type Document struct {
 	PhysicalStatus      pgtype.Text        `json:"physical_status"`
 }
 
+type DocumentCategory struct {
+	ID          uuid.UUID          `json:"id"`
+	Code        string             `json:"code"`
+	Name        string             `json:"name"`
+	Description pgtype.Text        `json:"description"`
+	CreatedAt   pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt   pgtype.Timestamptz `json:"updated_at"`
+}
+
 type DocumentCirculation struct {
 	ID              uuid.UUID          `json:"id"`
 	RefNo           string             `json:"ref_no"`
@@ -324,6 +333,7 @@ type DocumentType struct {
 	Description pgtype.Text        `json:"description"`
 	CreatedAt   pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt   pgtype.Timestamptz `json:"updated_at"`
+	CategoryID  pgtype.UUID        `json:"category_id"`
 }
 
 type DocumentVersion struct {

@@ -89,3 +89,77 @@ func (h *IntakeHandler) Reject(c fiber.Ctx) error {
 
 	return response.Success(c, fiber.StatusOK, "Manifest rejected successfully", nil)
 }
+
+func (h *IntakeHandler) ListStaging(c fiber.Ctx) error {
+	manifests, err := h.svc.ListStagingManifests(c.Context())
+	if err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to fetch staging manifests", err.Error())
+	}
+
+	return response.Success(c, fiber.StatusOK, "Staging manifests retrieved", manifests)
+}
+
+func (h *IntakeHandler) StagingStats(c fiber.Ctx) error {
+	stats, err := h.svc.GetStagingStats(c.Context())
+	if err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to fetch staging stats", err.Error())
+	}
+
+	return response.Success(c, fiber.StatusOK, "Staging stats retrieved", stats)
+}
+
+func (h *IntakeHandler) Index(c fiber.Ctx) error {
+	var req service.IndexingRequest
+	if err := c.Bind().JSON(&req); err != nil {
+		return response.Error(c, fiber.StatusBadRequest, "Invalid request", err.Error())
+	}
+
+	// If ID is in params (PUT /indexing/:id), override the one in body
+	idParam := c.Params("id")
+	if idParam != "" {
+		docID, err := uuid.Parse(idParam)
+		if err == nil {
+			req.DocumentID = docID
+		}
+	}
+
+	err := h.svc.IndexDocument(c.Context(), req)
+	if err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to index document", err.Error())
+	}
+
+	return response.Success(c, fiber.StatusOK, "Document indexed successfully", nil)
+}
+
+func (h *IntakeHandler) GetLabelingDocuments(c fiber.Ctx) error {
+	status := c.Query("status", "digitized")
+	docs, err := h.svc.ListLabelingDocuments(c.Context(), status)
+	if err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to list documents", err.Error())
+	}
+	return response.Success(c, fiber.StatusOK, "Documents retrieved successfully", docs)
+}
+
+func (h *IntakeHandler) MarkAsLabeled(c fiber.Ctx) error {
+	var req struct {
+		DocumentIDs []uuid.UUID `json:"document_ids"`
+	}
+	if err := c.Bind().JSON(&req); err != nil {
+		return response.Error(c, fiber.StatusBadRequest, "Invalid request", err.Error())
+	}
+
+	err := h.svc.MarkAsLabeled(c.Context(), req.DocumentIDs)
+	if err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to mark documents as labeled", err.Error())
+	}
+	return response.Success(c, fiber.StatusOK, "Documents marked as labeled successfully", nil)
+}
+
+func (h *IntakeHandler) GetLabelingStats(c fiber.Ctx) error {
+	stats, err := h.svc.GetLabelingStats(c.Context())
+	if err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to get stats", err.Error())
+	}
+	return response.Success(c, fiber.StatusOK, "Stats retrieved successfully", stats)
+}
+

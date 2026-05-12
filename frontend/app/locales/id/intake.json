@@ -3,6 +3,16 @@
     "inbound": {
       "title": "Penerimaan Dokumen Fisik",
       "subtitle": "Scan QR Code pada Manifest Serah Terima untuk memulai proses penerimaan"
+    },
+    "staging": {
+      "title": "Staging Area",
+      "subtitle": "Antrean dokumen yang siap untuk proses digitalisasi & scanning",
+      "stats": {
+        "active": "Antrean Saat Ini",
+        "wait": "Rata-rata Waktu Tunggu",
+        "done": "Selesai Hari Ini",
+        "late": "Terlambat"
+      }
     }
   }
 }

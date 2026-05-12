@@ -2,9 +2,11 @@ package service
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 	"strings"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
@@ -21,14 +23,25 @@ func NewIntakeService(repo repository.Querier, notifSvc *NotificationService) *I
 }
 
 type ManifestItem struct {
-	ID             uuid.UUID `json:"id"`
-	DocumentID     uuid.UUID `json:"document_id"`
-	Title          string    `json:"title"`
-	TypeName       string    `json:"type_name"`
-	Date           string    `json:"date"`
-	Status         string    `json:"status"`
-	PhysicalStatus string    `json:"physical_status"`
-	Notes          string    `json:"notes"`
+	ID             uuid.UUID              `json:"id"`
+	DocumentID     uuid.UUID              `json:"document_id"`
+	Title          string                 `json:"title"`
+	TypeID         *uuid.UUID             `json:"type_id"`
+	TypeName       string                 `json:"type_name"`
+	CategoryID     *uuid.UUID             `json:"category_id"`
+	Date           string                 `json:"date"`
+	Status         string                 `json:"status"`
+	PhysicalStatus string                 `json:"physical_status"`
+	PreviewPath    string                 `json:"preview_path"`
+	Metadata       map[string]interface{} `json:"metadata"`
+	ExtractedText  string                 `json:"extracted_text"`
+	Notes          string                 `json:"notes"`
+}
+
+type TimelineItem struct {
+	Status    string `json:"status"`
+	Timestamp string `json:"timestamp"`
+	IsActive  bool   `json:"is_active"`
 }
 
 type ManifestDetail struct {
@@ -39,27 +52,138 @@ type ManifestDetail struct {
 	OwnerName      string         `json:"owner_name"`
 	DepartmentName string         `json:"department_name"`
 	Status         string         `json:"status"`
+	TotalItems     int32          `json:"total_items"`
+	Priority       string         `json:"priority"`
+	Estimate       string         `json:"estimate"`
 	CreatedAt      string         `json:"created_at"`
+	ReceivedAt     string         `json:"received_at,omitempty"`
+	Source         string         `json:"source"` // 'INB' or 'MIG'
 	Items          []ManifestItem `json:"items"`
+	Timeline       []TimelineItem `json:"timeline"`
 }
 
-func (s *IntakeService) GetDocumentByManifestID(ctx context.Context, shortID string) (*ManifestDetail, error) {
-	// 1. Try finding by Manifest No first
-	manifest, err := s.repo.GetManifestByNo(ctx, shortID)
+type LabelingDocument struct {
+	DocumentID     uuid.UUID `json:"document_id"`
+	Title          string    `json:"title"`
+	DepartmentName string    `json:"department_name"`
+	ManifestNo     string    `json:"manifest_no"`
+	Status         string    `json:"status"`
+}
+
+type LabelingStats struct {
+	WaitingCount int64 `json:"waiting_count"`
+	PrintedCount int64 `json:"printed_count"`
+	StoredCount  int64 `json:"stored_count"`
+}
+
+func (s *IntakeService) GetDocumentByManifestID(ctx context.Context, idStr string) (*ManifestDetail, error) {
+	// 1. Try parsing as UUID first (for direct links from Batch Area)
+	if manifestID, err := uuid.Parse(idStr); err == nil {
+		manifest, err := s.repo.GetManifest(ctx, manifestID)
+		if err == nil {
+			items, _ := s.repo.GetManifestItems(ctx, manifest.ID)
+			manifestItems := make([]ManifestItem, 0)
+			for _, item := range items {
+				var typeID *uuid.UUID
+				if item.DocumentTypeID.Valid {
+					id := uuid.UUID(item.DocumentTypeID.Bytes)
+					typeID = &id
+				}
+				var catID *uuid.UUID
+				if item.DocumentCategoryID.Valid {
+					id := uuid.UUID(item.DocumentCategoryID.Bytes)
+					catID = &id
+				}
+				mItem := ManifestItem{
+					ID:             item.ID,
+					DocumentID:     item.DocumentID,
+					Title:          item.DocumentTitle,
+					TypeID:         typeID,
+					TypeName:       item.DocumentType.String,
+					CategoryID:     catID,
+					Date:           item.DocumentDate.Time.Format("02/01/2006"),
+					Status:         item.Status,
+					PhysicalStatus: item.CurrentPhysicalStatus.String,
+					PreviewPath:    item.PreviewPath.String,
+					Metadata:       map[string]interface{}{},
+					ExtractedText:  item.ExtractedText.String,
+					Notes:          item.Notes.String,
+				}
+				if len(item.DocumentMetadata) > 0 {
+					json.Unmarshal(item.DocumentMetadata, &mItem.Metadata)
+				}
+				manifestItems = append(manifestItems, mItem)
+			}
+
+			receivedAt := "-"
+			if manifest.ReceivedAt.Valid {
+				receivedAt = manifest.ReceivedAt.Time.Format("02/01/2006 15:04")
+			}
+
+			return &ManifestDetail{
+				ID:             manifest.ID,
+				ManifestNo:     manifest.ManifestNo,
+				Title:          fmt.Sprintf("Manifest %s", manifest.ManifestNo),
+				TypeName:       "Manifest Serah Terima",
+				OwnerName:      manifest.SenderName,
+				DepartmentName: manifest.DepartmentName,
+				Status:         manifest.Status,
+				TotalItems:     manifest.TotalItems,
+				Priority:       "Tinggi",
+				Estimate:       fmt.Sprintf("%d Dokumen", manifest.TotalItems),
+				CreatedAt:      manifest.CreatedAt.Time.Format("02/01/2006 15:04"),
+				ReceivedAt:     receivedAt,
+				Source:         "INB",
+				Items:          manifestItems,
+				Timeline: []TimelineItem{
+					{Status: "Manifest Diajukan", Timestamp: manifest.CreatedAt.Time.Format("02/01/2006 15:04"), IsActive: true},
+					{Status: "Diterima di Staging Area", Timestamp: receivedAt, IsActive: true},
+					{Status: "Sedang Diproses Digitalisasi", Timestamp: time.Now().Format("02/01/2006 15:04"), IsActive: true},
+				},
+			}, nil
+		}
+	}
+
+	// 2. Try finding by Manifest No
+	manifest, err := s.repo.GetManifestByNo(ctx, idStr)
 	if err == nil {
 		items, _ := s.repo.GetManifestItems(ctx, manifest.ID)
 		manifestItems := make([]ManifestItem, 0)
 		for _, item := range items {
-			manifestItems = append(manifestItems, ManifestItem{
+			var typeID *uuid.UUID
+			if item.DocumentTypeID.Valid {
+				id := uuid.UUID(item.DocumentTypeID.Bytes)
+				typeID = &id
+			}
+			var catID *uuid.UUID
+			if item.DocumentCategoryID.Valid {
+				id := uuid.UUID(item.DocumentCategoryID.Bytes)
+				catID = &id
+			}
+			mItem := ManifestItem{
 				ID:             item.ID,
 				DocumentID:     item.DocumentID,
 				Title:          item.DocumentTitle,
+				TypeID:         typeID,
 				TypeName:       item.DocumentType.String,
+				CategoryID:     catID,
 				Date:           item.DocumentDate.Time.Format("02/01/2006"),
 				Status:         item.Status,
 				PhysicalStatus: item.CurrentPhysicalStatus.String,
+				PreviewPath:    item.PreviewPath.String,
+				Metadata:       map[string]interface{}{},
+				ExtractedText:  item.ExtractedText.String,
 				Notes:          item.Notes.String,
-			})
+			}
+			if len(item.DocumentMetadata) > 0 {
+				json.Unmarshal(item.DocumentMetadata, &mItem.Metadata)
+			}
+			manifestItems = append(manifestItems, mItem)
+		}
+
+		receivedAt := "-"
+		if manifest.ReceivedAt.Valid {
+			receivedAt = manifest.ReceivedAt.Time.Format("02/01/2006 15:04")
 		}
 
 		return &ManifestDetail{
@@ -70,25 +194,36 @@ func (s *IntakeService) GetDocumentByManifestID(ctx context.Context, shortID str
 			OwnerName:      manifest.SenderName,
 			DepartmentName: manifest.DepartmentName,
 			Status:         manifest.Status,
+			TotalItems:     manifest.TotalItems,
+			Priority:       "Tinggi",
+			Estimate:       fmt.Sprintf("%d Dokumen", manifest.TotalItems),
 			CreatedAt:      manifest.CreatedAt.Time.Format("02/01/2006 15:04"),
+			ReceivedAt:     receivedAt,
+			Source:         "INB",
 			Items:          manifestItems,
+			Timeline: []TimelineItem{
+				{Status: "Manifest Diajukan", Timestamp: manifest.CreatedAt.Time.Format("02/01/2006 15:04"), IsActive: true},
+				{Status: "Diterima di Staging Area", Timestamp: receivedAt, IsActive: true},
+				{Status: "Sedang Diproses Digitalisasi", Timestamp: time.Now().Format("02/01/2006 15:04"), IsActive: true},
+			},
 		}, nil
 	}
 
-	// 2. Fallback to Search by prefix (Legacy/Direct Document Scan)
-	doc, err := s.repo.GetDocumentByShortID(ctx, pgtype.Text{String: strings.ToLower(shortID), Valid: true})
+	// 3. Fallback to Search by prefix (Legacy/Direct Document Scan)
+	doc, err := s.repo.GetDocumentByShortID(ctx, pgtype.Text{String: strings.ToLower(idStr), Valid: true})
 	if err != nil {
-		return nil, fmt.Errorf("manifest or document not found with ID: %s", shortID)
+		return nil, fmt.Errorf("manifest or document not found with ID: %s", idStr)
 	}
 
 	return &ManifestDetail{
 		ID:             uuid.Nil, // Not a saved manifest
-		ManifestNo:     shortID,
+		ManifestNo:     idStr,
 		Title:          doc.Title,
 		TypeName:       doc.TypeName.String,
 		OwnerName:      doc.OwnerName,
 		DepartmentName: doc.DepartmentName.String,
 		Status:         doc.Status,
+		TotalItems:     1,
 		CreatedAt:      doc.CreatedAt.Time.Format("02/01/2006 15:04"),
 		Items: []ManifestItem{
 			{
@@ -108,6 +243,54 @@ type ReceiveRequestItem struct {
 	DocumentID     uuid.UUID `json:"document_id"`
 	PhysicalStatus string    `json:"physical_status"`
 	Notes          string    `json:"notes"`
+}
+
+type IndexingRequest struct {
+	ManifestID uuid.UUID              `json:"manifest_id"`
+	DocumentID uuid.UUID              `json:"document_id"`
+	CategoryID uuid.UUID              `json:"category_id"`
+	TypeID     uuid.UUID              `json:"type_id"`
+	Metadata   map[string]interface{} `json:"metadata"`
+}
+
+func (s *IntakeService) IndexDocument(ctx context.Context, req IndexingRequest) error {
+	metaJson, _ := json.Marshal(req.Metadata)
+	
+	// Determine Title from metadata if possible
+	title := "Indexed Document"
+	if val, ok := req.Metadata["document_number"].(string); ok && val != "" {
+		title = fmt.Sprintf("Doc: %s", val)
+	}
+
+	err := s.repo.UpdateDocumentIndexing(ctx, repository.UpdateDocumentIndexingParams{
+		ID:             req.DocumentID,
+		Title:          title,
+		TypeID:         pgtype.UUID{Bytes: req.TypeID, Valid: req.TypeID != uuid.Nil},
+		Metadata:       metaJson,
+		PhysicalStatus: pgtype.Text{String: "digitized", Valid: true},
+	})
+	if err != nil {
+		return err
+	}
+
+	err = s.repo.UpdateManifestItemStatusByDocID(ctx, repository.UpdateManifestItemStatusByDocIDParams{
+		ManifestID: req.ManifestID,
+		DocumentID: req.DocumentID,
+		Status:     "digitized",
+	})
+	if err != nil {
+		return err
+	}
+
+	progress, err := s.repo.GetManifestProgress(ctx, req.ManifestID)
+	if err == nil && progress.TotalItems == progress.DigitizedCount {
+		_ = s.repo.UpdateManifestStatus(ctx, repository.UpdateManifestStatusParams{
+			ID:     req.ManifestID,
+			Status: "completed",
+		})
+	}
+
+	return nil
 }
 
 func (s *IntakeService) ReceiveDocument(ctx context.Context, manifestID uuid.UUID, receivedBy uuid.UUID, mainNotes string, items []ReceiveRequestItem) error {
@@ -154,17 +337,17 @@ func (s *IntakeService) ReceiveDocument(ctx context.Context, manifestID uuid.UUI
 			s.notifSvc.CreateNotification(ctx, repository.CreateNotificationParams{
 				UserID: manifest.SenderID,
 				Title:  "Berkas Fisik Diterima",
-				Body:   notifMsg,
+				Body:   pgtype.Text{String: notifMsg, Valid: true},
 				Type:   "intake",
 			})
 
-			// 2. To Department Manager
+			// 2. To Department Manager (Head)
 			dept, err := s.repo.GetDepartment(ctx, manifest.DepartmentID)
-			if err == nil && dept.ManagerID.Valid {
+			if err == nil && dept.HeadID.Valid {
 				s.notifSvc.CreateNotification(ctx, repository.CreateNotificationParams{
-					UserID: dept.ManagerID.Bytes,
+					UserID: dept.HeadID.Bytes,
 					Title:  "Notifikasi Penerimaan Berkas (Departemen)",
-					Body:   fmt.Sprintf("Dokumen dari %s telah diterima oleh Central Document.", manifest.SenderName),
+					Body:   pgtype.Text{String: fmt.Sprintf("Dokumen dari %s telah diterima oleh Central Document.", manifest.SenderName), Valid: true},
 					Type:   "intake",
 				})
 			}
@@ -268,6 +451,7 @@ func (s *IntakeService) ListPendingManifests(ctx context.Context) ([]ManifestDet
 			OwnerName:      m.SenderName,
 			DepartmentName: m.DepartmentName,
 			Status:         m.Status,
+			TotalItems:     m.TotalItems,
 			CreatedAt:      m.CreatedAt.Time.Format("02/01/2006 15:04"),
 		})
 	}
@@ -303,3 +487,117 @@ func (s *IntakeService) GetStats(ctx context.Context) (map[string]int64, error) 
 		"rejected": stats.RejectedToday,
 	}, nil
 }
+
+func (s *IntakeService) ListStagingManifests(ctx context.Context) ([]ManifestDetail, error) {
+	manifests, err := s.repo.ListStagingManifests(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	result := make([]ManifestDetail, 0)
+	for _, m := range manifests {
+		source := "INB"
+		if strings.HasPrefix(m.ManifestNo, "MIG") {
+			source = "MIG"
+		}
+
+		receivedAt := ""
+		if m.ReceivedAt.Valid {
+			receivedAt = m.ReceivedAt.Time.Format("02/01/2006 15:04")
+		}
+
+		result = append(result, ManifestDetail{
+			ID:             m.ID,
+			ManifestNo:     m.ManifestNo,
+			Title:          fmt.Sprintf("Manifest %s", m.ManifestNo),
+			TypeName:       "Manifest Serah Terima",
+			OwnerName:      m.SenderName,
+			DepartmentName: m.DepartmentName,
+			Status:         m.Status,
+			TotalItems:     m.TotalItems,
+			CreatedAt:      m.CreatedAt.Time.Format("02/01/2006 15:04"),
+			ReceivedAt:     receivedAt,
+			Source:         source,
+		})
+	}
+
+	return result, nil
+}
+
+func (s *IntakeService) GetStagingStats(ctx context.Context) (map[string]interface{}, error) {
+	stats, err := s.repo.GetStagingStats(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	dcs, _ := s.repo.GetActiveDocControllers(ctx)
+	dcList := []map[string]string{}
+	for _, dc := range dcs {
+		avatar := ""
+		if dc.AvatarUrl.Valid {
+			avatar = dc.AvatarUrl.String
+		}
+		dcList = append(dcList, map[string]string{
+			"name":   dc.FullName,
+			"avatar": avatar,
+		})
+	}
+
+	return map[string]interface{}{
+		"active_count":    stats.TotalStaging,
+		"overdue_count":   stats.OverdueCount,
+		"completed_today": stats.CompletedToday,
+		"avg_wait_time":   "1h 24m",
+		"active_dc_count": stats.ActiveDcCount,
+		"active_dc_list":  dcList,
+	}, nil
+}
+
+func (s *IntakeService) ListLabelingDocuments(ctx context.Context, status string) ([]LabelingDocument, error) {
+	items, err := s.repo.ListDocumentsForLabeling(ctx, status)
+	if err != nil {
+		return nil, err
+	}
+
+	result := make([]LabelingDocument, 0, len(items))
+	for _, item := range items {
+		result = append(result, LabelingDocument{
+			DocumentID:     item.DocumentID,
+			Title:          item.Title,
+			DepartmentName: item.DepartmentName.String,
+			ManifestNo:     item.ManifestNo,
+			Status:         item.ManifestItemStatus,
+		})
+	}
+	return result, nil
+}
+
+func (s *IntakeService) MarkAsLabeled(ctx context.Context, docIDs []uuid.UUID) error {
+	// 1. Update manifest items status to 'labeled'
+	err := s.repo.UpdateManifestItemStatusBulk(ctx, repository.UpdateManifestItemStatusBulkParams{
+		Column1: docIDs,
+		Status:  "labeled",
+	})
+	if err != nil {
+		return err
+	}
+
+	// 2. Update documents physical status
+	return s.repo.UpdateDocumentPhysicalStatusBulk(ctx, repository.UpdateDocumentPhysicalStatusBulkParams{
+		Column1:        docIDs,
+		PhysicalStatus: pgtype.Text{String: "received", Valid: true},
+	})
+}
+
+func (s *IntakeService) GetLabelingStats(ctx context.Context) (*LabelingStats, error) {
+	stats, err := s.repo.GetLabelingStats(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return &LabelingStats{
+		WaitingCount: stats.WaitingCount,
+		PrintedCount: stats.PrintedCount,
+		StoredCount:  stats.StoredCount,
+	}, nil
+}
+

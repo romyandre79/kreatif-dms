@@ -117,7 +117,8 @@
       "notification_menu": "Notifikasi",
       "notificaton": "Notifikasi",
       "announcements": "Pengumuman Dashboard",
-      "inbound_registration": "Penerimaan Fisik"
+      "inbound_registration": "Penerimaan Fisik",
+      "staging_area": "Staging Area"
     }
   }
 }

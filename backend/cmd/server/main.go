@@ -258,6 +258,7 @@ func main() {
 	docGroup.Get("/:id", docHandler.GetByID)
 	docGroup.Put("/:id", docHandler.Update)
 	docGroup.Get("/:id/preview", docHandler.Preview)
+	docGroup.Get("/:id/image", docHandler.GetImage)
 	docGroup.Get("/:id/loans", docHandler.GetLoans)
 	docGroup.Get("/:id/ocr", docHandler.GetOCRData)
 	docGroup.Post("/:id/approve", docHandler.Approve)
@@ -276,6 +277,7 @@ func main() {
 	masterGroup.Use(middleware.AuthMiddleware(cfg.JWTSecret))
 	
 	// --- ROUTES ACCESSIBLE TO MANAGERS & DOC CONTROLLERS ---
+	masterGroup.Get("/document-categories", masterHandler.ListDocumentCategories)
 	masterGroup.Get("/document-types", masterHandler.ListDocumentTypes)
 	masterGroup.Get("/settings/:category", middleware.RoleMiddleware("admin", "superadmin", "manajer", "admin doc controller", "kepala doc controller"), masterHandler.GetSettings)
 	masterGroup.Get("/settings/watermark", middleware.RoleMiddleware("admin", "superadmin", "manajer", "admin doc controller", "kepala doc controller"), masterHandler.GetWatermarkSettings)
@@ -390,6 +392,13 @@ func main() {
 	intakeGroup.Get("/stats", intakeHandler.GetStats)
 	intakeGroup.Post("/receive", intakeHandler.Receive)
 	intakeGroup.Post("/reject/:id", intakeHandler.Reject)
+	intakeGroup.Get("/staging", intakeHandler.ListStaging)
+	intakeGroup.Get("/staging/stats", intakeHandler.StagingStats)
+	intakeGroup.Post("/index", intakeHandler.Index)
+	intakeGroup.Put("/indexing/:id", intakeHandler.Index)
+	intakeGroup.Get("/labels", intakeHandler.GetLabelingDocuments)
+	intakeGroup.Get("/labels/stats", intakeHandler.GetLabelingStats)
+	intakeGroup.Post("/labels/print", intakeHandler.MarkAsLabeled)
 
 
 	// Health check

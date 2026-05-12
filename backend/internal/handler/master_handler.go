@@ -1485,6 +1485,15 @@ type UpdateIntegrationNodeRequest struct {
 	Config     json.RawMessage `json:"config_json"`
 }
 
+// Document Categories
+func (h *MasterHandler) ListDocumentCategories(c fiber.Ctx) error {
+	categories, err := h.svc.ListDocumentCategories(c.Context())
+	if err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to list document categories", err.Error())
+	}
+	return response.Success(c, fiber.StatusOK, "Document categories listed", categories)
+}
+
 // Document Types
 func (h *MasterHandler) ListDocumentTypes(c fiber.Ctx) error {
 	types, err := h.svc.ListDocumentTypes(c.Context())

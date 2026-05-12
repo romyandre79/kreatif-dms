@@ -424,3 +424,39 @@ func (h *DocumentHandler) Update(c fiber.Ctx) error {
 
 	return response.Success(c, fiber.StatusOK, "Document updated successfully", doc)
 }
+
+func (h *DocumentHandler) GetImage(c fiber.Ctx) error {
+	docID, err := uuid.Parse(c.Params("id"))
+	if err != nil {
+		return response.Error(c, fiber.StatusBadRequest, "Invalid document ID", err.Error())
+	}
+
+	// 1. Try to get OCR preview path first
+	job, err := h.svc.GetOCRJob(c.Context(), docID)
+	path := ""
+	if err == nil && job.PreviewPath.Valid {
+		path = job.PreviewPath.String
+	} else {
+		// 2. Fallback to original file if it's an image
+		doc, err := h.svc.GetDocument(c.Context(), docID)
+		if err == nil {
+			mime := strings.ToLower(doc.MimeType.String)
+			if strings.HasPrefix(mime, "image/") {
+				path = doc.FilePath.String
+			}
+		}
+	}
+
+	if path == "" {
+		// No image preview available, return 404 or a placeholder if you prefer
+		return response.Error(c, fiber.StatusNotFound, "No image preview available for this document", "")
+	}
+
+	data, mime, err := h.svc.GetRawFile(c.Context(), path)
+	if err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to retrieve image", err.Error())
+	}
+
+	c.Set("Content-Type", mime)
+	return c.Send(data)
+}

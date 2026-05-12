@@ -158,10 +158,36 @@ func (q *Queries) CreateDepartment(ctx context.Context, arg CreateDepartmentPara
 	return i, err
 }
 
+const createDocumentCategory = `-- name: CreateDocumentCategory :one
+INSERT INTO document_categories (code, name, description)
+VALUES ($1, $2, $3)
+RETURNING id, code, name, description, created_at, updated_at
+`
+
+type CreateDocumentCategoryParams struct {
+	Code        string      `json:"code"`
+	Name        string      `json:"name"`
+	Description pgtype.Text `json:"description"`
+}
+
+func (q *Queries) CreateDocumentCategory(ctx context.Context, arg CreateDocumentCategoryParams) (DocumentCategory, error) {
+	row := q.db.QueryRow(ctx, createDocumentCategory, arg.Code, arg.Name, arg.Description)
+	var i DocumentCategory
+	err := row.Scan(
+		&i.ID,
+		&i.Code,
+		&i.Name,
+		&i.Description,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
 const createDocumentType = `-- name: CreateDocumentType :one
 INSERT INTO document_types (code, name, description)
 VALUES ($1, $2, $3)
-RETURNING id, code, name, description, created_at, updated_at
+RETURNING id, code, name, description, created_at, updated_at, category_id
 `
 
 type CreateDocumentTypeParams struct {
@@ -180,6 +206,7 @@ func (q *Queries) CreateDocumentType(ctx context.Context, arg CreateDocumentType
 		&i.Description,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.CategoryID,
 	)
 	return i, err
 }
@@ -521,8 +548,26 @@ func (q *Queries) GetDepartment(ctx context.Context, id uuid.UUID) (Department, 
 	return i, err
 }
 
+const getDocumentCategory = `-- name: GetDocumentCategory :one
+SELECT id, code, name, description, created_at, updated_at FROM document_categories WHERE id = $1
+`
+
+func (q *Queries) GetDocumentCategory(ctx context.Context, id uuid.UUID) (DocumentCategory, error) {
+	row := q.db.QueryRow(ctx, getDocumentCategory, id)
+	var i DocumentCategory
+	err := row.Scan(
+		&i.ID,
+		&i.Code,
+		&i.Name,
+		&i.Description,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
 const getDocumentType = `-- name: GetDocumentType :one
-SELECT id, code, name, description, created_at, updated_at FROM document_types WHERE id = $1
+SELECT id, code, name, description, created_at, updated_at, category_id FROM document_types WHERE id = $1
 `
 
 func (q *Queries) GetDocumentType(ctx context.Context, id uuid.UUID) (DocumentType, error) {
@@ -535,6 +580,7 @@ func (q *Queries) GetDocumentType(ctx context.Context, id uuid.UUID) (DocumentTy
 		&i.Description,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.CategoryID,
 	)
 	return i, err
 }
@@ -1140,20 +1186,20 @@ func (q *Queries) ListDepartments(ctx context.Context, branchID uuid.UUID) ([]De
 	return items, nil
 }
 
-const listDocumentTypes = `-- name: ListDocumentTypes :many
-SELECT id, code, name, description, created_at, updated_at FROM document_types ORDER BY name
+const listDocumentCategories = `-- name: ListDocumentCategories :many
+SELECT id, code, name, description, created_at, updated_at FROM document_categories ORDER BY name
 `
 
-// Document Types
-func (q *Queries) ListDocumentTypes(ctx context.Context) ([]DocumentType, error) {
-	rows, err := q.db.Query(ctx, listDocumentTypes)
+// Document Categories
+func (q *Queries) ListDocumentCategories(ctx context.Context) ([]DocumentCategory, error) {
+	rows, err := q.db.Query(ctx, listDocumentCategories)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []DocumentType
+	var items []DocumentCategory
 	for rows.Next() {
-		var i DocumentType
+		var i DocumentCategory
 		if err := rows.Scan(
 			&i.ID,
 			&i.Code,
@@ -1161,6 +1207,56 @@ func (q *Queries) ListDocumentTypes(ctx context.Context) ([]DocumentType, error)
 			&i.Description,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listDocumentTypes = `-- name: ListDocumentTypes :many
+SELECT 
+    dt.id, dt.code, dt.name, dt.description, dt.created_at, dt.updated_at, dt.category_id,
+    dc.name as category_name 
+FROM document_types dt
+LEFT JOIN document_categories dc ON dt.category_id = dc.id
+ORDER BY dt.name
+`
+
+type ListDocumentTypesRow struct {
+	ID           uuid.UUID          `json:"id"`
+	Code         string             `json:"code"`
+	Name         string             `json:"name"`
+	Description  pgtype.Text        `json:"description"`
+	CreatedAt    pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt    pgtype.Timestamptz `json:"updated_at"`
+	CategoryID   pgtype.UUID        `json:"category_id"`
+	CategoryName pgtype.Text        `json:"category_name"`
+}
+
+// Document Types
+func (q *Queries) ListDocumentTypes(ctx context.Context) ([]ListDocumentTypesRow, error) {
+	rows, err := q.db.Query(ctx, listDocumentTypes)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListDocumentTypesRow
+	for rows.Next() {
+		var i ListDocumentTypesRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Code,
+			&i.Name,
+			&i.Description,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.CategoryID,
+			&i.CategoryName,
 		); err != nil {
 			return nil, err
 		}
@@ -1568,7 +1664,7 @@ func (q *Queries) UpdateDepartment(ctx context.Context, arg UpdateDepartmentPara
 const updateDocumentType = `-- name: UpdateDocumentType :one
 UPDATE document_types SET code = $2, name = $3, description = $4, updated_at = NOW()
 WHERE id = $1
-RETURNING id, code, name, description, created_at, updated_at
+RETURNING id, code, name, description, created_at, updated_at, category_id
 `
 
 type UpdateDocumentTypeParams struct {
@@ -1593,6 +1689,7 @@ func (q *Queries) UpdateDocumentType(ctx context.Context, arg UpdateDocumentType
 		&i.Description,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.CategoryID,
 	)
 	return i, err
 }

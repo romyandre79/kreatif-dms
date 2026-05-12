@@ -295,9 +295,26 @@ ON CONFLICT (category, key) DO UPDATE
 SET value = EXCLUDED.value, value_type = EXCLUDED.value_type, description = EXCLUDED.description, updated_by = EXCLUDED.updated_by, updated_at = NOW()
 RETURNING *;
 
+-- Document Categories
+-- name: ListDocumentCategories :many
+SELECT * FROM document_categories ORDER BY name;
+
+-- name: GetDocumentCategory :one
+SELECT * FROM document_categories WHERE id = $1;
+
+-- name: CreateDocumentCategory :one
+INSERT INTO document_categories (code, name, description)
+VALUES ($1, $2, $3)
+RETURNING *;
+
 -- Document Types
 -- name: ListDocumentTypes :many
-SELECT * FROM document_types ORDER BY name;
+SELECT 
+    dt.id, dt.code, dt.name, dt.description, dt.created_at, dt.updated_at, dt.category_id,
+    dc.name as category_name 
+FROM document_types dt
+LEFT JOIN document_categories dc ON dt.category_id = dc.id
+ORDER BY dt.name;
 
 -- name: GetDocumentType :one
 SELECT * FROM document_types WHERE id = $1;

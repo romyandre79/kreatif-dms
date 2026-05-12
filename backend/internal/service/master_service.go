@@ -1155,9 +1155,45 @@ func (s *MasterService) ExportIntegrationReport(ctx context.Context) ([]byte, st
 	return buf.Bytes(), fileName, nil
 }
 
+// Document Categories
+func (s *MasterService) ListDocumentCategories(ctx context.Context) ([]repository.DocumentCategory, error) {
+	return s.repo.ListDocumentCategories(ctx)
+}
+
+type DocumentTypeResponse struct {
+	ID           uuid.UUID `json:"id"`
+	Code         string    `json:"code"`
+	Name         string    `json:"name"`
+	Description  string    `json:"description"`
+	CategoryID   *uuid.UUID `json:"category_id"`
+	CategoryName string    `json:"category_name"`
+}
+
 // Document Types
-func (s *MasterService) ListDocumentTypes(ctx context.Context) ([]repository.DocumentType, error) {
-	return s.repo.ListDocumentTypes(ctx)
+func (s *MasterService) ListDocumentTypes(ctx context.Context) ([]DocumentTypeResponse, error) {
+	rows, err := s.repo.ListDocumentTypes(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	res := make([]DocumentTypeResponse, 0, len(rows))
+	for _, r := range rows {
+		var catID *uuid.UUID
+		if r.CategoryID.Valid {
+			id := uuid.UUID(r.CategoryID.Bytes)
+			catID = &id
+		}
+
+		res = append(res, DocumentTypeResponse{
+			ID:           r.ID,
+			Code:         r.Code,
+			Name:         r.Name,
+			Description:  r.Description.String,
+			CategoryID:   catID,
+			CategoryName: r.CategoryName.String,
+		})
+	}
+	return res, nil
 }
 
 func (s *MasterService) CreateDocumentType(ctx context.Context, code, name, description string) (repository.DocumentType, error) {

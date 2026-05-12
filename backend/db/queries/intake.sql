@@ -50,12 +50,18 @@ WHERE m.manifest_no = $1;
 SELECT 
     mi.*, 
     d.title as document_title, 
+    d.type_id as document_type_id,
     dt.name as document_type, 
+    dt.category_id as document_category_id,
     d.created_at as document_date,
-    d.physical_status as current_physical_status
+    d.physical_status as current_physical_status,
+    COALESCE(oj.preview_path, d.file_path) as preview_path,
+    d.metadata as document_metadata,
+    d.extracted_text as extracted_text
 FROM physical_manifest_items mi
 JOIN documents d ON mi.document_id = d.id
 LEFT JOIN document_types dt ON d.type_id = dt.id
+LEFT JOIN ocr_jobs oj ON oj.entity_id = d.id AND oj.entity_type = 'document'
 WHERE mi.manifest_id = $1;
 
 -- name: UpdateManifestItemStatus :exec
@@ -79,3 +85,54 @@ JOIN departments dept ON d.department_id = dept.id
 LEFT JOIN document_types dt ON d.type_id = dt.id
 WHERE d.physical_status = 'pending' AND d.current_manifest_id IS NULL
 ORDER BY d.created_at DESC;
+-- name: GetManifest :one
+SELECT m.*, u.full_name as sender_name, dept.name as department_name
+FROM physical_manifests m
+JOIN users u ON m.sender_id = u.id
+JOIN departments dept ON m.department_id = dept.id
+WHERE m.id = $1;
+
+-- name: ListStagingManifests :many
+SELECT m.*, u.full_name as sender_name, dept.name as department_name
+FROM physical_manifests m
+JOIN users u ON m.sender_id = u.id
+JOIN departments dept ON m.department_id = dept.id
+WHERE m.status = 'received'
+ORDER BY m.received_at ASC;
+
+-- name: GetStagingStats :one
+SELECT 
+    COUNT(*) as total_staging,
+    COUNT(*) FILTER (WHERE status = 'received' AND received_at < NOW() - INTERVAL '4 hours') as overdue_count,
+    COUNT(*) FILTER (WHERE status = 'digitized' AND updated_at::date = CURRENT_DATE) as completed_today,
+    (SELECT COUNT(*) FROM users u JOIN roles r ON u.role_id = r.id WHERE r.name ILIKE '%doc controller%' AND u.status = 'active') as active_dc_count
+FROM physical_manifests;
+
+-- name: GetActiveDocControllers :many
+SELECT u.full_name, u.avatar_url
+FROM users u
+JOIN roles r ON u.role_id = r.id
+WHERE r.name ILIKE '%doc controller%' AND u.status = 'active'
+LIMIT 5;
+
+-- name: UpdateDocumentIndexing :exec
+UPDATE documents
+SET 
+    title = $2,
+    type_id = $3,
+    metadata = $4,
+    physical_status = $5,
+    updated_at = NOW()
+WHERE id = $1;
+
+-- name: UpdateManifestItemStatusByDocID :exec
+UPDATE physical_manifest_items
+SET status = $3, verified_at = NOW()
+WHERE manifest_id = $1 AND document_id = $2;
+
+-- name: GetManifestProgress :one
+SELECT 
+    COUNT(*) as total_items,
+    COUNT(*) FILTER (WHERE status = 'digitized') as digitized_count
+FROM physical_manifest_items
+WHERE manifest_id = $1;
