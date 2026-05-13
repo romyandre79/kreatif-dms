@@ -465,10 +465,65 @@ func (s *DocumentService) ApproveDocument(ctx context.Context, docID uuid.UUID, 
 		return err
 	}
 
-	return s.repo.UpdateDocumentPhysicalStatus(ctx, repository.UpdateDocumentPhysicalStatusParams{
+	if err := s.repo.UpdateDocumentPhysicalStatus(ctx, repository.UpdateDocumentPhysicalStatusParams{
 		ID:             docID,
 		PhysicalStatus: pgtype.Text{String: "pending", Valid: true},
-	})
+	}); err != nil {
+		return err
+	}
+
+	// 3. Trigger Notifications (Async)
+	go func() {
+		bgCtx := context.Background()
+		doc, err := s.repo.GetDocument(bgCtx, docID)
+		if err != nil {
+			log.Printf("[DocumentService] Error getting doc for approval notification: %v", err)
+			return
+		}
+		owner, _ := s.repo.GetUserByID(bgCtx, doc.OwnerID)
+
+		// 3.1 Notify Owner
+		metaOwner := map[string]string{
+			"docTitle": doc.Title,
+			"notes":    notes,
+		}
+		metaOwnerJSON, _ := json.Marshal(metaOwner)
+		_, _ = s.notifSvc.CreateNotification(bgCtx, repository.CreateNotificationParams{
+			UserID:     doc.OwnerID,
+			Title:      "Dokumen Disetujui",
+			Body:       pgtype.Text{String: fmt.Sprintf("Dokumen '%s' Anda telah disetujui.", doc.Title), Valid: true},
+			Type:       "doc-approved",
+			EntityType: pgtype.Text{String: "document", Valid: true},
+			EntityID:   pgtype.UUID{Bytes: docID, Valid: true},
+			Channel:    pgtype.Text{String: "email", Valid: true},
+			Metadata:   metaOwnerJSON,
+		})
+
+		// 3.2 Notify DC Admins & Superadmin (Ready for Intake)
+		roles := []string{"superadmin", "admin doc controller", "kepala doc controller"}
+		admins, err := s.repo.ListUsersByRoles(bgCtx, roles)
+		if err == nil {
+			for _, admin := range admins {
+				metaDC := map[string]string{
+					"docTitle":  doc.Title,
+					"ownerName": owner.FullName,
+				}
+				metaDCJSON, _ := json.Marshal(metaDC)
+				_, _ = s.notifSvc.CreateNotification(bgCtx, repository.CreateNotificationParams{
+					UserID:     admin.ID,
+					Title:      "Dokumen Siap Intake",
+					Body:       pgtype.Text{String: fmt.Sprintf("Dokumen '%s' telah disetujui. Silakan lakukan physical intake.", doc.Title), Valid: true},
+					Type:       "doc-approved-dc",
+					EntityType: pgtype.Text{String: "document", Valid: true},
+					EntityID:   pgtype.UUID{Bytes: docID, Valid: true},
+					Channel:    pgtype.Text{String: "email", Valid: true},
+					Metadata:   metaDCJSON,
+				})
+			}
+		}
+	}()
+
+	return nil
 }
 
 func (s *DocumentService) RejectDocument(ctx context.Context, docID uuid.UUID, reason string, notes string) error {
@@ -482,10 +537,41 @@ func (s *DocumentService) RejectDocument(ctx context.Context, docID uuid.UUID, r
 	}
 
 	// 2. Update document status to rejected
-	return s.repo.UpdateDocumentStatus(ctx, repository.UpdateDocumentStatusParams{
+	err := s.repo.UpdateDocumentStatus(ctx, repository.UpdateDocumentStatusParams{
 		ID:     docID,
 		Status: "rejected",
 	})
+	if err != nil {
+		return err
+	}
+
+	// 3. Trigger Notification for Owner (Async)
+	go func() {
+		bgCtx := context.Background()
+		doc, err := s.repo.GetDocument(bgCtx, docID)
+		if err != nil {
+			log.Printf("[DocumentService] Error getting doc for rejection notification: %v", err)
+			return
+		}
+
+		meta := map[string]string{
+			"docTitle": doc.Title,
+			"notes":    fmt.Sprintf("%s. %s", reason, notes),
+		}
+		metaJSON, _ := json.Marshal(meta)
+		_, _ = s.notifSvc.CreateNotification(bgCtx, repository.CreateNotificationParams{
+			UserID:     doc.OwnerID,
+			Title:      "Dokumen Ditolak",
+			Body:       pgtype.Text{String: fmt.Sprintf("Dokumen '%s' Anda ditolak oleh Manager.", doc.Title), Valid: true},
+			Type:       "doc-rejected",
+			EntityType: pgtype.Text{String: "document", Valid: true},
+			EntityID:   pgtype.UUID{Bytes: docID, Valid: true},
+			Channel:    pgtype.Text{String: "email", Valid: true},
+			Metadata:   metaJSON,
+		})
+	}()
+
+	return nil
 }
 func (s *DocumentService) BulkApproveDocuments(ctx context.Context, ids []uuid.UUID) error {
 	for _, id := range ids {

@@ -73,3 +73,10 @@ WHERE u.id = $1 LIMIT 1;
 
 -- name: UpdateUserPassword :exec
 UPDATE users SET password_hash = $2, updated_at = NOW() WHERE id = $1;
+
+-- name: ListUsersByRoles :many
+SELECT u.*, r.name as role_name 
+FROM users u
+LEFT JOIN roles r ON u.role_id = r.id
+WHERE r.name = ANY($1::text[])
+AND u.status = 'approved';

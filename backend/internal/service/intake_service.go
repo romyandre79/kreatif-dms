@@ -344,22 +344,37 @@ func (s *IntakeService) ReceiveDocument(ctx context.Context, manifestID uuid.UUI
 			count := len(items)
 			notifMsg := fmt.Sprintf("Berkas fisik manifest %s (%d dokumen) telah diterima oleh Document Controller.", manifest.ManifestNo, count)
 			
+			meta := map[string]string{
+				"manifestNo": manifest.ManifestNo,
+				"itemCount":  fmt.Sprintf("%d", count),
+				"senderName": manifest.SenderName,
+			}
+			metaJSON, _ := json.Marshal(meta)
+
 			// 1. To Sender/Owner
-			s.notifSvc.CreateNotification(ctx, repository.CreateNotificationParams{
-				UserID: manifest.SenderID,
-				Title:  "Berkas Fisik Diterima",
-				Body:   pgtype.Text{String: notifMsg, Valid: true},
-				Type:   "intake",
+			_, _ = s.notifSvc.CreateNotification(ctx, repository.CreateNotificationParams{
+				UserID:     manifest.SenderID,
+				Title:      "Berkas Fisik Diterima",
+				Body:       pgtype.Text{String: notifMsg, Valid: true},
+				Type:       "intake-received",
+				EntityType: pgtype.Text{String: "manifest", Valid: true},
+				EntityID:   pgtype.UUID{Bytes: manifestID, Valid: true},
+				Channel:    pgtype.Text{String: "email", Valid: true},
+				Metadata:   metaJSON,
 			})
 
 			// 2. To Department Manager (Head)
 			dept, err := s.repo.GetDepartment(ctx, manifest.DepartmentID)
 			if err == nil && dept.HeadID.Valid {
-				s.notifSvc.CreateNotification(ctx, repository.CreateNotificationParams{
-					UserID: dept.HeadID.Bytes,
-					Title:  "Notifikasi Penerimaan Berkas (Departemen)",
-					Body:   pgtype.Text{String: fmt.Sprintf("Dokumen dari %s telah diterima oleh Central Document.", manifest.SenderName), Valid: true},
-					Type:   "intake",
+				_, _ = s.notifSvc.CreateNotification(ctx, repository.CreateNotificationParams{
+					UserID:     dept.HeadID.Bytes,
+					Title:      "Notifikasi Penerimaan Berkas (Departemen)",
+					Body:       pgtype.Text{String: fmt.Sprintf("Dokumen dari %s telah diterima oleh Central Document.", manifest.SenderName), Valid: true},
+					Type:       "intake-received-manager",
+					EntityType: pgtype.Text{String: "manifest", Valid: true},
+					EntityID:   pgtype.UUID{Bytes: manifestID, Valid: true},
+					Channel:    pgtype.Text{String: "email", Valid: true},
+					Metadata:   metaJSON,
 				})
 			}
 		}
@@ -418,6 +433,23 @@ func (s *IntakeService) ReceiveDocument(ctx context.Context, manifestID uuid.UUI
 		})
 	}
 
+	// TRIGGER NOTIFICATION (Legacy)
+	owner, _ := s.repo.GetUserByID(ctx, doc.OwnerID)
+	meta := map[string]string{
+		"manifestNo": manifest.ManifestNo,
+		"itemCount":  fmt.Sprintf("%d", len(items)),
+		"senderName": owner.FullName,
+	}
+	metaJSON, _ := json.Marshal(meta)
+
+	_, _ = s.notifSvc.CreateNotification(ctx, repository.CreateNotificationParams{
+		UserID:   doc.OwnerID,
+		Title:    "Berkas Fisik Diterima",
+		Body:     pgtype.Text{String: fmt.Sprintf("Berkas fisik Anda (%d dokumen) telah diterima.", len(items)), Valid: true},
+		Type:     "intake-received",
+		Metadata: metaJSON,
+	})
+
 	return nil
 }
 
@@ -432,13 +464,34 @@ func (s *IntakeService) RejectManifest(ctx context.Context, manifestID uuid.UUID
 		return err
 	}
 
-	// Optionally update items/docs status to reflect rejection
+	// 2. Update items/docs status to reflect rejection
 	items, _ := s.repo.GetManifestItems(ctx, manifestID)
 	for _, item := range items {
 		_ = s.repo.UpdateDocumentPhysicalStatus(ctx, repository.UpdateDocumentPhysicalStatusParams{
 			ID:                item.DocumentID,
 			PhysicalStatus:    pgtype.Text{String: "rejected", Valid: true},
 			CurrentManifestID: pgtype.UUID{Bytes: manifestID, Valid: true},
+		})
+	}
+
+	// 3. Trigger Notification for Rejection
+	manifest, _ := s.repo.GetManifest(ctx, manifestID)
+	if manifest.ID != uuid.Nil {
+		meta := map[string]string{
+			"manifestNo": manifest.ManifestNo,
+			"reason":     reason,
+		}
+		metaJSON, _ := json.Marshal(meta)
+
+		_, _ = s.notifSvc.CreateNotification(ctx, repository.CreateNotificationParams{
+			UserID:     manifest.SenderID,
+			Title:      "Berkas Fisik Ditolak",
+			Body:       pgtype.Text{String: fmt.Sprintf("Manifest %s ditolak: %s", manifest.ManifestNo, reason), Valid: true},
+			Type:       "intake-rejected",
+			EntityType: pgtype.Text{String: "manifest", Valid: true},
+			EntityID:   pgtype.UUID{Bytes: manifestID, Valid: true},
+			Channel:    pgtype.Text{String: "email", Valid: true},
+			Metadata:   metaJSON,
 		})
 	}
 

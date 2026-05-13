@@ -104,7 +104,7 @@
             </tr>
           </thead>
           <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
-            <tr v-for="item in dashboardData?.tasks" :key="item.id" class="hover:bg-slate-50/50 dark:hover:bg-slate-900/50 transition-colors">
+            <tr v-for="item in dashboardData?.tasks" :key="item.id" @click="handleTaskAction(item)" class="hover:bg-slate-50/50 dark:hover:bg-slate-900/50 transition-colors cursor-pointer">
               <td class="px-8 py-6 font-black text-sm text-slate-800 dark:text-slate-200 line-clamp-1" :title="item.title || item.id">
                 {{ item.title || item.id.substring(0, 8) + '...' }}
               </td>
@@ -119,7 +119,10 @@
                 </span>
               </td>
               <td class="px-8 py-6 text-right">
-                <button class="px-5 py-2.5 rounded-xl text-xs font-black transition-all bg-[#1E3A5F] text-white hover:bg-[#152943]">
+                <button 
+                  @click.stop="handleTaskAction(item)"
+                  class="px-5 py-2.5 rounded-xl text-xs font-black transition-all bg-[#1E3A5F] text-white hover:bg-[#152943]"
+                >
                   {{ $t('dashboard.user.tasks.items.process') }}
                 </button>
               </td>
@@ -332,6 +335,22 @@ const formatTime = (seconds) => {
   if (!seconds || seconds <= 0) return '0h'
   if (seconds < 3600) return `${(seconds / 60).toFixed(1)}m`
   return `${(seconds / 3600).toFixed(1)}h`
+}
+
+const handleTaskAction = (task) => {
+  const id = task.entity_id || task.id
+  if (!id) return
+  
+  if (task.entity_type === 'document_rejection' || task.entity_type === 'document_draft') {
+    navigateTo(`/documents/upload?id=${id}`)
+  } else if (task.entity_type.includes('Scan')) {
+    navigateTo('/stock/scan')
+  } else if (task.entity_type.includes('Loan')) {
+    navigateTo('/approvals/loans')
+  } else {
+    // Default for doc controller
+    navigateTo(`/approvals/${id}`)
+  }
 }
 
 const footerStats = computed(() => [

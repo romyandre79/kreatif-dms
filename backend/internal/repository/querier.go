@@ -160,6 +160,7 @@ type Querier interface {
 	// System Modules & Permissions
 	ListSystemModules(ctx context.Context) ([]SystemModule, error)
 	ListUsers(ctx context.Context) ([]ListUsersRow, error)
+	ListUsersByRoles(ctx context.Context, dollar_1 []string) ([]ListUsersByRolesRow, error)
 	MarkAllAsRead(ctx context.Context, userID uuid.UUID) error
 	MarkAsRead(ctx context.Context, arg MarkAsReadParams) error
 	RejectTask(ctx context.Context, arg RejectTaskParams) error

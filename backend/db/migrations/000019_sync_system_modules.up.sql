@@ -28,7 +28,6 @@ INSERT INTO system_modules (id, name, category, path, icon, allowed_actions, sor
 -- Registration
 ('new_doc', 'Registrasi Dokumen Baru', 'Registration', '/documents/upload', 'LucidePlusCircle', ARRAY['VIEW', 'CREATE', 'EDIT', 'DELETE', 'EXPORT', 'DOWNLOAD', 'PRINT'], 10),
 ('legacy_mig', 'Migrasi Data Legacy', 'Registration', '/registration/migration', 'LucideUploadCloud', ARRAY['VIEW', 'CREATE', 'EDIT', 'DELETE', 'EXPORT', 'DOWNLOAD', 'PRINT'], 11),
-('staging', 'Inbound Staging', 'Registration', '/registration/staging', 'LucideInbox', ARRAY['VIEW', 'CREATE', 'EDIT', 'DELETE', 'EXPORT', 'DOWNLOAD', 'PRINT'], 12),
 
 -- Warehouse
 ('structure', 'Struktur Gudang', 'Warehouse', '/warehouse/structure', 'LucideHome', ARRAY['VIEW', 'CREATE', 'EDIT', 'DELETE', 'EXPORT', 'DOWNLOAD', 'PRINT'], 20),

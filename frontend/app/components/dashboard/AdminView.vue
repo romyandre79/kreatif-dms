@@ -133,7 +133,7 @@
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-50 dark:divide-slate-900">
-              <tr v-for="task in dashboardData?.tasks" :key="task.id" class="hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-colors">
+              <tr v-for="task in dashboardData?.tasks" :key="task.id" @click="handleTaskAction(task)" class="hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-colors cursor-pointer group">
                 <td class="px-8 py-6">
                   <p class="font-black text-sm text-[#1E3A5F] dark:text-slate-200">{{ task.id.substring(0, 8) }}...</p>
                   <p class="text-[10px] text-slate-400 font-bold mt-0.5">{{ task.entity_type }}</p>
@@ -353,6 +353,22 @@ const formatTime = (seconds) => {
   if (!seconds || seconds <= 0) return '0h'
   if (seconds < 3600) return `${(seconds / 60).toFixed(1)}m`
   return `${(seconds / 3600).toFixed(1)}h`
+}
+
+const handleTaskAction = (task) => {
+  const id = task.entity_id || task.id
+  if (!id) return
+  
+  if (task.entity_type === 'document_rejection' || task.entity_type === 'document_draft') {
+    navigateTo(`/documents/upload?id=${id}`)
+  } else if (task.entity_type.includes('Scan')) {
+    navigateTo('/stock/scan')
+  } else if (task.entity_type.includes('Loan')) {
+    navigateTo('/approvals/loans')
+  } else {
+    // Default to approvals for admin review
+    navigateTo(`/approvals/${id}`)
+  }
 }
 
 // Polling for updates
