@@ -121,6 +121,69 @@
         }
       },
       "empty_history": "Belum ada riwayat penolakan untuk request ini"
+    },
+    "cart": {
+      "title": "Keranjang Pinjaman",
+      "items_count": "({count} item)",
+      "subtitle": "Review dokumen pilihan Anda sebelum melanjutkan ke proses checkout.",
+      "table": {
+        "select_all": "PILIH SEMUA",
+        "clear_cart": "KOSONGKAN KERANJANG",
+        "available": "TERSEDIA"
+      },
+      "summary": {
+        "title": "Ringkasan Pinjaman",
+        "total_docs": "Total Dokumen",
+        "total_items": "{count} Item",
+        "duration_label": "DURASI PINJAM",
+        "duration_options": {
+          "7_days": "7 Hari (Standard)",
+          "14_days": "14 Hari",
+          "30_days": "30 Hari"
+        },
+        "purpose_label": "TUJUAN PINJAM",
+        "purpose_placeholder": "Contoh: Untuk keperluan audit pajak internal...",
+        "info_box": "Semua permintaan peminjaman memerlukan persetujuan dari atasan langsung dan tim pengelola arsip.",
+        "btn_checkout": "PROSES CHECKOUT",
+        "btn_continue": "LANJUT CARI DOKUMEN"
+      }
+    },
+    "checkout": {
+      "title": "Konfirmasi Pinjaman",
+      "subtitle": "Lengkapi detail pengambilan untuk menyelesaikan permintaan peminjaman.",
+      "review": {
+        "title": "REVIEW ({count} DOKUMEN)",
+        "table": {
+          "doc_no": "NO. DOKUMEN",
+          "doc_title": "JUDUL DOKUMEN",
+          "category": "KATEGORI"
+        }
+      },
+      "form": {
+        "title": "DETAIL PENGAMBILAN",
+        "method_label": "METODE PENGAMBILAN",
+        "method_courier": "Kurir Internal / Antar Jemput",
+        "warehouse_label": "LOKASI GUDANG PENGAMBILAN",
+        "warehouse_default": "Main Warehouse - Jakarta Pusat",
+        "pickup_date_label": "TANGGAL PENGAMBILAN",
+        "time_slot_label": "WAKTU PENGAMBILAN",
+        "time_slot_placeholder": "Pilih Jam...",
+        "notes_label": "CATATAN TAMBAHAN",
+        "notes_placeholder": "Instruksi khusus untuk petugas arsip..."
+      },
+      "summary": {
+        "title": "Loan Summary",
+        "total_docs": "Total Dokumen",
+        "total_files": "{count} File",
+        "duration": "Durasi Pinjam",
+        "duration_value": "{count} Hari",
+        "est_return": "Estimasi Kembali",
+        "est_return_pending": "Akan dihitung saat pengambilan",
+        "security_level": "SECURITY LEVEL",
+        "btn_confirm": "KIRIM PERMINTAAN",
+        "btn_back": "Kembali ke Keranjang"
+      },
+      "info_box": "Anda akan menerima notifikasi melalui email dan dashboard segera setelah permintaan Anda disetujui."
     }
   }
 }

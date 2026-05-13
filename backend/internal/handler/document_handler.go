@@ -8,7 +8,9 @@ import (
 	"strings"
 	"github.com/gofiber/fiber/v3"
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/kreatif/dms-backend/internal/infra"
+	"github.com/kreatif/dms-backend/internal/repository"
 	"github.com/kreatif/dms-backend/internal/service"
 	"github.com/kreatif/dms-backend/pkg/response"
 )
@@ -216,12 +218,33 @@ func (h *DocumentHandler) List(c fiber.Ctx) error {
 	limit, _ := strconv.Atoi(c.Query("limit", "10"))
 	mine := c.Query("mine") == "true"
 	
+	// Filtering params
+	filters := repository.SearchDocumentsParams{
+		Limit:  int32(limit),
+		Offset: 0, // for now
+	}
+
+	if val, err := uuid.Parse(c.Query("company_id")); err == nil { filters.CompanyID = pgtype.UUID{Bytes: val, Valid: true} }
+	if val, err := uuid.Parse(c.Query("branch_id")); err == nil { filters.BranchID = pgtype.UUID{Bytes: val, Valid: true} }
+	if val, err := uuid.Parse(c.Query("department_id")); err == nil { filters.DepartmentID = pgtype.UUID{Bytes: val, Valid: true} }
+	if val, err := uuid.Parse(c.Query("rack_id")); err == nil { filters.RackID = pgtype.UUID{Bytes: val, Valid: true} }
+	if val, err := uuid.Parse(c.Query("box_id")); err == nil { filters.BoxID = pgtype.UUID{Bytes: val, Valid: true} }
+	if val, err := uuid.Parse(c.Query("ordner_id")); err == nil { filters.OrdnerID = pgtype.UUID{Bytes: val, Valid: true} }
+	if val, err := uuid.Parse(c.Query("type_id")); err == nil { filters.TypeID = pgtype.UUID{Bytes: val, Valid: true} }
+	if val := c.Query("year"); val != "" {
+		if yearInt, err := strconv.Atoi(val); err == nil {
+			filters.Year = pgtype.Int4{Int32: int32(yearInt), Valid: true}
+		}
+	}
+
 	var docs interface{}
 	var err error
 	
 	if mine {
 		userID := c.Locals("user_id").(uuid.UUID)
 		docs, err = h.svc.ListRecentDocumentsByOwner(c.Context(), userID, limit)
+	} else if filters.CompanyID.Valid || filters.BranchID.Valid || filters.DepartmentID.Valid || filters.RackID.Valid || filters.BoxID.Valid || filters.OrdnerID.Valid || filters.TypeID.Valid || filters.Year.Valid {
+		docs, err = h.svc.FilterDocuments(c.Context(), filters)
 	} else {
 		docs, err = h.svc.ListRecentDocuments(c.Context(), limit)
 	}
@@ -459,4 +482,60 @@ func (h *DocumentHandler) GetImage(c fiber.Ctx) error {
 
 	c.Set("Content-Type", mime)
 	return c.Send(data)
+}
+
+func (h *DocumentHandler) GetExplorerTree(c fiber.Ctx) error {
+	tree, err := h.svc.GetExplorerTree(c.Context())
+	if err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to build explorer tree", err.Error())
+	}
+	return response.Success(c, fiber.StatusOK, "Explorer tree retrieved", tree)
+}
+
+func (h *DocumentHandler) GetExplorerConfig(c fiber.Ctx) error {
+	settings, err := h.svc.GetSystemSettingsByCategory(c.Context(), "explorer")
+	if err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to get explorer config", err.Error())
+	}
+	
+	config := make(map[string]interface{})
+	for _, s := range settings {
+		if s.ValueType.String == "boolean" {
+			config[s.Key] = s.Value.String == "true"
+		} else {
+			config[s.Key] = s.Value.String
+		}
+	}
+	
+	return response.Success(c, fiber.StatusOK, "Explorer config retrieved", config)
+}
+
+func (h *DocumentHandler) UpdateExplorerConfig(c fiber.Ctx) error {
+	var req map[string]interface{}
+	if err := c.Bind().JSON(&req); err != nil {
+		return response.Error(c, fiber.StatusBadRequest, "Invalid request body", err.Error())
+	}
+	
+	userID := c.Locals("user_id").(uuid.UUID)
+	
+	for k, v := range req {
+		valStr := fmt.Sprintf("%v", v)
+		valType := "string"
+		if _, ok := v.(bool); ok {
+			valType = "boolean"
+		}
+		
+		_, err := h.svc.UpsertSystemSetting(c.Context(), repository.UpsertSystemSettingParams{
+			Category:    "explorer",
+			Key:         k,
+			Value:       pgtype.Text{String: valStr, Valid: true},
+			ValueType:   pgtype.Text{String: valType, Valid: true},
+			UpdatedBy:   pgtype.UUID{Bytes: userID, Valid: true},
+		})
+		if err != nil {
+			return response.Error(c, fiber.StatusInternalServerError, "Failed to update explorer config", err.Error())
+		}
+	}
+	
+	return response.Success(c, fiber.StatusOK, "Explorer config updated", nil)
 }

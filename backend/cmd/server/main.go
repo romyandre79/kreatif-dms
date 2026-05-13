@@ -266,6 +266,11 @@ func main() {
 	docGroup.Post("/:id/reject", docHandler.Reject)
 	docGroup.Post("/bulk-approve", docHandler.BulkApprove)
 	docGroup.Post("/bulk-reject", docHandler.BulkReject)
+	
+	// Explorer Routes
+	docGroup.Get("/explorer/tree", docHandler.GetExplorerTree)
+	docGroup.Get("/explorer/config", docHandler.GetExplorerConfig)
+	docGroup.Post("/explorer/config", docHandler.UpdateExplorerConfig)
 
 	// Batch Routes
 	batchGroup := api.Group("/batches")

@@ -1,5 +1,5 @@
 <template>
-  <div class="flex h-[calc(100vh-theme(spacing.16))] -m-8 overflow-hidden bg-[#F8FAFC]">
+  <div class="flex h-[calc(100vh-theme(spacing.20)-1rem)] -m-2 overflow-hidden bg-[#F8FAFC]">
     <!-- Left Sidebar: Document Explorer -->
     <aside class="w-80 border-r border-slate-200 bg-white flex flex-col overflow-hidden">
       <div class="p-6 space-y-6">
@@ -17,55 +17,16 @@
 
       <!-- Folder Tree -->
       <div class="flex-1 overflow-y-auto px-4 pb-6 custom-scrollbar">
-        <div class="space-y-1">
-          <div v-for="node in folderTree" :key="node.id" class="space-y-1">
-            <button 
-              @click="toggleFolder(node)"
-              class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-bold transition-colors"
-              :class="node.expanded ? 'text-primary-600 bg-primary-50/50' : 'text-slate-600 hover:bg-slate-50'"
-            >
-              <LucideChevronDown v-if="node.children && node.children.length" class="w-4 h-4 transition-transform" :class="{ '-rotate-90': !node.expanded }" />
-              <div v-else class="w-4"></div>
-              <LucideFolder v-if="!node.expanded" class="w-4 h-4 text-amber-400 fill-amber-400" />
-              <LucideFolderOpen v-else class="w-4 h-4 text-amber-400 fill-amber-400" />
-              <span class="uppercase tracking-tight">{{ node.name }}</span>
-            </button>
-
-            <!-- Recursive Children -->
-            <div v-if="node.expanded && node.children" class="ml-4 pl-4 border-l border-slate-100 space-y-1">
-              <div v-for="child in node.children" :key="child.id">
-                <button 
-                  @click="toggleFolder(child)"
-                  class="w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm font-bold transition-colors"
-                  :class="[
-                    child.active && !query ? 'text-primary-600 bg-primary-50' : 'text-slate-500 hover:bg-slate-50',
-                    child.expanded ? 'text-primary-600' : ''
-                  ]"
-                >
-                  <div class="flex items-center gap-2">
-                    <LucideChevronDown v-if="child.children && child.children.length" class="w-3.5 h-3.5 transition-transform" :class="{ '-rotate-90': !child.expanded }" />
-                    <div v-else class="w-3.5"></div>
-                    <LucideFolder v-if="!child.expanded" class="w-4 h-4 text-amber-400 fill-amber-400" />
-                    <LucideFolderOpen v-else class="w-4 h-4 text-amber-400 fill-amber-400" />
-                    <span class="uppercase tracking-tight">{{ child.name }}</span>
-                  </div>
-                  <span v-if="child.count" class="text-[10px] text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded-md">({{ child.count }})</span>
-                </button>
-
-                <!-- Second Level -->
-                <div v-if="child.expanded && child.children" class="ml-4 pl-4 border-l border-slate-100 space-y-1">
-                  <button 
-                    v-for="subChild in child.children" 
-                    :key="subChild.id"
-                    class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-bold transition-colors"
-                    :class="subChild.active && !query ? 'text-primary-600 bg-primary-50' : 'text-slate-400 hover:bg-slate-50 hover:text-slate-600'"
-                  >
-                    <span class="uppercase tracking-tight">{{ subChild.name }}</span>
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
+        <div v-if="isLoadingTree" class="p-4 space-y-4">
+          <div v-for="i in 5" :key="i" class="h-8 bg-slate-50 animate-pulse rounded-lg"></div>
+        </div>
+        <div v-else class="space-y-1">
+          <ExplorerNode 
+            v-for="node in folderTree" 
+            :key="node.id" 
+            :node="node" 
+            @select="handleNodeSelect"
+          />
         </div>
       </div>
     </aside>
@@ -91,13 +52,23 @@
       <!-- HEADER: EXPLORER MODE -->
       <header v-else class="bg-white border-b border-slate-200 px-8 py-4 flex items-center justify-between" v-motion-fade>
         <div class="flex items-center gap-2 text-xs font-bold text-slate-400">
-          <span>{{ $t('documents.mock.accounting') }}</span>
-          <LucideChevronRight class="w-3 h-3" />
-          <span>2026</span>
-          <LucideChevronRight class="w-3 h-3" />
-          <span class="text-primary-600 uppercase">{{ $t('documents.mock.february') }}</span>
+          <template v-if="breadcrumbs.length">
+            <template v-for="(crumb, i) in breadcrumbs" :key="crumb.id">
+              <button 
+                @click="handleBreadcrumbClick(crumb, i)"
+                class="hover:text-primary-600 transition-colors uppercase"
+                :class="{ 'text-primary-600': i === breadcrumbs.length - 1 }"
+              >
+                {{ crumb.name }}
+              </button>
+              <LucideChevronRight v-if="i < breadcrumbs.length - 1" class="w-3 h-3" />
+            </template>
+          </template>
+          <span v-else>{{ $t('documents.explorer.root') }}</span>
         </div>
-        <div class="text-xs font-bold text-slate-400">{{ $t('documents.explorer.stats_total', { count: 128 }) }}</div>
+        <div class="text-xs font-bold text-slate-400">
+          {{ $t('documents.explorer.stats_total', { count: selectedNode?.count || documents.length }) }}
+        </div>
       </header>
 
       <!-- FILTERS BAR (Only in Explorer Mode) -->
@@ -186,7 +157,11 @@
               <tr class="bg-slate-50/50 text-[10px] font-black text-slate-400 uppercase tracking-[0.15em] border-b border-slate-100">
                 <th class="pl-8 pr-4 py-5 w-16">
                   <div class="flex items-center justify-center">
-                    <input type="checkbox" class="w-5 h-5 rounded-md border-2 border-slate-200 text-primary-600 focus:ring-primary-500/20" />
+                    <input 
+                      type="checkbox" 
+                      v-model="isAllSelected"
+                      class="w-5 h-5 rounded-md border-2 border-slate-200 text-primary-600 focus:ring-primary-500/20" 
+                    />
                   </div>
                 </th>
                 <th class="px-6 py-5">{{ $t('documents.table.name') }}</th>
@@ -199,10 +174,13 @@
             </thead>
             <tbody class="divide-y divide-slate-50">
               <tr v-for="doc in documents" :key="doc.id" class="group hover:bg-slate-50/50 transition-colors">
-                <td class="pl-8 pr-4 py-6">
-                  <div class="flex items-center justify-center">
-                    <input type="checkbox" v-model="doc.selected" class="w-5 h-5 rounded-md border-2 border-slate-200 text-primary-600 focus:ring-primary-500/20" />
-                  </div>
+                <td class="pl-8 py-6">
+                  <input 
+                    type="checkbox" 
+                    :checked="cartStore.isInCart(doc.original_id || doc.id)"
+                    @change="toggleDocSelection(doc)"
+                    class="w-5 h-5 rounded-md border-2 border-slate-200 text-primary-600 focus:ring-primary-500/20" 
+                  />
                 </td>
                 <td class="px-6 py-6">
                   <div class="flex items-center gap-4">
@@ -228,8 +206,22 @@
                 </td>
                 <td class="pr-8 pl-4 py-6 text-right">
                   <div class="flex items-center justify-end gap-2">
-                    <button @click="viewDocument(doc)" class="p-2.5 rounded-xl text-slate-400 hover:text-primary-500 hover:bg-primary-50 transition-all"><LucideEye class="w-5 h-5" /></button>
-                    <button class="p-2.5 rounded-xl text-slate-400 hover:text-primary-500 hover:bg-primary-50 transition-all"><LucideShoppingCart class="w-5 h-5" /></button>
+                    <button @click="viewDocument(doc)" class="p-2.5 rounded-xl text-slate-400 hover:text-primary-500 hover:bg-primary-50 transition-all">
+                      <LucideEye class="w-5 h-5" />
+                    </button>
+                    <button 
+                      @click.stop="handleQuickLoan(doc)"
+                      :disabled="doc.rawStatus === 'on_loan' || doc.physicalStatus === 'damaged' || doc.physicalStatus === 'missing'"
+                      class="p-2.5 rounded-xl transition-all"
+                      :class="[
+                        doc.selected ? 'text-primary-600 bg-primary-50 ring-1 ring-primary-100' : 
+                        (doc.rawStatus === 'on_loan' || doc.physicalStatus === 'damaged' || doc.physicalStatus === 'missing')
+                          ? 'text-slate-200 cursor-not-allowed bg-slate-50/50'
+                          : 'text-slate-400 hover:text-primary-500 hover:bg-primary-50'
+                      ]"
+                    >
+                      <LucideShoppingCart class="w-5 h-5" :class="{ 'opacity-50': doc.rawStatus === 'on_loan' || doc.physicalStatus === 'damaged' }" />
+                    </button>
                   </div>
                 </td>
               </tr>
@@ -243,21 +235,27 @@
         enter-active-class="transition duration-500 ease-out"
         enter-from-class="translate-y-20 opacity-0"
         enter-to-class="translate-y-0 opacity-100"
+        leave-active-class="transition duration-300 ease-in"
+        leave-from-class="translate-y-0 opacity-100"
+        leave-to-class="translate-y-20 opacity-0"
       >
-        <div v-if="selectedCount > 0" class="absolute bottom-10 left-1/2 -translate-x-1/2 w-full max-w-lg">
-          <div class="bg-[#1E3A5F] text-white rounded-2xl px-6 py-4 flex items-center justify-between shadow-2xl shadow-blue-900/40 border border-white/10 backdrop-blur-xl">
+        <div v-if="selectedCount > 0" class="fixed bottom-12 left-1/2 -translate-x-1/2 z-[100]">
+          <div class="bg-[#1E3A5F] text-white rounded-full px-8 py-4 flex items-center gap-10 shadow-[0_20px_50px_rgba(30,58,95,0.4)] border border-white/5 backdrop-blur-md">
             <div class="flex items-center gap-4">
               <div class="relative">
-                <LucideShoppingCart class="w-6 h-6 text-blue-200" />
-                <span class="absolute -top-2 -right-2 w-5 h-5 bg-red-500 text-[10px] font-black flex items-center justify-center rounded-full border-2 border-[#1E3A5F]">{{ selectedCount }}</span>
+                <LucideShoppingCart class="w-7 h-7 text-blue-100" />
+                <span class="absolute -top-2 -right-2 w-5 h-5 bg-red-500 text-[10px] font-black flex items-center justify-center rounded-full border-2 border-[#1E3A5F] ring-1 ring-red-400/50 shadow-lg shadow-red-500/20">{{ selectedCount }}</span>
               </div>
-              <div>
-                <p class="text-sm font-black tracking-tight">{{ $t('documents.cart.items_in_cart', { count: selectedCount }) }}</p>
-                <p class="text-[10px] font-bold text-blue-300/80 uppercase tracking-widest">{{ $t('documents.cart.ready_desc') }}</p>
+              <div class="leading-tight">
+                <p class="text-[11px] font-black uppercase tracking-tight">{{ selectedCount }} items in cart</p>
+                <p class="text-[9px] font-bold text-blue-300/60 uppercase tracking-widest mt-0.5">Ready for loan request</p>
               </div>
             </div>
-            <button @click="navigateTo('/loans/cart')" class="flex items-center gap-2 px-6 py-2.5 bg-blue-500 hover:bg-blue-400 text-white text-xs font-black rounded-xl transition-all group">
-              {{ $t('documents.cart.btn_view') }} <LucideArrowRight class="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            
+            <div class="w-px h-8 bg-white/10"></div>
+
+            <button @click="navigateTo('/loans/cart')" class="flex items-center gap-2 text-[11px] font-black text-white hover:text-blue-300 transition-all uppercase tracking-widest group">
+              View Cart <LucideArrowRight class="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </button>
           </div>
         </div>
@@ -275,15 +273,23 @@ import {
 } from 'lucide-vue-next'
 import { useApi } from '~/composables/useApi'
 import { formatDate } from '~/utils/format'
+import ExplorerNode from '~/components/ExplorerNode.vue'
+import { useCartStore } from '~/stores/cart'
 
 const { t } = useI18n()
 const { $api } = useApi()
 const route = useRoute()
+const cartStore = useCartStore()
 const query = computed(() => route.query.q)
+const selectedCount = computed(() => cartStore.count)
 
 const searchResults = ref([])
 const documents = ref([])
 const isLoading = ref(false)
+const isLoadingTree = ref(false)
+const folderTree = ref([])
+const selectedNode = ref(null)
+const breadcrumbs = ref([])
 
 const getStatusStyles = (status) => {
   const s = status?.toLowerCase() || ''
@@ -303,10 +309,15 @@ const getTypeStyles = (mimeType) => {
   return { bg: 'bg-slate-50', color: 'text-slate-500', typeBg: 'bg-slate-50 text-slate-600 border border-slate-100' }
 }
 
-const fetchDocuments = async () => {
+const fetchDocuments = async (filters = {}) => {
   isLoading.value = true
   try {
-    const res = await $api('/documents?limit=50')
+    let url = '/documents?limit=50'
+    Object.keys(filters).forEach(key => {
+      url += `&${key}=${filters[key]}`
+    })
+    
+    const res = await $api(url)
     if (res && res.data) {
       documents.value = res.data.map(doc => {
         const statusStyle = getStatusStyles(doc.status)
@@ -320,10 +331,12 @@ const fetchDocuments = async () => {
           date: formatDate(doc.created_at),
           dept: doc.department_name || '-',
           status: statusStyle.label,
+          rawStatus: doc.status,
+          physicalStatus: doc.physical_status,
           statusColor: statusStyle.color,
           iconBg: typeStyle.bg,
           iconColor: typeStyle.color,
-          selected: false
+          selected: cartStore.isInCart(doc.id)
         }
       })
     }
@@ -334,8 +347,56 @@ const fetchDocuments = async () => {
   }
 }
 
+const fetchExplorerTree = async () => {
+  isLoadingTree.value = true
+  try {
+    const res = await $api('/documents/explorer/tree')
+    if (res && res.data) {
+      folderTree.value = res.data
+    }
+  } catch (err) {
+    console.error('Failed to fetch explorer tree:', err)
+  } finally {
+    isLoadingTree.value = false
+  }
+}
+
+const handleNodeSelect = ({ node, path }) => {
+  // Clear active status from all nodes
+  const clearActive = (nodes) => {
+    nodes.forEach(n => {
+      n.active = false
+      if (n.children) clearActive(n.children)
+    })
+  }
+  clearActive(folderTree.value)
+  
+  node.active = true
+  selectedNode.value = node
+  breadcrumbs.value = path
+  
+  // Build filters based on node type
+  const filters = {}
+  if (node.type === 'department') filters.department_id = node.id
+  else if (node.type === 'company') filters.company_id = node.id
+  else if (node.type === 'branch') filters.branch_id = node.id
+  else if (node.type === 'rack') filters.rack_id = node.id
+  else if (node.type === 'box') filters.box_id = node.id
+  else if (node.type === 'ordner') filters.ordner_id = node.id
+  else if (node.type === 'year') filters.year = node.id.replace('year-', '')
+  else if (node.type === 'type') filters.type_id = node.id
+  
+  fetchDocuments(filters)
+}
+
+const handleBreadcrumbClick = (crumb, index) => {
+  const newPath = breadcrumbs.value.slice(0, index + 1)
+  handleNodeSelect({ node: crumb.node, path: newPath })
+}
+
 onMounted(() => {
   fetchDocuments()
+  fetchExplorerTree()
 })
 
 const updateSearchResults = (q) => {
@@ -377,24 +438,18 @@ watch(query, (newVal) => {
   updateSearchResults(newVal)
 }, { immediate: true })
 
-const folderTree = ref([
-  {
-    id: 1,
-    name: 'SEMUA ARSIP',
-    expanded: true,
-    children: [
-      {
-        id: 2,
-        name: 'DEPARTEMEN',
-        expanded: true,
-        count: documents.value.length,
-        children: []
+const isAllSelected = computed({
+  get: () => documents.value.length > 0 && documents.value.every(doc => cartStore.isInCart(doc.original_id || doc.id)),
+  set: (val) => {
+    documents.value.forEach(doc => {
+      if (val) {
+        cartStore.addItem(doc)
+      } else {
+        cartStore.removeItem(doc.original_id || doc.id)
       }
-    ]
+    })
   }
-])
-
-const selectedCount = computed(() => documents.value.filter(d => d.selected).length)
+})
 
 const toggleFolder = (node) => {
   if (node.children) {
@@ -404,6 +459,21 @@ const toggleFolder = (node) => {
 
 const viewDocument = (doc) => {
   navigateTo(`/documents/${doc.original_id || doc.id}`)
+}
+
+const handleQuickLoan = (doc) => {
+  if (cartStore.count > 0) {
+    cartStore.toggleItem(doc)
+    doc.selected = cartStore.isInCart(doc.id)
+  } else {
+    cartStore.addItem(doc)
+    navigateTo('/loans/cart')
+  }
+}
+
+const toggleDocSelection = (doc) => {
+  cartStore.toggleItem(doc)
+  doc.selected = cartStore.isInCart(doc.id)
 }
 </script>
 

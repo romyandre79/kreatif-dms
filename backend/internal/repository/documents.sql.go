@@ -316,6 +316,64 @@ func (q *Queries) GetDocument(ctx context.Context, id uuid.UUID) (GetDocumentRow
 	return i, err
 }
 
+const getDocumentHierarchyCounts = `-- name: GetDocumentHierarchyCounts :many
+SELECT 
+    company_id, 
+    branch_id, 
+    department_id, 
+    rack_id, 
+    box_id, 
+    ordner_id, 
+    type_id,
+    EXTRACT(YEAR FROM created_at)::int as doc_year,
+    COUNT(*) as doc_count
+FROM documents
+WHERE status = 'active'
+GROUP BY company_id, branch_id, department_id, rack_id, box_id, ordner_id, type_id, doc_year
+`
+
+type GetDocumentHierarchyCountsRow struct {
+	CompanyID    uuid.UUID   `json:"company_id"`
+	BranchID     uuid.UUID   `json:"branch_id"`
+	DepartmentID uuid.UUID   `json:"department_id"`
+	RackID       pgtype.UUID `json:"rack_id"`
+	BoxID        pgtype.UUID `json:"box_id"`
+	OrdnerID     pgtype.UUID `json:"ordner_id"`
+	TypeID       pgtype.UUID `json:"type_id"`
+	DocYear      int32       `json:"doc_year"`
+	DocCount     int64       `json:"doc_count"`
+}
+
+func (q *Queries) GetDocumentHierarchyCounts(ctx context.Context) ([]GetDocumentHierarchyCountsRow, error) {
+	rows, err := q.db.Query(ctx, getDocumentHierarchyCounts)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetDocumentHierarchyCountsRow
+	for rows.Next() {
+		var i GetDocumentHierarchyCountsRow
+		if err := rows.Scan(
+			&i.CompanyID,
+			&i.BranchID,
+			&i.DepartmentID,
+			&i.RackID,
+			&i.BoxID,
+			&i.OrdnerID,
+			&i.TypeID,
+			&i.DocYear,
+			&i.DocCount,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getDocumentLoanHistory = `-- name: GetDocumentLoanHistory :many
 SELECT 
     br.id,
@@ -736,6 +794,7 @@ func (q *Queries) ListOCRJobs(ctx context.Context, arg ListOCRJobsParams) ([]Lis
 const listRecentDocuments = `-- name: ListRecentDocuments :many
 SELECT 
     d.id, d.title, d.status, d.created_at, d.mime_type, d.file_size, d.metadata,
+    d.physical_status,
     dt.name as type_name,
     dept.name as department_name,
     COALESCE(d.description, '')::text as category
@@ -760,6 +819,7 @@ type ListRecentDocumentsRow struct {
 	MimeType       pgtype.Text        `json:"mime_type"`
 	FileSize       pgtype.Int8        `json:"file_size"`
 	Metadata       json.RawMessage    `json:"metadata"`
+	PhysicalStatus pgtype.Text        `json:"physical_status"`
 	TypeName       pgtype.Text        `json:"type_name"`
 	DepartmentName pgtype.Text        `json:"department_name"`
 	Category       string             `json:"category"`
@@ -782,6 +842,7 @@ func (q *Queries) ListRecentDocuments(ctx context.Context, arg ListRecentDocumen
 			&i.MimeType,
 			&i.FileSize,
 			&i.Metadata,
+			&i.PhysicalStatus,
 			&i.TypeName,
 			&i.DepartmentName,
 			&i.Category,
@@ -799,6 +860,7 @@ func (q *Queries) ListRecentDocuments(ctx context.Context, arg ListRecentDocumen
 const listRecentDocumentsByOwner = `-- name: ListRecentDocumentsByOwner :many
 SELECT 
     d.id, d.title, d.status, d.created_at, d.mime_type, d.file_size, d.metadata,
+    d.physical_status,
     dt.name as type_name,
     dept.name as department_name,
     COALESCE(d.description, '')::text as category
@@ -824,6 +886,7 @@ type ListRecentDocumentsByOwnerRow struct {
 	MimeType       pgtype.Text        `json:"mime_type"`
 	FileSize       pgtype.Int8        `json:"file_size"`
 	Metadata       json.RawMessage    `json:"metadata"`
+	PhysicalStatus pgtype.Text        `json:"physical_status"`
 	TypeName       pgtype.Text        `json:"type_name"`
 	DepartmentName pgtype.Text        `json:"department_name"`
 	Category       string             `json:"category"`
@@ -846,6 +909,100 @@ func (q *Queries) ListRecentDocumentsByOwner(ctx context.Context, arg ListRecent
 			&i.MimeType,
 			&i.FileSize,
 			&i.Metadata,
+			&i.PhysicalStatus,
+			&i.TypeName,
+			&i.DepartmentName,
+			&i.Category,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const searchDocuments = `-- name: SearchDocuments :many
+SELECT 
+    d.id, d.title, d.status, d.created_at, d.mime_type, d.file_size, d.metadata,
+    d.physical_status,
+    dt.name as type_name,
+    dept.name as department_name,
+    COALESCE(d.description, '')::text as category
+FROM documents d
+LEFT JOIN document_types dt ON d.type_id = dt.id
+LEFT JOIN departments dept ON d.department_id = dept.id
+WHERE (d.company_id = $3 OR $3 IS NULL)
+  AND (d.branch_id = $4 OR $4 IS NULL)
+  AND (d.department_id = $5 OR $5 IS NULL)
+  AND (d.rack_id = $6 OR $6 IS NULL)
+  AND (d.box_id = $7 OR $7 IS NULL)
+  AND (d.ordner_id = $8 OR $8 IS NULL)
+  AND (d.type_id = $9 OR $9 IS NULL)
+  AND (EXTRACT(YEAR FROM d.created_at)::int = $10::int OR $10 IS NULL)
+  AND (d.status = 'active')
+ORDER BY d.created_at DESC
+LIMIT $1 OFFSET $2
+`
+
+type SearchDocumentsParams struct {
+	Limit        int32       `json:"limit"`
+	Offset       int32       `json:"offset"`
+	CompanyID    pgtype.UUID `json:"company_id"`
+	BranchID     pgtype.UUID `json:"branch_id"`
+	DepartmentID pgtype.UUID `json:"department_id"`
+	RackID       pgtype.UUID `json:"rack_id"`
+	BoxID        pgtype.UUID `json:"box_id"`
+	OrdnerID     pgtype.UUID `json:"ordner_id"`
+	TypeID       pgtype.UUID `json:"type_id"`
+	Year         pgtype.Int4 `json:"year"`
+}
+
+type SearchDocumentsRow struct {
+	ID             uuid.UUID          `json:"id"`
+	Title          string             `json:"title"`
+	Status         string             `json:"status"`
+	CreatedAt      pgtype.Timestamptz `json:"created_at"`
+	MimeType       pgtype.Text        `json:"mime_type"`
+	FileSize       pgtype.Int8        `json:"file_size"`
+	Metadata       json.RawMessage    `json:"metadata"`
+	PhysicalStatus pgtype.Text        `json:"physical_status"`
+	TypeName       pgtype.Text        `json:"type_name"`
+	DepartmentName pgtype.Text        `json:"department_name"`
+	Category       string             `json:"category"`
+}
+
+func (q *Queries) SearchDocuments(ctx context.Context, arg SearchDocumentsParams) ([]SearchDocumentsRow, error) {
+	rows, err := q.db.Query(ctx, searchDocuments,
+		arg.Limit,
+		arg.Offset,
+		arg.CompanyID,
+		arg.BranchID,
+		arg.DepartmentID,
+		arg.RackID,
+		arg.BoxID,
+		arg.OrdnerID,
+		arg.TypeID,
+		arg.Year,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []SearchDocumentsRow
+	for rows.Next() {
+		var i SearchDocumentsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Title,
+			&i.Status,
+			&i.CreatedAt,
+			&i.MimeType,
+			&i.FileSize,
+			&i.Metadata,
+			&i.PhysicalStatus,
 			&i.TypeName,
 			&i.DepartmentName,
 			&i.Category,

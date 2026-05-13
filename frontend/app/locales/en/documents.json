@@ -4,7 +4,8 @@
     "explorer": {
       "title": "Document Explorer",
       "search_placeholder": "Filter folders...",
-      "stats_total": "Total {count} documents"
+      "stats_total": "Total {count} documents",
+      "root": "ARCHIVE"
     },
     "search": {
       "results_for": "Search results for \"{query}\" ({count})",

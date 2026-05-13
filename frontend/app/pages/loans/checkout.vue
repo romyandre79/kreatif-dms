@@ -118,7 +118,7 @@
             <div class="space-y-6">
               <div class="flex justify-between items-center">
                 <span class="text-sm font-bold text-slate-400">{{ $t('loans.checkout.summary.total_docs') }}</span>
-                <span class="text-sm font-black text-[#1E3A5F]">{{ $t('loans.checkout.summary.total_files', { count: 3 }) }}</span>
+                <span class="text-sm font-black text-[#1E3A5F]">{{ $t('loans.checkout.summary.total_files', { count: selectedDocs.length }) }}</span>
               </div>
               <div class="flex justify-between items-center">
                 <span class="text-sm font-bold text-slate-400">{{ $t('loans.checkout.summary.duration') }}</span>
@@ -138,7 +138,7 @@
             </div>
 
             <div class="pt-4 space-y-4">
-              <button class="w-full flex items-center justify-center gap-3 py-5 bg-[#1E3A5F] hover:bg-[#152943] text-white rounded-2xl text-xs font-black uppercase tracking-widest shadow-xl shadow-blue-900/20 transition-all group">
+              <button @click="submitLoanRequest" class="w-full flex items-center justify-center gap-3 py-5 bg-[#1E3A5F] hover:bg-[#152943] text-white rounded-2xl text-xs font-black uppercase tracking-widest shadow-xl shadow-blue-900/20 transition-all group">
                 <LucideClipboardCheck class="w-5 h-5 group-hover:scale-110 transition-transform" />
                 {{ $t('loans.checkout.summary.btn_confirm') }}
               </button>
@@ -170,12 +170,17 @@ import {
   LucideClipboardCheck, 
   LucideInfo 
 } from 'lucide-vue-next'
+import { useCartStore } from '~/stores/cart'
 
-const selectedDocs = [
-  { id: 'DOC-2023-XYZ-001', title: 'Laporan Keuangan Q3 2023', category: 'Financial' },
-  { id: 'DOC-2023-XYZ-004', title: 'Kontrak Vendor IT - Phase 1', category: 'Legal' },
-  { id: 'DOC-2023-ABC-012', title: 'SOP Pengarsipan Digital', category: 'Internal' }
-]
+const cartStore = useCartStore()
+const selectedDocs = computed(() => cartStore.items)
+
+const submitLoanRequest = async () => {
+  // TODO: Implement API call to submit loan request
+  alert('Permintaan peminjaman telah diajukan!')
+  cartStore.clearCart()
+  navigateTo('/loans/my')
+}
 </script>
 
 <style scoped>

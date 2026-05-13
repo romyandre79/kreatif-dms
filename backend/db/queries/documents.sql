@@ -118,6 +118,7 @@ SELECT COUNT(*) FROM ocr_jobs;
 -- name: ListRecentDocuments :many
 SELECT 
     d.id, d.title, d.status, d.created_at, d.mime_type, d.file_size, d.metadata,
+    d.physical_status,
     dt.name as type_name,
     dept.name as department_name,
     COALESCE(d.description, '')::text as category
@@ -131,6 +132,7 @@ LIMIT $1 OFFSET $2;
 -- name: ListRecentDocumentsByOwner :many
 SELECT 
     d.id, d.title, d.status, d.created_at, d.mime_type, d.file_size, d.metadata,
+    d.physical_status,
     dt.name as type_name,
     dept.name as department_name,
     COALESCE(d.description, '')::text as category
@@ -184,3 +186,40 @@ SET title = $2,
     updated_at = NOW() 
 WHERE id = $1 
 RETURNING *;
+
+-- name: GetDocumentHierarchyCounts :many
+SELECT 
+    company_id, 
+    branch_id, 
+    department_id, 
+    rack_id, 
+    box_id, 
+    ordner_id, 
+    type_id,
+    EXTRACT(YEAR FROM created_at)::int as doc_year,
+    COUNT(*) as doc_count
+FROM documents
+WHERE status = 'active'
+GROUP BY company_id, branch_id, department_id, rack_id, box_id, ordner_id, type_id, doc_year;
+
+-- name: SearchDocuments :many
+SELECT 
+    d.id, d.title, d.status, d.created_at, d.mime_type, d.file_size, d.metadata,
+    d.physical_status,
+    dt.name as type_name,
+    dept.name as department_name,
+    COALESCE(d.description, '')::text as category
+FROM documents d
+LEFT JOIN document_types dt ON d.type_id = dt.id
+LEFT JOIN departments dept ON d.department_id = dept.id
+WHERE (d.company_id = sqlc.narg('company_id') OR sqlc.narg('company_id') IS NULL)
+  AND (d.branch_id = sqlc.narg('branch_id') OR sqlc.narg('branch_id') IS NULL)
+  AND (d.department_id = sqlc.narg('department_id') OR sqlc.narg('department_id') IS NULL)
+  AND (d.rack_id = @rack_id OR @rack_id IS NULL)
+  AND (d.box_id = @box_id OR @box_id IS NULL)
+  AND (d.ordner_id = @ordner_id OR @ordner_id IS NULL)
+  AND (d.type_id = @type_id OR @type_id IS NULL)
+  AND (EXTRACT(YEAR FROM d.created_at)::int = sqlc.narg('year')::int OR sqlc.narg('year') IS NULL)
+  AND (d.status = 'active')
+ORDER BY d.created_at DESC
+LIMIT $1 OFFSET $2;

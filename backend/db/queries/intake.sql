@@ -102,9 +102,9 @@ ORDER BY m.received_at ASC;
 
 -- name: GetStagingStats :one
 SELECT 
-    COUNT(*) as total_staging,
+    COUNT(*) FILTER (WHERE status = 'received') as total_staging,
     COUNT(*) FILTER (WHERE status = 'received' AND received_at < NOW() - INTERVAL '4 hours') as overdue_count,
-    COUNT(*) FILTER (WHERE status = 'digitized' AND updated_at::date = CURRENT_DATE) as completed_today,
+    COUNT(*) FILTER (WHERE (status = 'digitized' OR status = 'completed') AND updated_at::date = CURRENT_DATE) as completed_today,
     (SELECT COUNT(*) FROM users u JOIN roles r ON u.role_id = r.id WHERE r.name ILIKE '%doc controller%' AND u.status = 'active') as active_dc_count
 FROM physical_manifests;
 
