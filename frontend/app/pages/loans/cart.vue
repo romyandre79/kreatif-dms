@@ -26,7 +26,7 @@
               <input type="checkbox" class="w-5 h-5 rounded-md border-2 border-slate-200 text-primary-600 focus:ring-primary-500/20" />
               <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest group-hover:text-slate-600 transition-colors">{{ $t('loans.cart.table.select_all') }}</span>
             </label>
-            <button class="text-[10px] font-black text-orange-500 uppercase tracking-widest hover:underline">{{ $t('loans.cart.table.clear_cart') }}</button>
+            <button @click="clearCart" class="text-[10px] font-black text-orange-500 uppercase tracking-widest hover:underline">{{ $t('loans.cart.table.clear_cart') }}</button>
           </div>
 
           <div class="divide-y divide-slate-100">
@@ -45,9 +45,15 @@
                   <span class="px-2 py-0.5 bg-green-50 text-green-600 rounded-md text-[8px] font-black uppercase tracking-widest border border-green-100">{{ $t('loans.cart.table.available') }}</span>
                 </div>
               </div>
-              <button class="p-2.5 rounded-xl text-slate-300 hover:text-red-500 hover:bg-red-50 transition-all opacity-0 group-hover:opacity-100">
+              <button @click="removeFromCart(item.id)" class="p-2.5 rounded-xl text-slate-300 hover:text-red-500 hover:bg-red-50 transition-all opacity-0 group-hover:opacity-100">
                 <LucideTrash2 class="w-5 h-5" />
               </button>
+            </div>
+            
+            <div v-if="cartItems.length === 0" class="py-20 flex flex-col items-center justify-center text-slate-300">
+              <LucideShoppingCart class="w-20 h-20 mb-4 opacity-20" />
+              <p class="text-xs font-black uppercase tracking-widest">Keranjang Kosong</p>
+              <p class="text-[10px] mt-2 font-bold opacity-50 uppercase tracking-tight">Pilih dokumen dari explorer untuk ditambahkan</p>
             </div>
           </div>
         </div>
@@ -96,7 +102,8 @@
           <div class="space-y-3">
             <button 
               @click="navigateTo('/loans/checkout')"
-              class="w-full py-4 bg-[#1E3A5F] hover:bg-[#152943] text-white rounded-2xl text-xs font-black uppercase tracking-widest shadow-xl shadow-blue-900/20 transition-all"
+              :disabled="cartItems.length === 0"
+              class="w-full py-4 bg-[#1E3A5F] hover:bg-[#152943] text-white rounded-2xl text-xs font-black uppercase tracking-widest shadow-xl shadow-blue-900/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {{ $t('loans.cart.summary.btn_checkout') }}
             </button>
@@ -122,12 +129,18 @@ import {
   LucideChevronDown, 
   LucideInfo 
 } from 'lucide-vue-next'
+import { useCartStore } from '~/stores/cart'
 
-const cartItems = [
-  { id: 'LGL.AMS.001.2026.005', name: 'KONTRAK VENDOR PT XYZ', dept: 'Legal', iconBg: 'bg-red-50', iconColor: 'text-red-500' },
-  { id: 'ACC.BGA.002.2026.012', name: 'FAKTUR PAJAK FEB 2026', dept: 'Accounting', iconBg: 'bg-blue-50', iconColor: 'text-blue-500' },
-  { id: 'FIN.BGA.003.2026.001', name: 'LAPORAN KEUANGAN Q4 2025', dept: 'Finance', iconBg: 'bg-orange-50', iconColor: 'text-orange-500' }
-]
+const cartStore = useCartStore()
+const cartItems = computed(() => cartStore.items)
+
+const removeFromCart = (itemId) => {
+  cartStore.removeItem(itemId)
+}
+
+const clearCart = () => {
+  cartStore.clearCart()
+}
 </script>
 
 <style scoped>

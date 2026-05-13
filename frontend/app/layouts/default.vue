@@ -199,11 +199,14 @@
         </div>
       </header>
 
-      <!-- Page Content -->
-      <main class="flex-1 p-2">
+      <!-- Main Content Slot -->
+      <main class="flex-1 p-8">
         <slot />
       </main>
     </div>
+
+    <!-- Global Toast Notifications -->
+    <ToastContainer />
   </div>
 </template>
 

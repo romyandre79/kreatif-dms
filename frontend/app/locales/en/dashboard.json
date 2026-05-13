@@ -208,7 +208,8 @@
           "ten_mins": "10 mins ago",
           "one_hour": "1 hour ago",
           "three_hours": "3 hours ago",
-          "sign_now": "SIGN NOW"
+          "sign_now": "SIGN NOW",
+          "view": "VIEW"
         },
         "no_activity": "No activity records"
       },

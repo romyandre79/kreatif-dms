@@ -465,10 +465,65 @@ func (s *DocumentService) ApproveDocument(ctx context.Context, docID uuid.UUID, 
 		return err
 	}
 
-	return s.repo.UpdateDocumentPhysicalStatus(ctx, repository.UpdateDocumentPhysicalStatusParams{
+	if err := s.repo.UpdateDocumentPhysicalStatus(ctx, repository.UpdateDocumentPhysicalStatusParams{
 		ID:             docID,
 		PhysicalStatus: pgtype.Text{String: "pending", Valid: true},
-	})
+	}); err != nil {
+		return err
+	}
+
+	// 3. Trigger Notifications (Async)
+	go func() {
+		bgCtx := context.Background()
+		doc, err := s.repo.GetDocument(bgCtx, docID)
+		if err != nil {
+			log.Printf("[DocumentService] Error getting doc for approval notification: %v", err)
+			return
+		}
+		owner, _ := s.repo.GetUserByID(bgCtx, doc.OwnerID)
+
+		// 3.1 Notify Owner
+		metaOwner := map[string]string{
+			"docTitle": doc.Title,
+			"notes":    notes,
+		}
+		metaOwnerJSON, _ := json.Marshal(metaOwner)
+		_, _ = s.notifSvc.CreateNotification(bgCtx, repository.CreateNotificationParams{
+			UserID:     doc.OwnerID,
+			Title:      "Dokumen Disetujui",
+			Body:       pgtype.Text{String: fmt.Sprintf("Dokumen '%s' Anda telah disetujui.", doc.Title), Valid: true},
+			Type:       "doc-approved",
+			EntityType: pgtype.Text{String: "document", Valid: true},
+			EntityID:   pgtype.UUID{Bytes: docID, Valid: true},
+			Channel:    pgtype.Text{String: "email", Valid: true},
+			Metadata:   metaOwnerJSON,
+		})
+
+		// 3.2 Notify DC Admins & Superadmin (Ready for Intake)
+		roles := []string{"superadmin", "admin doc controller", "kepala doc controller"}
+		admins, err := s.repo.ListUsersByRoles(bgCtx, roles)
+		if err == nil {
+			for _, admin := range admins {
+				metaDC := map[string]string{
+					"docTitle":  doc.Title,
+					"ownerName": owner.FullName,
+				}
+				metaDCJSON, _ := json.Marshal(metaDC)
+				_, _ = s.notifSvc.CreateNotification(bgCtx, repository.CreateNotificationParams{
+					UserID:     admin.ID,
+					Title:      "Dokumen Siap Intake",
+					Body:       pgtype.Text{String: fmt.Sprintf("Dokumen '%s' telah disetujui. Silakan lakukan physical intake.", doc.Title), Valid: true},
+					Type:       "doc-approved-dc",
+					EntityType: pgtype.Text{String: "document", Valid: true},
+					EntityID:   pgtype.UUID{Bytes: docID, Valid: true},
+					Channel:    pgtype.Text{String: "email", Valid: true},
+					Metadata:   metaDCJSON,
+				})
+			}
+		}
+	}()
+
+	return nil
 }
 
 func (s *DocumentService) RejectDocument(ctx context.Context, docID uuid.UUID, reason string, notes string) error {
@@ -482,10 +537,41 @@ func (s *DocumentService) RejectDocument(ctx context.Context, docID uuid.UUID, r
 	}
 
 	// 2. Update document status to rejected
-	return s.repo.UpdateDocumentStatus(ctx, repository.UpdateDocumentStatusParams{
+	err := s.repo.UpdateDocumentStatus(ctx, repository.UpdateDocumentStatusParams{
 		ID:     docID,
 		Status: "rejected",
 	})
+	if err != nil {
+		return err
+	}
+
+	// 3. Trigger Notification for Owner (Async)
+	go func() {
+		bgCtx := context.Background()
+		doc, err := s.repo.GetDocument(bgCtx, docID)
+		if err != nil {
+			log.Printf("[DocumentService] Error getting doc for rejection notification: %v", err)
+			return
+		}
+
+		meta := map[string]string{
+			"docTitle": doc.Title,
+			"notes":    fmt.Sprintf("%s. %s", reason, notes),
+		}
+		metaJSON, _ := json.Marshal(meta)
+		_, _ = s.notifSvc.CreateNotification(bgCtx, repository.CreateNotificationParams{
+			UserID:     doc.OwnerID,
+			Title:      "Dokumen Ditolak",
+			Body:       pgtype.Text{String: fmt.Sprintf("Dokumen '%s' Anda ditolak oleh Manager.", doc.Title), Valid: true},
+			Type:       "doc-rejected",
+			EntityType: pgtype.Text{String: "document", Valid: true},
+			EntityID:   pgtype.UUID{Bytes: docID, Valid: true},
+			Channel:    pgtype.Text{String: "email", Valid: true},
+			Metadata:   metaJSON,
+		})
+	}()
+
+	return nil
 }
 func (s *DocumentService) BulkApproveDocuments(ctx context.Context, ids []uuid.UUID) error {
 	for _, id := range ids {
@@ -657,4 +743,144 @@ func (s *DocumentService) GetRawFile(ctx context.Context, path string) ([]byte, 
 	}
 
 	return data, mime, nil
+}
+
+func (s *DocumentService) GetSystemSettingsByCategory(ctx context.Context, category string) ([]repository.SystemSetting, error) {
+	return s.repo.GetSystemSettingsByCategory(ctx, category)
+}
+
+func (s *DocumentService) UpsertSystemSetting(ctx context.Context, arg repository.UpsertSystemSettingParams) (repository.SystemSetting, error) {
+	return s.repo.UpsertSystemSetting(ctx, arg)
+}
+
+type TreeNode struct {
+	ID       string     `json:"id"`
+	Name     string     `json:"name"`
+	Type     string     `json:"type"`
+	Expanded bool       `json:"expanded"`
+	Active   bool       `json:"active"`
+	Count    int        `json:"count,omitempty"`
+	Children []TreeNode `json:"children,omitempty"`
+}
+
+func (s *DocumentService) GetExplorerTree(ctx context.Context) ([]TreeNode, error) {
+	// 1. Get Hierarchy Config
+	setting, err := s.repo.GetSystemSetting(ctx, repository.GetSystemSettingParams{
+		Category: "explorer",
+		Key:      "folder_path",
+	})
+	path := "company,branch,department,year,rack,box,ordner"
+	if err == nil {
+		path = setting.Value.String
+	}
+	levels := strings.Split(path, ",")
+
+	// 2. Get Counts
+	counts, err := s.repo.GetDocumentHierarchyCounts(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	// 3. Fetch names for all entities
+	companies, _ := s.repo.ListCompanies(ctx)
+	branches, _ := s.repo.ListAllBranchesGlobal(ctx)
+	departments, _ := s.repo.ListAllDepartments(ctx)
+	racks, _ := s.repo.ListAllRacksGlobal(ctx)
+	boxes, _ := s.repo.ListAllBoxesGlobal(ctx)
+	ordners, _ := s.repo.ListAllOrdnersGlobal(ctx)
+	types, _ := s.repo.ListDocumentTypes(ctx)
+
+	// Build name maps
+	compMap := make(map[uuid.UUID]string)
+	for _, c := range companies { compMap[c.ID] = c.Name }
+	branchMap := make(map[uuid.UUID]string)
+	for _, b := range branches { branchMap[b.ID] = b.Name }
+	deptMap := make(map[uuid.UUID]string)
+	for _, d := range departments { deptMap[d.ID] = d.Name }
+	rackMap := make(map[uuid.UUID]string)
+	for _, r := range racks { rackMap[r.ID] = r.Name }
+	boxMap := make(map[uuid.UUID]string)
+	for _, b := range boxes { boxMap[b.ID] = b.Name }
+	ordnerMap := make(map[uuid.UUID]string)
+	for _, o := range ordners { ordnerMap[o.ID] = o.Name }
+	typeMap := make(map[uuid.UUID]string)
+	for _, t := range types { typeMap[t.ID] = t.Name }
+
+	// 4. Build Tree
+	// We use a map to store nodes at each level to avoid duplicates
+	type nodeKey struct {
+		level int
+		id    string
+	}
+	nodeCache := make(map[nodeKey]*TreeNode)
+
+	root := &TreeNode{ID: "root", Name: "ARSIP", Type: "root", Expanded: true, Children: []TreeNode{}}
+
+	for _, c := range counts {
+		currentNode := root
+		for i, level := range levels {
+			var id, name string
+			switch level {
+			case "company":
+				if c.CompanyID == uuid.Nil { continue }
+				id = c.CompanyID.String()
+				name = compMap[c.CompanyID]
+			case "branch":
+				if c.BranchID == uuid.Nil { continue }
+				id = c.BranchID.String()
+				name = branchMap[c.BranchID]
+			case "department":
+				if c.DepartmentID == uuid.Nil { continue }
+				id = c.DepartmentID.String()
+				name = deptMap[c.DepartmentID]
+			case "year":
+				if c.DocYear == 0 { continue }
+				id = fmt.Sprintf("year-%d", c.DocYear)
+				name = fmt.Sprintf("%d", c.DocYear)
+			case "rack":
+				if !c.RackID.Valid { continue }
+				id = uuid.UUID(c.RackID.Bytes).String()
+				name = rackMap[c.RackID.Bytes]
+			case "box":
+				if !c.BoxID.Valid { continue }
+				id = uuid.UUID(c.BoxID.Bytes).String()
+				name = boxMap[c.BoxID.Bytes]
+			case "ordner":
+				if !c.OrdnerID.Valid { continue }
+				id = uuid.UUID(c.OrdnerID.Bytes).String()
+				name = ordnerMap[c.OrdnerID.Bytes]
+			case "type":
+				if !c.TypeID.Valid { continue }
+				id = uuid.UUID(c.TypeID.Bytes).String()
+				name = typeMap[c.TypeID.Bytes]
+			}
+
+			if id == "" { continue }
+
+			key := nodeKey{level: i, id: id}
+			if node, ok := nodeCache[key]; ok {
+				node.Count += int(c.DocCount)
+				currentNode = node
+			} else {
+				newNode := &TreeNode{
+					ID:    id,
+					Name:  name,
+					Type:  level,
+					Count: int(c.DocCount),
+				}
+				nodeCache[key] = newNode
+				currentNode.Children = append(currentNode.Children, *newNode)
+				// Since we append a copy, we need to get the pointer to the copy in the slice
+				currentNode = &currentNode.Children[len(currentNode.Children)-1]
+				// Update cache to point to the one in the slice
+				nodeCache[key] = currentNode
+			}
+		}
+	}
+
+	return root.Children, nil
+}
+
+func (s *DocumentService) FilterDocuments(ctx context.Context, params repository.SearchDocumentsParams) ([]repository.SearchDocumentsRow, error) {
+	return s.repo.SearchDocuments(ctx, params)
 }

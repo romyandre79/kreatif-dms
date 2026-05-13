@@ -121,6 +121,69 @@
         }
       },
       "empty_history": "No rejection history for this request yet"
+    },
+    "cart": {
+      "title": "Loan Cart",
+      "items_count": "({count} items)",
+      "subtitle": "Review your selected documents before proceeding to checkout.",
+      "table": {
+        "select_all": "SELECT ALL",
+        "clear_cart": "CLEAR CART",
+        "available": "AVAILABLE"
+      },
+      "summary": {
+        "title": "Loan Summary",
+        "total_docs": "Total Documents",
+        "total_items": "{count} Items",
+        "duration_label": "LOAN DURATION",
+        "duration_options": {
+          "7_days": "7 Days (Standard)",
+          "14_days": "14 Days",
+          "30_days": "30 Days"
+        },
+        "purpose_label": "LOAN PURPOSE",
+        "purpose_placeholder": "Example: For internal tax audit purposes...",
+        "info_box": "All loan requests require approval from your direct supervisor and the archive management team.",
+        "btn_checkout": "PROCEED TO CHECKOUT",
+        "btn_continue": "CONTINUE EXPLORING"
+      }
+    },
+    "checkout": {
+      "title": "Loan Confirmation",
+      "subtitle": "Complete pickup details to finalize your loan request.",
+      "review": {
+        "title": "REVIEW ({count} DOCUMENTS)",
+        "table": {
+          "doc_no": "DOC NO.",
+          "doc_title": "DOCUMENT TITLE",
+          "category": "CATEGORY"
+        }
+      },
+      "form": {
+        "title": "PICKUP DETAILS",
+        "method_label": "PICKUP METHOD",
+        "method_courier": "Internal Courier / Shuttle",
+        "warehouse_label": "PICKUP WAREHOUSE LOCATION",
+        "warehouse_default": "Main Warehouse - Jakarta Central",
+        "pickup_date_label": "PICKUP DATE",
+        "time_slot_label": "PICKUP TIME SLOT",
+        "time_slot_placeholder": "Select Time...",
+        "notes_label": "ADDITIONAL NOTES",
+        "notes_placeholder": "Special instructions for the archive officer..."
+      },
+      "summary": {
+        "title": "Loan Summary",
+        "total_docs": "Total Documents",
+        "total_files": "{count} Files",
+        "duration": "Loan Duration",
+        "duration_value": "{count} Days",
+        "est_return": "Estimated Return",
+        "est_return_pending": "Will be calculated at pickup",
+        "security_level": "SECURITY LEVEL",
+        "btn_confirm": "SUBMIT REQUEST",
+        "btn_back": "Back to Cart"
+      },
+      "info_box": "You will receive notifications via email and dashboard as soon as your request is approved."
     }
   }
 }

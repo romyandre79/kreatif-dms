@@ -408,6 +408,78 @@ func (q *Queries) ListUsers(ctx context.Context) ([]ListUsersRow, error) {
 	return items, nil
 }
 
+const listUsersByRoles = `-- name: ListUsersByRoles :many
+SELECT u.id, u.email, u.password_hash, u.full_name, u.role_id, u.department_id, u.is_active, u.created_at, u.updated_at, u.status, u.avatar_url, u.signature_url, u.pin, u.pin_status, u.pin_failed_attempts, u.pin_locked_until, u.pin_updated_at, u.is_mfa_enabled, u.mfa_secret, r.name as role_name 
+FROM users u
+LEFT JOIN roles r ON u.role_id = r.id
+WHERE r.name = ANY($1::text[])
+AND u.status = 'approved'
+`
+
+type ListUsersByRolesRow struct {
+	ID                uuid.UUID          `json:"id"`
+	Email             string             `json:"email"`
+	PasswordHash      string             `json:"password_hash"`
+	FullName          string             `json:"full_name"`
+	RoleID            int32              `json:"role_id"`
+	DepartmentID      pgtype.UUID        `json:"department_id"`
+	IsActive          bool               `json:"is_active"`
+	CreatedAt         pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt         pgtype.Timestamptz `json:"updated_at"`
+	Status            string             `json:"status"`
+	AvatarUrl         pgtype.Text        `json:"avatar_url"`
+	SignatureUrl      pgtype.Text        `json:"signature_url"`
+	Pin               pgtype.Text        `json:"pin"`
+	PinStatus         pgtype.Text        `json:"pin_status"`
+	PinFailedAttempts pgtype.Int4        `json:"pin_failed_attempts"`
+	PinLockedUntil    pgtype.Timestamptz `json:"pin_locked_until"`
+	PinUpdatedAt      pgtype.Timestamptz `json:"pin_updated_at"`
+	IsMfaEnabled      pgtype.Bool        `json:"is_mfa_enabled"`
+	MfaSecret         pgtype.Text        `json:"mfa_secret"`
+	RoleName          pgtype.Text        `json:"role_name"`
+}
+
+func (q *Queries) ListUsersByRoles(ctx context.Context, dollar_1 []string) ([]ListUsersByRolesRow, error) {
+	rows, err := q.db.Query(ctx, listUsersByRoles, dollar_1)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListUsersByRolesRow
+	for rows.Next() {
+		var i ListUsersByRolesRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Email,
+			&i.PasswordHash,
+			&i.FullName,
+			&i.RoleID,
+			&i.DepartmentID,
+			&i.IsActive,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.Status,
+			&i.AvatarUrl,
+			&i.SignatureUrl,
+			&i.Pin,
+			&i.PinStatus,
+			&i.PinFailedAttempts,
+			&i.PinLockedUntil,
+			&i.PinUpdatedAt,
+			&i.IsMfaEnabled,
+			&i.MfaSecret,
+			&i.RoleName,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const updateUser = `-- name: UpdateUser :one
 UPDATE users
 SET email = $2, full_name = $3, role_id = $4, department_id = $5, status = $6, 

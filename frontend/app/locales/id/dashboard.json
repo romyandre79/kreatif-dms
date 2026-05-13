@@ -209,7 +209,8 @@
           "ten_mins": "10 menit lalu",
           "one_hour": "1 jam lalu",
           "three_hours": "3 jam lalu",
-          "sign_now": "TTD SEKARANG"
+          "sign_now": "TTD SEKARANG",
+          "view": "LIHAT"
         },
         "no_activity": "Tidak ada catatan aktivitas"
       },

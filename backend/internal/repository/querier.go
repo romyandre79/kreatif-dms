@@ -70,6 +70,7 @@ type Querier interface {
 	GetDocument(ctx context.Context, id uuid.UUID) (GetDocumentRow, error)
 	GetDocumentByShortID(ctx context.Context, dollar_1 pgtype.Text) (GetDocumentByShortIDRow, error)
 	GetDocumentCategory(ctx context.Context, id uuid.UUID) (DocumentCategory, error)
+	GetDocumentHierarchyCounts(ctx context.Context) ([]GetDocumentHierarchyCountsRow, error)
 	GetDocumentLoanHistory(ctx context.Context, documentID uuid.UUID) ([]GetDocumentLoanHistoryRow, error)
 	GetDocumentType(ctx context.Context, id uuid.UUID) (DocumentType, error)
 	GetDocumentWithDetails(ctx context.Context, id uuid.UUID) (GetDocumentWithDetailsRow, error)
@@ -160,10 +161,12 @@ type Querier interface {
 	// System Modules & Permissions
 	ListSystemModules(ctx context.Context) ([]SystemModule, error)
 	ListUsers(ctx context.Context) ([]ListUsersRow, error)
+	ListUsersByRoles(ctx context.Context, dollar_1 []string) ([]ListUsersByRolesRow, error)
 	MarkAllAsRead(ctx context.Context, userID uuid.UUID) error
 	MarkAsRead(ctx context.Context, arg MarkAsReadParams) error
 	RejectTask(ctx context.Context, arg RejectTaskParams) error
 	SearchBoxes(ctx context.Context, dollar_1 pgtype.Text) ([]SearchBoxesRow, error)
+	SearchDocuments(ctx context.Context, arg SearchDocumentsParams) ([]SearchDocumentsRow, error)
 	UpdateAnnouncement(ctx context.Context, arg UpdateAnnouncementParams) (Announcement, error)
 	UpdateBatchProgress(ctx context.Context, id uuid.UUID) error
 	UpdateBox(ctx context.Context, arg UpdateBoxParams) (Box, error)

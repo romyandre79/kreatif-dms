@@ -99,10 +99,10 @@
     </div>
 
     <!-- Actions Bar -->
-    <div class="flex flex-wrap items-center justify-between gap-6 py-4" v-motion-fade>
+    <div class="flex flex-wrap items-center justify-between gap-6 py-6 border-b border-slate-100" v-motion-fade>
       <div class="flex items-center gap-6">
         <div class="space-y-1">
-          <h3 class="text-xl font-black text-[#1E3A5F] tracking-tight uppercase">{{ doc?.title }}</h3>
+          <h3 class="text-xl font-black text-[#1E3A5F] tracking-tight uppercase leading-tight">{{ doc?.title }}</h3>
           <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">{{ doc?.id }}</p>
         </div>
         <span class="px-4 py-1.5 bg-green-50 text-green-600 rounded-full text-[10px] font-black uppercase tracking-widest border border-green-100 flex items-center gap-2">
@@ -112,139 +112,124 @@
       </div>
 
       <div class="flex items-center gap-3">
-        <!-- Approval Actions (If Pending) -->
-        <template v-if="doc?.status === 'pending' || doc?.status === 'processing'">
-          <button 
-            @click="approveDocument"
-            class="flex items-center gap-3 px-8 py-3.5 bg-green-600 hover:bg-green-700 text-white rounded-xl text-xs font-black uppercase tracking-widest shadow-xl shadow-green-900/20 transition-all"
-          >
-            <LucideCheck class="w-4 h-4" />
-            Setujui Dokumen
-          </button>
-          <button 
-            @click="rejectDocument"
-            class="flex items-center gap-3 px-8 py-3.5 bg-red-50 border border-red-200 text-red-600 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-red-100 transition-all"
-          >
-            <LucideX class="w-4 h-4" />
-            Tolak
-          </button>
-        </template>
-
-        <!-- Standard Actions (If Active) -->
-        <template v-else>
-          <button class="flex items-center gap-3 px-8 py-3.5 bg-[#1E3A5F] hover:bg-[#152943] text-white rounded-xl text-xs font-black uppercase tracking-widest shadow-xl shadow-blue-900/20 transition-all">
-            <LucideShoppingCart class="w-4 h-4" />
-            {{ $t('documents.detail.actions.add_to_cart') }}
-          </button>
-          <button class="flex items-center gap-3 px-8 py-3.5 bg-white border border-slate-200 rounded-xl text-xs font-black uppercase tracking-widest text-slate-600 hover:bg-slate-50 transition-all">
-            <LucideFileDown class="w-4 h-4" />
-            {{ $t('documents.detail.actions.request_digital') }}
-          </button>
-        </template>
-        
-        <button class="p-3.5 bg-white border border-slate-200 rounded-xl text-slate-400 hover:text-slate-600 transition-all">
+        <button class="flex items-center gap-3 px-8 py-4 bg-[#1E3A5F] hover:bg-[#152943] text-white rounded-xl text-xs font-black uppercase tracking-widest shadow-xl shadow-blue-900/20 transition-all">
+          <LucideShoppingCart class="w-4 h-4" />
+          {{ $t('documents.detail.actions.add_to_cart') }}
+        </button>
+        <button class="flex items-center gap-3 px-8 py-4 bg-white border border-slate-200 rounded-xl text-xs font-black uppercase tracking-widest text-slate-600 hover:bg-slate-50 transition-all">
+          <LucideFileDown class="w-4 h-4 text-slate-400" />
+          {{ $t('documents.detail.actions.request_digital') }}
+        </button>
+        <button class="p-4 bg-white border border-slate-200 rounded-xl text-slate-400 hover:text-slate-600 transition-all">
           <LucideMoreHorizontal class="w-5 h-5" />
         </button>
       </div>
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
-      <div class="lg:col-span-7 space-y-10">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-16 items-start">
+      <!-- LEFT SIDE: METADATA & LOCATION -->
+      <div class="lg:col-span-7 space-y-12">
+        <!-- Tags -->
         <div class="flex flex-wrap gap-2" v-motion-fade>
-          <span v-for="tag in doc?.tags || []" :key="tag" class="px-4 py-1.5 bg-white border border-slate-100 text-slate-400 text-[10px] font-black rounded-lg uppercase tracking-widest hover:border-primary-500 hover:text-primary-600 transition-colors cursor-pointer">#{{ tag }}</span>
+          <span v-for="tag in doc?.tags || []" :key="tag" class="px-3 py-1 bg-slate-50 border border-slate-100 text-slate-400 text-[10px] font-black rounded-lg uppercase tracking-widest hover:border-primary-500 hover:text-primary-600 transition-colors cursor-pointer">{{ tag }}</span>
           <span v-if="!(doc?.tags?.length)" class="text-[10px] font-bold text-slate-300 italic uppercase tracking-widest">{{ $t('documents.detail.metadata.no_tags') }}</span>
         </div>
+
+        <!-- Metadata Table -->
         <div class="space-y-6" v-motion-fade>
-          <div class="flex items-center gap-3">
-            <div class="w-1.5 h-6 bg-primary-500 rounded-full"></div>
-            <h2 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">{{ $t('documents.detail.metadata.title') }}</h2>
-          </div>
-          <div class="glass rounded-lg overflow-hidden border border-slate-100">
+          <h2 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">{{ $t('documents.detail.metadata.title') }}</h2>
+          <div class="overflow-hidden">
             <table class="w-full text-sm">
               <tbody class="divide-y divide-slate-50">
                 <tr v-for="(val, label) in metadata" :key="label" class="group">
-                  <td class="px-8 py-4 w-1/3 bg-slate-50/50 text-[10px] font-black text-slate-400 uppercase tracking-widest">{{ label }}</td>
-                  <td class="px-8 py-4 font-bold text-[#1E3A5F]">{{ val }}</td>
+                  <td class="py-3.5 w-1/3 text-[11px] font-bold text-slate-400 uppercase tracking-tight">{{ label }}</td>
+                  <td class="py-3.5 font-black text-[#1E3A5F]">{{ val }}</td>
                 </tr>
               </tbody>
             </table>
           </div>
         </div>
+
+        <!-- Physical Location Card -->
         <div class="space-y-6" v-motion-fade>
-          <div class="flex items-center gap-3">
-            <div class="w-1.5 h-6 bg-primary-500 rounded-full"></div>
-            <h2 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">{{ $t('documents.detail.location.title') }}</h2>
-          </div>
-          <div class="bg-slate-50/50 border border-slate-100 rounded-lg p-8 flex items-center justify-between relative overflow-hidden group">
+          <h2 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">{{ $t('documents.detail.location.title') }}</h2>
+          <div class="bg-slate-50/50 border border-slate-100 rounded-2xl p-8 flex items-center justify-between relative overflow-hidden group">
             <div class="space-y-6 relative z-10">
-              <div class="grid grid-cols-2 gap-x-12 gap-y-6">
-                <div class="flex items-start gap-4">
-                  <LucideHome class="w-5 h-5 text-slate-400 mt-0.5" />
-                  <div class="space-y-1">
-                    <p class="text-xs font-bold text-slate-700">{{ doc?.branch_name || '-' }} / {{ doc?.department_name || '-' }}</p>
-                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{{ $t('documents.detail.location.building_room') }}</p>
-                  </div>
+              <div class="space-y-4">
+                <div class="flex items-center gap-3">
+                  <LucideHome class="w-4 h-4 text-slate-400" />
+                  <p class="text-xs font-bold text-slate-700 tracking-tight">
+                    {{ doc?.branch_name || 'Gedung A' }} <span class="text-slate-300 mx-2">/</span> {{ doc?.department_name || 'Ruang 2' }}
+                  </p>
                 </div>
-                <div class="flex items-start gap-4">
-                  <LucideLayers class="w-5 h-5 text-slate-400 mt-0.5" />
-                  <div class="space-y-1">
-                    <p class="text-xs font-bold text-slate-700">{{ doc?.rack_name || '-' }} / {{ doc?.box_name || '-' }}</p>
-                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{{ $t('documents.detail.location.cabinet_shelf') }}</p>
-                  </div>
+                <div class="flex items-center gap-3">
+                  <LucideLayers class="w-4 h-4 text-slate-400" />
+                  <p class="text-xs font-bold text-slate-700 tracking-tight">
+                    {{ doc?.rack_name || 'Lemari L3' }} <span class="text-slate-300 mx-2">/</span> {{ doc?.box_name || 'Rak R2' }}
+                  </p>
+                </div>
+                <div class="flex items-center gap-3 text-primary-600">
+                  <LucideBox class="w-5 h-5" />
+                  <p class="text-sm font-black uppercase tracking-tight">{{ doc?.ordner_name || 'Boks B5 - Folder 04' }}</p>
                 </div>
               </div>
-              <div class="flex items-center gap-4 bg-white/60 p-4 rounded-2xl border border-white/80 shadow-sm w-fit">
-                <LucideBox class="w-5 h-5 text-primary-600" />
-                <p class="text-sm font-black text-primary-600 uppercase tracking-tight">{{ doc?.ordner_name || 'No Folder' }}</p>
+            </div>
+            
+            <div class="flex flex-col items-center gap-2">
+              <div class="w-20 h-20 bg-white rounded-xl shadow-xl shadow-slate-200/50 p-2 border border-slate-100 relative group-hover:scale-105 transition-transform">
+                <LucideQrCode class="w-full h-full text-slate-200" />
+                <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-white/80 rounded-xl">
+                  <span class="text-[8px] font-black uppercase tracking-widest text-primary-600">Scan</span>
+                </div>
               </div>
+              <p class="text-[8px] font-black text-slate-400 uppercase tracking-[0.2em]">Locate Document</p>
             </div>
-            <div class="relative w-24 h-24 bg-white rounded-2xl shadow-xl flex items-center justify-center p-2 group-hover:scale-105 transition-transform">
-              <LucideQrCode class="w-full h-full text-slate-300" />
-              <div class="absolute bottom-1 right-1 bg-primary-500 text-white p-1 rounded-md"><LucideLocateFixed class="w-3 h-3" /></div>
-              <span class="absolute -top-3 -right-3 bg-white px-2 py-1 rounded-md text-[8px] font-black text-slate-400 shadow-sm border border-slate-50 uppercase tracking-widest">{{ $t('documents.detail.location.scan') }}</span>
-            </div>
-            <LucideMapPin class="absolute top-4 right-4 w-5 h-5 text-slate-200 group-hover:text-primary-200 transition-colors" />
+            
+            <LucideMapPin class="absolute -top-2 -right-2 w-20 h-20 text-slate-100/30 group-hover:text-primary-100/40 transition-colors pointer-events-none" />
           </div>
         </div>
+
+        <!-- Related Documents -->
         <div class="space-y-6" v-motion-fade>
-          <div class="flex items-center gap-3">
-            <div class="w-1.5 h-6 bg-primary-500 rounded-full"></div>
-            <h2 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">{{ $t('documents.detail.related.title') }}</h2>
-          </div>
-          <div class="space-y-4">
-            <div v-for="rel in relatedDocs" :key="rel.name" class="group flex items-center justify-between p-5 bg-white border border-slate-100 rounded-3xl hover:border-primary-200 hover:shadow-lg hover:shadow-primary-500/5 transition-all cursor-pointer">
-              <div class="flex items-center gap-5">
-                <div :class="`w-12 h-12 rounded-2xl flex items-center justify-center ${rel.bg}`"><LucideFileText :class="`w-6 h-6 ${rel.color}`" /></div>
-                <div class="space-y-1">
-                  <p class="text-sm font-black text-[#1E3A5F] group-hover:text-primary-600 transition-colors uppercase tracking-tight">{{ rel.name }}</p>
-                  <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{{ rel.desc }}</p>
+          <h2 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">{{ $t('documents.detail.related.title') }}</h2>
+          <div class="space-y-3">
+            <div v-for="i in 2" :key="i" class="group flex items-center justify-between p-4 bg-white border border-slate-100 rounded-2xl hover:border-primary-100 hover:shadow-xl hover:shadow-primary-900/5 transition-all cursor-pointer">
+              <div class="flex items-center gap-4">
+                <div class="w-10 h-10 rounded-xl bg-orange-50 flex items-center justify-center"><LucideFileText class="w-5 h-5 text-orange-500" /></div>
+                <div class="space-y-0.5">
+                  <p class="text-xs font-black text-[#1E3A5F] uppercase tracking-tight">SLA MAINTENANCE 2026</p>
+                  <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Attached - Linked</p>
                 </div>
               </div>
-              <LucideChevronRight class="w-5 h-5 text-slate-300 group-hover:translate-x-1 transition-transform" />
+              <LucideChevronRight class="w-4 h-4 text-slate-300 group-hover:translate-x-1 transition-transform" />
             </div>
           </div>
         </div>
       </div>
+
+      <!-- RIGHT SIDE: LOAN HISTORY TIMELINE -->
       <div class="lg:col-span-5 space-y-8" v-motion-fade>
-        <div class="flex items-center gap-3">
-          <div class="w-1.5 h-6 bg-primary-500 rounded-full"></div>
-          <h2 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">{{ $t('documents.detail.loan_history.title') }}</h2>
-        </div>
-        <div class="relative pl-12 space-y-12">
-          <div class="absolute left-6 top-4 bottom-4 w-0.5 bg-slate-100"></div>
-          <div v-for="(loan, index) in timeline" :key="index" class="relative group">
-            <div class="absolute -left-6 top-1.5 w-6 h-6 rounded-full bg-white border-4 border-slate-100 group-hover:border-primary-200 transition-colors z-10"></div>
-            <div class="space-y-4">
-              <div class="flex items-center gap-4">
-                <div class="w-12 h-12 rounded-2xl bg-slate-100 border-2 border-white shadow-sm overflow-hidden flex-shrink-0"><img :src="`https://i.pravatar.cc/150?u=${loan.name}`" class="w-full h-full object-cover" /></div>
-                <div>
-                  <p class="text-sm font-black text-[#1E3A5F]">{{ loan.name }}</p>
-                  <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Dept. {{ loan.dept }}</p>
-                </div>
+        <h2 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">{{ $t('documents.detail.loan_history.title') }}</h2>
+        <div class="relative pl-10 space-y-12 pb-4">
+          <div class="absolute left-[23px] top-4 bottom-4 w-0.5 bg-slate-100/80"></div>
+          
+          <div v-if="!timeline.length" class="text-xs font-bold text-slate-300 italic uppercase tracking-widest py-10">
+            Belum ada riwayat peminjaman
+          </div>
+
+          <div v-for="(event, idx) in timeline" :key="idx" class="relative group">
+            <div class="absolute -left-[23px] top-1 w-10 h-10 rounded-full bg-white border-2 border-slate-100 flex items-center justify-center z-10 group-hover:border-primary-200 transition-colors">
+              <div class="w-3 h-3 rounded-full" :class="event.status === 'uploaded' ? 'bg-green-400' : 'bg-slate-100 group-hover:bg-primary-200'"></div>
+            </div>
+            <div class="space-y-1">
+              <div class="flex items-center gap-3">
+                <p class="text-sm font-black text-[#1E3A5F]">{{ event.name }}</p>
               </div>
-              <div class="bg-slate-50/50 p-4 rounded-2xl border border-slate-100 group-hover:bg-primary-50/30 group-hover:border-primary-100 transition-all">
-                <p class="text-[10px] font-bold text-slate-500 leading-relaxed uppercase tracking-widest" v-html="$t('documents.detail.loan_history.returned', { date: loan.date }) + ' • ' + $t('documents.detail.loan_history.duration', { days: loan.duration })"></p>
-              </div>
+              <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{{ event.dept }}</p>
+              <p class="text-[10px] font-bold text-slate-500 leading-relaxed uppercase tracking-tight mt-2 opacity-60">
+                {{ event.status === 'uploaded' ? 'Diupload pada' : 'Dikembalikan' }}: {{ event.date }} 
+                <span v-if="event.duration !== 0"> — Durasi: {{ event.duration }}</span>
+              </p>
             </div>
           </div>
         </div>
