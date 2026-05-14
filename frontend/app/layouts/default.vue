@@ -382,6 +382,15 @@ const handleNotifClick = async (notif) => {
   if (!notif.is_read) {
     await notifStore.markAsRead(notif.id)
   }
+  
+  showNotifications.value = false
+  
+  // Navigation logic
+  if (notif.entity_type === 'document' && notif.entity_id) {
+    navigateTo(`/documents/${notif.entity_id}`)
+  } else if (notif.type === 'doc-pending-approval') {
+    navigateTo('/approvals')
+  }
 }
 
 onMounted(() => {

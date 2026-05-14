@@ -11,21 +11,15 @@ interface Notification {
 }
 
 export const useNotificationStore = defineStore('notification', () => {
+  const { $api } = useApi()
   const notifications = ref<Notification[]>([])
   const unreadCount = ref(0)
   const loading = ref(false)
 
   async function fetchNotifications() {
-    const auth = useAuthStore()
-    if (!auth.token) return
-
     loading.value = true
     try {
-      const response = await $fetch<any>('/api/v1/notifications', {
-        headers: {
-          Authorization: `Bearer ${auth.token}`
-        }
-      })
+      const response = await $api('/notifications')
       notifications.value = response.notifications || []
       unreadCount.value = response.unread_count || 0
     } catch (error) {
@@ -36,13 +30,9 @@ export const useNotificationStore = defineStore('notification', () => {
   }
 
   async function markAsRead(id: string) {
-    const auth = useAuthStore()
     try {
-      await $fetch(`/api/v1/notifications/${id}/read`, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${auth.token}`
-        }
+      await $api(`/notifications/${id}/read`, {
+        method: 'POST'
       })
       await fetchNotifications()
     } catch (error) {
@@ -51,13 +41,9 @@ export const useNotificationStore = defineStore('notification', () => {
   }
 
   async function markAllAsRead() {
-    const auth = useAuthStore()
     try {
-      await $fetch('/api/v1/notifications/read-all', {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${auth.token}`
-        }
+      await $api('/notifications/read-all', {
+        method: 'POST'
       })
       await fetchNotifications()
     } catch (error) {
