@@ -1,42 +1,53 @@
 import { defineStore } from 'pinia'
+import { ref, computed } from 'vue'
+import { useToast } from '~/composables/useToast'
 
-export const useCartStore = defineStore('cart', {
-  state: () => ({
-    items: [] as any[]
-  }),
-  
-  getters: {
-    count: (state) => state.items.length,
-    itemIds: (state) => state.items.map(item => item.id)
-  },
-  
-  actions: {
-    addItem(item: any) {
-      if (!this.itemIds.includes(item.id)) {
-        this.items.push(item)
-      }
-    },
-    
-    removeItem(itemId: string) {
-      this.items = this.items.filter(item => item.id !== itemId)
-    },
-    
-    toggleItem(item: any) {
-      if (this.itemIds.includes(item.id)) {
-        this.removeItem(item.id)
-      } else {
-        this.addItem(item)
-      }
-    },
-    
-    clearCart() {
-      this.items = []
-    },
-    
-    isInCart(itemId: string) {
-      return this.itemIds.includes(itemId)
+export const useCartStore = defineStore('cart', () => {
+  const items = ref<any[]>([])
+  const toast = useToast()
+
+  const count = computed(() => items.value.length)
+  const itemIds = computed(() => items.value.map(item => item.id))
+
+  const isInCart = (itemId: string) => {
+    return itemIds.value.includes(itemId)
+  }
+
+  const addItem = (item: any) => {
+    if (!isInCart(item.id)) {
+      items.value.push(item)
+      toast.success('Dokumen ditambahkan ke keranjang')
     }
-  },
-  
+  }
+
+  const removeItem = (itemId: string) => {
+    items.value = items.value.filter(item => item.id !== itemId)
+    toast.info('Dokumen dihapus dari keranjang')
+  }
+
+  const toggleItem = (item: any) => {
+    if (isInCart(item.id)) {
+      removeItem(item.id)
+    } else {
+      addItem(item)
+    }
+  }
+
+  const clearCart = () => {
+    items.value = []
+    toast.warning('Keranjang dikosongkan')
+  }
+
+  return {
+    items,
+    count,
+    itemIds,
+    isInCart,
+    addItem,
+    removeItem,
+    toggleItem,
+    clearCart
+  }
+}, {
   persist: true
 })

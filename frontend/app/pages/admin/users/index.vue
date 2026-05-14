@@ -131,7 +131,7 @@
             </button>
           </header>
 
-          <form @submit.prevent="saveUser" class="flex-1 overflow-y-auto p-10 space-y-10 custom-scrollbar">
+          <form @submit.prevent="saveUser" class="flex-1 overflow-y-auto p-10 space-y-10 custom-scrollbar overscroll-contain">
             <!-- Profile Photos -->
             <div class="flex items-center gap-8 p-8 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-100 dark:border-slate-800">
               <!-- Avatar -->
@@ -148,16 +148,43 @@
               </div>
 
               <!-- Signature -->
-              <div class="relative group cursor-pointer flex-grow" @click="$refs.signInput.click()">
-                <div class="h-24 w-full bg-white dark:bg-slate-900 rounded-2xl flex items-center justify-center border-2 border-dashed border-slate-200 dark:border-slate-700 group-hover:border-primary-500 transition-all overflow-hidden p-4">
-                  <img v-if="formData.signature_url" :src="formData.signature_url" class="max-h-full object-contain">
-                  <LucidePenTool v-else class="w-8 h-8 text-slate-300" />
+              <div class="flex-grow space-y-3">
+                <div class="flex items-center justify-between px-2">
+                  <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest">E-Signature</p>
+                  <div class="flex bg-slate-100 dark:bg-slate-900 rounded-lg p-1">
+                    <button 
+                      type="button"
+                      @click="signMode = 'draw'"
+                      :class="signMode === 'draw' ? 'bg-white dark:bg-slate-800 shadow-sm text-primary-500' : 'text-slate-400'"
+                      class="px-3 py-1 rounded-md text-[8px] font-black uppercase transition-all flex items-center gap-1.5"
+                    >
+                      <LucideMousePointer2 class="w-3 h-3" /> Draw
+                    </button>
+                    <button 
+                      type="button"
+                      @click="signMode = 'upload'"
+                      :class="signMode === 'upload' ? 'bg-white dark:bg-slate-800 shadow-sm text-primary-500' : 'text-slate-400'"
+                      class="px-3 py-1 rounded-md text-[8px] font-black uppercase transition-all flex items-center gap-1.5"
+                    >
+                      <LucideUpload class="w-3 h-3" /> Upload
+                    </button>
+                  </div>
                 </div>
-                <div class="absolute inset-0 bg-primary-500/80 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl">
-                  <LucideUpload class="w-6 h-6 text-white" />
+
+                <div v-if="signMode === 'draw'" class="bg-white dark:bg-slate-900 rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-700 overflow-hidden">
+                  <SignaturePad v-model="formData.signature_url" />
                 </div>
-                <input type="file" ref="signInput" class="hidden" accept="image/*" @change="handleSignUpload" />
-                <p class="mt-3 text-[9px] font-black text-left text-slate-400 uppercase tracking-widest px-2">E-Signature</p>
+                
+                <div v-else class="relative group cursor-pointer" @click="$refs.signInput.click()">
+                  <div class="h-48 w-full bg-white dark:bg-slate-900 rounded-2xl flex items-center justify-center border-2 border-dashed border-slate-200 dark:border-slate-700 group-hover:border-primary-500 transition-all overflow-hidden p-4">
+                    <img v-if="formData.signature_url" :src="formData.signature_url" class="max-h-full object-contain">
+                    <LucidePenTool v-else class="w-8 h-8 text-slate-300" />
+                  </div>
+                  <div class="absolute inset-0 bg-primary-500/80 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl">
+                    <LucideUpload class="w-6 h-6 text-white" />
+                  </div>
+                  <input type="file" ref="signInput" class="hidden" accept="image/*" @change="handleSignUpload" />
+                </div>
               </div>
             </div>
 
@@ -277,8 +304,9 @@ import { useI18n } from 'vue-i18n'
 import { 
   LucideUsers, LucideSearch, LucideUserPlus, LucideEdit3, 
   LucideTrash2, LucideX, LucideSave, LucideEye, LucideEyeOff,
-  LucideUser, LucideCamera, LucidePenTool, LucideUpload, LucideShieldCheck
+  LucideUser, LucideCamera, LucidePenTool, LucideUpload, LucideShieldCheck, LucideMousePointer2
 } from 'lucide-vue-next'
+import SignaturePad from '@/components/SignaturePad.vue'
 
 const { $api } = useApi()
 const { t } = useI18n()
@@ -289,6 +317,7 @@ const isEdit = ref(false)
 const saving = ref(false)
 const loading = ref(false)
 const showPassword = ref(false)
+const signMode = ref('draw')
 
 const rolesList = ref([])
 const deptList = ref([])

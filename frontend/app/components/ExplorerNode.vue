@@ -65,8 +65,7 @@ const currentPath = computed(() => [...props.parentPath, {
 const toggle = () => {
   if (props.node.children && props.node.children.length) {
     props.node.expanded = !props.node.expanded
-  } else {
-    emit('select', { node: props.node, path: currentPath.value })
   }
+  emit('select', { node: props.node, path: currentPath.value })
 }
 </script>

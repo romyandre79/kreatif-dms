@@ -7,10 +7,10 @@
         @mousemove="draw"
         @mouseup="stopDrawing"
         @mouseleave="stopDrawing"
-        @touchstart="startDrawing"
-        @touchmove="draw"
-        @touchend="stopDrawing"
-        class="w-full h-48 cursor-crosshair"
+        @touchstart.passive="startDrawing"
+        @touchmove.prevent="draw"
+        @touchend.passive="stopDrawing"
+        class="w-full h-48 cursor-crosshair touch-none"
       ></canvas>
       
       <div v-if="isEmpty" class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none text-slate-400 group-hover:text-slate-500 transition-colors">
@@ -20,6 +20,7 @@
 
       <button 
         @click="clear"
+        type="button"
         class="absolute bottom-4 right-4 p-2 bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-slate-100 dark:border-slate-700 text-slate-400 hover:text-red-500 transition-all"
         title="Clear"
       >
@@ -30,7 +31,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { LucidePenTool, LucideTrash2 } from 'lucide-vue-next'
 
 const canvas = ref(null)
@@ -38,20 +39,60 @@ const ctx = ref(null)
 const isDrawing = ref(false)
 const isEmpty = ref(true)
 
+const props = defineProps({
+  modelValue: String
+})
+
 const emit = defineEmits(['update:modelValue'])
 
-onMounted(() => {
+let resizeObserver = null
+
+const initCanvas = () => {
   const c = canvas.value
+  if (!c) return
+  
   ctx.value = c.getContext('2d')
   
-  // Set canvas resolution
-  c.width = c.offsetWidth
-  c.height = c.offsetHeight
+  // Set canvas resolution to match display size
+  const rect = c.getBoundingClientRect()
+  c.width = rect.width
+  c.height = rect.height
   
   ctx.value.strokeStyle = '#1E3A5F'
   ctx.value.lineWidth = 2
   ctx.value.lineJoin = 'round'
   ctx.value.lineCap = 'round'
+
+  // Restore if modelValue exists
+  if (props.modelValue && props.modelValue.startsWith('data:image')) {
+    const img = new Image()
+    img.onload = () => {
+      ctx.value.drawImage(img, 0, 0)
+      isEmpty.value = false
+    }
+    img.src = props.modelValue
+  }
+}
+
+onMounted(() => {
+  initCanvas()
+  
+  // Re-init on resize (important for modals/layout changes)
+  resizeObserver = new ResizeObserver(() => {
+    // We only re-init if the canvas is actually visible and has size
+    if (canvas.value && canvas.value.offsetWidth > 0) {
+      initCanvas()
+    }
+  })
+  if (canvas.value) {
+    resizeObserver.observe(canvas.value)
+  }
+})
+
+onUnmounted(() => {
+  if (resizeObserver) {
+    resizeObserver.disconnect()
+  }
 })
 
 const startDrawing = (e) => {

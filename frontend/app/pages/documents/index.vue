@@ -100,7 +100,7 @@
       </div>
 
       <!-- VIEW AREA -->
-      <div class="flex-1 overflow-y-auto p-8 custom-scrollbar">
+      <div class="flex-1 overflow-y-auto p-2 custom-scrollbar">
         <!-- SEARCH RESULTS VIEW -->
         <div v-if="query" class="space-y-4 max-w-5xl mx-auto">
           <div v-if="searchResults.length > 0" class="space-y-6">
@@ -230,36 +230,6 @@
         </div>
       </div>
 
-      <!-- Floating Cart Bar -->
-      <Transition
-        enter-active-class="transition duration-500 ease-out"
-        enter-from-class="translate-y-20 opacity-0"
-        enter-to-class="translate-y-0 opacity-100"
-        leave-active-class="transition duration-300 ease-in"
-        leave-from-class="translate-y-0 opacity-100"
-        leave-to-class="translate-y-20 opacity-0"
-      >
-        <div v-if="selectedCount > 0" class="fixed bottom-12 left-1/2 -translate-x-1/2 z-[100]">
-          <div class="bg-[#1E3A5F] text-white rounded-full px-8 py-4 flex items-center gap-10 shadow-[0_20px_50px_rgba(30,58,95,0.4)] border border-white/5 backdrop-blur-md">
-            <div class="flex items-center gap-4">
-              <div class="relative">
-                <LucideShoppingCart class="w-7 h-7 text-blue-100" />
-                <span class="absolute -top-2 -right-2 w-5 h-5 bg-red-500 text-[10px] font-black flex items-center justify-center rounded-full border-2 border-[#1E3A5F] ring-1 ring-red-400/50 shadow-lg shadow-red-500/20">{{ selectedCount }}</span>
-              </div>
-              <div class="leading-tight">
-                <p class="text-[11px] font-black uppercase tracking-tight">{{ selectedCount }} items in cart</p>
-                <p class="text-[9px] font-bold text-blue-300/60 uppercase tracking-widest mt-0.5">Ready for loan request</p>
-              </div>
-            </div>
-            
-            <div class="w-px h-8 bg-white/10"></div>
-
-            <button @click="navigateTo('/loans/cart')" class="flex items-center gap-2 text-[11px] font-black text-white hover:text-blue-300 transition-all uppercase tracking-widest group">
-              View Cart <LucideArrowRight class="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-            </button>
-          </div>
-        </div>
-      </Transition>
     </main>
   </div>
 </template>
@@ -375,16 +345,18 @@ const handleNodeSelect = ({ node, path }) => {
   selectedNode.value = node
   breadcrumbs.value = path
   
-  // Build filters based on node type
+  // Build filters based on ALL nodes in the path
   const filters = {}
-  if (node.type === 'department') filters.department_id = node.id
-  else if (node.type === 'company') filters.company_id = node.id
-  else if (node.type === 'branch') filters.branch_id = node.id
-  else if (node.type === 'rack') filters.rack_id = node.id
-  else if (node.type === 'box') filters.box_id = node.id
-  else if (node.type === 'ordner') filters.ordner_id = node.id
-  else if (node.type === 'year') filters.year = node.id.replace('year-', '')
-  else if (node.type === 'type') filters.type_id = node.id
+  path.forEach(item => {
+    if (item.type === 'department') filters.department_id = item.id
+    else if (item.type === 'company') filters.company_id = item.id
+    else if (item.type === 'branch') filters.branch_id = item.id
+    else if (item.type === 'rack') filters.rack_id = item.id
+    else if (item.type === 'box') filters.box_id = item.id
+    else if (item.type === 'ordner') filters.ordner_id = item.id
+    else if (item.type === 'year') filters.year = item.id.replace('year-', '')
+    else if (item.type === 'type') filters.type_id = item.id
+  })
   
   fetchDocuments(filters)
 }

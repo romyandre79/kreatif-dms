@@ -259,6 +259,7 @@ type ReceiveRequestItem struct {
 type IndexingRequest struct {
 	ManifestID uuid.UUID              `json:"manifest_id"`
 	DocumentID uuid.UUID              `json:"document_id"`
+	Title      string                 `json:"title"`
 	CategoryID uuid.UUID              `json:"category_id"`
 	TypeID     uuid.UUID              `json:"type_id"`
 	Metadata   map[string]interface{} `json:"metadata"`
@@ -267,15 +268,9 @@ type IndexingRequest struct {
 func (s *IntakeService) IndexDocument(ctx context.Context, req IndexingRequest) error {
 	metaJson, _ := json.Marshal(req.Metadata)
 	
-	// Determine Title from metadata if possible
-	title := "Indexed Document"
-	if val, ok := req.Metadata["document_number"].(string); ok && val != "" {
-		title = fmt.Sprintf("Doc: %s", val)
-	}
-
 	err := s.repo.UpdateDocumentIndexing(ctx, repository.UpdateDocumentIndexingParams{
 		ID:             req.DocumentID,
-		Title:          title,
+		Title:          req.Title,
 		TypeID:         pgtype.UUID{Bytes: req.TypeID, Valid: req.TypeID != uuid.Nil},
 		Metadata:       metaJson,
 		PhysicalStatus: pgtype.Text{String: "digitized", Valid: true},

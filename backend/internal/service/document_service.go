@@ -807,10 +807,11 @@ func (s *DocumentService) GetExplorerTree(ctx context.Context) ([]TreeNode, erro
 	for _, t := range types { typeMap[t.ID] = t.Name }
 
 	// 4. Build Tree
-	// We use a map to store nodes at each level to avoid duplicates
+	// We use a map to store nodes at each level to avoid duplicates under the same parent
 	type nodeKey struct {
-		level int
-		id    string
+		level    int
+		id       string
+		parentID string
 	}
 	nodeCache := make(map[nodeKey]*TreeNode)
 
@@ -857,7 +858,7 @@ func (s *DocumentService) GetExplorerTree(ctx context.Context) ([]TreeNode, erro
 
 			if id == "" { continue }
 
-			key := nodeKey{level: i, id: id}
+			key := nodeKey{level: i, id: id, parentID: currentNode.ID}
 			if node, ok := nodeCache[key]; ok {
 				node.Count += int(c.DocCount)
 				currentNode = node

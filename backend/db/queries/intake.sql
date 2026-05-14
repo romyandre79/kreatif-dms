@@ -118,7 +118,7 @@ LIMIT 5;
 -- name: UpdateDocumentIndexing :exec
 UPDATE documents
 SET 
-    title = $2,
+    title = COALESCE(NULLIF($2, ''), title),
     type_id = $3,
     metadata = $4,
     physical_status = $5,

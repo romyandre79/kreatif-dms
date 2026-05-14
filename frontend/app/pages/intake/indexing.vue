@@ -94,6 +94,15 @@
               <h4 class="text-[10px] font-black text-slate-300 uppercase tracking-[0.2em]">Classification</h4>
             </div>
             <div class="grid grid-cols-2 gap-6">
+              <div class="space-y-2 col-span-2">
+                <label class="text-[10px] font-black text-[#1E3A5F] uppercase tracking-widest">Document Title</label>
+                <input 
+                  v-model="form.title"
+                  type="text" 
+                  class="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-xs font-bold focus:ring-2 focus:ring-blue-500/20 transition-all outline-none"
+                  placeholder="Enter document title"
+                />
+              </div>
               <div class="space-y-2">
                 <label class="text-[10px] font-black text-[#1E3A5F] uppercase tracking-widest">Document Category</label>
                 <select v-model="form.category" class="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-xs font-bold focus:ring-2 focus:ring-blue-500/20 transition-all outline-none">
@@ -315,6 +324,7 @@ const isSaving = ref(false)
 const useIframe = ref(false)
 
 const form = ref({
+  title: '',
   category: '',
   type: '',
 })
@@ -436,7 +446,8 @@ const loadItemToForm = (item) => {
   
   console.log('Loading item to form:', JSON.stringify(item, null, 2))
   
-  // Set type_id directly
+  // Set title and type_id directly
+  form.value.title = item.title || ''
   form.value.type = item.type_id || ''
   
   // Resolve category: either from item directly, or lookup from the type's category
@@ -458,7 +469,7 @@ const loadItemToForm = (item) => {
   }))
 
   // Ensure basic fields are present if empty
-  const basicKeys = ['document_number', 'document_date']
+  const basicKeys = ['document_number', 'document_date', 'staging_number']
   basicKeys.forEach(k => {
     if (!dynamicFields.value.find(f => f.key === k)) {
       dynamicFields.value.push({ key: k, value: '' })
@@ -517,6 +528,7 @@ const saveAndNext = async () => {
       method: 'PUT',
       body: {
         manifest_id: manifestData.value.id,
+        title: form.value.title,
         category_id: form.value.category,
         type_id: form.value.type,
         metadata: metadata
