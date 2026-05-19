@@ -103,7 +103,8 @@
     "list": {
       "title": "All Pending Submissions",
       "table": {
-        "reg_id": "REGISTRATION ID",
+        "reg_id": "ID",
+        "doc_type": "DOCUMENT TYPE",
         "submitted_by": "SUBMITTED BY",
         "doc_info": "DOCUMENT INFO",
         "date": "SUBMISSION DATE",

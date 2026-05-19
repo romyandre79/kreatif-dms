@@ -678,29 +678,29 @@ func (q *Queries) ListStagingManifests(ctx context.Context) ([]ListStagingManife
 const updateDocumentIndexing = `-- name: UpdateDocumentIndexing :exec
 UPDATE documents
 SET 
-    title = $2,
-    type_id = $3,
-    metadata = $4,
-    physical_status = $5,
+    title = COALESCE(NULLIF($1::text, ''), title),
+    type_id = $2,
+    metadata = $3,
+    physical_status = $4,
     updated_at = NOW()
-WHERE id = $1
+WHERE id = $5
 `
 
 type UpdateDocumentIndexingParams struct {
-	ID             uuid.UUID       `json:"id"`
 	Title          string          `json:"title"`
 	TypeID         pgtype.UUID     `json:"type_id"`
 	Metadata       json.RawMessage `json:"metadata"`
 	PhysicalStatus pgtype.Text     `json:"physical_status"`
+	ID             uuid.UUID       `json:"id"`
 }
 
 func (q *Queries) UpdateDocumentIndexing(ctx context.Context, arg UpdateDocumentIndexingParams) error {
 	_, err := q.db.Exec(ctx, updateDocumentIndexing,
-		arg.ID,
 		arg.Title,
 		arg.TypeID,
 		arg.Metadata,
 		arg.PhysicalStatus,
+		arg.ID,
 	)
 	return err
 }

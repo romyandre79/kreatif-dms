@@ -7,7 +7,10 @@
           <div class="w-8 h-8 bg-emerald-500 rounded-full flex items-center justify-center text-white shrink-0 shadow-lg shadow-emerald-500/20">
             <LucideCheck class="w-5 h-5" />
           </div>
-          <p>{{ $t('loans.my.success_banner') }}</p>
+          <p v-if="submissionSuccessDays">
+            Perpanjangan {{ submissionSuccessDays }} hari untuk {{ selectedLoan?.no }} berhasil diajukan. Menunggu persetujuan tim Legal.
+          </p>
+          <p v-else>{{ $t('loans.my.success_banner') }}</p>
         </div>
         <button @click="submissionSuccess = false" class="text-emerald-400 hover:text-emerald-600">
           <LucideX class="w-4 h-4" />
@@ -44,45 +47,52 @@
 
       <!-- Table Card -->
       <div class="glass rounded-lg bg-white border border-slate-100 shadow-2xl shadow-slate-200/50 overflow-hidden">
-        <table class="w-full text-left">
-          <thead>
-            <tr class="bg-slate-50/50 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100">
-              <th class="px-10 py-6">{{ $t('loans.my.table.req_no') }}</th>
-              <th class="px-10 py-6">{{ $t('loans.my.table.total_docs') }}</th>
-              <th class="px-10 py-6">{{ $t('loans.my.table.checkout_date') }}</th>
-              <th class="px-10 py-6">{{ $t('loans.my.table.due_date') }}</th>
-              <th class="px-10 py-6">{{ $t('loans.my.table.remaining_days') }}</th>
-              <th class="px-10 py-6">{{ $t('loans.my.table.status') }}</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-slate-50">
-            <tr v-for="loan in filteredLoans" :key="loan.no" 
-                @click="selectedLoan = loan"
-                :class="`group cursor-pointer transition-all ${selectedLoan?.no === loan.no ? 'bg-primary-50/30' : 'hover:bg-slate-50/50'}`">
-              <td class="px-10 py-8">
-                <div class="flex items-center gap-4">
-                  <div :class="`w-4 h-4 rounded-full border-2 transition-all flex items-center justify-center ${selectedLoan?.no === loan.no ? 'border-[#1E3A5F]' : 'border-slate-200'}`">
-                    <div v-if="selectedLoan?.no === loan.no" class="w-1.5 h-1.5 bg-[#1E3A5F] rounded-full"></div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left min-w-[700px]">
+            <thead>
+              <tr class="bg-slate-50/50 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100">
+                <th class="px-10 py-6">{{ $t('loans.my.table.req_no') }}</th>
+                <th class="px-10 py-6">{{ $t('loans.my.table.total_docs') }}</th>
+                <th class="px-10 py-6">{{ $t('loans.my.table.checkout_date') }}</th>
+                <th class="px-10 py-6">{{ $t('loans.my.table.due_date') }}</th>
+                <th class="px-10 py-6">{{ $t('loans.my.table.remaining_days') }}</th>
+                <th class="px-10 py-6">{{ $t('loans.my.table.status') }}</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-50">
+              <tr v-if="filteredLoans.length === 0">
+                <td colspan="6" class="px-10 py-16 text-center text-sm font-bold text-slate-400 italic">
+                  {{ isLoading ? 'Loading...' : 'Tidak ada data peminjaman.' }}
+                </td>
+              </tr>
+              <tr v-for="loan in filteredLoans" :key="loan.no" 
+                  @click="selectedLoan = loan"
+                  :class="`group cursor-pointer transition-all ${selectedLoan?.no === loan.no ? 'bg-primary-50/30' : 'hover:bg-slate-50/50'}`">
+                <td class="px-10 py-8">
+                  <div class="flex items-center gap-4">
+                    <div :class="`w-4 h-4 rounded-full border-2 transition-all flex items-center justify-center ${selectedLoan?.no === loan.no ? 'border-[#1E3A5F]' : 'border-slate-200'}`">
+                      <div v-if="selectedLoan?.no === loan.no" class="w-1.5 h-1.5 bg-[#1E3A5F] rounded-full"></div>
+                    </div>
+                    <span :class="`text-sm font-black uppercase tracking-tight ${selectedLoan?.no === loan.no ? 'text-[#1E3A5F]' : 'text-slate-700'}`">{{ loan.no }}</span>
                   </div>
-                  <span :class="`text-sm font-black uppercase tracking-tight ${selectedLoan?.no === loan.no ? 'text-[#1E3A5F]' : 'text-slate-700'}`">{{ loan.no }}</span>
-                </div>
-              </td>
-              <td class="px-10 py-8 text-xs font-bold text-slate-500 uppercase">{{ $t('loans.my.table.docs_count', { count: loan.docsCount }) }}</td>
-              <td class="px-10 py-8 text-xs font-bold text-slate-500 uppercase">{{ loan.checkoutDate }}</td>
-              <td class="px-10 py-8 text-xs font-bold text-slate-500 uppercase">{{ loan.dueDate }}</td>
-              <td class="px-10 py-8">
-                <span :class="`px-4 py-2 rounded-full text-[9px] font-black uppercase tracking-widest ${loan.remainingColor}`">
-                  {{ loan.remainingText }}
-                </span>
-              </td>
-              <td class="px-10 py-8">
-                <span :class="`px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest ${loan.statusColor}`">
-                  {{ loan.status }}
-                </span>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+                </td>
+                <td class="px-10 py-8 text-xs font-bold text-slate-500 uppercase">{{ $t('loans.my.table.docs_count', { count: loan.docsCount }) }}</td>
+                <td class="px-10 py-8 text-xs font-bold text-slate-500 uppercase">{{ loan.checkoutDate }}</td>
+                <td class="px-10 py-8 text-xs font-bold text-slate-500 uppercase">{{ loan.dueDate }}</td>
+                <td class="px-10 py-8">
+                  <span :class="`px-4 py-2 rounded-full text-[9px] font-black uppercase tracking-widest ${loan.remainingColor}`">
+                    {{ loan.remainingText }}
+                  </span>
+                </td>
+                <td class="px-10 py-8">
+                  <span :class="`px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest ${loan.statusColor}`">
+                    {{ loan.status }}
+                  </span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
 
@@ -117,7 +127,7 @@
                 </div>
                 <div>
                   <h4 class="text-sm font-black text-[#1E3A5F] uppercase tracking-tight">{{ $t('loans.my.detail.steps.approved') }}</h4>
-                  <p class="text-[10px] font-bold text-slate-400 uppercase mt-1">Sep 28, 2023 • 09:15 AM</p>
+                  <p class="text-[10px] font-bold text-slate-400 uppercase mt-1">{{ selectedLoan.approvedDate }}</p>
                 </div>
               </div>
 
@@ -128,7 +138,7 @@
                 </div>
                 <div>
                   <h4 class="text-sm font-black text-[#1E3A5F] uppercase tracking-tight">{{ $t('loans.my.detail.steps.ready') }}</h4>
-                  <p class="text-[10px] font-bold text-slate-400 uppercase mt-1">Sep 30, 2023 • 02:45 PM</p>
+                  <p class="text-[10px] font-bold text-slate-400 uppercase mt-1">{{ selectedLoan.readyDate }}</p>
                 </div>
               </div>
 
@@ -141,7 +151,7 @@
                 <div>
                   <h4 class="text-sm font-black text-[#1E3A5F] uppercase tracking-tight">{{ $t('loans.my.detail.steps.on_loan') }}</h4>
                   <p class="text-[10px] font-bold text-slate-400 uppercase mt-1">
-                    {{ selectedLoan.status === 'EXTENSION PENDING' ? 'Oct 01, 2023 • 10:00 AM' : $t('loans.my.detail.steps.current_status') }}
+                    {{ selectedLoan.status === 'EXTENSION PENDING' ? selectedLoan.onLoanDate : $t('loans.my.detail.steps.current_status') }}
                   </p>
                 </div>
               </div>
@@ -222,7 +232,7 @@
                 {{ $t('loans.my.modal.days_label') }} <span class="text-red-500">*</span>
               </label>
               <div class="relative group">
-                <input type="number" value="7" min="1" max="14"
+                 <input type="number" v-model.number="extensionDays" min="1" max="14"
                        class="w-full pl-6 pr-16 py-5 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-black text-[#1E3A5F] outline-none focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 transition-all" />
                 <span class="absolute right-6 top-1/2 -translate-y-1/2 text-[10px] font-black text-slate-300 uppercase">{{ $t('loans.my.modal.days_suffix') }}</span>
               </div>
@@ -234,7 +244,8 @@
               <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
                 {{ $t('loans.my.modal.reason_label') }} <span class="text-red-500">*</span>
               </label>
-              <textarea :placeholder="$t('loans.my.modal.reason_placeholder')" 
+              <textarea v-model="extensionReason"
+                        :placeholder="$t('loans.my.modal.reason_placeholder')" 
                         rows="4" 
                         class="w-full p-6 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-medium text-slate-600 outline-none focus:ring-4 focus:ring-primary-500/5 focus:border-primary-500 transition-all resize-none"></textarea>
             </div>
@@ -264,11 +275,12 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { 
   LucideHistory, LucideCheck, LucideInfo, LucideAlertTriangle, LucideX, LucideSend 
 } from 'lucide-vue-next'
 import PageHeader from '~/components/PageHeader.vue'
+import { useApi } from '~/composables/useApi'
 
 const activeTab = ref('All')
 const tabs = [
@@ -278,57 +290,72 @@ const tabs = [
 ]
 const showExtensionModal = ref(false)
 const submissionSuccess = ref(false)
-const loans = ref([
-  {
-    no: 'REQ-2023-001',
-    docsCount: 5,
-    checkoutDate: 'Oct 01, 2023',
-    dueDate: 'Oct 15, 2023',
-    remainingText: '2 Days Left',
-    remainingColor: 'bg-orange-50 text-orange-500 border border-orange-100',
-    status: 'Active',
-    statusColor: 'bg-blue-50 text-blue-600 border border-blue-100'
-  },
-  {
-    no: 'REQ-2023-089',
-    docsCount: 12,
-    checkoutDate: 'Oct 10, 2023',
-    dueDate: 'Oct 24, 2023',
-    remainingText: '11 Days Left',
-    remainingColor: 'bg-emerald-50 text-emerald-500 border border-emerald-100',
-    status: 'Active',
-    statusColor: 'bg-blue-50 text-blue-600 border border-blue-100'
-  },
-  {
-    no: 'REQ-2023-042',
-    docsCount: 2,
-    checkoutDate: 'Oct 05, 2023',
-    dueDate: 'Oct 12, 2023',
-    remainingText: 'Overdue -3 Days',
-    remainingColor: 'bg-red-50 text-red-500 border border-red-100',
-    status: 'Overdue',
-    statusColor: 'bg-red-50 text-red-500 border border-red-100'
+const extensionDays = ref(7)
+const extensionReason = ref('')
+const submissionSuccessDays = ref(null)
+
+const loans = ref([])
+const selectedLoan = ref(null)
+const isLoading = ref(false)
+
+const { $api } = useApi()
+const config = useRuntimeConfig()
+
+const fetchLoans = async () => {
+  isLoading.value = true
+  try {
+    const res = await $api(`${config.public.apiBase}/loans/my`)
+    if (res && res.data) {
+      loans.value = res.data
+      if (loans.value.length > 0 && !selectedLoan.value) {
+        selectedLoan.value = loans.value[0]
+      }
+    }
+  } catch (err) {
+    console.error('Failed to fetch user loans:', err)
+  } finally {
+    isLoading.value = false
   }
-])
+}
+
+onMounted(() => {
+  fetchLoans()
+})
 
 const filteredLoans = computed(() => {
   if (activeTab.value === 'All') return loans.value
-  return loans.value.filter(l => l.status.toLowerCase() === activeTab.value.toLowerCase().replace(' ', ''))
+  if (activeTab.value === 'Due Soon') {
+    return loans.value.filter(l => {
+      if (!l.remainingText) return false
+      const match = l.remainingText.match(/(\d+)\s+Days?\s+Left/i)
+      if (match) {
+        const days = parseInt(match[1])
+        return days <= 5
+      }
+      return false
+    })
+  }
+  if (activeTab.value === 'Overdue') {
+    return loans.value.filter(l => l.status.toLowerCase() === 'overdue' || l.rawStatus === 'overdue')
+  }
+  return loans.value
 })
 
-const selectedLoan = ref(loans.value[0])
-
 const submitExtension = () => {
-  // Update state for demo
-  selectedLoan.value.status = 'EXTENSION PENDING'
-  selectedLoan.value.statusColor = 'bg-orange-50 text-orange-500 border border-orange-100'
-  submissionSuccess.value = true
-  showExtensionModal.value = false
-  
-  // Auto hide success banner after 5s
-  setTimeout(() => {
-    submissionSuccess.value = false
-  }, 5000)
+  // Update state for demo/placeholder for now
+  if (selectedLoan.value) {
+    selectedLoan.value.status = 'EXTENSION PENDING'
+    selectedLoan.value.statusColor = 'bg-orange-50 text-orange-500 border border-orange-100'
+    submissionSuccessDays.value = extensionDays.value
+    submissionSuccess.value = true
+    showExtensionModal.value = false
+    extensionReason.value = ''
+    
+    // Auto hide success banner after 5s
+    setTimeout(() => {
+      submissionSuccess.value = false
+    }, 5000)
+  }
 }
 </script>
 

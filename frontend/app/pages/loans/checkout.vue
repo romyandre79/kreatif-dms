@@ -1,22 +1,5 @@
 <template>
   <div class="max-w-7xl mx-auto space-y-8 pb-20">
-    <!-- Top Navigation -->
-    <div class="flex items-center justify-between" v-motion-fade>
-      <div class="space-y-4">
-        <button 
-          @click="navigateTo('/loans/cart')" 
-          class="flex items-center gap-2 text-xs font-black text-slate-400 hover:text-primary-600 transition-colors uppercase tracking-widest group"
-        >
-          <LucideArrowLeft class="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-          Back
-        </button>
-        <div class="space-y-1">
-          <h1 class="text-4xl font-black text-[#1E3A5F] dark:text-white tracking-tight uppercase">Checkout Peminjaman</h1>
-          <p class="text-sm font-bold text-slate-400 uppercase tracking-widest">Lengkapi detail peminjaman fisik dokumen di bawah ini.</p>
-        </div>
-      </div>
-    </div>
-
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
       <!-- Left Column: Details -->
       <div class="lg:col-span-8 space-y-10">
@@ -36,9 +19,9 @@
             <tbody class="divide-y divide-slate-50">
               <tr v-for="doc in selectedDocs" :key="doc.id" class="text-xs group hover:bg-slate-50/50 transition-colors">
                 <td class="px-8 py-6 font-bold text-slate-400 uppercase tracking-tighter">{{ doc.id }}</td>
-                <td class="px-8 py-6 font-black text-slate-700 uppercase tracking-tight">{{ doc.title }}</td>
+                <td class="px-8 py-6 font-black text-slate-700 uppercase tracking-tight">{{ doc.name || doc.title }}</td>
                 <td class="px-8 py-6">
-                  <span class="text-slate-500 font-bold">{{ doc.category_name || 'General' }}</span>
+                  <span class="text-slate-500 font-bold">{{ doc.type || doc.category_name || 'General' }}</span>
                 </td>
               </tr>
             </tbody>
@@ -69,7 +52,7 @@
               <div class="p-5 bg-primary-50/50 border border-primary-100/50 rounded-2xl flex items-start gap-4">
                 <LucideMapPin class="w-5 h-5 text-primary-600 mt-1" />
                 <div class="space-y-1">
-                  <span class="text-sm font-black text-primary-900 tracking-tight leading-tight block">Gedung A, Lantai 2 (Central Archive)</span>
+                  <span class="text-sm font-black text-primary-900 tracking-tight leading-tight block">{{ selectedWarehouse }}</span>
                 </div>
               </div>
             </div>
@@ -131,13 +114,12 @@
               </div>
               <div class="flex justify-between items-center">
                 <span class="text-sm font-bold text-slate-400">Durasi Pinjam</span>
-                <span class="text-sm font-black text-slate-700">7 Hari Kalender</span>
+                <span class="text-sm font-black text-slate-700">{{ cartStore.loanDuration }} Hari Kalender</span>
               </div>
               <div class="flex justify-between items-start">
                 <span class="text-sm font-bold text-slate-400">Estimasi Kembali</span>
                 <div class="text-right">
-                  <p class="text-sm font-black text-primary-600 leading-tight">Tentukan Tanggal</p>
-                  <p class="text-sm font-black text-primary-600 leading-tight">Ambil</p>
+                  <p class="text-sm font-black text-primary-600 leading-tight">{{ estimatedReturnDate }}</p>
                 </div>
               </div>
             </div>
@@ -148,11 +130,12 @@
             </div>
 
             <div class="pt-6 space-y-4 text-center">
-              <button @click="submitLoanRequest" class="w-full flex items-center justify-center gap-4 py-6 bg-[#1E3A5F] hover:bg-[#152943] text-white rounded-2xl text-sm font-black uppercase tracking-widest shadow-xl shadow-blue-900/20 transition-all group">
+              <button @click="submitLoanRequest" :disabled="isSubmitting" class="w-full flex items-center justify-center gap-4 py-6 bg-[#1E3A5F] hover:bg-[#152943] text-white rounded-2xl text-sm font-black uppercase tracking-widest shadow-xl shadow-blue-900/20 transition-all group disabled:opacity-50 disabled:cursor-not-allowed">
                 <div class="p-1.5 bg-white/10 rounded-lg">
-                   <LucideClipboardCheck class="w-5 h-5" />
+                   <LucideClipboardCheck class="w-5 h-5 animate-pulse" v-if="isSubmitting" />
+                   <LucideClipboardCheck class="w-5 h-5" v-else />
                 </div>
-                <span>Confirm & Request Loan</span>
+                <span>{{ isSubmitting ? 'Submitting Request...' : 'Confirm & Request Loan' }}</span>
               </button>
               
               <button @click="navigateTo('/loans/cart')" class="inline-flex items-center gap-2 text-xs font-black text-slate-400 hover:text-slate-600 uppercase tracking-widest transition-colors pt-2">
@@ -184,21 +167,92 @@ import {
   LucideInfo 
 } from 'lucide-vue-next'
 import { useCartStore } from '~/stores/cart'
+import { useApi } from '~/composables/useApi'
+import { useToast } from '~/composables/useToast'
 
 const cartStore = useCartStore()
-const selectedDocs = computed(() => cartStore.items)
+const selectedDocs = computed(() => cartStore.selectedItems)
+const { $api } = useApi()
+const config = useRuntimeConfig()
+const toast = useToast()
+const isSubmitting = ref(false)
+
+const getFutureDate = (daysAhead) => {
+  const date = new Date()
+  date.setDate(date.getDate() + daysAhead)
+  return date.toISOString().split('T')[0]
+}
 
 const form = ref({
-  pickup_date: '',
+  pickup_date: getFutureDate(2),
   time_slot: '',
   notes: ''
 })
 
+const estimatedReturnDate = computed(() => {
+  if (!form.value.pickup_date) return 'Tentukan Tanggal Ambil'
+  const pickup = new Date(form.value.pickup_date)
+  pickup.setDate(pickup.getDate() + cartStore.loanDuration)
+  const options = { day: '2-digit', month: 'short', year: 'numeric' }
+  return pickup.toLocaleDateString('id-ID', options)
+})
+
+const selectedWarehouse = computed(() => {
+  if (!selectedDocs.value || selectedDocs.value.length === 0) {
+    return 'Gudang Central Archive'
+  }
+  
+  // Extract location details (branch and company) from each document
+  const locations = selectedDocs.value.map(doc => {
+    const company = doc.company_name || 'Kreatif Holding'
+    const branch = doc.branch_name || ''
+    return branch ? `Gudang Arsip ${company} (${branch})` : `Gudang Arsip ${company}`
+  })
+  
+  // Get unique locations
+  const uniqueLocations = [...new Set(locations)]
+  return uniqueLocations.join(', ')
+})
+
 const submitLoanRequest = async () => {
-  // TODO: Implement API call to submit loan request
-  alert('Permintaan peminjaman telah diajukan!')
-  cartStore.clearCart()
-  navigateTo('/loans/my')
+  if (!selectedDocs.value || selectedDocs.value.length === 0) {
+    toast.error('Keranjang peminjaman kosong.')
+    return
+  }
+
+  isSubmitting.value = true
+  try {
+    const ids = selectedDocs.value.map(doc => doc.id)
+    const originalIds = selectedDocs.value.map(doc => doc.original_id).filter(Boolean)
+    const documentIds = [...new Set([...ids, ...originalIds])]
+
+    const payload = {
+      document_ids: documentIds,
+      purpose: 'Peminjaman Dokumen Fisik',
+      duration_days: cartStore.loanDuration,
+      notes: form.value.notes,
+      pickup_date: form.value.pickup_date,
+      time_slot: form.value.time_slot
+    }
+
+    const res = await $api(`${config.public.apiBase}/loans`, {
+      method: 'POST',
+      body: payload
+    })
+
+    if (res && (res.success || res.status === 'success' || res.code === 201)) {
+      toast.success('Permintaan peminjaman berhasil diajukan!')
+      cartStore.clearCart()
+      navigateTo('/loans/my')
+    } else {
+      toast.error(res.message || 'Gagal mengajukan peminjaman.')
+    }
+  } catch (err) {
+    console.error(err)
+    toast.error(err.data?.message || 'Gagal mengajukan peminjaman. Silakan coba lagi.')
+  } finally {
+    isSubmitting.value = false
+  }
 }
 </script>
 

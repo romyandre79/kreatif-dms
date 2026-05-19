@@ -116,7 +116,7 @@
 
       <div v-if="canLoanPhysical" class="flex items-center gap-3" v-motion-fade>
         <button 
-          @click="cartStore.toggleItem(doc)"
+          @click="toggleCartItem"
           class="flex items-center gap-3 px-8 py-4 rounded-xl text-xs font-black uppercase tracking-widest shadow-xl transition-all"
           :class="cartStore.isInCart(doc?.id) 
             ? 'bg-orange-500 hover:bg-orange-600 text-white shadow-orange-500/20' 
@@ -326,11 +326,21 @@ const documentUrl = computed(() => {
 const physicalStatus = computed(() => doc.value?.physical_status?.String || doc.value?.physical_status || 'none')
 
 const canLoanPhysical = computed(() => {
+  if (doc.value && cartStore.requestedLoanDocIds?.includes(doc.value.id)) {
+    return false
+  }
   const status = physicalStatus.value
-  return status === 'received' || status === 'archived'
+  return !(status === 'damaged' || status === 'missing' || doc.value?.status === 'on_loan')
 })
 
 const statusBadge = computed(() => {
+  if (doc.value && cartStore.requestedLoanDocIds?.includes(doc.value.id)) {
+    return {
+      text: 'Requested (Menunggu Persetujuan)',
+      class: 'bg-amber-50 text-amber-600 border-amber-100',
+      dot: 'bg-amber-500'
+    }
+  }
   const status = physicalStatus.value
   if (status === 'received' || status === 'archived') {
     return {
@@ -386,6 +396,51 @@ const metadata = computed(() => {
 
   return { ...base, ...custom }
 })
+
+const getStatusStyles = (status) => {
+  const s = status?.toLowerCase() || ''
+  if (s === 'active' || s === 'available') return { label: 'Tersedia', color: 'bg-green-500' }
+  if (s === 'pending' || s === 'processing') return { label: 'Diproses', color: 'bg-orange-500' }
+  if (s === 'rejected') return { label: 'Ditolak', color: 'bg-red-500' }
+  if (s === 'on_loan') return { label: 'Dipinjam', color: 'bg-blue-500' }
+  if (s === 'draft') return { label: 'Draf', color: 'bg-slate-400' }
+  return { label: status, color: 'bg-slate-300' }
+}
+
+const getTypeStyles = (mimeType) => {
+  const m = mimeType?.toLowerCase() || ''
+  if (m.includes('pdf')) return { bg: 'bg-red-50', color: 'text-red-500', typeBg: 'bg-red-50 text-red-600 border border-red-100' }
+  if (m.includes('image')) return { bg: 'bg-blue-50', color: 'text-blue-500', typeBg: 'bg-blue-50 text-blue-600 border border-blue-100' }
+  if (m.includes('excel') || m.includes('sheet')) return { bg: 'bg-green-50', color: 'text-green-500', typeBg: 'bg-green-50 text-green-600 border border-green-100' }
+  return { bg: 'bg-slate-50', color: 'text-slate-500', typeBg: 'bg-slate-50 text-slate-600 border border-slate-100' }
+}
+
+const toggleCartItem = () => {
+  if (!doc.value) return
+  
+  const typeStyle = getTypeStyles(doc.value.mime_type)
+  const statusStyle = getStatusStyles(doc.value.status)
+  
+  const normalized = {
+    id: doc.value.id.substring(0, 8).toUpperCase(),
+    original_id: doc.value.id,
+    name: doc.value.title,
+    type: doc.value.type_name?.String || doc.value.type_name || 'Dokumen',
+    typeColor: typeStyle.typeBg,
+    date: doc.value.created_at ? new Date(doc.value.created_at).toLocaleDateString() : '-',
+    dept: doc.value.department_name?.String || doc.value.department_name || '-',
+    status: statusStyle.label,
+    rawStatus: doc.value.status,
+    physicalStatus: physicalStatus.value,
+    statusColor: statusStyle.color,
+    iconBg: typeStyle.bg,
+    iconColor: typeStyle.color,
+    company_name: doc.value.company_name?.String || doc.value.company_name || doc.value.company || '',
+    branch_name: doc.value.branch_name?.String || doc.value.branch_name || doc.value.branch || ''
+  }
+  
+  cartStore.toggleItem(normalized)
+}
 
 const relatedDocs = computed(() => {
   // Simple logic: docs from same dept (this would ideally be a separate API call)

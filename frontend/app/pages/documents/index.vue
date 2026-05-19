@@ -179,7 +179,8 @@
                     type="checkbox" 
                     :checked="cartStore.isInCart(doc.original_id || doc.id)"
                     @change="toggleDocSelection(doc)"
-                    class="w-5 h-5 rounded-md border-2 border-slate-200 text-primary-600 focus:ring-primary-500/20" 
+                    :disabled="!isDocSelectable(doc)"
+                    class="w-5 h-5 rounded-md border-2 border-slate-200 text-primary-600 focus:ring-primary-500/20 disabled:opacity-30 disabled:cursor-not-allowed" 
                   />
                 </td>
                 <td class="px-6 py-6">
@@ -200,8 +201,10 @@
                 <td class="px-6 py-6"><p class="text-xs font-bold text-slate-500">{{ doc.dept }}</p></td>
                 <td class="px-6 py-6">
                   <div class="flex items-center gap-2">
-                    <div :class="`w-2 h-2 rounded-full ${doc.statusColor}`"></div>
-                    <span class="text-xs font-bold text-slate-700">{{ doc.status }}</span>
+                    <div :class="`w-2 h-2 rounded-full ${isDocRequested(doc) ? 'bg-amber-500' : doc.statusColor}`"></div>
+                    <span class="text-xs font-bold" :class="isDocRequested(doc) ? 'text-amber-600 font-bold' : 'text-slate-700'">
+                      {{ isDocRequested(doc) ? 'Requested' : doc.status }}
+                    </span>
                   </div>
                 </td>
                 <td class="pr-8 pl-4 py-6 text-right">
@@ -211,16 +214,16 @@
                     </button>
                     <button 
                       @click.stop="handleQuickLoan(doc)"
-                      :disabled="doc.rawStatus === 'on_loan' || doc.physicalStatus === 'damaged' || doc.physicalStatus === 'missing'"
+                      :disabled="!isDocSelectable(doc)"
                       class="p-2.5 rounded-xl transition-all"
                       :class="[
                         doc.selected ? 'text-primary-600 bg-primary-50 ring-1 ring-primary-100' : 
-                        (doc.rawStatus === 'on_loan' || doc.physicalStatus === 'damaged' || doc.physicalStatus === 'missing')
+                        (!isDocSelectable(doc))
                           ? 'text-slate-200 cursor-not-allowed bg-slate-50/50'
                           : 'text-slate-400 hover:text-primary-500 hover:bg-primary-50'
                       ]"
                     >
-                      <LucideShoppingCart class="w-5 h-5" :class="{ 'opacity-50': doc.rawStatus === 'on_loan' || doc.physicalStatus === 'damaged' }" />
+                      <LucideShoppingCart class="w-5 h-5" :class="{ 'opacity-50': !isDocSelectable(doc) }" />
                     </button>
                   </div>
                 </td>
@@ -306,6 +309,8 @@ const fetchDocuments = async (filters = {}) => {
           statusColor: statusStyle.color,
           iconBg: typeStyle.bg,
           iconColor: typeStyle.color,
+          company_name: doc.company_name?.String || doc.company_name || doc.company || '',
+          branch_name: doc.branch_name?.String || doc.branch_name || doc.branch || '',
           selected: cartStore.isInCart(doc.id)
         }
       })
@@ -446,6 +451,15 @@ const handleQuickLoan = (doc) => {
 const toggleDocSelection = (doc) => {
   cartStore.toggleItem(doc)
   doc.selected = cartStore.isInCart(doc.id)
+}
+
+const isDocRequested = (doc) => {
+  return cartStore.requestedLoanDocIds?.includes(doc.original_id || doc.id)
+}
+
+const isDocSelectable = (doc) => {
+  if (isDocRequested(doc)) return false
+  return !(doc.rawStatus === 'on_loan' || doc.physicalStatus === 'damaged' || doc.physicalStatus === 'missing')
 }
 </script>
 

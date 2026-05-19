@@ -54,13 +54,28 @@ SELECT
     aw.level,
     aw.status,
     aw.created_at,
-    COALESCE(d.title, '')::text as title,
-    u.full_name as staff_name
+    COALESCE(d.title, lr.request_no, '')::text as title,
+    COALESCE(u.full_name, u_lr.full_name, '')::text as staff_name
 FROM approval_workflows aw
-LEFT JOIN documents d ON aw.entity_id = d.id
+LEFT JOIN documents d ON aw.entity_id = d.id AND (aw.entity_type = 'document_upload' OR aw.entity_type = 'document')
 LEFT JOIN users u ON d.owner_id = u.id
+LEFT JOIN loan_requests lr ON aw.entity_id = lr.id AND (aw.entity_type = 'loan_request' OR aw.entity_type = 'loan')
+LEFT JOIN users u_lr ON lr.user_id = u_lr.id
 WHERE aw.status = 'pending'
-ORDER BY aw.created_at ASC
+UNION ALL
+SELECT
+    lr.id,
+    'loan_request' as entity_type,
+    lr.id as entity_id,
+    2 as level,
+    'pending' as status,
+    lr.l1_approved_at as created_at,
+    COALESCE(lr.request_no, '')::text as title,
+    COALESCE(u.full_name, '')::text as staff_name
+FROM loan_requests lr
+LEFT JOIN users u ON lr.user_id = u.id
+WHERE lr.status = 'l1_approved'
+ORDER BY created_at ASC
 LIMIT $1;
 
 -- name: GetUserPriorityTasks :many
@@ -71,11 +86,13 @@ SELECT
     aw.level,
     aw.status,
     aw.created_at,
-    u.full_name as staff_name,
-    COALESCE(d.title, '')::text as title
+    COALESCE(u.full_name, u_lr.full_name, '')::text as staff_name,
+    COALESCE(d.title, lr.request_no, '')::text as title
 FROM approval_workflows aw
-LEFT JOIN documents d ON aw.entity_id = d.id
+LEFT JOIN documents d ON aw.entity_id = d.id AND (aw.entity_type = 'document_upload' OR aw.entity_type = 'document')
 LEFT JOIN users u ON d.owner_id = u.id
+LEFT JOIN loan_requests lr ON aw.entity_id = lr.id AND (aw.entity_type = 'loan_request' OR aw.entity_type = 'loan')
+LEFT JOIN users u_lr ON lr.user_id = u_lr.id
 WHERE aw.status = 'pending' AND (aw.approver_id = $1)
 UNION ALL
 SELECT

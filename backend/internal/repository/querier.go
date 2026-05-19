@@ -14,10 +14,12 @@ import (
 type Querier interface {
 	AddManifestItem(ctx context.Context, arg AddManifestItemParams) (PhysicalManifestItem, error)
 	AddRolePermission(ctx context.Context, arg AddRolePermissionParams) error
+	ApproveLoanRequestL1(ctx context.Context, arg ApproveLoanRequestL1Params) error
 	ApproveTask(ctx context.Context, arg ApproveTaskParams) error
 	ClearRolePermissions(ctx context.Context, roleID int32) error
 	CountOCRJobs(ctx context.Context) (int64, error)
 	CountSsoSyncLogs(ctx context.Context) (int64, error)
+	CountUserLoanRequests(ctx context.Context, userID uuid.UUID) (int64, error)
 	CreateActivityLog(ctx context.Context, arg CreateActivityLogParams) (ActivityLog, error)
 	CreateAnnouncement(ctx context.Context, arg CreateAnnouncementParams) (Announcement, error)
 	CreateApprovalTask(ctx context.Context, arg CreateApprovalTaskParams) (ApprovalWorkflow, error)
@@ -30,6 +32,8 @@ type Querier interface {
 	CreateDocumentCategory(ctx context.Context, arg CreateDocumentCategoryParams) (DocumentCategory, error)
 	CreateDocumentType(ctx context.Context, arg CreateDocumentTypeParams) (DocumentType, error)
 	CreateIntegrationNode(ctx context.Context, arg CreateIntegrationNodeParams) (IntegrationNode, error)
+	CreateLoanRequest(ctx context.Context, arg CreateLoanRequestParams) (LoanRequest, error)
+	CreateLoanRequestItem(ctx context.Context, arg CreateLoanRequestItemParams) (LoanRequestItem, error)
 	CreateNotification(ctx context.Context, arg CreateNotificationParams) (Notification, error)
 	CreateOCRJob(ctx context.Context, arg CreateOCRJobParams) (OcrJob, error)
 	CreateOrdner(ctx context.Context, arg CreateOrdnerParams) (Ordner, error)
@@ -83,6 +87,8 @@ type Querier interface {
 	GetLabelingStats(ctx context.Context) (GetLabelingStatsRow, error)
 	GetLastSsoSyncLog(ctx context.Context) (SsoSyncLog, error)
 	GetLatestApprovalTaskByEntity(ctx context.Context, arg GetLatestApprovalTaskByEntityParams) (ApprovalWorkflow, error)
+	GetLoanRequest(ctx context.Context, id uuid.UUID) (GetLoanRequestRow, error)
+	GetLoanRequestItems(ctx context.Context, loanRequestID uuid.UUID) ([]GetLoanRequestItemsRow, error)
 	GetManagerDailyStats(ctx context.Context, headID pgtype.UUID) (GetManagerDailyStatsRow, error)
 	GetManagerRecentActivities(ctx context.Context, arg GetManagerRecentActivitiesParams) ([]GetManagerRecentActivitiesRow, error)
 	GetManagerTopSubmitters(ctx context.Context, arg GetManagerTopSubmittersParams) ([]GetManagerTopSubmittersRow, error)
@@ -90,6 +96,7 @@ type Querier interface {
 	GetManifestByNo(ctx context.Context, manifestNo string) (GetManifestByNoRow, error)
 	GetManifestItems(ctx context.Context, manifestID uuid.UUID) ([]GetManifestItemsRow, error)
 	GetManifestProgress(ctx context.Context, manifestID uuid.UUID) (GetManifestProgressRow, error)
+	GetNextLoanRequestNo(ctx context.Context) (int32, error)
 	GetOCRJobByEntity(ctx context.Context, arg GetOCRJobByEntityParams) (OcrJob, error)
 	GetOrdner(ctx context.Context, id uuid.UUID) (Ordner, error)
 	GetPendingCountsByType(ctx context.Context, approverID uuid.UUID) ([]GetPendingCountsByTypeRow, error)
@@ -118,6 +125,7 @@ type Querier interface {
 	ListAllBoxesGlobal(ctx context.Context) ([]ListAllBoxesGlobalRow, error)
 	ListAllBranchesGlobal(ctx context.Context) ([]ListAllBranchesGlobalRow, error)
 	ListAllDepartments(ctx context.Context) ([]ListAllDepartmentsRow, error)
+	ListAllLoanRequests(ctx context.Context, limit int32) ([]ListAllLoanRequestsRow, error)
 	ListAllOrdnersGlobal(ctx context.Context) ([]ListAllOrdnersGlobalRow, error)
 	ListAllRacksGlobal(ctx context.Context) ([]ListAllRacksGlobalRow, error)
 	// Announcements
@@ -160,10 +168,12 @@ type Querier interface {
 	ListStagingManifests(ctx context.Context) ([]ListStagingManifestsRow, error)
 	// System Modules & Permissions
 	ListSystemModules(ctx context.Context) ([]SystemModule, error)
+	ListUserLoanRequests(ctx context.Context, userID uuid.UUID) ([]ListUserLoanRequestsRow, error)
 	ListUsers(ctx context.Context) ([]ListUsersRow, error)
 	ListUsersByRoles(ctx context.Context, dollar_1 []string) ([]ListUsersByRolesRow, error)
 	MarkAllAsRead(ctx context.Context, userID uuid.UUID) error
 	MarkAsRead(ctx context.Context, arg MarkAsReadParams) error
+	RejectLoanRequest(ctx context.Context, arg RejectLoanRequestParams) error
 	RejectTask(ctx context.Context, arg RejectTaskParams) error
 	SearchBoxes(ctx context.Context, dollar_1 pgtype.Text) ([]SearchBoxesRow, error)
 	SearchDocuments(ctx context.Context, arg SearchDocumentsParams) ([]SearchDocumentsRow, error)
@@ -186,6 +196,7 @@ type Querier interface {
 	UpdateEmailTemplate(ctx context.Context, arg UpdateEmailTemplateParams) (EmailTemplate, error)
 	UpdateIntegrationNodeConfig(ctx context.Context, arg UpdateIntegrationNodeConfigParams) (IntegrationNode, error)
 	UpdateIntegrationNodeStatus(ctx context.Context, arg UpdateIntegrationNodeStatusParams) (IntegrationNode, error)
+	UpdateLoanRequestStatus(ctx context.Context, arg UpdateLoanRequestStatusParams) error
 	UpdateManifestItemStatus(ctx context.Context, arg UpdateManifestItemStatusParams) error
 	UpdateManifestItemStatusBulk(ctx context.Context, arg UpdateManifestItemStatusBulkParams) error
 	UpdateManifestItemStatusByDocID(ctx context.Context, arg UpdateManifestItemStatusByDocIDParams) error

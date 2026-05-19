@@ -118,12 +118,12 @@ LIMIT 5;
 -- name: UpdateDocumentIndexing :exec
 UPDATE documents
 SET 
-    title = COALESCE(NULLIF($2, ''), title),
-    type_id = $3,
-    metadata = $4,
-    physical_status = $5,
+    title = COALESCE(NULLIF(@title::text, ''), title),
+    type_id = @type_id,
+    metadata = @metadata,
+    physical_status = @physical_status,
     updated_at = NOW()
-WHERE id = $1;
+WHERE id = @id;
 
 -- name: UpdateManifestItemStatusByDocID :exec
 UPDATE physical_manifest_items

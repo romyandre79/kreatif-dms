@@ -341,12 +341,15 @@ const handleTaskAction = (task) => {
   const id = task.entity_id || task.id
   if (!id) return
   
+  const entityTypeLower = (task.entity_type || '').toLowerCase()
   if (task.entity_type === 'document_rejection' || task.entity_type === 'document_draft') {
     navigateTo(`/documents/upload?id=${id}`)
-  } else if (task.entity_type.includes('Scan')) {
+  } else if (entityTypeLower.includes('scan')) {
     navigateTo('/stock/scan')
-  } else if (task.entity_type.includes('Loan')) {
-    navigateTo('/approvals/loans')
+  } else if (entityTypeLower === 'loan_request' || entityTypeLower === 'loan' || entityTypeLower.includes('loan')) {
+    navigateTo(`/approvals/loans?id=${id}`)
+  } else if (entityTypeLower === 'loan_extension' || entityTypeLower === 'extension' || entityTypeLower.includes('extension')) {
+    navigateTo(`/approvals/extensions?id=${id}`)
   } else {
     // Default for doc controller
     navigateTo(`/approvals/${id}`)

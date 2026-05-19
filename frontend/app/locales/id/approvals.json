@@ -103,7 +103,8 @@
     "list": {
       "title": "Seluruh Antrean Persetujuan",
       "table": {
-        "reg_id": "ID REGISTRASI",
+        "reg_id": "ID",
+        "doc_type": "JENIS DOKUMEN",
         "submitted_by": "DIAJUKAN OLEH",
         "doc_info": "INFO DOKUMEN",
         "date": "TANGGAL PENGAJUAN",

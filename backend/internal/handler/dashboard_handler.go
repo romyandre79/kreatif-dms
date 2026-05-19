@@ -31,7 +31,7 @@ func (h *DashboardHandler) GetSummary(c fiber.Ctx) error {
 	log.Printf("[DashboardHandler] Request from UserID: %v, Role: %v", userID, role)
 
 	// If superadmin or admin, return global summary
-	if role == "superadmin" || role == "admin" {
+	if role == "superadmin" || role == "admin" || role == "admin doc controller" || role == "kepala doc controller" || role == "admin dc" {
 		summary, err := h.svc.GetSummary(c.Context())
 		if err != nil {
 			return response.Error(c, fiber.StatusInternalServerError, "Failed to get dashboard summary", err.Error())
@@ -47,6 +47,17 @@ func (h *DashboardHandler) GetSummary(c fiber.Ctx) error {
 		tasks, err := h.svc.GetPriorityTasks(c.Context(), 10)
 		if err != nil {
 			tasks = []repository.GetPriorityTasksRow{}
+		}
+
+		// Filter out loan_requests if role is not kepala doc controller
+		if role != "kepala doc controller" && role != "kepala dc" {
+			var filteredTasks []repository.GetPriorityTasksRow
+			for _, t := range tasks {
+				if t.EntityType != "loan_request" && t.EntityType != "loan" {
+					filteredTasks = append(filteredTasks, t)
+				}
+			}
+			tasks = filteredTasks
 		}
 
 		return response.Success(c, fiber.StatusOK, "Dashboard summary retrieved", fiber.Map{
