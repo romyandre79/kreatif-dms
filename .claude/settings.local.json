@@ -3,7 +3,9 @@
     "allow": [
       "Bash(xargs grep *)",
       "Bash(Get-ChildItem -Path \"C:\\\\lara\\\\www\\\\kreatif-dms\\\\backend\\\\cmd\" -Recurse -File)",
-      "Bash(Select-Object -ExpandProperty FullName)"
+      "Bash(Select-Object -ExpandProperty FullName)",
+      "Bash(role\" | head -20)",
+      "Bash(go build *)"
     ]
   }
 }

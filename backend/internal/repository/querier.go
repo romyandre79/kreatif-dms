@@ -17,6 +17,7 @@ type Querier interface {
 	ApproveLoanRequestL1(ctx context.Context, arg ApproveLoanRequestL1Params) error
 	ApproveTask(ctx context.Context, arg ApproveTaskParams) error
 	ClearRolePermissions(ctx context.Context, roleID int32) error
+	CountL1ApprovedLoans(ctx context.Context) (int64, error)
 	CountOCRJobs(ctx context.Context) (int64, error)
 	CountSsoSyncLogs(ctx context.Context) (int64, error)
 	CountUserLoanRequests(ctx context.Context, userID uuid.UUID) (int64, error)

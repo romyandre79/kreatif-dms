@@ -27,11 +27,19 @@ func NewDashboardHandler(svc *service.DashboardService) *DashboardHandler {
 // @Security BearerAuth
 func (h *DashboardHandler) GetSummary(c fiber.Ctx) error {
 	userID := c.Locals("user_id").(uuid.UUID)
-	role := c.Locals("user_role").(string)
+	rawRole := c.Locals("user_role").(string)
+	role := ""
+	for _, char := range rawRole {
+		if char >= 'A' && char <= 'Z' {
+			role += string(char + 32)
+		} else {
+			role += string(char)
+		}
+	}
 	log.Printf("[DashboardHandler] Request from UserID: %v, Role: %v", userID, role)
 
 	// If superadmin or admin, return global summary
-	if role == "superadmin" || role == "admin" || role == "admin doc controller" || role == "kepala doc controller" || role == "admin dc" {
+	if role == "superadmin" || role == "admin" || role == "admin doc controller" || role == "kepala doc controller" || role == "admin dc" || role == "kepala dc" {
 		summary, err := h.svc.GetSummary(c.Context())
 		if err != nil {
 			return response.Error(c, fiber.StatusInternalServerError, "Failed to get dashboard summary", err.Error())

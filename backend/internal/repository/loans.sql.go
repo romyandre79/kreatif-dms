@@ -266,6 +266,16 @@ func (q *Queries) GetLoanRequestItems(ctx context.Context, loanRequestID uuid.UU
 	return items, nil
 }
 
+const countL1ApprovedLoans = `-- name: CountL1ApprovedLoans :one
+SELECT COUNT(*) FROM loan_requests WHERE status = 'l1_approved'
+`
+
+func (q *Queries) CountL1ApprovedLoans(ctx context.Context) (int64, error) {
+	var count int64
+	err := q.db.QueryRow(ctx, countL1ApprovedLoans).Scan(&count)
+	return count, err
+}
+
 const getNextLoanRequestNo = `-- name: GetNextLoanRequestNo :one
 SELECT COALESCE(MAX(CAST(SUBSTRING(request_no FROM 'LOAN-\d{4}-\d{2}-(\d+)') AS INT)), 0) + 1 as next_seq
 FROM loan_requests

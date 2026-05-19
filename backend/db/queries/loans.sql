@@ -88,6 +88,9 @@ WHERE id = $1;
 -- name: CountUserLoanRequests :one
 SELECT COUNT(*) FROM loan_requests WHERE user_id = $1;
 
+-- name: CountL1ApprovedLoans :one
+SELECT COUNT(*) FROM loan_requests WHERE status = 'l1_approved';
+
 -- name: GetNextLoanRequestNo :one
 SELECT COALESCE(MAX(CAST(SUBSTRING(request_no FROM 'LOAN-\d{4}-\d{2}-(\d+)') AS INT)), 0) + 1 as next_seq
 FROM loan_requests

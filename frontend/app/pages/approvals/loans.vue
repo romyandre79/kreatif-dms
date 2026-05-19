@@ -401,7 +401,7 @@ const auth = useAuthStore()
 const { $api } = useApi()
 
 // Role & Level detection
-const userRole = computed(() => auth.user?.role || '')
+const userRole = computed(() => (auth.user?.role || '').toLowerCase())
 const level = computed(() => {
   if (userRole.value === 'manajer') {
     return 'L1'
@@ -429,9 +429,15 @@ const isLoading = ref(false)
 
 // Stat Counters
 const statsWaiting = computed(() => {
+  if (level.value === 'L2') {
+    return queue.value.filter(r => r.rawStatus === 'l1_approved').length
+  }
   return queue.value.filter(r => r.rawStatus === 'pending').length
 })
 const statsApproved = computed(() => {
+  if (level.value === 'L2') {
+    return queue.value.filter(r => r.rawStatus === 'active' || r.rawStatus === 'returned').length
+  }
   return queue.value.filter(r => r.rawStatus === 'l1_approved' || r.rawStatus === 'l2_approved' || r.rawStatus === 'active').length
 })
 const statsRejected = computed(() => {

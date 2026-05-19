@@ -333,7 +333,7 @@ const handleScan = async () => {
 onMounted(() => {
   // Access control
   const role = auth.user?.role?.toLowerCase()
-  const allowedRoles = ['superadmin', 'admin doc controller', 'kepala doc controller']
+  const allowedRoles = ['superadmin', 'admin doc controller', 'kepala doc controller', 'kepala dc', 'admin dc']
   
   if (!role || !allowedRoles.includes(role)) {
     console.warn('[Access Control] Unauthorized access to inbound registration for role:', role)
