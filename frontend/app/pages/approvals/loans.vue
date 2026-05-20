@@ -131,9 +131,14 @@
                  <td class="px-4 py-4"><p class="text-[10px] font-bold text-slate-500 uppercase">{{ req.departmentName }}</p></td>
                  
                  <td v-if="level === 'L1'" class="px-4 py-4">
-                   <span :class="`px-2.5 py-1 rounded-md text-[9px] font-black uppercase tracking-widest ${req.method === 'DIGITAL' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-blue-50 text-blue-600 border border-blue-100'}`">
-                     {{ req.method || 'PHYSICAL' }}
-                   </span>
+                   <div class="flex items-center gap-2">
+                     <span :class="`px-2.5 py-1 rounded-md text-[9px] font-black uppercase tracking-widest ${req.method === 'DIGITAL' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-blue-50 text-blue-600 border border-blue-100'}`">
+                       {{ req.method || 'PHYSICAL' }}
+                     </span>
+                     <span v-if="req.rawStatus === 'returned'" class="px-2 py-0.5 bg-red-100 text-red-600 border border-red-200 rounded-md text-[8px] font-black uppercase tracking-widest">
+                       Returned
+                     </span>
+                   </div>
                  </td>
                  <td v-if="level === 'L2'" class="px-4 py-4">
                    <div class="flex items-center gap-1.5">
@@ -213,6 +218,15 @@
                   <h4 class="text-sm font-black text-[#1E3A5F] leading-tight">{{ selectedRequest.requestor }}</h4>
                   <p class="text-[10px] font-bold text-slate-400 uppercase tracking-tight mt-0.5">{{ selectedRequest.role }}</p>
                 </div>
+              </div>
+
+              <!-- L2 Rejection Reason (L1 Only) -->
+              <div v-if="level === 'L1' && selectedRequest.l2RejectionReason" class="p-4 bg-red-50 border border-red-100 rounded-2xl space-y-2 mb-4" v-motion-slide-bottom>
+                <div class="flex items-center gap-2">
+                  <LucideAlertCircle class="w-4 h-4 text-red-500" />
+                  <span class="text-[9px] font-black text-red-600 uppercase tracking-widest">{{ $t('approvals.loans.summary.returned_by_l2') || 'Dikembalikan oleh Kepala DC' }}</span>
+                </div>
+                <p class="text-[11px] font-medium text-red-700 leading-relaxed italic">"{{ selectedRequest.l2RejectionReason }}"</p>
               </div>
 
               <!-- Purpose -->
@@ -432,15 +446,20 @@ const statsWaiting = computed(() => {
   if (level.value === 'L2') {
     return queue.value.filter(r => r.rawStatus === 'l1_approved').length
   }
-  return queue.value.filter(r => r.rawStatus === 'pending').length
+  return queue.value.filter(r => r.rawStatus === 'pending' || r.rawStatus === 'returned').length
 })
 const statsApproved = computed(() => {
   if (level.value === 'L2') {
-    return queue.value.filter(r => r.rawStatus === 'active' || r.rawStatus === 'returned').length
+    // Siap Diambil / Ready for Release
+    return queue.value.filter(r => r.rawStatus === 'l2_approved').length
   }
   return queue.value.filter(r => r.rawStatus === 'l1_approved' || r.rawStatus === 'l2_approved' || r.rawStatus === 'active').length
 })
 const statsRejected = computed(() => {
+  if (level.value === 'L2') {
+    // Telah Diambil / Picked Up
+    return queue.value.filter(r => r.rawStatus === 'active' || r.rawStatus === 'returned').length
+  }
   return queue.value.filter(r => r.rawStatus === 'rejected').length
 })
 const statsSla = computed(() => {
@@ -460,8 +479,8 @@ const fetchLoans = async () => {
       const allLoans = res.data || []
       console.log('fetchLoans: allLoans count:', allLoans.length)
       if (level.value === 'L1') {
-        // Manager only sees loans that are pending
-        queue.value = allLoans.filter(l => l.rawStatus === 'pending')
+        // Manager only sees loans that are pending or returned by L2
+        queue.value = allLoans.filter(l => l.rawStatus === 'pending' || l.rawStatus === 'returned')
       } else if (level.value === 'L2') {
         // L2 (Kepala DC) sees loans that are L1 approved or ready for release
         queue.value = allLoans.filter(l => l.rawStatus === 'l1_approved' || l.rawStatus === 'l2_approved' || l.rawStatus === 'active' || l.rawStatus === 'returned' || l.rawStatus === 'overdue')
@@ -544,6 +563,7 @@ const selectRequest = async (req) => {
         rawStatus: detail.status,
         l1Approver: 'Manager ' + (detail.department_name || ''),
         l1Date: detail.l1_approved_at ? new Date(detail.l1_approved_at).toLocaleString() : '-',
+        l2RejectionReason: detail.l2_rejection_reason?.String || '',
         documents: items.map(item => ({
           name: item.document_title || item.document_filename || 'Unnamed Document',
           category: item.category || 'General',
@@ -606,7 +626,13 @@ const confirmReject = async () => {
       alert('Loan request rejected successfully!')
       isRejectMode.value = false
       rejectionReason.value = ''
-      await fetchLoans()
+      
+      // Clear URL to remove the persistent targetId that forces it to stay in the queue
+      if (route.query.id) {
+        router.push('/approvals/loans')
+      } else {
+        await fetchLoans()
+      }
     } else {
       alert('Failed to reject loan request: ' + (res.message || 'Unknown error'))
     }

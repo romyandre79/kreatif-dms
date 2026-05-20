@@ -190,3 +190,8 @@ SELECT * FROM approval_workflows
 WHERE entity_id = $1 AND entity_type = $2
 ORDER BY created_at DESC
 LIMIT 1;
+
+-- name: ResetTaskToPending :exec
+UPDATE approval_workflows
+SET status = 'pending', decided_at = NULL, decision_note = NULL, rejection_reason = $3
+WHERE entity_id = $1 AND approver_id = $2;

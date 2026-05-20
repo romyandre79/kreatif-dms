@@ -1023,7 +1023,7 @@ func (s *DocumentService) ApproveLoanRequest(ctx context.Context, loanID uuid.UU
 		return err
 	}
 
-	if loan.Status == "pending" {
+	if loan.Status == "pending" || loan.Status == "returned" {
 		if err := s.repo.ApproveLoanRequestL1(ctx, repository.ApproveLoanRequestL1Params{
 			ID:           loanID,
 			L1ApprovedBy: pgtype.UUID{Bytes: approverID, Valid: true},
@@ -1071,12 +1071,36 @@ func (s *DocumentService) ApproveLoanRequest(ctx context.Context, loanID uuid.UU
 }
 
 func (s *DocumentService) RejectLoanRequestAction(ctx context.Context, loanID uuid.UUID, approverID uuid.UUID, reason string) error {
-	if err := s.repo.RejectLoanRequest(ctx, repository.RejectLoanRequestParams{
-		ID:                loanID,
-		L1ApprovedBy:      pgtype.UUID{Bytes: approverID, Valid: true},
-		L1RejectionReason: pgtype.Text{String: reason, Valid: true},
-	}); err != nil {
+	loan, err := s.repo.GetLoanRequest(ctx, loanID)
+	if err != nil {
 		return err
+	}
+
+	if loan.Status == "pending" || loan.Status == "returned" {
+		if err := s.repo.RejectLoanRequest(ctx, repository.RejectLoanRequestParams{
+			ID:                loanID,
+			L1ApprovedBy:      pgtype.UUID{Bytes: approverID, Valid: true},
+			L1RejectionReason: pgtype.Text{String: reason, Valid: true},
+		}); err != nil {
+			return err
+		}
+	} else if loan.Status == "l1_approved" {
+		if err := s.repo.RejectLoanRequestL2(ctx, repository.RejectLoanRequestL2Params{
+			ID:                loanID,
+			L2ApprovedBy:      pgtype.UUID{Bytes: approverID, Valid: true},
+			L2RejectionReason: pgtype.Text{String: reason, Valid: true},
+		}); err != nil {
+			return err
+		}
+		
+		// Reset the L1 task so the manager can review it again
+		if loan.L1ApprovedBy.Valid {
+			_ = s.repo.ResetTaskToPending(ctx, repository.ResetTaskToPendingParams{
+				EntityID:        loanID,
+				ApproverID:      loan.L1ApprovedBy.Bytes,
+				RejectionReason: pgtype.Text{String: reason, Valid: true},
+			})
+		}
 	}
 
 	// Update approval workflow
@@ -1086,26 +1110,40 @@ func (s *DocumentService) RejectLoanRequestAction(ctx context.Context, loanID uu
 		RejectionReason: pgtype.Text{String: reason, Valid: true},
 	})
 
-	// Notify requester
+	// Notify requester and/or L1 approver
 	go func() {
 		bgCtx := context.Background()
-		loan, err := s.repo.GetLoanRequest(bgCtx, loanID)
-		if err != nil {
-			return
-		}
+		
 		meta := map[string]string{"requestNo": loan.RequestNo, "reason": reason}
 		metaJSON, _ := json.Marshal(meta)
 
-		_, _ = s.notifSvc.CreateNotification(bgCtx, repository.CreateNotificationParams{
-			UserID:     loan.UserID,
-			Title:      "Peminjaman Ditolak",
-			Body:       pgtype.Text{String: fmt.Sprintf("Permohonan peminjaman %s ditolak. Alasan: %s", loan.RequestNo, reason), Valid: true},
-			Type:       "loan-rejected",
-			EntityType: pgtype.Text{String: "loan_request", Valid: true},
-			EntityID:   pgtype.UUID{Bytes: loanID, Valid: true},
-			Channel:    pgtype.Text{String: "email", Valid: true},
-			Metadata:   metaJSON,
-		})
+		if loan.Status == "l1_approved" {
+			// Notify L1 approver (manager)
+			if loan.L1ApprovedBy.Valid {
+				_, _ = s.notifSvc.CreateNotification(bgCtx, repository.CreateNotificationParams{
+					UserID:     loan.L1ApprovedBy.Bytes,
+					Title:      "Peminjaman Dikembalikan (Kepala DC)",
+					Body:       pgtype.Text{String: fmt.Sprintf("Permohonan peminjaman %s dikembalikan oleh Kepala DC. Alasan: %s", loan.RequestNo, reason), Valid: true},
+					Type:       "loan-rejected",
+					EntityType: pgtype.Text{String: "loan_request", Valid: true},
+					EntityID:   pgtype.UUID{Bytes: loanID, Valid: true},
+					Channel:    pgtype.Text{String: "email", Valid: true},
+					Metadata:   metaJSON,
+				})
+			}
+		} else {
+			// Notify requester
+			_, _ = s.notifSvc.CreateNotification(bgCtx, repository.CreateNotificationParams{
+				UserID:     loan.UserID,
+				Title:      "Peminjaman Ditolak",
+				Body:       pgtype.Text{String: fmt.Sprintf("Permohonan peminjaman %s ditolak. Alasan: %s", loan.RequestNo, reason), Valid: true},
+				Type:       "loan-rejected",
+				EntityType: pgtype.Text{String: "loan_request", Valid: true},
+				EntityID:   pgtype.UUID{Bytes: loanID, Valid: true},
+				Channel:    pgtype.Text{String: "email", Valid: true},
+				Metadata:   metaJSON,
+			})
+		}
 	}()
 
 	return nil

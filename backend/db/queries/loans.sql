@@ -17,7 +17,8 @@ INSERT INTO loan_request_items (
 SELECT 
     lr.id, lr.request_no, lr.user_id, lr.purpose, lr.duration_days, lr.notes, 
     lr.status, lr.borrow_date, lr.due_date, lr.return_date,
-    lr.l1_approved_by, lr.l1_approved_at, lr.l2_approved_by, lr.l2_approved_at,
+    lr.l1_approved_by, lr.l1_approved_at, lr.l1_rejection_reason, 
+    lr.l2_approved_by, lr.l2_approved_at, lr.l2_rejection_reason,
     lr.created_at, lr.updated_at,
     u.full_name as user_name,
     dept.name as department_name,
@@ -31,7 +32,8 @@ WHERE lr.id = $1 LIMIT 1;
 SELECT 
     lr.id, lr.request_no, lr.user_id, lr.purpose, lr.duration_days, lr.notes, 
     lr.status, lr.borrow_date, lr.due_date, lr.return_date,
-    lr.l1_approved_by, lr.l1_approved_at,
+    lr.l1_approved_by, lr.l1_approved_at, lr.l1_rejection_reason,
+    lr.l2_approved_by, lr.l2_approved_at, lr.l2_rejection_reason,
     lr.created_at, lr.updated_at,
     u.full_name as user_name,
     dept.name as department_name,
@@ -46,7 +48,8 @@ ORDER BY lr.created_at DESC;
 SELECT 
     lr.id, lr.request_no, lr.user_id, lr.purpose, lr.duration_days, lr.notes, 
     lr.status, lr.borrow_date, lr.due_date, lr.return_date,
-    lr.l1_approved_by, lr.l1_approved_at,
+    lr.l1_approved_by, lr.l1_approved_at, lr.l1_rejection_reason,
+    lr.l2_approved_by, lr.l2_approved_at, lr.l2_rejection_reason,
     lr.created_at, lr.updated_at,
     u.full_name as user_name,
     dept.name as department_name,
@@ -95,3 +98,8 @@ SELECT COUNT(*) FROM loan_requests WHERE status = 'l1_approved';
 SELECT COALESCE(MAX(CAST(SUBSTRING(request_no FROM 'LOAN-\d{4}-\d{2}-(\d+)') AS INT)), 0) + 1 as next_seq
 FROM loan_requests
 WHERE request_no LIKE 'LOAN-' || to_char(NOW(), 'YYYY-MM') || '-%';
+
+-- name: RejectLoanRequestL2 :exec
+UPDATE loan_requests
+SET status = 'returned', l2_approved_by = $2, l2_rejection_reason = $3, updated_at = NOW()
+WHERE id = $1;

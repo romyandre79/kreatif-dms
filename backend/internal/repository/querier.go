@@ -175,7 +175,9 @@ type Querier interface {
 	MarkAllAsRead(ctx context.Context, userID uuid.UUID) error
 	MarkAsRead(ctx context.Context, arg MarkAsReadParams) error
 	RejectLoanRequest(ctx context.Context, arg RejectLoanRequestParams) error
+	RejectLoanRequestL2(ctx context.Context, arg RejectLoanRequestL2Params) error
 	RejectTask(ctx context.Context, arg RejectTaskParams) error
+	ResetTaskToPending(ctx context.Context, arg ResetTaskToPendingParams) error
 	SearchBoxes(ctx context.Context, dollar_1 pgtype.Text) ([]SearchBoxesRow, error)
 	SearchDocuments(ctx context.Context, arg SearchDocumentsParams) ([]SearchDocumentsRow, error)
 	UpdateAnnouncement(ctx context.Context, arg UpdateAnnouncementParams) (Announcement, error)

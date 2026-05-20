@@ -74,61 +74,76 @@
       </div>
     </div>
 
-    <!-- Priority Operation Queue -->
+    <!-- Urgent Approval Queue -->
     <div class="glass rounded-2xl overflow-hidden" v-motion-slide-visible-bottom>
-      <div class="px-8 py-6 flex items-center justify-between">
+      <div class="px-8 py-6 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
         <div class="flex items-center gap-2">
           <LucideAlertCircle class="w-5 h-5 text-red-500" />
-          <h3 class="font-black text-lg text-[#1E3A5F] dark:text-white">{{ $t('dashboard.queue.priority_operations') }}</h3>
+          <h3 class="font-black text-lg text-slate-800 dark:text-white">{{ $t('dashboard.manager.queue.title') }}</h3>
         </div>
-        <button class="text-primary-600 font-black text-sm hover:underline">{{ $t('dashboard.queue.view_all_queue') }}</button>
+        <div class="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl">
+          <button 
+            @click="activeTab = 'urgent'"
+            :class="`px-4 py-1.5 text-xs font-bold rounded-lg transition-all ${activeTab === 'urgent' ? 'bg-white dark:bg-slate-700 shadow-sm text-slate-900 dark:text-white' : 'text-slate-500 hover:text-slate-700'}`"
+          >
+            {{ $t('dashboard.manager.queue.tabs.urgent') }}
+          </button>
+          <button 
+            @click="activeTab = 'normal'"
+            :class="`px-4 py-1.5 text-xs font-bold rounded-lg transition-all ${activeTab === 'normal' ? 'bg-white dark:bg-slate-700 shadow-sm text-slate-900 dark:text-white' : 'text-slate-500 hover:text-slate-700'}`"
+          >
+            {{ $t('dashboard.manager.queue.tabs.normal') }}
+          </button>
+          <button 
+            @click="activeTab = 'all'"
+            :class="`px-4 py-1.5 text-xs font-bold rounded-lg transition-all ${activeTab === 'all' ? 'bg-white dark:bg-slate-700 shadow-sm text-slate-900 dark:text-white' : 'text-slate-500 hover:text-slate-700'}`"
+          >
+            {{ $t('dashboard.manager.queue.tabs.all') }}
+          </button>
+        </div>
       </div>
-      
-      <!-- Tabs -->
-      <div class="px-8 flex border-b border-slate-100 dark:border-slate-800 gap-8">
-        <button v-for="tab in queueTabs" :key="tab.label" :class="`pb-4 text-xs font-black uppercase tracking-widest transition-all relative ${tab.active ? 'text-primary-600' : 'text-slate-400 hover:text-slate-600'}`">
-          {{ tab.label }} ({{ tab.count }})
-          <div v-if="tab.active" class="absolute bottom-0 left-0 w-full h-1 bg-primary-600 rounded-t-full"></div>
-        </button>
-      </div>
-
       <div class="overflow-x-auto">
         <table class="w-full text-left">
           <thead>
             <tr class="text-slate-400 text-[10px] uppercase font-black tracking-widest bg-slate-50/50 dark:bg-slate-900/50">
-              <th class="px-8 py-4">{{ $t('dashboard.queue.table.ref_id') }}</th>
-              <th class="px-8 py-4">{{ $t('dashboard.queue.table.client_dept') }}</th>
-              <th class="px-8 py-4">{{ $t('dashboard.queue.table.type') }}</th>
-              <th class="px-8 py-4">{{ $t('dashboard.queue.table.sla_status') }}</th>
-              <th class="px-8 py-4 text-right">{{ $t('dashboard.queue.table.action') }}</th>
+              <th class="px-8 py-4">{{ $t('dashboard.manager.queue.table.submission') }}</th>
+              <th class="px-8 py-4">{{ $t('dashboard.manager.queue.table.staff_name') }}</th>
+              <th class="px-8 py-4">{{ $t('dashboard.manager.queue.table.days_elapsed') }}</th>
+              <th class="px-8 py-4">{{ $t('dashboard.manager.queue.table.status') }}</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
-            <tr v-for="item in dashboardData?.tasks" :key="item.id" @click="handleTaskAction(item)" class="hover:bg-slate-50/50 dark:hover:bg-slate-900/50 transition-colors cursor-pointer">
-              <td class="px-8 py-6 font-black text-sm text-slate-800 dark:text-slate-200 line-clamp-1" :title="item.title || item.id">
-                {{ item.title || item.id.substring(0, 8) + '...' }}
+            <tr 
+              v-for="item in filteredTasks" 
+              :key="item.id" 
+              @click="handleTaskAction(item)"
+              :class="`group/row cursor-pointer transition-colors ${item.level > 1 ? 'bg-red-50/50 dark:bg-red-900/10 hover:bg-red-100/50 dark:hover:bg-red-900/20' : 'hover:bg-slate-50 dark:hover:bg-slate-800/50'}`"
+            >
+              <td class="px-8 py-6 border-l-4" :class="item.level > 1 ? 'border-red-500' : 'border-transparent'">
+                <p class="font-black text-sm text-slate-800 dark:text-slate-200 line-clamp-1" :title="item.title || item.id">
+                  {{ item.title || item.id.substring(0, 8) + '...' }}
+                </p>
+                <p class="text-[10px] text-slate-400 font-bold mt-1 uppercase">{{ item.entity_type }}</p>
               </td>
               <td class="px-8 py-6">
-                <p class="text-sm font-black text-slate-700 dark:text-slate-300">{{ $t('common.system_entity') || 'System Entity' }}</p>
-                <p class="text-[10px] text-slate-400 font-bold uppercase">{{ item.entity_type }}</p>
+                <div class="flex items-center gap-3">
+                  <div class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400">
+                     <LucideUser class="w-4 h-4" />
+                  </div>
+                  <span class="text-xs font-bold text-slate-700 dark:text-slate-300">{{ item.staff_name || 'System' }}</span>
+                </div>
               </td>
-              <td class="px-8 py-6 text-sm font-bold text-slate-500">{{ item.entity_type }}</td>
               <td class="px-8 py-6">
-                <span :class="`px-3 py-1 rounded-lg text-[9px] font-black uppercase ${item.level > 1 ? 'bg-red-100 text-red-600' : 'bg-orange-100 text-orange-600'}`">
-                  {{ $t('dashboard.queue.level') }} {{ item.level }}
+                <span :class="`text-xs font-black ${item.level > 1 ? 'text-red-500' : 'text-slate-500'}`">{{ timeAgo(item.created_at) }}</span>
+              </td>
+              <td class="px-8 py-6">
+                <span :class="`px-3 py-1 rounded-full text-[9px] font-black uppercase ${item.level > 1 ? 'bg-red-100 text-red-600' : 'bg-blue-100 text-blue-600'}`">
+                  {{ item.status || 'PENDING' }}
                 </span>
-              </td>
-              <td class="px-8 py-6 text-right">
-                <button 
-                  @click.stop="handleTaskAction(item)"
-                  class="px-5 py-2.5 rounded-xl text-xs font-black transition-all bg-[#1E3A5F] text-white hover:bg-[#152943]"
-                >
-                  {{ $t('dashboard.user.tasks.items.process') }}
-                </button>
               </td>
             </tr>
             <tr v-if="!dashboardData?.tasks?.length">
-              <td colspan="5" class="px-8 py-10 text-center text-slate-400 font-bold text-xs uppercase tracking-widest">
+              <td colspan="4" class="px-8 py-10 text-center text-slate-400 font-bold text-xs uppercase tracking-widest">
                 {{ $t('dashboard.manager.queue.no_pending') }}
               </td>
             </tr>
@@ -271,6 +286,7 @@ import {
   LucideClipboardList,
   LucideMap,
   LucideUsers,
+  LucideUser,
   LucideHelpCircle,
   LucideRefreshCcw,
   LucidePlus,
@@ -292,6 +308,7 @@ const { t } = useI18n()
 const user = computed(() => auth.user)
 const config = useRuntimeConfig()
 const isNotesOpen = ref(false)
+const activeTab = ref('all')
 
 // Data Fetching
 const { data: dashboardData, refresh: refreshDashboard } = await useAsyncData(`controller-summary-${user.value?.id}`, async () => {
@@ -301,12 +318,16 @@ const { data: dashboardData, refresh: refreshDashboard } = await useAsyncData(`c
 
 const statsSummary = computed(() => dashboardData.value?.stats)
 
-const queueTabs = computed(() => [
-  { label: t('dashboard.queue.tabs.all'), count: statsSummary.value?.active_tasks || 0, active: true },
-  { label: t('dashboard.queue.tabs.receive'), count: 0, active: false },
-  { label: t('dashboard.queue.tabs.scan'), count: 0, active: false },
-  { label: t('dashboard.queue.tabs.metadata'), count: 0, active: false },
-])
+const filteredTasks = computed(() => {
+  const tasks = dashboardData.value?.tasks || []
+  if (activeTab.value === 'urgent') {
+    return tasks.filter(t => t.level > 1)
+  }
+  if (activeTab.value === 'normal') {
+    return tasks.filter(t => t.level <= 1)
+  }
+  return tasks
+})
 
 const getActivityStyles = (action) => {
   switch (action) {

@@ -30,6 +30,17 @@ func (q *Queries) ApproveLoanRequestL1(ctx context.Context, arg ApproveLoanReque
 	return err
 }
 
+const countL1ApprovedLoans = `-- name: CountL1ApprovedLoans :one
+SELECT COUNT(*) FROM loan_requests WHERE status = 'l1_approved'
+`
+
+func (q *Queries) CountL1ApprovedLoans(ctx context.Context) (int64, error) {
+	row := q.db.QueryRow(ctx, countL1ApprovedLoans)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const countUserLoanRequests = `-- name: CountUserLoanRequests :one
 SELECT COUNT(*) FROM loan_requests WHERE user_id = $1
 `
@@ -146,7 +157,8 @@ const getLoanRequest = `-- name: GetLoanRequest :one
 SELECT 
     lr.id, lr.request_no, lr.user_id, lr.purpose, lr.duration_days, lr.notes, 
     lr.status, lr.borrow_date, lr.due_date, lr.return_date,
-    lr.l1_approved_by, lr.l1_approved_at, lr.l2_approved_by, lr.l2_approved_at,
+    lr.l1_approved_by, lr.l1_approved_at, lr.l1_rejection_reason, 
+    lr.l2_approved_by, lr.l2_approved_at, lr.l2_rejection_reason,
     lr.created_at, lr.updated_at,
     u.full_name as user_name,
     dept.name as department_name,
@@ -158,25 +170,27 @@ WHERE lr.id = $1 LIMIT 1
 `
 
 type GetLoanRequestRow struct {
-	ID             uuid.UUID          `json:"id"`
-	RequestNo      string             `json:"request_no"`
-	UserID         uuid.UUID          `json:"user_id"`
-	Purpose        string             `json:"purpose"`
-	DurationDays   int32              `json:"duration_days"`
-	Notes          pgtype.Text        `json:"notes"`
-	Status         string             `json:"status"`
-	BorrowDate     pgtype.Timestamptz `json:"borrow_date"`
-	DueDate        pgtype.Timestamptz `json:"due_date"`
-	ReturnDate     pgtype.Timestamptz `json:"return_date"`
-	L1ApprovedBy   pgtype.UUID        `json:"l1_approved_by"`
-	L1ApprovedAt   pgtype.Timestamptz `json:"l1_approved_at"`
-	L2ApprovedBy   pgtype.UUID        `json:"l2_approved_by"`
-	L2ApprovedAt   pgtype.Timestamptz `json:"l2_approved_at"`
-	CreatedAt      pgtype.Timestamptz `json:"created_at"`
-	UpdatedAt      pgtype.Timestamptz `json:"updated_at"`
-	UserName       string             `json:"user_name"`
-	DepartmentName pgtype.Text        `json:"department_name"`
-	ItemsCount     int64              `json:"items_count"`
+	ID                uuid.UUID          `json:"id"`
+	RequestNo         string             `json:"request_no"`
+	UserID            uuid.UUID          `json:"user_id"`
+	Purpose           string             `json:"purpose"`
+	DurationDays      int32              `json:"duration_days"`
+	Notes             pgtype.Text        `json:"notes"`
+	Status            string             `json:"status"`
+	BorrowDate        pgtype.Timestamptz `json:"borrow_date"`
+	DueDate           pgtype.Timestamptz `json:"due_date"`
+	ReturnDate        pgtype.Timestamptz `json:"return_date"`
+	L1ApprovedBy      pgtype.UUID        `json:"l1_approved_by"`
+	L1ApprovedAt      pgtype.Timestamptz `json:"l1_approved_at"`
+	L1RejectionReason pgtype.Text        `json:"l1_rejection_reason"`
+	L2ApprovedBy      pgtype.UUID        `json:"l2_approved_by"`
+	L2ApprovedAt      pgtype.Timestamptz `json:"l2_approved_at"`
+	L2RejectionReason pgtype.Text        `json:"l2_rejection_reason"`
+	CreatedAt         pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt         pgtype.Timestamptz `json:"updated_at"`
+	UserName          string             `json:"user_name"`
+	DepartmentName    pgtype.Text        `json:"department_name"`
+	ItemsCount        int64              `json:"items_count"`
 }
 
 func (q *Queries) GetLoanRequest(ctx context.Context, id uuid.UUID) (GetLoanRequestRow, error) {
@@ -195,8 +209,10 @@ func (q *Queries) GetLoanRequest(ctx context.Context, id uuid.UUID) (GetLoanRequ
 		&i.ReturnDate,
 		&i.L1ApprovedBy,
 		&i.L1ApprovedAt,
+		&i.L1RejectionReason,
 		&i.L2ApprovedBy,
 		&i.L2ApprovedAt,
+		&i.L2RejectionReason,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.UserName,
@@ -266,16 +282,6 @@ func (q *Queries) GetLoanRequestItems(ctx context.Context, loanRequestID uuid.UU
 	return items, nil
 }
 
-const countL1ApprovedLoans = `-- name: CountL1ApprovedLoans :one
-SELECT COUNT(*) FROM loan_requests WHERE status = 'l1_approved'
-`
-
-func (q *Queries) CountL1ApprovedLoans(ctx context.Context) (int64, error) {
-	var count int64
-	err := q.db.QueryRow(ctx, countL1ApprovedLoans).Scan(&count)
-	return count, err
-}
-
 const getNextLoanRequestNo = `-- name: GetNextLoanRequestNo :one
 SELECT COALESCE(MAX(CAST(SUBSTRING(request_no FROM 'LOAN-\d{4}-\d{2}-(\d+)') AS INT)), 0) + 1 as next_seq
 FROM loan_requests
@@ -293,7 +299,8 @@ const listAllLoanRequests = `-- name: ListAllLoanRequests :many
 SELECT 
     lr.id, lr.request_no, lr.user_id, lr.purpose, lr.duration_days, lr.notes, 
     lr.status, lr.borrow_date, lr.due_date, lr.return_date,
-    lr.l1_approved_by, lr.l1_approved_at,
+    lr.l1_approved_by, lr.l1_approved_at, lr.l1_rejection_reason,
+    lr.l2_approved_by, lr.l2_approved_at, lr.l2_rejection_reason,
     lr.created_at, lr.updated_at,
     u.full_name as user_name,
     dept.name as department_name,
@@ -306,23 +313,27 @@ LIMIT $1
 `
 
 type ListAllLoanRequestsRow struct {
-	ID             uuid.UUID          `json:"id"`
-	RequestNo      string             `json:"request_no"`
-	UserID         uuid.UUID          `json:"user_id"`
-	Purpose        string             `json:"purpose"`
-	DurationDays   int32              `json:"duration_days"`
-	Notes          pgtype.Text        `json:"notes"`
-	Status         string             `json:"status"`
-	BorrowDate     pgtype.Timestamptz `json:"borrow_date"`
-	DueDate        pgtype.Timestamptz `json:"due_date"`
-	ReturnDate     pgtype.Timestamptz `json:"return_date"`
-	L1ApprovedBy   pgtype.UUID        `json:"l1_approved_by"`
-	L1ApprovedAt   pgtype.Timestamptz `json:"l1_approved_at"`
-	CreatedAt      pgtype.Timestamptz `json:"created_at"`
-	UpdatedAt      pgtype.Timestamptz `json:"updated_at"`
-	UserName       string             `json:"user_name"`
-	DepartmentName pgtype.Text        `json:"department_name"`
-	ItemsCount     int64              `json:"items_count"`
+	ID                uuid.UUID          `json:"id"`
+	RequestNo         string             `json:"request_no"`
+	UserID            uuid.UUID          `json:"user_id"`
+	Purpose           string             `json:"purpose"`
+	DurationDays      int32              `json:"duration_days"`
+	Notes             pgtype.Text        `json:"notes"`
+	Status            string             `json:"status"`
+	BorrowDate        pgtype.Timestamptz `json:"borrow_date"`
+	DueDate           pgtype.Timestamptz `json:"due_date"`
+	ReturnDate        pgtype.Timestamptz `json:"return_date"`
+	L1ApprovedBy      pgtype.UUID        `json:"l1_approved_by"`
+	L1ApprovedAt      pgtype.Timestamptz `json:"l1_approved_at"`
+	L1RejectionReason pgtype.Text        `json:"l1_rejection_reason"`
+	L2ApprovedBy      pgtype.UUID        `json:"l2_approved_by"`
+	L2ApprovedAt      pgtype.Timestamptz `json:"l2_approved_at"`
+	L2RejectionReason pgtype.Text        `json:"l2_rejection_reason"`
+	CreatedAt         pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt         pgtype.Timestamptz `json:"updated_at"`
+	UserName          string             `json:"user_name"`
+	DepartmentName    pgtype.Text        `json:"department_name"`
+	ItemsCount        int64              `json:"items_count"`
 }
 
 func (q *Queries) ListAllLoanRequests(ctx context.Context, limit int32) ([]ListAllLoanRequestsRow, error) {
@@ -347,6 +358,10 @@ func (q *Queries) ListAllLoanRequests(ctx context.Context, limit int32) ([]ListA
 			&i.ReturnDate,
 			&i.L1ApprovedBy,
 			&i.L1ApprovedAt,
+			&i.L1RejectionReason,
+			&i.L2ApprovedBy,
+			&i.L2ApprovedAt,
+			&i.L2RejectionReason,
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.UserName,
@@ -367,7 +382,8 @@ const listUserLoanRequests = `-- name: ListUserLoanRequests :many
 SELECT 
     lr.id, lr.request_no, lr.user_id, lr.purpose, lr.duration_days, lr.notes, 
     lr.status, lr.borrow_date, lr.due_date, lr.return_date,
-    lr.l1_approved_by, lr.l1_approved_at,
+    lr.l1_approved_by, lr.l1_approved_at, lr.l1_rejection_reason,
+    lr.l2_approved_by, lr.l2_approved_at, lr.l2_rejection_reason,
     lr.created_at, lr.updated_at,
     u.full_name as user_name,
     dept.name as department_name,
@@ -380,23 +396,27 @@ ORDER BY lr.created_at DESC
 `
 
 type ListUserLoanRequestsRow struct {
-	ID             uuid.UUID          `json:"id"`
-	RequestNo      string             `json:"request_no"`
-	UserID         uuid.UUID          `json:"user_id"`
-	Purpose        string             `json:"purpose"`
-	DurationDays   int32              `json:"duration_days"`
-	Notes          pgtype.Text        `json:"notes"`
-	Status         string             `json:"status"`
-	BorrowDate     pgtype.Timestamptz `json:"borrow_date"`
-	DueDate        pgtype.Timestamptz `json:"due_date"`
-	ReturnDate     pgtype.Timestamptz `json:"return_date"`
-	L1ApprovedBy   pgtype.UUID        `json:"l1_approved_by"`
-	L1ApprovedAt   pgtype.Timestamptz `json:"l1_approved_at"`
-	CreatedAt      pgtype.Timestamptz `json:"created_at"`
-	UpdatedAt      pgtype.Timestamptz `json:"updated_at"`
-	UserName       string             `json:"user_name"`
-	DepartmentName pgtype.Text        `json:"department_name"`
-	ItemsCount     int64              `json:"items_count"`
+	ID                uuid.UUID          `json:"id"`
+	RequestNo         string             `json:"request_no"`
+	UserID            uuid.UUID          `json:"user_id"`
+	Purpose           string             `json:"purpose"`
+	DurationDays      int32              `json:"duration_days"`
+	Notes             pgtype.Text        `json:"notes"`
+	Status            string             `json:"status"`
+	BorrowDate        pgtype.Timestamptz `json:"borrow_date"`
+	DueDate           pgtype.Timestamptz `json:"due_date"`
+	ReturnDate        pgtype.Timestamptz `json:"return_date"`
+	L1ApprovedBy      pgtype.UUID        `json:"l1_approved_by"`
+	L1ApprovedAt      pgtype.Timestamptz `json:"l1_approved_at"`
+	L1RejectionReason pgtype.Text        `json:"l1_rejection_reason"`
+	L2ApprovedBy      pgtype.UUID        `json:"l2_approved_by"`
+	L2ApprovedAt      pgtype.Timestamptz `json:"l2_approved_at"`
+	L2RejectionReason pgtype.Text        `json:"l2_rejection_reason"`
+	CreatedAt         pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt         pgtype.Timestamptz `json:"updated_at"`
+	UserName          string             `json:"user_name"`
+	DepartmentName    pgtype.Text        `json:"department_name"`
+	ItemsCount        int64              `json:"items_count"`
 }
 
 func (q *Queries) ListUserLoanRequests(ctx context.Context, userID uuid.UUID) ([]ListUserLoanRequestsRow, error) {
@@ -421,6 +441,10 @@ func (q *Queries) ListUserLoanRequests(ctx context.Context, userID uuid.UUID) ([
 			&i.ReturnDate,
 			&i.L1ApprovedBy,
 			&i.L1ApprovedAt,
+			&i.L1RejectionReason,
+			&i.L2ApprovedBy,
+			&i.L2ApprovedAt,
+			&i.L2RejectionReason,
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.UserName,
@@ -451,6 +475,23 @@ type RejectLoanRequestParams struct {
 
 func (q *Queries) RejectLoanRequest(ctx context.Context, arg RejectLoanRequestParams) error {
 	_, err := q.db.Exec(ctx, rejectLoanRequest, arg.ID, arg.L1ApprovedBy, arg.L1RejectionReason)
+	return err
+}
+
+const rejectLoanRequestL2 = `-- name: RejectLoanRequestL2 :exec
+UPDATE loan_requests
+SET status = 'returned', l2_approved_by = $2, l2_rejection_reason = $3, updated_at = NOW()
+WHERE id = $1
+`
+
+type RejectLoanRequestL2Params struct {
+	ID                uuid.UUID   `json:"id"`
+	L2ApprovedBy      pgtype.UUID `json:"l2_approved_by"`
+	L2RejectionReason pgtype.Text `json:"l2_rejection_reason"`
+}
+
+func (q *Queries) RejectLoanRequestL2(ctx context.Context, arg RejectLoanRequestL2Params) error {
+	_, err := q.db.Exec(ctx, rejectLoanRequestL2, arg.ID, arg.L2ApprovedBy, arg.L2RejectionReason)
 	return err
 }
 

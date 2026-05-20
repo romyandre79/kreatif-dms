@@ -675,3 +675,20 @@ func (q *Queries) RejectTask(ctx context.Context, arg RejectTaskParams) error {
 	_, err := q.db.Exec(ctx, rejectTask, arg.EntityID, arg.DecisionNote, arg.RejectionReason)
 	return err
 }
+
+const resetTaskToPending = `-- name: ResetTaskToPending :exec
+UPDATE approval_workflows
+SET status = 'pending', decided_at = NULL, decision_note = NULL, rejection_reason = $3
+WHERE entity_id = $1 AND approver_id = $2
+`
+
+type ResetTaskToPendingParams struct {
+	EntityID        uuid.UUID   `json:"entity_id"`
+	ApproverID      uuid.UUID   `json:"approver_id"`
+	RejectionReason pgtype.Text `json:"rejection_reason"`
+}
+
+func (q *Queries) ResetTaskToPending(ctx context.Context, arg ResetTaskToPendingParams) error {
+	_, err := q.db.Exec(ctx, resetTaskToPending, arg.EntityID, arg.ApproverID, arg.RejectionReason)
+	return err
+}
