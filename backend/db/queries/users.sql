@@ -36,7 +36,14 @@ SELECT * FROM users WHERE status = 'pending' ORDER BY created_at ASC;
 SELECT id FROM roles WHERE name = $1 LIMIT 1;
 
 -- name: UpdateUserPIN :exec
-UPDATE users SET pin = $2 WHERE id = $1;
+UPDATE users 
+SET pin = $2, 
+    pin_status = 'SET', 
+    pin_updated_at = NOW(), 
+    pin_failed_attempts = 0, 
+    pin_locked_until = NULL,
+    updated_at = NOW()
+WHERE id = $1;
 
 -- name: UpdateUser :one
 UPDATE users

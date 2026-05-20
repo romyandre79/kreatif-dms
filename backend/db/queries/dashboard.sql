@@ -193,5 +193,5 @@ LIMIT 1;
 
 -- name: ResetTaskToPending :exec
 UPDATE approval_workflows
-SET status = 'pending', decided_at = NULL, decision_note = NULL, rejection_reason = $3
-WHERE entity_id = $1 AND approver_id = $2;
+SET status = 'pending', decided_at = NULL, decision_note = NULL, rejection_reason = $2
+WHERE entity_id = $1 AND status = 'approved';

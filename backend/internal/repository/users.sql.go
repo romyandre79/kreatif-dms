@@ -553,7 +553,14 @@ func (q *Queries) UpdateUserMFASecret(ctx context.Context, arg UpdateUserMFASecr
 }
 
 const updateUserPIN = `-- name: UpdateUserPIN :exec
-UPDATE users SET pin = $2 WHERE id = $1
+UPDATE users 
+SET pin = $2, 
+    pin_status = 'SET', 
+    pin_updated_at = NOW(), 
+    pin_failed_attempts = 0, 
+    pin_locked_until = NULL,
+    updated_at = NOW()
+WHERE id = $1
 `
 
 type UpdateUserPINParams struct {

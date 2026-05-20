@@ -5,7 +5,10 @@
       "Bash(Get-ChildItem -Path \"C:\\\\lara\\\\www\\\\kreatif-dms\\\\backend\\\\cmd\" -Recurse -File)",
       "Bash(Select-Object -ExpandProperty FullName)",
       "Bash(role\" | head -20)",
-      "Bash(go build *)"
+      "Bash(go build *)",
+      "Bash(Get-ChildItem -Path \"C:\\\\lara\\\\www\\\\kreatif\\\\kreatif-dms\" -Force)",
+      "Bash(Select-Object Name, FullName)",
+      "Bash(Format-Table -AutoSize)"
     ]
   }
 }

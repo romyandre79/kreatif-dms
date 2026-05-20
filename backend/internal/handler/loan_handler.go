@@ -269,7 +269,8 @@ func formatLoanListForFrontend(loans []repository.ListUserLoanRequestsRow) []fib
 			"departmentName": loan.DepartmentName.String,
 			"purpose":        loan.Purpose,
 			"durationDays":   loan.DurationDays,
-			"rawStatus":      loan.Status,
+			"rawStatus":          loan.Status,
+			"l2RejectionReason": loan.L2RejectionReason.String,
 		})
 	}
 
@@ -373,7 +374,8 @@ func formatAllLoanListForFrontend(loans []repository.ListAllLoanRequestsRow) []f
 			"departmentName": loan.DepartmentName.String,
 			"purpose":        loan.Purpose,
 			"durationDays":   loan.DurationDays,
-			"rawStatus":      loan.Status,
+			"rawStatus":          loan.Status,
+			"l2RejectionReason": loan.L2RejectionReason.String,
 		})
 	}
 

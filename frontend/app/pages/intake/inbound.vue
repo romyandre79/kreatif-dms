@@ -250,7 +250,8 @@
 </template>
 
 <script setup>
-import { ref, onMounted, reactive, computed } from 'vue'
+import { ref, onMounted, reactive, computed, watch, nextTick } from 'vue'
+import { useRoute } from 'vue-router'
 import { useAuthStore } from '~/stores/auth'
 import { 
   LucideQrCode, LucideScanLine, LucideInfo, LucideCheckCircle, 
@@ -329,6 +330,21 @@ const handleScan = async () => {
   }
 }
 
+
+const route = useRoute()
+
+// Watch route path to refetch data when returning to the inbound page
+watch(() => route.path, (newPath) => {
+  if (newPath === '/intake/inbound') {
+    fetchStats()
+    fetchPendingManifests()
+    nextTick(() => {
+      if (scannerInput.value) {
+        scannerInput.value.focus()
+      }
+    })
+  }
+})
 
 onMounted(() => {
   // Access control
