@@ -15,7 +15,13 @@ WHERE d.id = $1 LIMIT 1;
 
 -- name: GetDocumentWithDetails :one
 SELECT 
-    d.*,
+    d.id, d.title, d.description, d.file_name, d.file_path, d.file_size, d.mime_type, d.checksum, d.company_id, d.branch_id, d.department_id, d.rack_id, d.box_id, d.ordner_id, d.owner_id, d.current_version,
+    CASE WHEN EXISTS (
+        SELECT 1 FROM loan_request_items lri 
+        JOIN loan_requests lr ON lri.loan_request_id = lr.id 
+        WHERE lri.document_id = d.id AND lr.status IN ('active', 'overdue')
+    ) THEN 'on_loan' ELSE d.status END as status,
+    d.tags, d.metadata, d.extracted_text, d.is_ocr_processed, d.created_at, d.updated_at, d.batch_id, d.retention_years, d.retention_expiry_date, d.sensitivity, d.circulation_id, d.minio_bucket, d.es_indexed, d.type_id, d.current_manifest_id, d.physical_status,
     dt.name as type_name,
     dt.category_id,
     c.name as company_name,
@@ -117,7 +123,13 @@ SELECT COUNT(*) FROM ocr_jobs;
 
 -- name: ListRecentDocuments :many
 SELECT 
-    d.id, d.title, d.status, d.created_at, d.mime_type, d.file_size, d.metadata,
+    d.id, d.title, 
+    CASE WHEN EXISTS (
+        SELECT 1 FROM loan_request_items lri 
+        JOIN loan_requests lr ON lri.loan_request_id = lr.id 
+        WHERE lri.document_id = d.id AND lr.status IN ('active', 'overdue')
+    ) THEN 'on_loan' ELSE d.status END as status,
+    d.created_at, d.mime_type, d.file_size, d.metadata,
     d.physical_status,
     dt.name as type_name,
     dept.name as department_name,
@@ -131,7 +143,13 @@ LIMIT $1 OFFSET $2;
 
 -- name: ListRecentDocumentsByOwner :many
 SELECT 
-    d.id, d.title, d.status, d.created_at, d.mime_type, d.file_size, d.metadata,
+    d.id, d.title, 
+    CASE WHEN EXISTS (
+        SELECT 1 FROM loan_request_items lri 
+        JOIN loan_requests lr ON lri.loan_request_id = lr.id 
+        WHERE lri.document_id = d.id AND lr.status IN ('active', 'overdue')
+    ) THEN 'on_loan' ELSE d.status END as status,
+    d.created_at, d.mime_type, d.file_size, d.metadata,
     d.physical_status,
     dt.name as type_name,
     dept.name as department_name,
@@ -204,7 +222,13 @@ GROUP BY company_id, branch_id, department_id, rack_id, box_id, ordner_id, type_
 
 -- name: SearchDocuments :many
 SELECT 
-    d.id, d.title, d.status, d.created_at, d.mime_type, d.file_size, d.metadata,
+    d.id, d.title, 
+    CASE WHEN EXISTS (
+        SELECT 1 FROM loan_request_items lri 
+        JOIN loan_requests lr ON lri.loan_request_id = lr.id 
+        WHERE lri.document_id = d.id AND lr.status IN ('active', 'overdue')
+    ) THEN 'on_loan' ELSE d.status END as status,
+    d.created_at, d.mime_type, d.file_size, d.metadata,
     d.physical_status,
     dt.name as type_name,
     dept.name as department_name,

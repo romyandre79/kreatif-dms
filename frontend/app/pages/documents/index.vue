@@ -223,7 +223,11 @@
                           : 'text-slate-400 hover:text-primary-500 hover:bg-primary-50'
                       ]"
                     >
-                      <LucideShoppingCart class="w-5 h-5" :class="{ 'opacity-50': !isDocSelectable(doc) }" />
+                      <LucideShoppingCart v-if="isDocSelectable(doc)" class="w-5 h-5" />
+                      <div v-else class="relative w-5 h-5 flex items-center justify-center text-slate-300">
+                        <LucideShoppingCart class="w-5 h-5 text-slate-200" />
+                        <div class="absolute w-[120%] h-[1.5px] bg-slate-300 rotate-45 origin-center"></div>
+                      </div>
                     </button>
                   </div>
                 </td>

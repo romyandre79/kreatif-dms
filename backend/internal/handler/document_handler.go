@@ -201,7 +201,7 @@ func (h *DocumentHandler) Preview(c fiber.Ctx) error {
 	if c.Query("download") == "true" {
 		doc, err := h.svc.GetDocument(c.Context(), docID)
 		if err == nil {
-			disposition = fmt.Sprintf("attachment; filename=\"%s\"", doc.FileName)
+			disposition = fmt.Sprintf("attachment; filename=\"%s\"", doc.FileName.String)
 		} else {
 			disposition = "attachment; filename=\"document.pdf\""
 		}
@@ -292,7 +292,7 @@ func (h *DocumentHandler) GetByID(c fiber.Ctx) error {
 		return response.Error(c, fiber.StatusNotFound, "Document not found", err.Error())
 	}
 
-	log.Printf("[DocumentHandler] Document %s found: %s (Mime: %s)", docID, doc.Title, doc.MimeType)
+	log.Printf("[DocumentHandler] Document %s found: %s (Mime: %s)", docID, doc.Title, doc.MimeType.String)
 	return response.Success(c, fiber.StatusOK, "Document found", doc)
 }
 
