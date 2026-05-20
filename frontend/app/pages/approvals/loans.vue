@@ -292,9 +292,16 @@
               <div v-if="level === 'L2'" class="space-y-4" v-motion-slide-bottom>
                 <p class="text-[9px] font-black text-slate-300 uppercase tracking-[0.2em]">{{ $t('approvals.loans.summary.security_checklist') }}</p>
                 <div class="space-y-2">
-                  <label v-for="check in checklist" :key="check" class="flex items-center gap-3 p-3 bg-white border border-slate-100 rounded-xl cursor-pointer hover:bg-slate-50 transition-colors group">
-                    <input type="checkbox" class="w-4 h-4 rounded border-2 border-slate-200 text-primary-600 focus:ring-primary-500/10" />
-                    <span class="text-[11px] font-bold text-slate-600 group-hover:text-slate-900 transition-colors">{{ check }}</span>
+                  <label v-for="(check, index) in checklist" :key="check" 
+                         class="flex items-center gap-3 p-3 bg-white border border-slate-100 rounded-xl transition-colors group"
+                         :class="!isActionable ? 'opacity-75 cursor-not-allowed bg-slate-50/50' : 'cursor-pointer hover:bg-slate-50'">
+                    <input type="checkbox" 
+                           :checked="!isActionable || checkedItems[index]"
+                           :disabled="!isActionable"
+                           @change="toggleCheck(index)"
+                           class="w-4 h-4 rounded border-2 border-slate-200 text-[#1E3A5F] focus:ring-[#1E3A5F]/10 disabled:opacity-80" />
+                    <span class="text-[11px] font-bold text-slate-600 transition-colors"
+                          :class="!isActionable ? 'text-slate-400' : 'group-hover:text-slate-900'">{{ check }}</span>
                   </label>
                 </div>
               </div>
@@ -460,6 +467,15 @@ const rejectionReason = ref('')
 const showPinModal = ref(false)
 const isLoading = ref(false)
 const currentTab = ref('waiting')
+
+const checkedItems = ref([false, false, false, false])
+const toggleCheck = (index) => {
+  checkedItems.value[index] = !checkedItems.value[index]
+}
+
+watch(selectedRequest, () => {
+  checkedItems.value = [false, false, false, false]
+})
 
 const setTab = (tabName) => {
   currentTab.value = tabName
