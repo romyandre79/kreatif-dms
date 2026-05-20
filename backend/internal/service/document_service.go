@@ -1023,7 +1023,7 @@ func (s *DocumentService) ApproveLoanRequest(ctx context.Context, loanID uuid.UU
 		return err
 	}
 
-	if loan.Status == "pending" || loan.Status == "returned" {
+	if loan.Status == "pending" || loan.Status == "rejected" {
 		if err := s.repo.ApproveLoanRequestL1(ctx, repository.ApproveLoanRequestL1Params{
 			ID:           loanID,
 			L1ApprovedBy: pgtype.UUID{Bytes: approverID, Valid: true},
@@ -1076,7 +1076,7 @@ func (s *DocumentService) RejectLoanRequestAction(ctx context.Context, loanID uu
 		return err
 	}
 
-	if loan.Status == "pending" || loan.Status == "returned" {
+	if loan.Status == "pending" || loan.Status == "rejected" {
 		if err := s.repo.RejectLoanRequest(ctx, repository.RejectLoanRequestParams{
 			ID:                loanID,
 			L1ApprovedBy:      pgtype.UUID{Bytes: approverID, Valid: true},
@@ -1084,6 +1084,13 @@ func (s *DocumentService) RejectLoanRequestAction(ctx context.Context, loanID uu
 		}); err != nil {
 			return err
 		}
+
+		// Update approval workflow
+		_ = s.repo.RejectTask(ctx, repository.RejectTaskParams{
+			EntityID:        loanID,
+			DecisionNote:    pgtype.Text{String: "Loan request rejected", Valid: true},
+			RejectionReason: pgtype.Text{String: reason, Valid: true},
+		})
 	} else if loan.Status == "l1_approved" {
 		if err := s.repo.RejectLoanRequestL2(ctx, repository.RejectLoanRequestL2Params{
 			ID:                loanID,
@@ -1094,21 +1101,11 @@ func (s *DocumentService) RejectLoanRequestAction(ctx context.Context, loanID uu
 		}
 		
 		// Reset the L1 task so the manager can review it again
-		if loan.L1ApprovedBy.Valid {
-			_ = s.repo.ResetTaskToPending(ctx, repository.ResetTaskToPendingParams{
-				EntityID:        loanID,
-				ApproverID:      loan.L1ApprovedBy.Bytes,
-				RejectionReason: pgtype.Text{String: reason, Valid: true},
-			})
-		}
+		_ = s.repo.ResetTaskToPending(ctx, repository.ResetTaskToPendingParams{
+			EntityID:        loanID,
+			RejectionReason: pgtype.Text{String: reason, Valid: true},
+		})
 	}
-
-	// Update approval workflow
-	_ = s.repo.RejectTask(ctx, repository.RejectTaskParams{
-		EntityID:        loanID,
-		DecisionNote:    pgtype.Text{String: "Loan request rejected", Valid: true},
-		RejectionReason: pgtype.Text{String: reason, Valid: true},
-	})
 
 	// Notify requester and/or L1 approver
 	go func() {

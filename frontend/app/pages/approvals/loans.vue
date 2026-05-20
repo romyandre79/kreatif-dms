@@ -27,7 +27,12 @@
     <!-- Stat Cards -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4" v-motion-slide-visible-bottom>
       <!-- Stat 1 -->
-      <div class="glass p-5 rounded-lg border border-slate-100 bg-white shadow-lg shadow-slate-200/50 relative overflow-hidden group hover:shadow-xl hover:shadow-primary-900/10 transition-all" :class="level === 'L2' ? 'border-l-4 border-primary-500' : ''">
+      <div class="glass p-5 rounded-lg border border-slate-100 bg-white shadow-lg shadow-slate-200/50 relative overflow-hidden group hover:shadow-xl hover:shadow-primary-900/10 transition-all cursor-pointer" 
+           :class="[
+             level === 'L2' ? 'border-l-4 border-primary-500' : '',
+             currentTab === 'waiting' ? 'ring-2 ring-primary-500 scale-[1.02] shadow-xl' : 'hover:scale-[1.01]'
+           ]"
+           @click="setTab('waiting')">
         <div class="space-y-2">
           <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">
             {{ level === 'L1' ? $t('approvals.loans.stats.l1_waiting') : $t('approvals.loans.stats.l2_waiting') }}
@@ -43,7 +48,9 @@
       </div>
 
       <!-- Stat 2 -->
-      <div class="glass p-5 rounded-lg border border-slate-100 bg-white shadow-lg shadow-slate-200/50 relative overflow-hidden group hover:shadow-xl hover:shadow-primary-900/10 transition-all">
+      <div class="glass p-5 rounded-lg border border-slate-100 bg-white shadow-lg shadow-slate-200/50 relative overflow-hidden group hover:shadow-xl hover:shadow-primary-900/10 transition-all cursor-pointer"
+           :class="currentTab === 'approved' ? 'ring-2 ring-emerald-500 scale-[1.02] shadow-xl' : 'hover:scale-[1.01]'"
+           @click="setTab('approved')">
         <div class="space-y-2">
           <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">
             {{ level === 'L1' ? $t('approvals.loans.stats.l1_approved') : $t('approvals.loans.stats.l2_release') }}
@@ -59,7 +66,9 @@
       </div>
 
       <!-- Stat 3 -->
-      <div class="glass p-5 rounded-lg border border-slate-100 bg-white shadow-lg shadow-slate-200/50 relative overflow-hidden group hover:shadow-xl hover:shadow-primary-900/10 transition-all">
+      <div class="glass p-5 rounded-lg border border-slate-100 bg-white shadow-lg shadow-slate-200/50 relative overflow-hidden group hover:shadow-xl hover:shadow-primary-900/10 transition-all cursor-pointer"
+           :class="currentTab === 'rejected' ? (level === 'L1' ? 'ring-2 ring-red-500' : 'ring-2 ring-orange-500') + ' scale-[1.02] shadow-xl' : 'hover:scale-[1.01]'"
+           @click="setTab('rejected')">
         <div class="space-y-2">
           <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">
             {{ level === 'L1' ? $t('approvals.loans.stats.l1_rejected') : $t('approvals.loans.stats.l2_pickup') }}
@@ -75,7 +84,12 @@
       </div>
 
       <!-- Stat 4 -->
-      <div class="glass p-5 rounded-lg border border-slate-100 bg-white shadow-lg shadow-slate-200/50 relative overflow-hidden group hover:shadow-xl hover:shadow-primary-900/10 transition-all border-l-4" :class="level === 'L1' ? 'border-orange-500' : 'border-slate-200'">
+      <div class="glass p-5 rounded-lg border border-slate-100 bg-white shadow-lg shadow-slate-200/50 relative overflow-hidden group hover:shadow-xl hover:shadow-primary-900/10 transition-all border-l-4 cursor-pointer" 
+           :class="[
+             level === 'L1' ? 'border-orange-500' : 'border-slate-200',
+             currentTab === 'sla' ? (level === 'L1' ? 'ring-2 ring-orange-500' : 'ring-2 ring-red-500') + ' scale-[1.02] shadow-xl' : 'hover:scale-[1.01]'
+           ]"
+           @click="setTab('sla')">
         <div class="space-y-2">
           <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">
             {{ level === 'L1' ? $t('approvals.loans.stats.l1_sla') : $t('approvals.loans.stats.l2_overdue') }}
@@ -97,9 +111,9 @@
       <div class="lg:col-span-8 space-y-4" v-motion-slide-visible-bottom>
         <div class="flex items-center justify-between px-4">
           <h2 class="text-lg font-black text-[#1E3A5F] uppercase tracking-tight">
-            {{ level === 'L1' ? $t('approvals.loans.queue.title_l1') : $t('approvals.loans.queue.title_l2') }}
+            {{ tableTitle }}
           </h2>
-          <div v-if="level === 'L2'" class="flex items-center gap-2 text-[10px] font-bold text-slate-400">
+          <div v-if="level === 'L2' && currentTab === 'waiting'" class="flex items-center gap-2 text-[10px] font-bold text-slate-400">
             <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
             {{ $t('approvals.loans.queue.all_l1_approved') }}
           </div>
@@ -120,7 +134,7 @@
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-50">
-              <tr v-for="req in queue" :key="req.no" 
+              <tr v-for="req in filteredQueue" :key="req.no" 
                   @click="selectRequest(req)"
                   class="group hover:bg-slate-50/50 transition-all cursor-pointer"
                   :class="selectedRequest?.no === req.no ? 'bg-slate-50/70 border-l-4 border-[#1E3A5F]' : ''">
@@ -135,7 +149,7 @@
                      <span :class="`px-2.5 py-1 rounded-md text-[9px] font-black uppercase tracking-widest ${req.method === 'DIGITAL' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-blue-50 text-blue-600 border border-blue-100'}`">
                        {{ req.method || 'PHYSICAL' }}
                      </span>
-                     <span v-if="req.rawStatus === 'returned'" class="px-2 py-0.5 bg-red-100 text-red-600 border border-red-200 rounded-md text-[8px] font-black uppercase tracking-widest">
+                     <span v-if="req.rawStatus === 'rejected' && req.l2RejectionReason" class="px-2 py-0.5 bg-red-100 text-red-600 border border-red-200 rounded-md text-[8px] font-black uppercase tracking-widest">
                        Returned
                      </span>
                    </div>
@@ -278,9 +292,16 @@
               <div v-if="level === 'L2'" class="space-y-4" v-motion-slide-bottom>
                 <p class="text-[9px] font-black text-slate-300 uppercase tracking-[0.2em]">{{ $t('approvals.loans.summary.security_checklist') }}</p>
                 <div class="space-y-2">
-                  <label v-for="check in checklist" :key="check" class="flex items-center gap-3 p-3 bg-white border border-slate-100 rounded-xl cursor-pointer hover:bg-slate-50 transition-colors group">
-                    <input type="checkbox" class="w-4 h-4 rounded border-2 border-slate-200 text-primary-600 focus:ring-primary-500/10" />
-                    <span class="text-[11px] font-bold text-slate-600 group-hover:text-slate-900 transition-colors">{{ check }}</span>
+                  <label v-for="(check, index) in checklist" :key="check" 
+                         class="flex items-center gap-3 p-3 bg-white border border-slate-100 rounded-xl transition-colors group"
+                         :class="!isActionable ? 'opacity-75 cursor-not-allowed bg-slate-50/50' : 'cursor-pointer hover:bg-slate-50'">
+                    <input type="checkbox" 
+                           :checked="!isActionable || checkedItems[index]"
+                           :disabled="!isActionable"
+                           @change="toggleCheck(index)"
+                           class="w-4 h-4 rounded border-2 border-slate-200 text-[#1E3A5F] focus:ring-[#1E3A5F]/10 disabled:opacity-80" />
+                    <span class="text-[11px] font-bold text-slate-600 transition-colors"
+                          :class="!isActionable ? 'text-slate-400' : 'group-hover:text-slate-900'">{{ check }}</span>
                   </label>
                 </div>
               </div>
@@ -321,6 +342,11 @@
                     </button>
                   </div>
                 </div>
+                
+                <!-- Read Only / Already Decided Status Banner -->
+                <div v-else-if="!isActionable" class="p-4 rounded-xl border text-center font-black text-[10px] uppercase tracking-wider" :class="statusBannerClass">
+                  {{ statusBannerText }}
+                </div>
 
                 <!-- Normal Mode -->
                 <div v-else class="space-y-3">
@@ -333,7 +359,7 @@
                   </button>
                 </div>
               </Transition>
-              <p class="text-[8px] font-bold text-slate-400 text-center uppercase tracking-widest pt-1">
+              <p v-if="isActionable" class="text-[8px] font-bold text-slate-400 text-center uppercase tracking-widest pt-1">
                 {{ level === 'L1' ? $t('approvals.loans.actions.footer_hint_l1') : $t('approvals.loans.actions.footer_hint_l2') }}
               </p>
             </div>
@@ -440,13 +466,115 @@ const isRejectMode = ref(false)
 const rejectionReason = ref('')
 const showPinModal = ref(false)
 const isLoading = ref(false)
+const currentTab = ref('waiting')
+
+const checkedItems = ref([false, false, false, false])
+const toggleCheck = (index) => {
+  checkedItems.value[index] = !checkedItems.value[index]
+}
+
+watch(selectedRequest, () => {
+  checkedItems.value = [false, false, false, false]
+})
+
+const setTab = (tabName) => {
+  currentTab.value = tabName
+  if (filteredQueue.value.length > 0) {
+    selectRequest(filteredQueue.value[0])
+  } else {
+    selectedRequest.value = null
+  }
+}
+
+const filteredQueue = computed(() => {
+  if (level.value === 'L1') {
+    if (currentTab.value === 'waiting') {
+      return queue.value.filter(l => l.rawStatus === 'pending' || (l.rawStatus === 'rejected' && l.l2RejectionReason))
+    } else if (currentTab.value === 'approved') {
+      return queue.value.filter(l => l.rawStatus === 'l1_approved' || l.rawStatus === 'l2_approved' || l.rawStatus === 'active')
+    } else if (currentTab.value === 'rejected') {
+      return queue.value.filter(l => l.rawStatus === 'rejected' && !l.l2RejectionReason)
+    } else if (currentTab.value === 'sla') {
+      return queue.value.filter(l => l.rawStatus === 'overdue')
+    }
+  } else if (level.value === 'L2') {
+    if (currentTab.value === 'waiting') {
+      return queue.value.filter(l => l.rawStatus === 'l1_approved')
+    } else if (currentTab.value === 'approved') {
+      return queue.value.filter(l => l.rawStatus === 'l2_approved')
+    } else if (currentTab.value === 'rejected') {
+      return queue.value.filter(l => l.rawStatus === 'active' || l.rawStatus === 'returned')
+    } else if (currentTab.value === 'sla') {
+      return queue.value.filter(l => l.rawStatus === 'overdue')
+    }
+  }
+  return queue.value
+})
+
+const tableTitle = computed(() => {
+  if (level.value === 'L1') {
+    switch (currentTab.value) {
+      case 'waiting': return $t('approvals.loans.queue.title_l1')
+      case 'approved': return $t('approvals.loans.stats.l1_approved')
+      case 'rejected': return $t('approvals.loans.stats.l1_rejected')
+      case 'sla': return $t('approvals.loans.stats.l1_sla')
+    }
+  } else if (level.value === 'L2') {
+    switch (currentTab.value) {
+      case 'waiting': return $t('approvals.loans.queue.title_l2')
+      case 'approved': return $t('approvals.loans.stats.l2_release')
+      case 'rejected': return $t('approvals.loans.stats.l2_pickup')
+      case 'sla': return $t('approvals.loans.stats.l2_overdue')
+    }
+  }
+  return 'Daftar Request'
+})
+
+const isActionable = computed(() => {
+  if (!selectedRequest.value) return false
+  if (level.value === 'L1') {
+    return selectedRequest.value.rawStatus === 'pending' || (selectedRequest.value.rawStatus === 'rejected' && selectedRequest.value.l2RejectionReason)
+  }
+  if (level.value === 'L2') {
+    return selectedRequest.value.rawStatus === 'l1_approved'
+  }
+  return false
+})
+
+const statusBannerText = computed(() => {
+  if (!selectedRequest.value) return ''
+  switch (selectedRequest.value.rawStatus) {
+    case 'pending': return 'Menunggu Persetujuan L1'
+    case 'l1_approved': return 'Disetujui L1 (Menunggu L2)'
+    case 'l2_approved': return 'Siap Diambil (Ready for Release)'
+    case 'active': return 'Dokumen Sedang Dipinjam'
+    case 'returned': return 'Selesai (Telah Dikembalikan)'
+    case 'rejected': return 'Permohonan Ditolak'
+    case 'overdue': return 'Terlambat Mengembalikan'
+    default: return selectedRequest.value.rawStatus
+  }
+})
+
+const statusBannerClass = computed(() => {
+  if (!selectedRequest.value) return ''
+  switch (selectedRequest.value.rawStatus) {
+    case 'pending': return 'bg-amber-50 text-amber-600 border-amber-100'
+    case 'l1_approved': return 'bg-blue-50 text-blue-600 border-blue-100'
+    case 'l2_approved': return 'bg-emerald-50 text-emerald-600 border-emerald-100'
+    case 'active': return 'bg-indigo-50 text-indigo-600 border-indigo-100'
+    case 'returned': return 'bg-emerald-50 text-emerald-600 border-emerald-100'
+    case 'rejected': return 'bg-red-50 text-red-600 border-red-100'
+    case 'overdue': return 'bg-rose-50 text-rose-600 border-rose-100'
+    default: return 'bg-slate-50 text-slate-600 border-slate-100'
+  }
+})
 
 // Stat Counters
 const statsWaiting = computed(() => {
   if (level.value === 'L2') {
     return queue.value.filter(r => r.rawStatus === 'l1_approved').length
   }
-  return queue.value.filter(r => r.rawStatus === 'pending' || r.rawStatus === 'returned').length
+  return queue.value.filter(r => r.rawStatus === 'pending' || (r.rawStatus === 'rejected' && r.l2RejectionReason)).length
 })
 const statsApproved = computed(() => {
   if (level.value === 'L2') {
@@ -460,7 +588,7 @@ const statsRejected = computed(() => {
     // Telah Diambil / Picked Up
     return queue.value.filter(r => r.rawStatus === 'active' || r.rawStatus === 'returned').length
   }
-  return queue.value.filter(r => r.rawStatus === 'rejected').length
+  return queue.value.filter(r => r.rawStatus === 'rejected' && !r.l2RejectionReason).length
 })
 const statsSla = computed(() => {
   return queue.value.filter(r => r.rawStatus === 'overdue').length
@@ -478,15 +606,12 @@ const fetchLoans = async () => {
       // Filter list of loans based on approval role/level
       const allLoans = res.data || []
       console.log('fetchLoans: allLoans count:', allLoans.length)
-      if (level.value === 'L1') {
-        // Manager only sees loans that are pending or returned by L2
-        queue.value = allLoans.filter(l => l.rawStatus === 'pending' || l.rawStatus === 'returned')
-      } else if (level.value === 'L2') {
-        // L2 (Kepala DC) sees loans that are L1 approved or ready for release
-        queue.value = allLoans.filter(l => l.rawStatus === 'l1_approved' || l.rawStatus === 'l2_approved' || l.rawStatus === 'active' || l.rawStatus === 'returned' || l.rawStatus === 'overdue')
-      } else {
+      if (level.value === 'NONE') {
         // Unauthorized roles see empty queue
         queue.value = []
+      } else {
+        // Store all loans so we can compute correct stats across all tabs
+        queue.value = allLoans
       }
       console.log('fetchLoans: Filtered queue count:', queue.value.length)
 
@@ -504,18 +629,33 @@ const fetchLoans = async () => {
             queue.value.unshift(found)
           }
           selectRequest(found)
+          
+          // Switch to the correct tab for the found item!
+          if (found.rawStatus === 'pending' || (found.rawStatus === 'rejected' && found.l2RejectionReason)) {
+            currentTab.value = 'waiting'
+          } else if (found.rawStatus === 'l1_approved') {
+            currentTab.value = level.value === 'L2' ? 'waiting' : 'approved'
+          } else if (found.rawStatus === 'l2_approved') {
+            currentTab.value = 'approved'
+          } else if (found.rawStatus === 'active' || found.rawStatus === 'returned') {
+            currentTab.value = level.value === 'L2' ? 'rejected' : 'approved'
+          } else if (found.rawStatus === 'overdue') {
+            currentTab.value = 'sla'
+          }
         } else {
           // Fallback if not in allLoans, try to fetch directly if targetId looks like UUID
           const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(targetId)
           console.log('fetchLoans: fallback targetId. isUuid:', isUuid)
           if (isUuid) {
             selectRequest({ id: targetId })
-          } else if (queue.value.length > 0) {
-            selectRequest(queue.value[0])
+          } else if (filteredQueue.value.length > 0) {
+            selectRequest(filteredQueue.value[0])
           }
         }
-      } else if (queue.value.length > 0) {
-        selectRequest(queue.value[0])
+      } else if (filteredQueue.value.length > 0) {
+        selectRequest(filteredQueue.value[0])
+      } else {
+        selectedRequest.value = null
       }
     } else {
       console.warn('fetchLoans: res.status !== success or res.data is falsy:', res)
@@ -563,7 +703,7 @@ const selectRequest = async (req) => {
         rawStatus: detail.status,
         l1Approver: 'Manager ' + (detail.department_name || ''),
         l1Date: detail.l1_approved_at ? new Date(detail.l1_approved_at).toLocaleString() : '-',
-        l2RejectionReason: detail.l2_rejection_reason?.String || '',
+        l2RejectionReason: typeof detail.l2_rejection_reason === 'object' ? (detail.l2_rejection_reason?.String || '') : (detail.l2_rejection_reason || ''),
         documents: items.map(item => ({
           name: item.document_title || item.document_filename || 'Unnamed Document',
           category: item.category || 'General',

@@ -121,7 +121,7 @@
                     <td class="py-6">
                       <div class="flex items-center gap-4">
                         <div class="w-12 h-12 rounded-full overflow-hidden shadow-sm bg-slate-800 ring-2 ring-white dark:ring-slate-800">
-                          <img v-if="user.avatar_url?.Valid" :src="user.avatar_url.String" class="w-full h-full object-cover" />
+                          <img v-if="typeof user.avatar_url === 'object' ? user.avatar_url?.Valid : !!user.avatar_url" :src="typeof user.avatar_url === 'object' ? user.avatar_url.String : user.avatar_url" class="w-full h-full object-cover" />
                           <div v-else class="w-full h-full bg-slate-800 flex items-center justify-center font-black text-white text-xs">
                             {{ user.full_name.charAt(0) }}
                           </div>
@@ -206,7 +206,7 @@
 
           <div class="text-center mb-10">
             <div class="w-20 h-20 rounded-full overflow-hidden mx-auto mb-6 ring-4 ring-white dark:ring-slate-800 shadow-xl">
-              <img v-if="selectedUser.avatar_url?.Valid" :src="selectedUser.avatar_url.String" class="w-full h-full object-cover" />
+              <img v-if="typeof selectedUser.avatar_url === 'object' ? selectedUser.avatar_url?.Valid : !!selectedUser.avatar_url" :src="typeof selectedUser.avatar_url === 'object' ? selectedUser.avatar_url.String : selectedUser.avatar_url" class="w-full h-full object-cover" />
               <div v-else class="w-full h-full bg-slate-800 flex items-center justify-center font-black text-white text-xl">
                 {{ selectedUser.full_name.charAt(0) }}
               </div>
@@ -319,10 +319,12 @@ const totalUsers = computed(() => {
 })
 
 const getStatus = (user) => {
-  if (user.pin_locked_until?.Valid && new Date(user.pin_locked_until.Time) > new Date()) {
+  const lockedUntil = typeof user.pin_locked_until === 'object' ? (user.pin_locked_until?.Time || user.pin_locked_until?.String) : user.pin_locked_until
+  if (lockedUntil && new Date(lockedUntil) > new Date()) {
     return 'LOCKED'
   }
-  return user.pin_status?.String || 'NOT SET'
+  const status = typeof user.pin_status === 'object' ? (user.pin_status?.String || '') : (user.pin_status || '')
+  return status || 'NOT SET'
 }
 
 const getStatusUI = (status) => {
@@ -466,8 +468,19 @@ onMounted(() => {
 })
 
 const formatDate = (dateStr) => {
-  if (!dateStr || !dateStr.Valid) return 'Never'
-  const date = new Date(dateStr.Time)
+  if (!dateStr) return 'Never'
+  
+  let timeVal = ''
+  if (typeof dateStr === 'object') {
+    if (!dateStr.Valid) return 'Never'
+    timeVal = dateStr.Time
+  } else {
+    timeVal = dateStr
+  }
+  
+  if (!timeVal) return 'Never'
+  
+  const date = new Date(timeVal)
   const options = { day: '2-digit', month: 'short', year: 'numeric' }
   return date.toLocaleDateString('id-ID', options)
 }
