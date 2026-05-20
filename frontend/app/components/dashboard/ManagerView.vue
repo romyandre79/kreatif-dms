@@ -314,8 +314,14 @@ const navigateToDocument = (item) => {
   const id = item.entity_id || item.id
   if (!id) return
   
-  console.log('[ManagerView] Navigating to approval for:', id)
-  navigateTo(`/approvals/${id}`)
+  console.log('[ManagerView] Navigating to approval for:', id, 'type:', item.entity_type)
+  if (item.entity_type === 'loan_request' || item.entity_type === 'loan') {
+    navigateTo(`/approvals/loans?id=${id}`)
+  } else if (item.entity_type === 'loan_extension' || item.entity_type === 'extension') {
+    navigateTo(`/approvals/extensions?id=${id}`)
+  } else {
+    navigateTo(`/approvals/${id}`)
+  }
 }
 
 const topSubmitters = computed(() => {

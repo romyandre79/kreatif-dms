@@ -318,13 +318,28 @@ SELECT
     aw.level,
     aw.status,
     aw.created_at,
-    COALESCE(d.title, '')::text as title,
-    u.full_name as staff_name
+    COALESCE(d.title, lr.request_no, '')::text as title,
+    COALESCE(u.full_name, u_lr.full_name, '')::text as staff_name
 FROM approval_workflows aw
-LEFT JOIN documents d ON aw.entity_id = d.id
+LEFT JOIN documents d ON aw.entity_id = d.id AND (aw.entity_type = 'document_upload' OR aw.entity_type = 'document')
 LEFT JOIN users u ON d.owner_id = u.id
+LEFT JOIN loan_requests lr ON aw.entity_id = lr.id AND (aw.entity_type = 'loan_request' OR aw.entity_type = 'loan')
+LEFT JOIN users u_lr ON lr.user_id = u_lr.id
 WHERE aw.status = 'pending'
-ORDER BY aw.created_at ASC
+UNION ALL
+SELECT
+    lr.id,
+    'loan_request' as entity_type,
+    lr.id as entity_id,
+    2 as level,
+    'pending' as status,
+    lr.l1_approved_at as created_at,
+    COALESCE(lr.request_no, '')::text as title,
+    COALESCE(u.full_name, '')::text as staff_name
+FROM loan_requests lr
+LEFT JOIN users u ON lr.user_id = u.id
+WHERE lr.status = 'l1_approved'
+ORDER BY created_at ASC
 LIMIT $1
 `
 
@@ -336,7 +351,7 @@ type GetPriorityTasksRow struct {
 	Status     string             `json:"status"`
 	CreatedAt  pgtype.Timestamptz `json:"created_at"`
 	Title      string             `json:"title"`
-	StaffName  pgtype.Text        `json:"staff_name"`
+	StaffName  string             `json:"staff_name"`
 }
 
 func (q *Queries) GetPriorityTasks(ctx context.Context, limit int32) ([]GetPriorityTasksRow, error) {
@@ -512,11 +527,13 @@ SELECT
     aw.level,
     aw.status,
     aw.created_at,
-    u.full_name as staff_name,
-    COALESCE(d.title, '')::text as title
+    COALESCE(u.full_name, u_lr.full_name, '')::text as staff_name,
+    COALESCE(d.title, lr.request_no, '')::text as title
 FROM approval_workflows aw
-LEFT JOIN documents d ON aw.entity_id = d.id
+LEFT JOIN documents d ON aw.entity_id = d.id AND (aw.entity_type = 'document_upload' OR aw.entity_type = 'document')
 LEFT JOIN users u ON d.owner_id = u.id
+LEFT JOIN loan_requests lr ON aw.entity_id = lr.id AND (aw.entity_type = 'loan_request' OR aw.entity_type = 'loan')
+LEFT JOIN users u_lr ON lr.user_id = u_lr.id
 WHERE aw.status = 'pending' AND (aw.approver_id = $1)
 UNION ALL
 SELECT
@@ -547,7 +564,7 @@ type GetUserPriorityTasksRow struct {
 	Level      int32              `json:"level"`
 	Status     string             `json:"status"`
 	CreatedAt  pgtype.Timestamptz `json:"created_at"`
-	StaffName  pgtype.Text        `json:"staff_name"`
+	StaffName  string             `json:"staff_name"`
 	Title      string             `json:"title"`
 }
 
@@ -656,5 +673,22 @@ type RejectTaskParams struct {
 
 func (q *Queries) RejectTask(ctx context.Context, arg RejectTaskParams) error {
 	_, err := q.db.Exec(ctx, rejectTask, arg.EntityID, arg.DecisionNote, arg.RejectionReason)
+	return err
+}
+
+const resetTaskToPending = `-- name: ResetTaskToPending :exec
+UPDATE approval_workflows
+SET status = 'pending', decided_at = NULL, decision_note = NULL, rejection_reason = $3
+WHERE entity_id = $1 AND approver_id = $2
+`
+
+type ResetTaskToPendingParams struct {
+	EntityID        uuid.UUID   `json:"entity_id"`
+	ApproverID      uuid.UUID   `json:"approver_id"`
+	RejectionReason pgtype.Text `json:"rejection_reason"`
+}
+
+func (q *Queries) ResetTaskToPending(ctx context.Context, arg ResetTaskToPendingParams) error {
+	_, err := q.db.Exec(ctx, resetTaskToPending, arg.EntityID, arg.ApproverID, arg.RejectionReason)
 	return err
 }

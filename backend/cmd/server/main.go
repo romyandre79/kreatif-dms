@@ -180,6 +180,7 @@ func main() {
 	dashboardHandler := handler.NewDashboardHandler(dashboardSvc)
 	intakeHandler := handler.NewIntakeHandler(intakeSvc)
 	emailTemplateHandler := handler.NewEmailTemplateHandler(repo, emailSvc)
+	loanHandler := handler.NewLoanHandler(docSvc)
 
 
 	// Create Fiber App
@@ -277,6 +278,16 @@ func main() {
 	batchGroup.Use(middleware.AuthMiddleware(cfg.JWTSecret))
 	batchGroup.Post("/", batchHandler.Create)
 	batchGroup.Get("/:id", batchHandler.GetStatus)
+
+	// Loan Routes
+	loanGroup := api.Group("/loans")
+	loanGroup.Use(middleware.AuthMiddleware(cfg.JWTSecret))
+	loanGroup.Post("/", loanHandler.Submit)
+	loanGroup.Get("/my", loanHandler.ListMyLoans)
+	loanGroup.Get("/", loanHandler.ListAll)
+	loanGroup.Get("/:id", loanHandler.GetByID)
+	loanGroup.Post("/:id/approve", loanHandler.Approve)
+	loanGroup.Post("/:id/reject", loanHandler.Reject)
 
 	// Master Data Routes
 	masterGroup := api.Group("/master")

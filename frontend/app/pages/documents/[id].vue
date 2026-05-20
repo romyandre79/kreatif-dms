@@ -105,16 +105,25 @@
           <h3 class="text-xl font-black text-[#1E3A5F] tracking-tight uppercase leading-tight">{{ doc?.title }}</h3>
           <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">{{ doc?.id }}</p>
         </div>
-        <span class="px-4 py-1.5 bg-green-50 text-green-600 rounded-full text-[10px] font-black uppercase tracking-widest border border-green-100 flex items-center gap-2">
-          <div class="w-1.5 h-1.5 rounded-full bg-green-500"></div>
-          {{ $t('documents.detail.actions.available') }}
+        <span 
+          class="px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border flex items-center gap-2 transition-all"
+          :class="statusBadge.class"
+        >
+          <div class="w-1.5 h-1.5 rounded-full" :class="statusBadge.dot"></div>
+          {{ statusBadge.text }}
         </span>
       </div>
 
-      <div class="flex items-center gap-3">
-        <button class="flex items-center gap-3 px-8 py-4 bg-[#1E3A5F] hover:bg-[#152943] text-white rounded-xl text-xs font-black uppercase tracking-widest shadow-xl shadow-blue-900/20 transition-all">
-          <LucideShoppingCart class="w-4 h-4" />
-          {{ $t('documents.detail.actions.add_to_cart') }}
+      <div v-if="canLoanPhysical" class="flex items-center gap-3" v-motion-fade>
+        <button 
+          @click="toggleCartItem"
+          class="flex items-center gap-3 px-8 py-4 rounded-xl text-xs font-black uppercase tracking-widest shadow-xl transition-all"
+          :class="cartStore.isInCart(doc?.id) 
+            ? 'bg-orange-500 hover:bg-orange-600 text-white shadow-orange-500/20' 
+            : 'bg-[#1E3A5F] hover:bg-[#152943] text-white shadow-blue-900/20'"
+        >
+          <component :is="cartStore.isInCart(doc?.id) ? LucideX : LucideShoppingCart" class="w-4 h-4" />
+          {{ cartStore.isInCart(doc?.id) ? 'Hapus dari Keranjang' : $t('documents.detail.actions.add_to_cart') }}
         </button>
         <button class="flex items-center gap-3 px-8 py-4 bg-white border border-slate-200 rounded-xl text-xs font-black uppercase tracking-widest text-slate-600 hover:bg-slate-50 transition-all">
           <LucideFileDown class="w-4 h-4 text-slate-400" />
@@ -128,7 +137,7 @@
 
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-16 items-start">
       <!-- LEFT SIDE: METADATA & LOCATION -->
-      <div class="lg:col-span-7 space-y-12">
+      <div :class="canLoanPhysical ? 'lg:col-span-7' : 'lg:col-span-12'" class="space-y-12 transition-all duration-500">
         <!-- Tags -->
         <div class="flex flex-wrap gap-2" v-motion-fade>
           <span v-for="tag in doc?.tags || []" :key="tag" class="px-3 py-1 bg-slate-50 border border-slate-100 text-slate-400 text-[10px] font-black rounded-lg uppercase tracking-widest hover:border-primary-500 hover:text-primary-600 transition-colors cursor-pointer">{{ tag }}</span>
@@ -208,7 +217,7 @@
       </div>
 
       <!-- RIGHT SIDE: LOAN HISTORY TIMELINE -->
-      <div class="lg:col-span-5 space-y-8" v-motion-fade>
+      <div v-if="canLoanPhysical" class="lg:col-span-5 space-y-8" v-motion-fade>
         <h2 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">{{ $t('documents.detail.loan_history.title') }}</h2>
         <div class="relative pl-10 space-y-12 pb-4">
           <div class="absolute left-[23px] top-4 bottom-4 w-0.5 bg-slate-100/80"></div>
@@ -219,7 +228,13 @@
 
           <div v-for="(event, idx) in timeline" :key="idx" class="relative group">
             <div class="absolute -left-[23px] top-1 w-10 h-10 rounded-full bg-white border-2 border-slate-100 flex items-center justify-center z-10 group-hover:border-primary-200 transition-colors">
-              <div class="w-3 h-3 rounded-full" :class="event.status === 'uploaded' ? 'bg-green-400' : 'bg-slate-100 group-hover:bg-primary-200'"></div>
+              <div class="w-3 h-3 rounded-full" :class="[
+                event.status === 'uploaded' ? 'bg-green-400' : '',
+                event.status === 'received' ? 'bg-blue-400' : '',
+                event.status === 'borrowed' ? 'bg-orange-400' : '',
+                event.status === 'returned' ? 'bg-slate-400' : '',
+                (!['uploaded', 'received', 'borrowed', 'returned'].includes(event.status)) ? 'bg-slate-100 group-hover:bg-primary-200' : ''
+              ]"></div>
             </div>
             <div class="space-y-1">
               <div class="flex items-center gap-3">
@@ -227,8 +242,8 @@
               </div>
               <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{{ event.dept }}</p>
               <p class="text-[10px] font-bold text-slate-500 leading-relaxed uppercase tracking-tight mt-2 opacity-60">
-                {{ event.status === 'uploaded' ? 'Diupload pada' : 'Dikembalikan' }}: {{ event.date }} 
-                <span v-if="event.duration !== 0"> — Durasi: {{ event.duration }}</span>
+                {{ event.label }}: {{ event.date }} 
+                <span v-if="event.duration && event.duration !== 0"> — {{ event.duration }}</span>
               </p>
             </div>
           </div>
@@ -244,6 +259,7 @@ const { t } = useI18n()
 const route = useRoute()
 const config = useRuntimeConfig()
 const { $api } = useApi()
+const cartStore = useCartStore()
 
 import { ref, computed } from 'vue'
 import { 
@@ -307,6 +323,53 @@ const documentUrl = computed(() => {
   return `${config.public.apiBase}/documents/${doc.value.id}/preview?token=${auth.accessToken}`
 })
 
+const physicalStatus = computed(() => doc.value?.physical_status?.String || doc.value?.physical_status || 'none')
+
+const canLoanPhysical = computed(() => {
+  if (doc.value && cartStore.requestedLoanDocIds?.includes(doc.value.id)) {
+    return false
+  }
+  const status = physicalStatus.value
+  return !(status === 'damaged' || status === 'missing' || doc.value?.status === 'on_loan')
+})
+
+const statusBadge = computed(() => {
+  if (doc.value && cartStore.requestedLoanDocIds?.includes(doc.value.id)) {
+    return {
+      text: 'Requested (Menunggu Persetujuan)',
+      class: 'bg-amber-50 text-amber-600 border-amber-100',
+      dot: 'bg-amber-500'
+    }
+  }
+  const status = physicalStatus.value
+  if (status === 'received' || status === 'archived') {
+    return {
+      text: t('documents.detail.actions.available'),
+      class: 'bg-green-50 text-green-600 border-green-100',
+      dot: 'bg-green-500'
+    }
+  }
+  if (status === 'digitized' || status === 'labeled') {
+    return {
+      text: 'Sedang Diproses',
+      class: 'bg-blue-50 text-blue-600 border-blue-100',
+      dot: 'bg-blue-500'
+    }
+  }
+  if (status === 'pending') {
+    return {
+      text: 'Menunggu Fisik',
+      class: 'bg-amber-50 text-amber-600 border-amber-100',
+      dot: 'bg-amber-500'
+    }
+  }
+  return {
+    text: 'Belum Tersedia',
+    class: 'bg-slate-50 text-slate-400 border-slate-100',
+    dot: 'bg-slate-300'
+  }
+})
+
 const metadata = computed(() => {
   if (!doc.value) return {}
   
@@ -334,6 +397,51 @@ const metadata = computed(() => {
   return { ...base, ...custom }
 })
 
+const getStatusStyles = (status) => {
+  const s = status?.toLowerCase() || ''
+  if (s === 'active' || s === 'available') return { label: 'Tersedia', color: 'bg-green-500' }
+  if (s === 'pending' || s === 'processing') return { label: 'Diproses', color: 'bg-orange-500' }
+  if (s === 'rejected') return { label: 'Ditolak', color: 'bg-red-500' }
+  if (s === 'on_loan') return { label: 'Dipinjam', color: 'bg-blue-500' }
+  if (s === 'draft') return { label: 'Draf', color: 'bg-slate-400' }
+  return { label: status, color: 'bg-slate-300' }
+}
+
+const getTypeStyles = (mimeType) => {
+  const m = mimeType?.toLowerCase() || ''
+  if (m.includes('pdf')) return { bg: 'bg-red-50', color: 'text-red-500', typeBg: 'bg-red-50 text-red-600 border border-red-100' }
+  if (m.includes('image')) return { bg: 'bg-blue-50', color: 'text-blue-500', typeBg: 'bg-blue-50 text-blue-600 border border-blue-100' }
+  if (m.includes('excel') || m.includes('sheet')) return { bg: 'bg-green-50', color: 'text-green-500', typeBg: 'bg-green-50 text-green-600 border border-green-100' }
+  return { bg: 'bg-slate-50', color: 'text-slate-500', typeBg: 'bg-slate-50 text-slate-600 border border-slate-100' }
+}
+
+const toggleCartItem = () => {
+  if (!doc.value) return
+  
+  const typeStyle = getTypeStyles(doc.value.mime_type)
+  const statusStyle = getStatusStyles(doc.value.status)
+  
+  const normalized = {
+    id: doc.value.id.substring(0, 8).toUpperCase(),
+    original_id: doc.value.id,
+    name: doc.value.title,
+    type: doc.value.type_name?.String || doc.value.type_name || 'Dokumen',
+    typeColor: typeStyle.typeBg,
+    date: doc.value.created_at ? new Date(doc.value.created_at).toLocaleDateString() : '-',
+    dept: doc.value.department_name?.String || doc.value.department_name || '-',
+    status: statusStyle.label,
+    rawStatus: doc.value.status,
+    physicalStatus: physicalStatus.value,
+    statusColor: statusStyle.color,
+    iconBg: typeStyle.bg,
+    iconColor: typeStyle.color,
+    company_name: doc.value.company_name?.String || doc.value.company_name || doc.value.company || '',
+    branch_name: doc.value.branch_name?.String || doc.value.branch_name || doc.value.branch || ''
+  }
+  
+  cartStore.toggleItem(normalized)
+}
+
 const relatedDocs = computed(() => {
   // Simple logic: docs from same dept (this would ideally be a separate API call)
   return [] 
@@ -342,25 +450,40 @@ const relatedDocs = computed(() => {
 const timeline = computed(() => {
   const history = []
   
-  // Always include upload event
-  if (doc.value) {
-    history.push({ 
-      name: doc.value.owner_name || 'Owner', 
-      dept: doc.value.department_name || 'Upload', 
-      date: new Date(doc.value.created_at).toLocaleDateString(), 
+  if (!doc.value) return []
+
+  // 1. Digital Creation (Upload)
+  history.push({ 
+    name: doc.value.owner_name || 'Owner', 
+    dept: doc.value.department_name || 'Upload', 
+    date: new Date(doc.value.created_at).toLocaleDateString(), 
+    duration: 0,
+    status: 'uploaded',
+    label: 'Diupload pada'
+  })
+
+  // 2. Physical Intake Event (if received/archived/digitized)
+  const pStatus = physicalStatus.value
+  if (pStatus === 'received' || pStatus === 'archived' || pStatus === 'digitized') {
+    history.push({
+      name: 'Document Controller',
+      dept: 'Central Archive',
+      date: new Date(doc.value.updated_at).toLocaleDateString(),
       duration: 0,
-      status: 'uploaded'
+      status: 'received',
+      label: pStatus === 'archived' ? 'Fisik Diarsipkan' : 'Fisik Diterima'
     })
   }
 
-  // Include real loans
+  // 3. Real Loans
   loans.value.forEach(l => {
     history.push({
       name: l.user_name,
       dept: l.department_name,
       date: l.borrow_date ? new Date(l.borrow_date).toLocaleDateString() : 'Pending',
-      duration: l.return_date ? 'Returned' : 'In Use',
-      status: l.status
+      duration: l.return_date ? 'Sudah Dikembalikan' : 'Masih Dipinjam',
+      status: l.status,
+      label: 'Peminjaman Fisik'
     })
   })
 

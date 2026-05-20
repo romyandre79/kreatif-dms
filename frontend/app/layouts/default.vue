@@ -103,13 +103,40 @@
             <LucideMenu class="w-5 h-5 text-[#1E3A5F] dark:text-white" />
           </button>
           
-          <div class="hidden sm:flex items-center gap-3">
-            <LucideSearch class="w-4 h-4 text-slate-400" />
-            <input type="text" 
-                   v-model="searchQuery"
-                   @keyup.enter="handleHeaderSearch"
-                   placeholder="Search anything..." 
-                   class="bg-transparent border-none focus:ring-0 text-sm font-medium text-slate-600 dark:text-slate-300 placeholder:text-slate-400 w-64" />
+          <div class="hidden sm:flex items-center gap-4">
+            <!-- Breadcrumbs -->
+            <div class="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-slate-400 dark:text-slate-500">
+              <NuxtLink to="/dashboard" class="hover:text-primary-500 dark:hover:text-primary-400 transition-all duration-300 flex items-center gap-1.5 py-1">
+                <LucideHome class="w-3.5 h-3.5 text-slate-400 dark:text-slate-500" />
+                <span>DMS</span>
+              </NuxtLink>
+              
+              <template v-for="(crumb, index) in computedBreadcrumbs" :key="index">
+                <LucideChevronRight class="w-3.5 h-3.5 text-slate-300 dark:text-slate-700" />
+                <NuxtLink 
+                  v-if="crumb.path && index < computedBreadcrumbs.length - 1" 
+                  :to="crumb.path" 
+                  class="hover:text-primary-500 dark:hover:text-primary-400 transition-all duration-300 py-1"
+                >
+                  {{ crumb.label }}
+                </NuxtLink>
+                <span v-else class="text-[#1E3A5F] dark:text-white font-extrabold py-1">
+                  {{ crumb.label }}
+                </span>
+              </template>
+            </div>
+            
+            <div class="h-4 w-px bg-slate-200 dark:bg-slate-800/80 mx-2"></div>
+            
+            <!-- Search -->
+            <div class="flex items-center gap-3">
+              <LucideSearch class="w-4 h-4 text-slate-400" />
+              <input type="text" 
+                     v-model="searchQuery"
+                     @keyup.enter="handleHeaderSearch"
+                     placeholder="Search anything..." 
+                     class="bg-transparent border-none focus:ring-0 text-sm font-medium text-slate-600 dark:text-slate-300 placeholder:text-slate-400 w-64" />
+            </div>
           </div>
         </div>
 
@@ -200,13 +227,16 @@
       </header>
 
       <!-- Main Content Slot -->
-      <main class="flex-1 p-8">
+      <main class="flex-1 p-2">
         <slot />
       </main>
     </div>
 
     <!-- Global Toast Notifications -->
     <ToastContainer />
+    
+    <!-- Global Cart Bar -->
+    <FloatingCart />
   </div>
 </template>
 
@@ -243,6 +273,93 @@ const showNotifications = ref(false)
 const showUserMenu = ref(false)
 const dynamicMenu = ref([])
 const openSubmenus = ref([])
+
+const computedBreadcrumbs = computed(() => {
+  const list = []
+  const currentPath = route.path
+  
+  if (currentPath === '/dashboard') {
+    list.push({
+      label: t('layout.menu.dashboard') || 'Dashboard',
+      path: '/dashboard'
+    })
+    return list
+  }
+  
+  // Try to find matching item in dynamicMenu
+  for (const item of dynamicMenu.value) {
+    if (item.path === currentPath) {
+      list.push({
+        label: t('layout.menu.' + item.key) || item.label || item.key,
+        path: item.path
+      })
+      return list
+    }
+    
+    if (item.children) {
+      for (const child of item.children) {
+        if (child.path === currentPath) {
+          list.push({
+            label: t('layout.menu.' + item.key) || item.label || item.key,
+            path: item.path || ''
+          })
+          list.push({
+            label: t('layout.menu.' + child.key) || child.label || child.key,
+            path: child.path
+          })
+          return list
+        }
+      }
+    }
+  }
+  
+  // Fallback for subpaths or pages not explicitly in dynamicMenu
+  const segments = currentPath.split('/').filter(Boolean)
+  let accumulatedPath = ''
+  segments.forEach((segment) => {
+    accumulatedPath += `/${segment}`
+    let foundMenu = null
+    for (const item of dynamicMenu.value) {
+      if (item.path === accumulatedPath) {
+        foundMenu = item
+        break
+      }
+      if (item.children) {
+        for (const child of item.children) {
+          if (child.path === accumulatedPath) {
+            foundMenu = child
+            break
+          }
+        }
+      }
+    }
+    
+    if (foundMenu) {
+      list.push({
+        label: t('layout.menu.' + foundMenu.key) || foundMenu.label || foundMenu.key,
+        path: foundMenu.path
+      })
+    } else {
+      const isId = /^[0-9a-fA-F-]+$/.test(segment) || /^\d+$/.test(segment)
+      if (isId) {
+        list.push({
+          label: `#${segment.substring(0, 8).toUpperCase()}`,
+          path: accumulatedPath
+        })
+      } else {
+        const humanized = segment
+          .replace(/[-_]/g, ' ')
+          .replace(/\b\w/g, c => c.toUpperCase())
+        list.push({
+          label: humanized,
+          path: accumulatedPath
+        })
+      }
+    }
+  })
+  
+  return list
+})
 
 // Icon map for dynamic resolution
 const iconMap = {
@@ -320,15 +437,36 @@ const fetchDynamicMenu = async () => {
   try {
     const res = await $api(`${config.public.apiBase}/auth/me/menu`)
     if (res && res.data) {
-      // Patch menu items to use correct upload path instead of placeholder
-      dynamicMenu.value = res.data.map(item => ({
-        ...item,
-        path: item.path === '/registration/new' ? '/documents/upload' : item.path,
-        children: item.children?.map(child => ({
-          ...child,
-          path: child.path === '/registration/new' ? '/documents/upload' : child.path
-        }))
-      }))
+      // Patch menu items to use correct paths
+      dynamicMenu.value = res.data.map(item => {
+        let path = item.path
+        if (path === '/registration/new') {
+          path = '/documents/upload'
+        } else if (path === '/circulation/checkout' || path === '/loans/request' || path === '/loans') {
+          path = '/loans/my'
+        } else if (path === '/approvals/submissions') {
+          path = '/approvals'
+        }
+        
+        return {
+          ...item,
+          path,
+          children: item.children?.map(child => {
+            let childPath = child.path
+            if (childPath === '/registration/new') {
+              childPath = '/documents/upload'
+            } else if (childPath === '/circulation/checkout' || childPath === '/loans/request' || childPath === '/loans') {
+              childPath = '/loans/my'
+            } else if (childPath === '/approvals/submissions') {
+              childPath = '/approvals'
+            }
+            return {
+              ...child,
+              path: childPath
+            }
+          })
+        }
+      })
     }
   } catch (err) {
     console.error('Failed to fetch dynamic menu:', err)
@@ -378,6 +516,21 @@ const handleMarkAllRead = async () => {
 const handleNotifClick = async (notif) => {
   if (!notif.is_read) {
     await notifStore.markAsRead(notif.id)
+  }
+  
+  showNotifications.value = false
+  
+  // Navigation logic
+  if (notif.entity_type === 'loan_request' || notif.entity_type === 'loan') {
+    navigateTo(`/approvals/loans?id=${notif.entity_id}`)
+  } else if (notif.entity_type === 'loan_extension' || notif.entity_type === 'extension') {
+    navigateTo(`/approvals/extensions?id=${notif.entity_id}`)
+  } else if (notif.entity_type === 'document_upload') {
+    navigateTo(`/approvals/${notif.entity_id}`)
+  } else if (notif.entity_type === 'document' && notif.entity_id) {
+    navigateTo(`/documents/${notif.entity_id}`)
+  } else if (notif.type === 'doc-pending-approval') {
+    navigateTo('/approvals')
   }
 }
 

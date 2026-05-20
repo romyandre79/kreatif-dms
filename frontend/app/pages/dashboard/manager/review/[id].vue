@@ -1,27 +1,5 @@
 <template>
   <div class="max-w-7xl mx-auto space-y-8 pb-32">
-    <!-- Top Navigation -->
-    <div class="flex items-center justify-between" v-motion-fade>
-      <div class="space-y-4">
-        <button @click="navigateTo('/dashboard/manager/review')" class="flex items-center gap-2 text-xs font-black text-slate-400 hover:text-[#1E3A5F] transition-colors uppercase tracking-widest">
-          <LucideArrowLeft class="w-4 h-4" />
-          {{ $t('review_detail.back_to_queue') }}
-        </button>
-        <div class="space-y-1">
-          <h1 class="text-2xl font-black text-[#1E3A5F] dark:text-white tracking-tight uppercase">{{ $t('review_detail.title') }}</h1>
-          <p class="text-sm font-black text-slate-400 uppercase tracking-widest">REG-2026-0234</p>
-        </div>
-      </div>
-      <div class="flex items-center gap-3">
-        <span class="px-4 py-2 bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400 rounded-full text-[10px] font-black uppercase tracking-widest border border-orange-100 dark:border-orange-900/50">
-          {{ $t('review_detail.status_pending') }}
-        </span>
-        <span class="px-4 py-2 bg-red-50 dark:bg-red-900/20 text-red-500 rounded-full text-[10px] font-black uppercase tracking-widest border border-red-100 dark:border-red-900/50">
-          {{ $t('review_detail.status_urgent') }}
-        </span>
-      </div>
-    </div>
-
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
       <!-- Main Column -->
       <div class="lg:col-span-8 space-y-8" v-motion-fade>

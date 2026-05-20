@@ -5,7 +5,10 @@
       "title": "Document Explorer",
       "search_placeholder": "Cari folder...",
       "stats_total": "Total {count} dokumen",
-      "root": "ARSIP"
+      "root": "ARSIP",
+      "view_cart": "LIHAT KERANJANG",
+      "cart_suffix": "dalam keranjang",
+      "ready_loan": "Antrean Pinjam Fisik"
     },
     "search": {
       "results_for": "Hasil pencarian untuk \"{query}\" ({count})",

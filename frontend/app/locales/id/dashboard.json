@@ -7,6 +7,7 @@
     },
     "header": {
       "operational_overview": "Gambaran operasional hari ini - {date}",
+      "enterprise_dashboard": "Enterprise Document Controller Dashboard",
       "btn_submit_new": "Ajukan Baru",
       "search_placeholder": "Cari manifest, dokumen, atau ID..."
     },
@@ -18,16 +19,31 @@
       "warehouse_capacity": "KAPASITAS\nGUDANG",
       "active_tasks": "TUGAS\nAKTIF",
       "vs_yesterday": "{percent}% vs kemarin",
-      "immediate_attention": "Memerlukan perhatian segera"
+      "immediate_attention": "Memerlukan perhatian segera",
+      "storage_percent": "{percent}% Penyimpanan",
+      "active_tasks_count": "{count} Tugas Aktif",
+      "inbound_pipeline": "Antrean Dokumen Masuk",
+      "loans": "Operasi Peminjaman",
+      "growth": "+{percent}% Pertumbuhan",
+      "overdue": "{count} Terlambat",
+      "system_health": "Kesehatan Sistem",
+      "all_nominal": "Semua Normal",
+      "uptime": "Uptime {percent}%"
     },
     "queue": {
       "priority_tasks": "Antrean Tugas Prioritas",
+      "priority_operations": "Operasi Prioritas",
       "view_all_tasks": "LIHAT SEMUA TUGAS",
+      "view_all_queue": "Lihat Semua Antrean",
       "table": {
         "manifest": "MANIFEST / DESKRIPSI",
         "type": "JENIS",
         "status": "STATUS",
-        "urgency": "URGENSI"
+        "urgency": "URGENSI",
+        "ref_id": "NO REFERENSI",
+        "client_dept": "DEPARTEMEN KLIEN",
+        "sla_status": "SLA / STATUS",
+        "action": "AKSI"
       },
       "no_tasks": "Tidak ada tugas yang tersedia",
       "level": "LEVEL",
@@ -54,6 +70,7 @@
     },
     "activity": {
       "title_recent": "Aktivitas Terbaru",
+      "title_today": "Aktivitas Hari Ini",
       "btn_logs": "LIHAT SEMUA LOG",
       "items": {
         "ocr_completed": "OCR Selesai: {id}",
@@ -80,6 +97,11 @@
       "title": "Aktivitas Terbaru",
       "no_activity": "Tidak ada aktivitas terbaru",
       "by": "Oleh {name}"
+    },
+    "alerts": {
+      "title": "Peringatan & Notifikasi",
+      "action_required": "{count} TINDAKAN DIPERLUKAN",
+      "sync_status": "Status Sinkronisasi"
     },
     "infrastructure": {
       "scanner": "STATUS PEMINDAI",
@@ -235,6 +257,7 @@
       }
     },
     "tools": {
+      "title": "Akses Alat Cepat",
       "label_printing": "Cetak Label",
       "quick_scan": "Scan Cepat",
       "audit_logs": "Log Audit",

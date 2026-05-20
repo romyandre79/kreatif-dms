@@ -294,7 +294,7 @@ const savingSettings = ref(false)
 const rawSettings = ref([])
 
 // Target roles for PIN management
-const allowedRoles = ['superadmin', 'manajer', 'admin doc controller', 'kepala doc controller']
+const allowedRoles = ['superadmin', 'manajer', 'admin doc controller', 'kepala doc controller', 'kepala dc', 'admin dc']
 
 const filteredUsers = computed(() => {
   const users = allUsers.value.filter(u => {

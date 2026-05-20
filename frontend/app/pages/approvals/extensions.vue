@@ -228,13 +228,15 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
+import { useRoute } from 'vue-router'
 import { 
   LucideChevronRight, LucideChevronDown, LucideX, LucideFolderOpen, 
   LucideFileText, LucideCheckCircle2, LucideCheck, LucideXCircle, LucideHistory,
   LucideLock, LucideShieldCheck
 } from 'lucide-vue-next'
 
+const route = useRoute()
 const showPinModal = ref(false)
 const showRejectionNotes = ref(false)
 
@@ -279,6 +281,16 @@ const handleReject = () => {
   alert(`Permohonan ${selectedRequest.value.no} telah ditolak.`)
   showRejectionNotes.value = false
 }
+
+onMounted(() => {
+  const targetId = route.query.id
+  if (targetId) {
+    const found = queue.value.find(q => q.no === targetId || q.no.includes(targetId) || targetId.includes(q.no))
+    if (found) {
+      selectedRequest.value = found
+    }
+  }
+})
 </script>
 
 <style scoped>

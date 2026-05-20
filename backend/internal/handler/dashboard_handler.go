@@ -27,11 +27,19 @@ func NewDashboardHandler(svc *service.DashboardService) *DashboardHandler {
 // @Security BearerAuth
 func (h *DashboardHandler) GetSummary(c fiber.Ctx) error {
 	userID := c.Locals("user_id").(uuid.UUID)
-	role := c.Locals("user_role").(string)
+	rawRole := c.Locals("user_role").(string)
+	role := ""
+	for _, char := range rawRole {
+		if char >= 'A' && char <= 'Z' {
+			role += string(char + 32)
+		} else {
+			role += string(char)
+		}
+	}
 	log.Printf("[DashboardHandler] Request from UserID: %v, Role: %v", userID, role)
 
 	// If superadmin or admin, return global summary
-	if role == "superadmin" || role == "admin" {
+	if role == "superadmin" || role == "admin" || role == "admin doc controller" || role == "kepala doc controller" || role == "admin dc" || role == "kepala dc" {
 		summary, err := h.svc.GetSummary(c.Context())
 		if err != nil {
 			return response.Error(c, fiber.StatusInternalServerError, "Failed to get dashboard summary", err.Error())
@@ -47,6 +55,17 @@ func (h *DashboardHandler) GetSummary(c fiber.Ctx) error {
 		tasks, err := h.svc.GetPriorityTasks(c.Context(), 10)
 		if err != nil {
 			tasks = []repository.GetPriorityTasksRow{}
+		}
+
+		// Filter out loan_requests if role is not kepala doc controller
+		if role != "kepala doc controller" && role != "kepala dc" {
+			var filteredTasks []repository.GetPriorityTasksRow
+			for _, t := range tasks {
+				if t.EntityType != "loan_request" && t.EntityType != "loan" {
+					filteredTasks = append(filteredTasks, t)
+				}
+			}
+			tasks = filteredTasks
 		}
 
 		return response.Success(c, fiber.StatusOK, "Dashboard summary retrieved", fiber.Map{

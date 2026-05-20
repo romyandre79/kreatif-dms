@@ -297,6 +297,14 @@ func (s *AuthService) GetMenu(ctx context.Context, userID uuid.UUID) ([]MenuItem
 		totalPending += pc.Count
 	}
 
+	// For Kepala DC roles, count loans pending L2 approval
+	roleLowerForBadge := strings.ToLower(user.RoleName.String)
+	isKepalaDC := roleLowerForBadge == "kepala doc controller" || roleLowerForBadge == "kepala dc"
+	var l1ApprovedCount int64
+	if isKepalaDC {
+		l1ApprovedCount, _ = s.repo.CountL1ApprovedLoans(ctx)
+	}
+
 	// 4. Create a map of MenuItems
 	menuItems := make(map[string]*MenuItem)
 	for _, m := range allModules {
@@ -313,24 +321,37 @@ func (s *AuthService) GetMenu(ctx context.Context, userID uuid.UUID) ([]MenuItem
 		}
 
 		// Dynamic badges for relevant roles
-		roleLower := strings.ToLower(user.RoleName.String)
-		if roleLower == "manajer" || roleLower == "manager" || roleLower == "admin" || roleLower == "superadmin" {
+		if roleLowerForBadge == "manajer" || roleLowerForBadge == "manager" || roleLowerForBadge == "admin" || roleLowerForBadge == "superadmin" || isKepalaDC {
 			switch m.ID {
 			case "cat_approval":
-				if totalPending > 0 {
+				if isKepalaDC {
+					if l1ApprovedCount > 0 {
+						item.Badge = fmt.Sprintf("%d", l1ApprovedCount)
+					}
+				} else if totalPending > 0 {
 					item.Badge = fmt.Sprintf("%d", totalPending)
 				}
 			case "sub_docs":
-				if c := typeCounts["document_upload"]; c > 0 {
-					item.Badge = fmt.Sprintf("%d", c)
+				if !isKepalaDC {
+					if c := typeCounts["document_upload"]; c > 0 {
+						item.Badge = fmt.Sprintf("%d", c)
+					}
 				}
 			case "sub_loans":
-				if c := typeCounts["loan_request"]; c > 0 {
-					item.Badge = fmt.Sprintf("%d", c)
+				if isKepalaDC {
+					if l1ApprovedCount > 0 {
+						item.Badge = fmt.Sprintf("%d", l1ApprovedCount)
+					}
+				} else {
+					if c := typeCounts["loan_request"]; c > 0 {
+						item.Badge = fmt.Sprintf("%d", c)
+					}
 				}
 			case "sub_ext":
-				if c := typeCounts["retention"]; c > 0 {
-					item.Badge = fmt.Sprintf("%d", c)
+				if !isKepalaDC {
+					if c := typeCounts["retention"]; c > 0 {
+						item.Badge = fmt.Sprintf("%d", c)
+					}
 				}
 			case "notifications":
 				if unreadNotifs > 0 {

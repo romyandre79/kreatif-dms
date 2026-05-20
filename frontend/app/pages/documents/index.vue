@@ -100,7 +100,7 @@
       </div>
 
       <!-- VIEW AREA -->
-      <div class="flex-1 overflow-y-auto p-8 custom-scrollbar">
+      <div class="flex-1 overflow-y-auto p-2 custom-scrollbar">
         <!-- SEARCH RESULTS VIEW -->
         <div v-if="query" class="space-y-4 max-w-5xl mx-auto">
           <div v-if="searchResults.length > 0" class="space-y-6">
@@ -179,7 +179,8 @@
                     type="checkbox" 
                     :checked="cartStore.isInCart(doc.original_id || doc.id)"
                     @change="toggleDocSelection(doc)"
-                    class="w-5 h-5 rounded-md border-2 border-slate-200 text-primary-600 focus:ring-primary-500/20" 
+                    :disabled="!isDocSelectable(doc)"
+                    class="w-5 h-5 rounded-md border-2 border-slate-200 text-primary-600 focus:ring-primary-500/20 disabled:opacity-30 disabled:cursor-not-allowed" 
                   />
                 </td>
                 <td class="px-6 py-6">
@@ -200,8 +201,10 @@
                 <td class="px-6 py-6"><p class="text-xs font-bold text-slate-500">{{ doc.dept }}</p></td>
                 <td class="px-6 py-6">
                   <div class="flex items-center gap-2">
-                    <div :class="`w-2 h-2 rounded-full ${doc.statusColor}`"></div>
-                    <span class="text-xs font-bold text-slate-700">{{ doc.status }}</span>
+                    <div :class="`w-2 h-2 rounded-full ${isDocRequested(doc) ? 'bg-amber-500' : doc.statusColor}`"></div>
+                    <span class="text-xs font-bold" :class="isDocRequested(doc) ? 'text-amber-600 font-bold' : 'text-slate-700'">
+                      {{ isDocRequested(doc) ? 'Requested' : doc.status }}
+                    </span>
                   </div>
                 </td>
                 <td class="pr-8 pl-4 py-6 text-right">
@@ -211,16 +214,16 @@
                     </button>
                     <button 
                       @click.stop="handleQuickLoan(doc)"
-                      :disabled="doc.rawStatus === 'on_loan' || doc.physicalStatus === 'damaged' || doc.physicalStatus === 'missing'"
+                      :disabled="!isDocSelectable(doc)"
                       class="p-2.5 rounded-xl transition-all"
                       :class="[
                         doc.selected ? 'text-primary-600 bg-primary-50 ring-1 ring-primary-100' : 
-                        (doc.rawStatus === 'on_loan' || doc.physicalStatus === 'damaged' || doc.physicalStatus === 'missing')
+                        (!isDocSelectable(doc))
                           ? 'text-slate-200 cursor-not-allowed bg-slate-50/50'
                           : 'text-slate-400 hover:text-primary-500 hover:bg-primary-50'
                       ]"
                     >
-                      <LucideShoppingCart class="w-5 h-5" :class="{ 'opacity-50': doc.rawStatus === 'on_loan' || doc.physicalStatus === 'damaged' }" />
+                      <LucideShoppingCart class="w-5 h-5" :class="{ 'opacity-50': !isDocSelectable(doc) }" />
                     </button>
                   </div>
                 </td>
@@ -230,36 +233,6 @@
         </div>
       </div>
 
-      <!-- Floating Cart Bar -->
-      <Transition
-        enter-active-class="transition duration-500 ease-out"
-        enter-from-class="translate-y-20 opacity-0"
-        enter-to-class="translate-y-0 opacity-100"
-        leave-active-class="transition duration-300 ease-in"
-        leave-from-class="translate-y-0 opacity-100"
-        leave-to-class="translate-y-20 opacity-0"
-      >
-        <div v-if="selectedCount > 0" class="fixed bottom-12 left-1/2 -translate-x-1/2 z-[100]">
-          <div class="bg-[#1E3A5F] text-white rounded-full px-8 py-4 flex items-center gap-10 shadow-[0_20px_50px_rgba(30,58,95,0.4)] border border-white/5 backdrop-blur-md">
-            <div class="flex items-center gap-4">
-              <div class="relative">
-                <LucideShoppingCart class="w-7 h-7 text-blue-100" />
-                <span class="absolute -top-2 -right-2 w-5 h-5 bg-red-500 text-[10px] font-black flex items-center justify-center rounded-full border-2 border-[#1E3A5F] ring-1 ring-red-400/50 shadow-lg shadow-red-500/20">{{ selectedCount }}</span>
-              </div>
-              <div class="leading-tight">
-                <p class="text-[11px] font-black uppercase tracking-tight">{{ selectedCount }} items in cart</p>
-                <p class="text-[9px] font-bold text-blue-300/60 uppercase tracking-widest mt-0.5">Ready for loan request</p>
-              </div>
-            </div>
-            
-            <div class="w-px h-8 bg-white/10"></div>
-
-            <button @click="navigateTo('/loans/cart')" class="flex items-center gap-2 text-[11px] font-black text-white hover:text-blue-300 transition-all uppercase tracking-widest group">
-              View Cart <LucideArrowRight class="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-            </button>
-          </div>
-        </div>
-      </Transition>
     </main>
   </div>
 </template>
@@ -336,6 +309,8 @@ const fetchDocuments = async (filters = {}) => {
           statusColor: statusStyle.color,
           iconBg: typeStyle.bg,
           iconColor: typeStyle.color,
+          company_name: doc.company_name?.String || doc.company_name || doc.company || '',
+          branch_name: doc.branch_name?.String || doc.branch_name || doc.branch || '',
           selected: cartStore.isInCart(doc.id)
         }
       })
@@ -375,16 +350,18 @@ const handleNodeSelect = ({ node, path }) => {
   selectedNode.value = node
   breadcrumbs.value = path
   
-  // Build filters based on node type
+  // Build filters based on ALL nodes in the path
   const filters = {}
-  if (node.type === 'department') filters.department_id = node.id
-  else if (node.type === 'company') filters.company_id = node.id
-  else if (node.type === 'branch') filters.branch_id = node.id
-  else if (node.type === 'rack') filters.rack_id = node.id
-  else if (node.type === 'box') filters.box_id = node.id
-  else if (node.type === 'ordner') filters.ordner_id = node.id
-  else if (node.type === 'year') filters.year = node.id.replace('year-', '')
-  else if (node.type === 'type') filters.type_id = node.id
+  path.forEach(item => {
+    if (item.type === 'department') filters.department_id = item.id
+    else if (item.type === 'company') filters.company_id = item.id
+    else if (item.type === 'branch') filters.branch_id = item.id
+    else if (item.type === 'rack') filters.rack_id = item.id
+    else if (item.type === 'box') filters.box_id = item.id
+    else if (item.type === 'ordner') filters.ordner_id = item.id
+    else if (item.type === 'year') filters.year = item.id.replace('year-', '')
+    else if (item.type === 'type') filters.type_id = item.id
+  })
   
   fetchDocuments(filters)
 }
@@ -474,6 +451,15 @@ const handleQuickLoan = (doc) => {
 const toggleDocSelection = (doc) => {
   cartStore.toggleItem(doc)
   doc.selected = cartStore.isInCart(doc.id)
+}
+
+const isDocRequested = (doc) => {
+  return cartStore.requestedLoanDocIds?.includes(doc.original_id || doc.id)
+}
+
+const isDocSelectable = (doc) => {
+  if (isDocRequested(doc)) return false
+  return !(doc.rawStatus === 'on_loan' || doc.physicalStatus === 'damaged' || doc.physicalStatus === 'missing')
 }
 </script>
 

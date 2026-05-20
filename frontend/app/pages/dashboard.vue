@@ -2,7 +2,7 @@
   <div class="space-y-8">
     <AdminView v-if="user?.role === 'superadmin'" />
     <ManagerView v-else-if="user?.role === 'manajer'" />
-    <DocControllerView v-else-if="user?.role === 'admin doc controller' || user?.role === 'kepala doc controller'" />
+    <DocControllerView v-else-if="user?.role === 'admin doc controller' || user?.role === 'kepala doc controller' || user?.role === 'kepala dc' || user?.role === 'admin dc'" />
     <UserView v-else />
   </div>
 </template>
