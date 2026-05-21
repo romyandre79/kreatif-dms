@@ -80,3 +80,16 @@
 - [ ] Implement Document Browser & Search
 - [ ] Implement QR/Barcode Scanner for Inventory Audit
 - [ ] Implement Document Detail & Preview
+
+### Phase 9: Circulation & Settings (Ad-hoc Features)
+- [x] Implement dynamic system-wide Penalty Policy setting & display
+- [x] Refactor loan timeline nodes logic & hide reschedule options when pending
+- [x] Disable borrowing action & show crossed-out cart icon for active loans
+- [x] Activate, localize, and connect circulation pickup preparation page (with automatic redirect to checkout)
+- [x] Add multi-file (attachments) support for document upload — migration 000080 (`document_files` table), new `document_files.go` repository, `ExtraFiles` param in `UploadDocument` service
+- [x] Overhaul `circulation/checkout.vue` with full handover verification flow (identity check, per-document condition & note, signature area, completion gate)
+- [x] Update loan status labels in backend: `l1_approved` → "Dalam Persiapan", `l2_approved` → "Siap Diambil", new `active` status → "Active"
+- [x] Add `returnDate` field to all-loans list response
+- [x] Add i18n circulation locales (`frontend/app/locales/en/circulation.json`, `id/circulation.json`) covering pickup, checkout, checkin, inbox, routing slip, labels, signature flows
+- [x] Update `loans/index.vue` and `loans/my.vue` with accurate status badge display aligned to new status labels
+

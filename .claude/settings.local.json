@@ -8,7 +8,8 @@
       "Bash(go build *)",
       "Bash(Get-ChildItem -Path \"C:\\\\lara\\\\www\\\\kreatif\\\\kreatif-dms\" -Force)",
       "Bash(Select-Object Name, FullName)",
-      "Bash(Format-Table -AutoSize)"
+      "Bash(Format-Table -AutoSize)",
+      "Bash(go run *)"
     ]
   }
 }

@@ -240,8 +240,10 @@ func formatLoanListForFrontend(loans []repository.ListUserLoanRequestsRow) []fib
 		case "pending":
 			displayStatus = "Pending Approval"
 		case "l1_approved":
-			displayStatus = "Active"
+			displayStatus = "Dalam Persiapan"
 		case "l2_approved":
+			displayStatus = "Siap Diambil"
+		case "active":
 			displayStatus = "Active"
 		case "returned":
 			displayStatus = "Returned"
@@ -335,6 +337,10 @@ func formatAllLoanListForFrontend(loans []repository.ListAllLoanRequestsRow) []f
 		if loan.L1ApprovedAt.Valid {
 			approvedDate = loan.L1ApprovedAt.Time.Format("Jan 02, 2006 • 03:04 PM")
 		}
+		returnDate := ""
+		if loan.ReturnDate.Valid {
+			returnDate = loan.ReturnDate.Time.Format("Jan 02, 2006")
+		}
 		createdAt := ""
 		if loan.CreatedAt.Valid {
 			createdAt = loan.CreatedAt.Time.Format("Jan 02, 2006 • 03:04 PM")
@@ -345,8 +351,10 @@ func formatAllLoanListForFrontend(loans []repository.ListAllLoanRequestsRow) []f
 		case "pending":
 			displayStatus = "Pending Approval"
 		case "l1_approved":
-			displayStatus = "Active"
+			displayStatus = "Dalam Persiapan"
 		case "l2_approved":
+			displayStatus = "Siap Diambil"
+		case "active":
 			displayStatus = "Active"
 		case "returned":
 			displayStatus = "Returned"
@@ -369,15 +377,29 @@ func formatAllLoanListForFrontend(loans []repository.ListAllLoanRequestsRow) []f
 			"approvedDate":   approvedDate,
 			"readyDate":      approvedDate,
 			"onLoanDate":     checkoutDate,
+			"returnDate":     returnDate,
 			"createdAt":      createdAt,
 			"userName":       loan.UserName,
 			"departmentName": loan.DepartmentName.String,
 			"purpose":        loan.Purpose,
 			"durationDays":   loan.DurationDays,
-			"rawStatus":          loan.Status,
+			"rawStatus":      loan.Status,
 			"l2RejectionReason": loan.L2RejectionReason.String,
 		})
 	}
 
 	return result
 }
+
+func (h *LoanHandler) GetPenaltyPolicy(c fiber.Ctx) error {
+	setting, err := h.svc.GetSystemSetting(c.Context(), "general", "penalty_policy")
+	if err != nil {
+		return response.Success(c, fiber.StatusOK, "Penalty policy retrieved", fiber.Map{
+			"policy": "Denda keterlambatan: IDR 50.000 / Dokumen / Hari",
+		})
+	}
+	return response.Success(c, fiber.StatusOK, "Penalty policy retrieved", fiber.Map{
+		"policy": setting.Value.String,
+	})
+}
+

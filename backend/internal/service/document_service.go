@@ -41,6 +41,13 @@ func NewDocumentService(cfg config.Config, repo repository.Querier, storage *inf
 	return &DocumentService{cfg: cfg, repo: repo, storage: storage, asynq: asynqClient, notifSvc: notifSvc}
 }
 
+type ExtraFileParam struct {
+	FileName string
+	FileSize int64
+	MimeType string
+	Content  io.Reader
+}
+
 type UploadDocumentParams struct {
 	Title        string
 	Description  string
@@ -59,6 +66,7 @@ type UploadDocumentParams struct {
 	DocumentDate string
 	PageCount    int
 	Status       string
+	ExtraFiles   []ExtraFileParam
 }
 
 type UpdateDocumentParams struct {
@@ -143,6 +151,28 @@ func (s *DocumentService) UploadDocument(ctx context.Context, p UploadDocumentPa
 
 	log.Printf("[DocumentService] DB record created successfully: %s (Status: %s)", doc.ID, doc.Status)
 
+	// Save extra files to document_files table
+	if len(p.ExtraFiles) > 0 {
+		q, _ := s.repo.(*repository.Queries)
+		for i, extra := range p.ExtraFiles {
+			if extra.Content == nil {
+				continue
+			}
+			extraObjectName := fmt.Sprintf("%s/%s_%s", p.DepartmentID, uuid.New().String(), extra.FileName)
+			_, err = s.storage.Upload(ctx, extraObjectName, extra.Content, extra.FileSize, extra.MimeType, encryptEnabled)
+			if err != nil {
+				log.Printf("[DocumentService] Warning: failed to upload extra file %s: %v", extra.FileName, err)
+				continue
+			}
+			if q != nil {
+				_, err = q.CreateDocumentFile(ctx, doc.ID, extra.FileName, extraObjectName, extra.FileSize, extra.MimeType, int32(i))
+				if err != nil {
+					log.Printf("[DocumentService] Warning: failed to save extra file record %s: %v", extra.FileName, err)
+				}
+			}
+		}
+	}
+
 	// If it's a draft, stop here (no OCR, no approval)
 	if doc.Status == "draft" {
 		return doc, nil
@@ -215,6 +245,17 @@ func (s *DocumentService) UploadDocument(ctx context.Context, p UploadDocumentPa
 	return doc, nil
 }
 
+func (s *DocumentService) GetDocumentFiles(ctx context.Context, docID uuid.UUID) ([]repository.DocumentFile, error) {
+	q, ok := s.repo.(*repository.Queries)
+	if !ok {
+		return nil, fmt.Errorf("unsupported repository type for document files")
+	}
+	return q.ListDocumentFiles(ctx, docID)
+}
+
+func (s *DocumentService) GetDocumentBasic(ctx context.Context, id uuid.UUID) (repository.GetDocumentRow, error) {
+	return s.repo.GetDocument(ctx, id)
+}
 
 func (s *DocumentService) GetWatermarkedPDF(ctx context.Context, docID uuid.UUID, userFullName string, position string) ([]byte, string, error) {
 	log.Printf("[DocumentService] Accessing watermarked PDF: %s (Requested by: %s)", docID, userFullName)
@@ -1033,6 +1074,13 @@ func (s *DocumentService) ApproveLoanRequest(ctx context.Context, loanID uuid.UU
 	} else if loan.Status == "l1_approved" {
 		if err := s.repo.UpdateLoanRequestStatus(ctx, repository.UpdateLoanRequestStatusParams{
 			ID:     loanID,
+			Status: "l2_approved",
+		}); err != nil {
+			return err
+		}
+	} else if loan.Status == "l2_approved" {
+		if err := s.repo.UpdateLoanRequestStatus(ctx, repository.UpdateLoanRequestStatusParams{
+			ID:     loanID,
 			Status: "active",
 		}); err != nil {
 			return err
@@ -1145,4 +1193,12 @@ func (s *DocumentService) RejectLoanRequestAction(ctx context.Context, loanID uu
 
 	return nil
 }
+
+func (s *DocumentService) GetSystemSetting(ctx context.Context, category, key string) (repository.SystemSetting, error) {
+	return s.repo.GetSystemSetting(ctx, repository.GetSystemSettingParams{
+		Category: category,
+		Key:      key,
+	})
+}
+
 

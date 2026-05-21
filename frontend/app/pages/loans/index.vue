@@ -27,7 +27,7 @@
         :subtitle="$t('loans.my.subtitle')"
       >
         <template #actions>
-          <button @click="showExtensionModal = true" :disabled="selectedLoan?.status === 'EXTENSION PENDING'" class="px-8 py-4 bg-[#1E3A5F] hover:bg-[#152943] text-white rounded-2xl text-xs font-black uppercase tracking-[0.2em] shadow-xl shadow-blue-900/20 transition-all flex items-center gap-3 group disabled:opacity-50 disabled:cursor-not-allowed">
+          <button v-if="canReschedule" @click="showExtensionModal = true" :disabled="selectedLoan?.status === 'EXTENSION PENDING'" class="px-8 py-4 bg-[#1E3A5F] hover:bg-[#152943] text-white rounded-2xl text-xs font-black uppercase tracking-[0.2em] shadow-xl shadow-blue-900/20 transition-all flex items-center gap-3 group disabled:opacity-50 disabled:cursor-not-allowed">
             <LucideHistory class="w-4 h-4 group-hover:rotate-12 transition-transform" />
             {{ $t('loans.my.btn_request_ext') }}
           </button>
@@ -122,36 +122,86 @@
               
               <!-- Approved -->
               <div class="relative flex items-start gap-6 pb-10">
-                <div class="relative z-10 w-9 h-9 rounded-full bg-[#1E3A5F] text-white flex items-center justify-center shadow-lg shadow-blue-900/10">
+                <!-- Completed State -->
+                <div v-if="getStepState('approved') === 'completed'" class="relative z-10 w-9 h-9 rounded-full bg-[#1E3A5F] text-white flex items-center justify-center shadow-lg shadow-blue-900/10">
                   <LucideCheck class="w-4 h-4" />
                 </div>
+                <!-- Current/Active State -->
+                <div v-else-if="getStepState('approved') === 'current'" class="relative z-10 w-9 h-9 rounded-full bg-white border-2 border-[#1E3A5F] flex items-center justify-center shadow-lg">
+                  <div class="w-2 h-2 bg-[#1E3A5F] rounded-full animate-pulse"></div>
+                </div>
+                <!-- Rejected State -->
+                <div v-else-if="getStepState('approved') === 'rejected'" class="relative z-10 w-9 h-9 rounded-full bg-red-500 text-white flex items-center justify-center shadow-lg">
+                  <LucideX class="w-4 h-4" />
+                </div>
+                <!-- Upcoming State -->
+                <div v-else class="relative z-10 w-9 h-9 rounded-full bg-white border-2 border-slate-200 flex items-center justify-center shadow-lg">
+                  <div class="w-1.5 h-1.5 bg-slate-300 rounded-full"></div>
+                </div>
+
                 <div>
-                  <h4 class="text-sm font-black text-[#1E3A5F] uppercase tracking-tight">{{ $t('loans.my.detail.steps.approved') }}</h4>
-                  <p class="text-[10px] font-bold text-slate-400 uppercase mt-1">{{ selectedLoan.approvedDate }}</p>
+                  <h4 :class="[
+                    'text-sm uppercase tracking-tight',
+                    getStepState('approved') === 'completed' || getStepState('approved') === 'current' ? 'text-[#1E3A5F] font-black' : '',
+                    getStepState('approved') === 'rejected' ? 'text-red-500 font-black' : '',
+                    getStepState('approved') === 'upcoming' ? 'text-slate-300 font-bold' : ''
+                  ]">{{ $t('loans.my.detail.steps.approved') }}</h4>
+                  <p class="text-[10px] font-bold text-slate-400 uppercase mt-1">{{ selectedLoan.approvedDate || '-' }}</p>
                 </div>
               </div>
 
               <!-- Ready -->
               <div class="relative flex items-start gap-6 pb-10">
-                <div class="relative z-10 w-9 h-9 rounded-full bg-[#1E3A5F] text-white flex items-center justify-center shadow-lg shadow-blue-900/10">
+                <!-- Completed State -->
+                <div v-if="getStepState('ready') === 'completed'" class="relative z-10 w-9 h-9 rounded-full bg-[#1E3A5F] text-white flex items-center justify-center shadow-lg shadow-blue-900/10">
                   <LucideCheck class="w-4 h-4" />
                 </div>
+                <!-- Current/Active State -->
+                <div v-else-if="getStepState('ready') === 'current'" class="relative z-10 w-9 h-9 rounded-full bg-white border-2 border-[#1E3A5F] flex items-center justify-center shadow-lg">
+                  <div class="w-2 h-2 bg-[#1E3A5F] rounded-full animate-pulse"></div>
+                </div>
+                <!-- Upcoming State -->
+                <div v-else class="relative z-10 w-9 h-9 rounded-full bg-white border-2 border-slate-200 flex items-center justify-center shadow-lg">
+                  <div class="w-1.5 h-1.5 bg-slate-200 rounded-full"></div>
+                </div>
+
                 <div>
-                  <h4 class="text-sm font-black text-[#1E3A5F] uppercase tracking-tight">{{ $t('loans.my.detail.steps.ready') }}</h4>
-                  <p class="text-[10px] font-bold text-slate-400 uppercase mt-1">{{ selectedLoan.readyDate }}</p>
+                  <h4 :class="[
+                    'text-sm uppercase tracking-tight',
+                    getStepState('ready') === 'completed' || getStepState('ready') === 'current' ? 'text-[#1E3A5F] font-black' : 'text-slate-300 font-bold'
+                  ]">{{ $t('loans.my.detail.steps.ready') }}</h4>
+                  <p class="text-[10px] font-bold text-slate-400 uppercase mt-1">{{ selectedLoan.readyDate || '-' }}</p>
                 </div>
               </div>
 
               <!-- On Loan -->
               <div :class="`relative flex items-start gap-6 ${selectedLoan.status === 'EXTENSION PENDING' ? 'pb-10' : ''}`">
-                <div :class="`relative z-10 w-9 h-9 rounded-full flex items-center justify-center shadow-lg ${selectedLoan.status === 'EXTENSION PENDING' ? 'bg-[#1E3A5F] text-white' : 'bg-white border-2 border-[#1E3A5F]'}`">
-                  <LucideCheck v-if="selectedLoan.status === 'EXTENSION PENDING'" class="w-4 h-4" />
+                <!-- Completed State -->
+                <div v-if="getStepState('on_loan') === 'completed'" class="relative z-10 w-9 h-9 rounded-full bg-emerald-500 text-white flex items-center justify-center shadow-lg shadow-emerald-500/10">
+                  <LucideCheck class="w-4 h-4" />
+                </div>
+                <!-- Current/Active State -->
+                <div v-else-if="getStepState('on_loan') === 'current'" class="relative z-10 w-9 h-9 rounded-full bg-white border-2 border-[#1E3A5F] flex items-center justify-center shadow-lg">
+                  <LucideCheck v-if="selectedLoan.status === 'EXTENSION PENDING'" class="w-4 h-4 text-[#1E3A5F]" />
                   <div v-else class="w-2 h-2 bg-[#1E3A5F] rounded-full animate-pulse"></div>
                 </div>
+                <!-- Upcoming State -->
+                <div v-else class="relative z-10 w-9 h-9 rounded-full bg-white border-2 border-slate-200 flex items-center justify-center shadow-lg">
+                  <div class="w-1.5 h-1.5 bg-slate-200 rounded-full"></div>
+                </div>
+
                 <div>
-                  <h4 class="text-sm font-black text-[#1E3A5F] uppercase tracking-tight">{{ $t('loans.my.detail.steps.on_loan') }}</h4>
+                  <h4 :class="[
+                    'text-sm uppercase tracking-tight',
+                    getStepState('on_loan') === 'completed' ? 'text-emerald-500 font-black' : '',
+                    getStepState('on_loan') === 'current' ? 'text-[#1E3A5F] font-black' : '',
+                    getStepState('on_loan') === 'upcoming' ? 'text-slate-300 font-bold' : ''
+                  ]">{{ $t('loans.my.detail.steps.on_loan') }}</h4>
                   <p class="text-[10px] font-bold text-slate-400 uppercase mt-1">
-                    {{ selectedLoan.status === 'EXTENSION PENDING' ? selectedLoan.onLoanDate : $t('loans.my.detail.steps.current_status') }}
+                    <span v-if="getStepState('on_loan') === 'current' && selectedLoan.status === 'EXTENSION PENDING'">{{ selectedLoan.onLoanDate }}</span>
+                    <span v-else-if="getStepState('on_loan') === 'completed'">{{ selectedLoan.returnDate || 'Returned' }}</span>
+                    <span v-else-if="getStepState('on_loan') === 'upcoming'">-</span>
+                    <span v-else>{{ $t('loans.my.detail.steps.current_status') }}</span>
                   </p>
                 </div>
               </div>
@@ -181,7 +231,7 @@
               <LucideAlertTriangle class="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
               <div class="space-y-1">
                 <p class="text-[11px] font-black text-red-600 uppercase tracking-widest">{{ $t('loans.my.detail.policy.penalty_title') }}</p>
-                <p class="text-[10px] font-bold text-red-500/70 leading-relaxed uppercase">{{ $t('loans.my.detail.policy.penalty_desc') }}</p>
+                <p class="text-[10px] font-bold text-red-500/70 leading-relaxed uppercase">{{ penaltyPolicy || $t('loans.my.detail.policy.penalty_desc') }}</p>
               </div>
             </div>
           </div>
@@ -189,25 +239,27 @@
       </div>
 
       <!-- Footer CTA (Changes when pending) -->
-      <div v-if="selectedLoan?.status === 'EXTENSION PENDING'" class="glass p-10 bg-slate-50 rounded-lg border border-slate-100 shadow-xl space-y-6" v-motion-slide-bottom>
-        <div class="space-y-2">
-          <h3 class="text-xl font-black text-slate-700 uppercase tracking-tight">{{ $t('loans.my.detail.ext_pending.title') }}</h3>
-          <p class="text-xs font-medium text-slate-500 leading-relaxed">
-            {{ $t('loans.my.detail.ext_pending.desc') }}
-          </p>
+      <template v-if="canReschedule">
+        <div v-if="selectedLoan?.status === 'EXTENSION PENDING'" class="glass p-10 bg-slate-50 rounded-lg border border-slate-100 shadow-xl space-y-6" v-motion-slide-bottom>
+          <div class="space-y-2">
+            <h3 class="text-xl font-black text-slate-700 uppercase tracking-tight">{{ $t('loans.my.detail.ext_pending.title') }}</h3>
+            <p class="text-xs font-medium text-slate-500 leading-relaxed">
+              {{ $t('loans.my.detail.ext_pending.desc') }}
+            </p>
+          </div>
         </div>
-      </div>
-      <div v-else class="glass p-10 bg-[#1E3A5F] rounded-lg text-white shadow-2xl shadow-blue-900/30 space-y-6" v-motion-slide-bottom>
-        <div class="space-y-2">
-          <h3 class="text-xl font-black uppercase tracking-tight">{{ $t('loans.my.detail.ext_promo.title') }}</h3>
-          <p class="text-xs font-medium text-blue-200/80 leading-relaxed">
-            {{ $t('loans.my.detail.ext_promo.desc') }}
-          </p>
+        <div v-else class="glass p-10 bg-[#1E3A5F] rounded-lg text-white shadow-2xl shadow-blue-900/30 space-y-6" v-motion-slide-bottom>
+          <div class="space-y-2">
+            <h3 class="text-xl font-black uppercase tracking-tight">{{ $t('loans.my.detail.ext_promo.title') }}</h3>
+            <p class="text-xs font-medium text-blue-200/80 leading-relaxed">
+              {{ $t('loans.my.detail.ext_promo.desc') }}
+            </p>
+          </div>
+          <button @click="showExtensionModal = true" class="w-full py-5 bg-white text-[#1E3A5F] rounded-2xl text-xs font-black uppercase tracking-[0.2em] shadow-xl hover:bg-blue-50 transition-all">
+            {{ $t('loans.my.detail.ext_promo.btn') }}
+          </button>
         </div>
-        <button @click="showExtensionModal = true" class="w-full py-5 bg-white text-[#1E3A5F] rounded-2xl text-xs font-black uppercase tracking-[0.2em] shadow-xl hover:bg-blue-50 transition-all">
-          {{ $t('loans.my.detail.ext_promo.btn') }}
-        </button>
-      </div>
+      </template>
     </div>
     
     <!-- Request Extension Modal -->
@@ -297,9 +349,21 @@ const submissionSuccessDays = ref(null)
 const loans = ref([])
 const selectedLoan = ref(null)
 const isLoading = ref(false)
+const penaltyPolicy = ref('')
 
 const { $api } = useApi()
 const config = useRuntimeConfig()
+
+const fetchPenaltyPolicy = async () => {
+  try {
+    const res = await $api(`${config.public.apiBase}/loans/penalty-policy`)
+    if (res && res.data && res.data.policy) {
+      penaltyPolicy.value = res.data.policy
+    }
+  } catch (err) {
+    console.error('Failed to fetch penalty policy:', err)
+  }
+}
 
 const fetchLoans = async () => {
   isLoading.value = true
@@ -320,7 +384,53 @@ const fetchLoans = async () => {
 
 onMounted(() => {
   fetchLoans()
+  fetchPenaltyPolicy()
 })
+
+const getStepState = (step) => {
+  if (!selectedLoan.value) return 'upcoming'
+  
+  // Normalize rawStatus
+  let raw = selectedLoan.value.rawStatus || ''
+  if (!raw && selectedLoan.value.status) {
+    const statusLower = selectedLoan.value.status.toLowerCase()
+    if (statusLower.includes('pending')) {
+      raw = 'pending'
+    } else if (statusLower.includes('reject')) {
+      raw = 'rejected'
+    } else if (statusLower.includes('active') || statusLower.includes('loan')) {
+      raw = 'active'
+    } else if (statusLower.includes('ready')) {
+      raw = 'l1_approved'
+    } else if (statusLower.includes('return')) {
+      raw = 'returned'
+    } else if (statusLower.includes('overdue')) {
+      raw = 'overdue'
+    }
+  }
+  raw = raw.toLowerCase()
+
+  if (step === 'approved') {
+    if (raw === 'rejected') return 'rejected'
+    if (raw === 'pending') return 'current'
+    if (raw === '') return 'upcoming'
+    return 'completed'
+  }
+  
+  if (step === 'ready') {
+    if (raw === 'pending' || raw === 'rejected' || raw === '') return 'upcoming'
+    if (raw === 'l1_approved') return 'current'
+    return 'completed'
+  }
+  
+  if (step === 'on_loan') {
+    if (raw === 'pending' || raw === 'rejected' || raw === 'l1_approved' || raw === '') return 'upcoming'
+    if (raw === 'active' || raw === 'overdue' || raw === 'extension pending') return 'current'
+    if (raw === 'returned') return 'completed'
+  }
+  
+  return 'upcoming'
+}
 
 const filteredLoans = computed(() => {
   if (activeTab.value === 'All') return loans.value
@@ -339,6 +449,25 @@ const filteredLoans = computed(() => {
     return loans.value.filter(l => l.status.toLowerCase() === 'overdue' || l.rawStatus === 'overdue')
   }
   return loans.value
+})
+
+const canReschedule = computed(() => {
+  if (!selectedLoan.value) return false
+  
+  let raw = selectedLoan.value.rawStatus || ''
+  if (!raw && selectedLoan.value.status) {
+    const statusLower = selectedLoan.value.status.toLowerCase()
+    if (statusLower.includes('pending')) {
+      raw = 'pending'
+    } else if (statusLower.includes('active') || statusLower.includes('loan')) {
+      raw = 'active'
+    } else if (statusLower.includes('overdue')) {
+      raw = 'overdue'
+    }
+  }
+  raw = raw.toLowerCase()
+  
+  return raw === 'active' || raw === 'overdue' || selectedLoan.value.status === 'EXTENSION PENDING'
 })
 
 const submitExtension = () => {

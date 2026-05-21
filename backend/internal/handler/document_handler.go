@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"mime/multipart"
 	"strconv"
 	"strings"
 	"github.com/gofiber/fiber/v3"
@@ -58,10 +59,12 @@ func (h *DocumentHandler) Search(c fiber.Ctx) error {
 }
 
 func (h *DocumentHandler) Upload(c fiber.Ctx) error {
-	file, err := c.FormFile("file")
 	status := c.FormValue("status")
+
+	// Parse multipart form to support multiple files
+	form, err := c.MultipartForm()
 	if err != nil && status != "draft" {
-		return response.Error(c, fiber.StatusBadRequest, "File is required", err.Error())
+		return response.Error(c, fiber.StatusBadRequest, "Invalid multipart form", err.Error())
 	}
 
 	// Read form values
@@ -70,22 +73,22 @@ func (h *DocumentHandler) Upload(c fiber.Ctx) error {
 	if description == "" {
 		description = c.FormValue("notes")
 	}
-	
+
 	typeID, _ := uuid.Parse(c.FormValue("type_id"))
 	companyID, _ := uuid.Parse(c.FormValue("company_id"))
 	branchID, _ := uuid.Parse(c.FormValue("branch_id"))
 	departmentID, _ := uuid.Parse(c.FormValue("department_id"))
 	batchID, _ := uuid.Parse(c.FormValue("batch_id"))
-	
+
 	sensitivity := c.FormValue("sensitivity")
 	if sensitivity == "" {
-		sensitivity = c.FormValue("category") // fallback to category from UI
+		sensitivity = c.FormValue("category")
 	}
-	
+
 	urgency := c.FormValue("urgency")
 	documentDateStr := c.FormValue("document_date")
 	pageCount, _ := strconv.Atoi(c.FormValue("page_count"))
-	
+
 	ownerID := c.Locals("user_id").(uuid.UUID)
 
 	// Auto-detect Department, Branch, and Company from User
@@ -94,15 +97,12 @@ func (h *DocumentHandler) Upload(c fiber.Ctx) error {
 		if departmentID == uuid.Nil && user.DepartmentID.Valid {
 			departmentID = user.DepartmentID.Bytes
 		}
-		
-		// If we have a department, trace back to Branch and Company
 		if departmentID != uuid.Nil {
 			dept, err := h.svc.GetDepartment(c.Context(), departmentID)
 			if err == nil {
 				if branchID == uuid.Nil {
 					branchID = dept.BranchID
 				}
-				
 				branch, err := h.svc.GetBranch(c.Context(), dept.BranchID)
 				if err == nil && companyID == uuid.Nil {
 					companyID = branch.CompanyID
@@ -115,21 +115,55 @@ func (h *DocumentHandler) Upload(c fiber.Ctx) error {
 		return response.Error(c, fiber.StatusBadRequest, "Missing required location data", "Please ensure your profile is complete or select Company, Branch, and Department manually.")
 	}
 
-	var fileContent io.Reader
-	var fileName string
-	var fileSize int64
-	var mimeType string
+	// Collect all uploaded files — supports field name "files" (multi) and "file" (single, backward compat)
+	var allFiles []*multipart.FileHeader
+	if form != nil {
+		if mf, ok := form.File["files"]; ok {
+			allFiles = append(allFiles, mf...)
+		}
+		if mf, ok := form.File["file"]; ok && len(allFiles) == 0 {
+			allFiles = append(allFiles, mf...)
+		}
+	}
 
-	if file != nil {
-		f, err := file.Open()
+	if len(allFiles) == 0 && status != "draft" {
+		return response.Error(c, fiber.StatusBadRequest, "At least one file is required", "")
+	}
+
+	// Primary file = first in list
+	var fileContent io.Reader
+	var fileName, mimeType string
+	var fileSize int64
+
+	if len(allFiles) > 0 {
+		primary := allFiles[0]
+		f, err := primary.Open()
 		if err != nil {
 			return response.Error(c, fiber.StatusInternalServerError, "Failed to open file", err.Error())
 		}
 		defer f.Close()
 		fileContent = f
-		fileName = file.Filename
-		fileSize = file.Size
-		mimeType = file.Header.Get("Content-Type")
+		fileName = primary.Filename
+		fileSize = primary.Size
+		mimeType = primary.Header.Get("Content-Type")
+	}
+
+	// Extra files = rest of the list (index 1+)
+	var extraFiles []service.ExtraFileParam
+	for i := 1; i < len(allFiles); i++ {
+		fh := allFiles[i]
+		f, err := fh.Open()
+		if err != nil {
+			log.Printf("[DocumentHandler] Warning: failed to open extra file %s: %v", fh.Filename, err)
+			continue
+		}
+		defer f.Close()
+		extraFiles = append(extraFiles, service.ExtraFileParam{
+			FileName: fh.Filename,
+			FileSize: fh.Size,
+			MimeType: fh.Header.Get("Content-Type"),
+			Content:  f,
+		})
 	}
 
 	doc, err := h.svc.UploadDocument(c.Context(), service.UploadDocumentParams{
@@ -150,13 +184,66 @@ func (h *DocumentHandler) Upload(c fiber.Ctx) error {
 		DocumentDate: documentDateStr,
 		PageCount:    pageCount,
 		Status:       status,
+		ExtraFiles:   extraFiles,
 	})
-
 	if err != nil {
 		return response.Error(c, fiber.StatusInternalServerError, "Failed to upload document", err.Error())
 	}
 
-	return response.Success(c, fiber.StatusCreated, "Document uploaded successfully", doc)
+	// Fetch the saved extra files to include in response
+	docFiles, _ := h.svc.GetDocumentFiles(c.Context(), doc.ID)
+
+	return response.Success(c, fiber.StatusCreated, "Document uploaded successfully", fiber.Map{
+		"document": doc,
+		"files":    formatDocumentFiles(doc.ID, doc.FileName, doc.FileSize, doc.MimeType, docFiles),
+	})
+}
+
+func (h *DocumentHandler) ListFiles(c fiber.Ctx) error {
+	docID, err := uuid.Parse(c.Params("id"))
+	if err != nil {
+		return response.Error(c, fiber.StatusBadRequest, "Invalid document ID", err.Error())
+	}
+
+	doc, err := h.svc.GetDocumentBasic(c.Context(), docID)
+	if err != nil {
+		return response.Error(c, fiber.StatusNotFound, "Document not found", err.Error())
+	}
+
+	extraFiles, err := h.svc.GetDocumentFiles(c.Context(), docID)
+	if err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to get document files", err.Error())
+	}
+
+	return response.Success(c, fiber.StatusOK, "Document files retrieved", formatDocumentFiles(doc.ID, doc.FileName, doc.FileSize, doc.MimeType, extraFiles))
+}
+
+func formatDocumentFiles(docID uuid.UUID, primaryFileName pgtype.Text, primaryFileSize pgtype.Int8, primaryMimeType pgtype.Text, extras []repository.DocumentFile) []fiber.Map {
+	var result []fiber.Map
+
+	// Primary file from documents table
+	if primaryFileName.Valid && primaryFileName.String != "" {
+		result = append(result, fiber.Map{
+			"id":         docID,
+			"file_name":  primaryFileName.String,
+			"file_size":  primaryFileSize.Int64,
+			"mime_type":  primaryMimeType.String,
+			"is_primary": true,
+		})
+	}
+
+	// Extra files from document_files table
+	for _, f := range extras {
+		result = append(result, fiber.Map{
+			"id":         f.ID,
+			"file_name":  f.FileName,
+			"file_size":  f.FileSize,
+			"mime_type":  f.MimeType,
+			"is_primary": false,
+		})
+	}
+
+	return result
 }
 
 func (h *DocumentHandler) Preview(c fiber.Ctx) error {

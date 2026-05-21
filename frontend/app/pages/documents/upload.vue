@@ -130,14 +130,14 @@
             <div class="w-full h-px bg-slate-100 dark:bg-slate-800 my-8"></div>
             <div class="space-y-6">
               <label class="text-sm font-black text-[#1E3A5F] dark:text-slate-300">{{ $t('upload.bulk.step2_title') }}<span class="text-red-500 ml-1">*</span></label>
-              <div 
+              <div
                 @dragover.prevent="isDragging = true"
                 @dragleave.prevent="isDragging = false"
                 @drop.prevent="handleDrop"
                 :class="`group relative border-2 border-dashed ${isDragging ? 'border-primary-500 bg-primary-50/10' : 'border-slate-200 dark:border-slate-800'} rounded-3xl p-10 flex flex-col items-center text-center hover:border-primary-500/50 hover:bg-primary-50/5 transition-all cursor-pointer`"
               >
-                <input type="file" @change="onFileChange" class="absolute inset-0 opacity-0 cursor-pointer" />
-                <div v-if="!form.file" class="flex flex-col items-center w-full">
+                <input type="file" @change="onFileChange" class="absolute inset-0 opacity-0 cursor-pointer" multiple :accept="editId ? undefined : '.pdf,.jpg,.jpeg,.png'" />
+                <div v-if="form.files.length === 0" class="flex flex-col items-center w-full">
                   <!-- Edit Mode: Show current file -->
                   <div v-if="editId && editDoc" class="w-full">
                     <div class="flex items-center gap-4 p-4 bg-blue-50/50 dark:bg-blue-900/10 border border-blue-100/50 dark:border-blue-800/30 rounded-2xl">
@@ -155,15 +155,32 @@
                   <!-- Normal Mode: Dropzone prompt -->
                   <template v-else>
                     <div class="w-12 h-12 rounded-full bg-slate-50 dark:bg-slate-800 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform"><LucideUploadCloud :class="`w-6 h-6 ${isDragging ? 'text-primary-500' : 'text-slate-400 group-hover:text-primary-500'}`" /></div>
-                    <h4 class="text-sm font-black text-[#1E3A5F] dark:text-white mb-1">{{ $t('upload.bulk.step2_dropzone') }}</h4>
-                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">PDF, JPG, PNG up to 10MB</p>
+                    <h4 class="text-sm font-black text-[#1E3A5F] dark:text-white mb-1">Seret & lepas file di sini, atau klik untuk memilih</h4>
+                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">PDF, JPG, PNG hingga 10MB • Bisa pilih banyak file sekaligus</p>
                   </template>
                 </div>
-                <div v-else class="flex flex-col items-center">
-                  <div class="w-12 h-12 rounded-full bg-green-50 dark:bg-green-900/20 flex items-center justify-center mb-4"><LucideCheckCircle2 class="w-6 h-6 text-green-500" /></div>
-                  <h4 class="text-sm font-black text-green-600 dark:text-green-400 mb-1">{{ form.file.name }}</h4>
-                  <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{{ (form.file.size / 1024 / 1024).toFixed(2) }} MB</p>
-                  <button @click.stop="form.file = null" class="mt-4 text-[10px] font-black text-red-500 uppercase tracking-widest hover:underline">{{ editId ? 'Batal Ganti' : $t('upload.bulk.review.table.actions') + ' (Delete)' }}</button>
+                <!-- Multi-file list -->
+                <div v-else class="w-full space-y-3" @click.stop>
+                  <div class="flex items-center justify-between mb-2">
+                    <span class="text-xs font-black text-[#1E3A5F] dark:text-white">{{ form.files.length }} file dipilih</span>
+                    <button @click.stop="form.files.splice(0)" class="text-[10px] font-black text-red-500 uppercase tracking-widest hover:underline">Hapus Semua</button>
+                  </div>
+                  <div v-for="(f, idx) in form.files" :key="idx" class="flex items-center gap-3 p-3 bg-green-50 dark:bg-green-900/10 border border-green-100 dark:border-green-800/30 rounded-2xl">
+                    <div class="w-8 h-8 rounded-lg bg-white dark:bg-slate-900 border border-green-100 flex items-center justify-center text-green-500 shadow-sm flex-shrink-0">
+                      <LucideFileText class="w-4 h-4" />
+                    </div>
+                    <div class="flex-1 min-w-0 text-left">
+                      <p class="text-xs font-black text-[#1E3A5F] dark:text-white truncate">{{ f.name }}</p>
+                      <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">{{ (f.size / 1024 / 1024).toFixed(2) }} MB</p>
+                    </div>
+                    <button @click.stop="removeFile(idx)" class="w-6 h-6 rounded-full bg-red-50 hover:bg-red-100 text-red-400 flex items-center justify-center transition-colors flex-shrink-0">
+                      <LucideX class="w-3 h-3" />
+                    </button>
+                  </div>
+                  <div class="pt-2 border-t border-green-100 dark:border-green-800/30 relative">
+                    <input type="file" @change="onFileChange" class="absolute inset-0 opacity-0 cursor-pointer" multiple accept=".pdf,.jpg,.jpeg,.png" />
+                    <p class="text-[10px] font-black text-primary-500 uppercase tracking-widest text-center">+ Tambah File Lagi</p>
+                  </div>
                 </div>
               </div>
             </div>
@@ -266,7 +283,7 @@
             </div>
             <div class="space-y-1 pt-4 col-span-2">
               <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total Documents</p>
-              <p class="text-3xl font-black text-[#1E3A5F] dark:text-white">{{ manifestData?.qty }} File(s)</p>
+              <p class="text-3xl font-black text-[#1E3A5F] dark:text-white">{{ manifestData?.files?.length || manifestData?.qty || 1 }} File(s)</p>
             </div>
           </div>
           <div class="flex flex-col items-center">
@@ -288,20 +305,20 @@
               <tr class="bg-[#F1F5F9] border-b border-slate-200">
                 <th class="p-3 text-[9px] font-black text-[#1E3A5F] uppercase tracking-tight border-r border-slate-200">No.</th>
                 <th class="p-3 text-[9px] font-black text-[#1E3A5F] uppercase tracking-tight border-r border-slate-200">Reg ID</th>
-                <th class="p-3 text-[9px] font-black text-[#1E3A5F] uppercase tracking-tight border-r border-slate-200">Document Title</th>
-                <th class="p-3 text-[9px] font-black text-[#1E3A5F] uppercase tracking-tight border-r border-slate-200">Category</th>
-                <th class="p-3 text-[9px] font-black text-[#1E3A5F] uppercase tracking-tight border-r border-slate-200">Qty</th>
-                <th class="p-3 text-[9px] font-black text-[#1E3A5F] uppercase tracking-tight">Urgency</th>
+                <th class="p-3 text-[9px] font-black text-[#1E3A5F] uppercase tracking-tight border-r border-slate-200">Nama File</th>
+                <th class="p-3 text-[9px] font-black text-[#1E3A5F] uppercase tracking-tight border-r border-slate-200">Tipe Dokumen</th>
+                <th class="p-3 text-[9px] font-black text-[#1E3A5F] uppercase tracking-tight border-r border-slate-200">Ukuran</th>
+                <th class="p-3 text-[9px] font-black text-[#1E3A5F] uppercase tracking-tight">Urgensi</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-200">
               <template v-if="activeTab === 'manual'">
-                <tr>
-                  <td class="p-3 text-[10px] font-bold border-r border-slate-200 text-center">1</td>
+                <tr v-for="(file, idx) in (manifestData?.files || [])" :key="idx">
+                  <td class="p-3 text-[10px] font-bold border-r border-slate-200 text-center">{{ idx + 1 }}</td>
                   <td class="p-3 text-[10px] font-black text-[#1E3A5F] border-r border-slate-200">{{ manifestData?.id }}</td>
-                  <td class="p-3 text-[10px] font-bold border-r border-slate-200">{{ manifestData?.title }}</td>
+                  <td class="p-3 text-[10px] font-bold border-r border-slate-200">{{ file.file_name || manifestData?.title }}</td>
                   <td class="p-3 text-[10px] font-bold border-r border-slate-200">{{ manifestData?.type }}</td>
-                  <td class="p-3 text-[10px] font-bold border-r border-slate-200 text-center">1</td>
+                  <td class="p-3 text-[10px] font-bold border-r border-slate-200 text-center">{{ file.file_size ? (file.file_size / 1024 / 1024).toFixed(2) + ' MB' : '1' }}</td>
                   <td class="p-3 text-[10px] font-bold">{{ manifestData?.urgency }}</td>
                 </tr>
               </template>
@@ -348,7 +365,7 @@
             <p class="text-[9px] font-bold text-slate-400">{{ $t('manifest.verified_on', { date: manifestData?.date }) }}</p>
           </div>
           <p class="text-[9px] font-bold text-slate-400 uppercase">
-            {{ $t('manifest.page', { current: 1, total: Math.ceil((manifestData?.qty || 1) / systemSettings.manifest_items_per_page) }) }}
+            {{ $t('manifest.page', { current: 1, total: Math.ceil(((manifestData?.files?.length || manifestData?.qty) || 1) / systemSettings.manifest_items_per_page) }) }}
           </p>
           <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">
             {{ systemSettings.app_name }} {{ systemSettings.app_version }}
@@ -435,16 +452,16 @@ const docCategories = ref([])
 const isDocTypesLoading = ref(false)
 const isDocCategoriesLoading = ref(false)
 
-const form = reactive({ 
+const form = reactive({
   category_id: '',
-  type_id: '', 
-  title: '', 
-  sensitivity: 'internal', 
-  count: 1, 
-  date: formatDate(new Date()), 
-  notes: '', 
+  type_id: '',
+  title: '',
+  sensitivity: 'internal',
+  count: 1,
+  date: formatDate(new Date()),
+  notes: '',
   urgency: 'Normal',
-  file: null
+  files: []
 })
 
 const errors = reactive({ category_id: '', type_id: '', title: '', sensitivity: '', count: '', date: '', notes: '' })
@@ -602,14 +619,27 @@ onMounted(async () => {
 
 
 const onFileChange = (e) => {
-  const file = e.target.files[0]
-  if (file) form.file = file
+  const selected = Array.from(e.target.files)
+  if (selected.length) {
+    const existing = form.files.map(f => f.name)
+    const newFiles = selected.filter(f => !existing.includes(f.name))
+    form.files.push(...newFiles)
+  }
+  e.target.value = ''
 }
 
 const handleDrop = (e) => {
   isDragging.value = false
-  const file = e.dataTransfer.files[0]
-  if (file) form.file = file
+  const dropped = Array.from(e.dataTransfer.files)
+  if (dropped.length) {
+    const existing = form.files.map(f => f.name)
+    const newFiles = dropped.filter(f => !existing.includes(f.name))
+    form.files.push(...newFiles)
+  }
+}
+
+const removeFile = (idx) => {
+  form.files.splice(idx, 1)
 }
 
 const handleSaveDraft = () => {
@@ -621,14 +651,13 @@ const validate = (isDraft = false) => {
   let isValid = true
   errors.type_id = ''
   errors.title = ''
-  
-  // For drafts, we are less strict, but title is still needed to identify it
+
   if (!form.category_id) { errors.category_id = 'Required'; isValid = false }
   if (!form.type_id) { errors.type_id = 'Required'; isValid = false }
   if (!form.title) { errors.title = 'Required'; isValid = false }
-  
-  if (!isDraft && !form.file && !editId.value) {
-    alert('Please select a file')
+
+  if (!isDraft && form.files.length === 0 && !editId.value) {
+    alert('Pilih minimal 1 file untuk diunggah')
     isValid = false
   }
 
@@ -640,19 +669,18 @@ const handleSubmit = async (status = null) => {
   if (validate(isDraft)) {
     if (activeTab.value === 'bulk' && !isBulkReviewMode.value) { isBulkReviewMode.value = true; return }
     if (isBulkReviewMode.value) { startBulkUpload(); return }
-    
-    if (!form.file && !editId.value && !isDraft) {
-      alert('Please select a file')
+
+    if (form.files.length === 0 && !editId.value && !isDraft) {
+      alert('Pilih minimal 1 file untuk diunggah')
       return
     }
 
     submitting.value = true
-    
+
     try {
-      let res
       const formData = new FormData()
-      
-      if (form.file) formData.append('file', form.file)
+
+      // Append metadata
       formData.append('title', form.title)
       formData.append('type_id', form.type_id)
       formData.append('sensitivity', form.sensitivity)
@@ -660,35 +688,29 @@ const handleSubmit = async (status = null) => {
       formData.append('notes', form.notes)
       formData.append('document_date', form.date)
       formData.append('page_count', form.count)
-      
-      if (status) {
-        formData.append('status', status)
+      if (status) formData.append('status', status)
+
+      // Append all files under field name 'files'
+      for (const file of form.files) {
+        formData.append('files', file)
       }
 
+      let res
       if (editId.value) {
-        // Update/Revision/Draft-to-Final Mode (PUT)
-        res = await $api(`/documents/${editId.value}`, {
-          method: 'PUT',
-          body: formData
-        })
+        res = await $api(`/documents/${editId.value}`, { method: 'PUT', body: formData })
       } else {
-        // New Upload/Draft Mode (POST)
-        res = await $api('/documents', {
-          method: 'POST',
-          body: formData
-        })
+        res = await $api('/documents', { method: 'POST', body: formData })
       }
 
       if (res && res.success) {
-        registeredDocId.value = res.data?.id?.substring(0, 8).toUpperCase()
-        prepareManifest(res.data)
+        const doc = res.data?.document || res.data
+        const files = res.data?.files || []
+        registeredDocId.value = doc?.id?.substring(0, 8).toUpperCase()
+        prepareManifest(doc, files)
         showSuccessPage.value = true
         await fetchRecents()
-        if (!editId.value || isDraft) resetForm()
-        if (isDraft) {
-          showSuccessPage.value = false
-          navigateTo('/dashboard')
-        }
+        if (!editId.value) resetForm()
+        if (isDraft) { showSuccessPage.value = false; navigateTo('/dashboard') }
       } else {
         alert('Action failed: ' + (res?.message || 'Unknown error'))
       }
@@ -713,32 +735,39 @@ const startBulkUpload = () => {
   }, 300)
 }
 
-const prepareManifest = (doc) => {
+const prepareManifest = (doc, files = []) => {
+  const typeName = docTypes.value.find(t => t.id === doc?.type_id)?.name || 'Document'
   manifestData.value = {
-    id: doc.id.substring(0, 8).toUpperCase(),
-    full_id: doc.id,
-    title: doc.title,
-    type: docTypes.value.find(t => t.id === doc.type_id)?.name || 'Document',
-    category: doc.sensitivity || 'Internal',
-    date: formatDateTime(doc.created_at),
+    id: doc?.id?.substring(0, 8).toUpperCase(),
+    full_id: doc?.id,
+    title: doc?.title,
+    type: typeName,
+    category: doc?.sensitivity || 'Internal',
+    date: formatDateTime(doc?.created_at),
     submitter: userProfile.value?.full_name || 'System User',
     department: unwrap(userProfile.value?.department_name) || 'General',
     company_name: unwrap(userProfile.value?.company_name) || 'PT. KREATIF DMS',
     company_logo: unwrap(userProfile.value?.company_logo) || '',
     manager_name: unwrap(userProfile.value?.manager_name) || '-',
     delivery_instructions: unwrap(userProfile.value?.delivery_instructions) || '',
-    urgency: doc.metadata?.urgency || 'Normal',
-    qty: 1,
-    status: doc.status
+    urgency: doc?.metadata?.urgency || 'Normal',
+    qty: files.length || 1,
+    status: doc?.status,
+    files: files.length > 0 ? files : [
+      { file_name: doc?.file_name || doc?.title, file_size: doc?.file_size || 0, is_primary: true }
+    ]
   }
 }
 
 const viewDocumentDetails = async (docId) => {
   try {
-    const res = await $api(`/documents/${docId}`)
-    if (res && res.data) {
-      registeredDocId.value = res.data.id.substring(0, 8).toUpperCase()
-      prepareManifest(res.data)
+    const [docRes, filesRes] = await Promise.all([
+      $api(`/documents/${docId}`),
+      $api(`/documents/${docId}/files`).catch(() => ({ data: [] }))
+    ])
+    if (docRes && docRes.data) {
+      registeredDocId.value = docRes.data.id.substring(0, 8).toUpperCase()
+      prepareManifest(docRes.data, filesRes?.data || [])
       showSuccessPage.value = true
     }
   } catch (err) {
@@ -751,17 +780,17 @@ const printManifest = () => {
   window.print()
 }
 
-const resetForm = () => { 
-  Object.assign(form, { 
+const resetForm = () => {
+  Object.assign(form, {
     category_id: '',
-    type_id: '', 
-    title: '', 
-    sensitivity: 'internal', 
-    count: 1, 
-    date: formatDate(new Date()), 
-    notes: '', 
+    type_id: '',
+    title: '',
+    sensitivity: 'internal',
+    count: 1,
+    date: formatDate(new Date()),
+    notes: '',
     urgency: 'Normal',
-    file: null
+    files: []
   })
   isBulkReviewMode.value = false
   showManifestPreview.value = false

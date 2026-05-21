@@ -30,14 +30,15 @@ documan detail.
 - **Status**: ⚠️ Integrasi Sedang Berjalan (Frontend ✅, Backend 🚧)
 - **Vue File**: `frontend/app/pages/documents/upload.vue`
 - **Backend API**:
-  - ✅ `POST /api/v1/documents/` — Manual Entry
+  - ✅ `POST /api/v1/documents/` — Manual Entry (mendukung multi-file attachment via field `files[]`)
   - 🚧 `POST /api/v1/documents/bulk-import` — Excel Bulk Processing
   - ✅ `POST /api/v1/batches/` — Batch Control
 - **Logic**: 
-  - Manual: Menyimpan satu dokumen dengan metadata lengkap.
+  - Manual: Menyimpan satu dokumen dengan metadata lengkap. File utama (index 0) disimpan di kolom dokumen utama; file tambahan (index 1+) disimpan di tabel `document_files` (migration 000080).
   - Bulk: Parsing file Excel, validasi baris, dan pembuatan dokumen massal dalam satu batch.
 - **Handler**: `document_handler.go` & `batch_handler.go`
 - **Service**: `document_service.go`
+- **Database Tables**: `documents` ✅, `document_files` ✅ (migration 000080 — multi-attachment)
 
 
 
@@ -996,23 +997,25 @@ BP-07
   - `GET /api/v1/circulation/:id/ocr` — get OCR text
 - **Handler**: `circulation_handler.go` (baru)
 - **Service**: `circulation_service.go` (baru)
-- **Database Tables**: `documents` ✅, `circulation_routes` (baru), `departments` ✅
+- **Database Tables**: `documents` ✅, `document_circulations` ✅, `routing_slip_recipients` ✅, `departments` ✅
 - **Relasi Service**: PostgreSQL, MinIO (document viewer), OCR Worker
 
 ---
 
 ### 50. Physical Loan Desk
-- **Status**: ✅ Frontend ada (checkout flow), ❌ Backend belum ada
-- **Vue File**: `frontend/app/pages/loans/checkout.vue` (184 baris)
-- **Deskripsi UI**: 2 kolom — kiri: document review table (doc no, title, category), loan details form (pickup method: courier, warehouse location, pickup date, time slot 09:00-11:00/13:00-15:00, notes). Kanan: summary card (total docs, duration 7 days, est return, security level CONFIDENTIAL), confirm button.
-- **Backend API**: ❌ Belum ada — perlu:
-  - `POST /api/v1/loans/checkout` — submit loan checkout
-  - `GET /api/v1/loans/:id/pickup-slots` — available time slots
-  - `PUT /api/v1/loans/:id/status` — update loan status (prepared/ready/picked-up)
-- **Handler**: Extend `loan_handler.go`
-- **Service**: Extend `loan_service.go`
-- **Database Tables**: `borrow_requests` ✅, `borrow_items` (baru), `documents` ✅
+- **Status**: ✅ Frontend selesai dioverhaul, ⚠️ Backend parsial (queue dari loans endpoint)
+- **Vue File**: `frontend/app/pages/circulation/checkout.vue`
+- **Deskripsi UI**: Layout 2-panel — kiri: antrean serah terima (filter `l2_approved`), klik untuk pilih request. Kanan: verification flow — (1) checklist identitas peminjam (KTP/Badge & kode pickup), (2) tabel dokumen per baris dengan checkbox `handedOver` + kolom kondisi & catatan, (3) area tanda tangan digital, (4) konfirmasi serah terima. Tombol "Complete Handover" hanya aktif jika semua dokumen di-checklist dan konfirmasi dicentang.
+- **Backend API**: 
+  - ✅ `GET /api/v1/loans` — fetch queue (filter `l2_approved` di frontend)
+  - ❌ Perlu ditambah:
+    - `POST /api/v1/loans/:id/complete-handover` — finalisasi serah terima + ubah status ke `active`
+    - `GET /api/v1/loans/:id/pickup-slots` — available time slots
+- **Handler**: `loan_handler.go`
+- **Service**: `loan_service.go`
+- **Database Tables**: `borrow_requests` ✅, `loan_request_items` ✅
 - **Relasi Service**: PostgreSQL, notification_service
+- **i18n**: ✅ `frontend/app/locales/*/circulation.json` key `circulation.checkout.*`
 
 ---
 
@@ -1418,9 +1421,47 @@ BP-07
 
 ---
 
+### 75. Penalty Policy Settings
+- **Status**: ✅ Selesai (Frontend ✅, Backend ✅)
+- **Vue Files**: 
+  - `frontend/app/pages/config/params.vue` — setting interface
+  - `frontend/app/pages/loans/my.vue` — display policy
+  - `frontend/app/pages/loans/index.vue` — display policy
+- **Backend API**: ✅ `GET /api/v1/loans/penalty-policy`
+- **Handler**: `loan_handler.go`
+- **Service**: `document_service.go` (`GetSystemSetting`)
+- **Database Tables**: `system_settings`
+- **Deskripsi**: Kebijakan denda keterlambatan pengembalian dokumen yang dikonfigurasi dinamis di parameter sistem dan ditampilkan ke peminjam.
 
+---
 
+### 76. Circulation Pickup Desk
+- **Status**: ✅ Selesai (Frontend ✅, Backend ✅)
+- **Vue File**: `frontend/app/pages/circulation/pickup.vue`
+- **Backend API**:
+  - ✅ `GET /api/v1/loans` — fetch pickup queue (filter `l1_approved`)
+  - ✅ `GET /api/v1/loans/:id` — fetch loan documents checklist
+  - ✅ `POST /api/v1/loans/:id/approve` — mark ready for pickup (status → `l2_approved`)
+  - ✅ `POST /api/v1/loans/:id/reject` — return request with reason
+- **Handler**: `loan_handler.go` & `approval_handler.go`
+- **Service**: `document_service.go`
+- **Database Tables**: `borrow_requests`, `loan_request_items`
+- **Deskripsi**: Loket persiapan fisik dokumen untuk pengambilan peminjaman. Controller memeriksa dokumen berdasarkan rak/box, menandai status per-dokumen (Ditemukan/Tidak Ditemukan/Rusak), dan menandai siap serah terima dengan auto-redirect ke halaman checkout sirkulasi. Setelah approve, status berubah ke `l2_approved` dan peminjam dapat dijadwalkan pickup di loket checkout.
+- **i18n**: ✅ `frontend/app/locales/*/circulation.json` key `circulation.pickup.*`
 
+---
+
+### 77. Document Multi-Attachment (Document Files)
+- **Status**: ✅ Selesai (Frontend ✅, Backend ✅)
+- **Vue File**: `frontend/app/pages/documents/upload.vue`
+- **Backend API**: ✅ `POST /api/v1/documents/` — mendukung field `files[]` untuk multiple file upload
+- **Handler**: `document_handler.go` — menggunakan `MultipartForm()`, iterasi `files[]` + fallback ke `file`
+- **Service**: `document_service.go` — `ExtraFileParam` struct, upload extra files ke MinIO, simpan di `document_files`
+- **Repository**: `backend/internal/repository/document_files.go` — `CreateDocumentFile`, `ListDocumentFiles`
+- **Database Tables**: `document_files` ✅ (migration 000080) — `document_id`, `file_name`, `file_path`, `file_size`, `mime_type`, `sort_order`
+- **Deskripsi**: File pertama menjadi dokumen utama; file ke-2 dst disimpan sebagai lampiran di tabel `document_files` yang terhubung via `document_id`. Response upload menyertakan `document_files` array.
+
+---
 
 ### Ringkasan Status Master Data
 
@@ -1474,7 +1515,7 @@ BP-07
 | 47 | Loan Timer | ✅ | ❌ | ✅ |
 | 48 | Pre Registration | ✅ | ❌ | ❌ |
 | 49 | Distribution Center | ✅ | ❌ | ❌ |
-| 50 | Physical Loan Desk | ✅ | ❌ | ✅ |
+| 50 | Physical Loan Desk (Checkout) | ✅ | ⚠️ Parsial | ✅ |
 | 51 | Two Level Approval | ✅ | ❌ | ❌ |
 | 52 | Fast Track Selector | ✅ | ❌ | ❌ |
 | 53 | Request Cart | ✅ | ❌ | ❌ |
@@ -1499,5 +1540,9 @@ BP-07
 | 72 | Backup Scheduler | ✅ | ❌ | ❌ |
 | 73 | Security Baseline | ✅ | ❌ | ✅ |
 | 74 | Integration Status | ✅ | ❌ | ✅ |
+| 75 | Penalty Policy Settings | ✅ | ✅ | ✅ |
+| 76 | Circulation Pickup Desk | ✅ | ✅ | ✅ |
+| 77 | Document Multi-Attachment | ✅ | ✅ | ✅ |
 
-> **Kesimpulan**: Dari 74 fitur yang dipetakan, **54 fitur sudah memiliki frontend**, **20 fitur belum ada frontend**. Progress backend meningkat signifikan dengan selesainya modul **Warehouse QR Labeling & Smart Storage**. Backend handler yang sudah aktif meliputi: `auth_handler.go`, `user_handler.go`, `document_handler.go`, `master_handler.go`, `dashboard_handler.go`, `intake_handler.go`. Backend handler yang masih perlu dibuat/diperluas meliputi: `notification_handler.go`, `registration_handler.go`, `circulation_handler.go`, `approval_handler.go`, `cart_handler.go`, `retention_handler.go`, `audit_handler.go`.
+> **Kesimpulan**: Dari 77 fitur yang dipetakan, **57 fitur sudah memiliki frontend**, **20 fitur belum ada frontend**. Progress backend meningkat dengan selesainya modul **Warehouse QR Labeling & Smart Storage**, **Penalty Policy**, loket **Circulation Pickup Desk**, **Circulation Checkout** (overhaul), dan **Document Multi-Attachment** (migration 000080). Status loan flow diperbarui: `l1_approved` = "Dalam Persiapan", `l2_approved` = "Siap Diambil", `active` = "Active". Locales i18n modul circulation (`en` + `id`) sudah tersedia lengkap. Backend handler yang sudah aktif: `auth_handler.go`, `user_handler.go`, `document_handler.go`, `master_handler.go`, `dashboard_handler.go`, `intake_handler.go`, `loan_handler.go` (extended), `approval_handler.go` (extended). Backend handler yang masih perlu dibuat/diperluas: `notification_handler.go`, `registration_handler.go`, `circulation_handler.go` (incoming), `cart_handler.go`, `retention_handler.go`, `audit_handler.go`.
+
