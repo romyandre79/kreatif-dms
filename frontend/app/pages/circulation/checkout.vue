@@ -5,13 +5,15 @@
       <div class="flex items-center justify-between px-4">
         <h2 class="text-xl font-black text-[#1E3A5F] uppercase tracking-tight">{{ $t('circulation.checkout.pickup_queue') }}</h2>
         <span class="px-3 py-1 bg-blue-50 text-blue-600 rounded-lg text-[10px] font-black uppercase tracking-widest border border-blue-100">
-          {{ $t('circulation.checkout.pending_count', { count: 4 }) }}
+          {{ $t('circulation.checkout.pending_count', { count: queue.length }) }}
         </span>
       </div>
 
       <div class="space-y-4">
-        <div v-for="req in queue" :key="req.no" 
-             @click="selectedRequest = req"
+        <div v-if="isLoading" class="text-center py-10 text-xs font-bold text-slate-400">Loading...</div>
+        <div v-else-if="queue.length === 0" class="text-center py-10 text-xs font-bold text-slate-400 italic">Tidak ada antrean serah terima.</div>
+        <div v-else v-for="req in queue" :key="req.no" 
+             @click="selectRequest(req)"
              :class="`group p-6 bg-white rounded-lg border transition-all cursor-pointer shadow-xl shadow-slate-200/20 ${selectedRequest?.no === req.no ? 'border-primary-500 ring-4 ring-primary-500/10' : 'border-slate-100 hover:border-slate-200'}`">
           <div class="flex items-center justify-between mb-4">
             <p class="text-[11px] font-black text-primary-600 uppercase tracking-tight">{{ req.no }}</p>
@@ -30,7 +32,7 @@
     </aside>
 
     <!-- Main Content: Verification & Handover -->
-    <div class="col-span-6 space-y-8" v-motion-fade>
+    <div class="col-span-6 space-y-8" v-motion-fade v-if="selectedRequest">
       <!-- Pickup Verification Card -->
       <div class="glass p-10 rounded-lg bg-white border border-slate-100 shadow-2xl shadow-slate-200/50 space-y-10">
         <div class="flex items-center gap-4">
@@ -59,7 +61,7 @@
           </div>
           <div class="col-span-2 space-y-1">
             <p class="text-[10px] font-black text-slate-300 uppercase tracking-widest">{{ $t('circulation.checkout.pickup_window') }}</p>
-            <p class="text-sm font-black text-[#1E3A5F] uppercase">August 24, 2023 | 14:00 - 15:00 WIB</p>
+            <p class="text-sm font-black text-[#1E3A5F] uppercase">{{ selectedRequest?.time }}</p>
           </div>
         </div>
 
@@ -67,11 +69,11 @@
           <p class="text-[11px] font-black text-blue-700 uppercase tracking-widest">{{ $t('circulation.checkout.checklist_title') }}</p>
           <div class="space-y-4">
             <label class="flex items-center gap-4 cursor-pointer group">
-              <input type="checkbox" class="w-5 h-5 rounded border-2 border-blue-200 text-blue-600 focus:ring-blue-500/10" />
+              <input type="checkbox" v-model="checks.id" class="w-5 h-5 rounded border-2 border-blue-200 text-blue-600 focus:ring-blue-500/10" />
               <span class="text-xs font-bold text-slate-600 group-hover:text-blue-900 transition-colors">{{ $t('circulation.checkout.checklist_id') }}</span>
             </label>
             <label class="flex items-center gap-4 cursor-pointer group">
-              <input type="checkbox" class="w-5 h-5 rounded border-2 border-blue-200 text-blue-600 focus:ring-blue-500/10" />
+              <input type="checkbox" v-model="checks.code" class="w-5 h-5 rounded border-2 border-blue-200 text-blue-600 focus:ring-blue-500/10" />
               <span class="text-xs font-bold text-slate-600 group-hover:text-blue-900 transition-colors">{{ $t('circulation.checkout.checklist_code') }}</span>
             </label>
           </div>
@@ -87,7 +89,7 @@
             </div>
             <h2 class="text-xl font-black text-[#1E3A5F] uppercase tracking-tight">{{ $t('circulation.checkout.handover_title') }}</h2>
           </div>
-          <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">{{ $t('circulation.checkout.selected_count', { count: 3 }) }}</span>
+          <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">{{ $t('circulation.checkout.selected_count', { count: selectedRequest?.docs?.length || 0 }) }}</span>
         </div>
 
         <div class="overflow-hidden border-t border-slate-50">
@@ -105,13 +107,13 @@
                 <td class="py-6 text-xs font-black text-slate-400 uppercase tracking-tight">{{ doc.id }}</td>
                 <td class="py-6">
                   <p class="text-xs font-black text-[#1E3A5F]">{{ doc.name }}</p>
-                  <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">{{ doc.type }} • {{ doc.pages }} Pages</p>
+                  <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">{{ doc.type || 'Original' }} • {{ doc.pages || '-' }} Pages</p>
                 </td>
                 <td class="py-6 text-center">
-                  <input type="checkbox" checked class="w-5 h-5 rounded border-2 border-emerald-200 text-emerald-500" />
+                  <input type="checkbox" v-model="doc.handedOver" class="w-5 h-5 rounded border-2 border-emerald-200 text-emerald-500" />
                 </td>
                 <td class="py-6">
-                  <input type="text" :placeholder="$t('circulation.checkout.table.note_placeholder')" 
+                  <input type="text" v-model="doc.note" :placeholder="$t('circulation.checkout.table.note_placeholder')" 
                          class="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-2 text-[11px] font-medium outline-none focus:border-primary-500 transition-all" />
                 </td>
               </tr>
@@ -122,7 +124,7 @@
     </div>
 
     <!-- Right Sidebar: Scan & Signature -->
-    <div class="col-span-3 space-y-8" v-motion-slide-right>
+    <div class="col-span-3 space-y-8" v-motion-slide-right v-if="selectedRequest">
       <!-- Scan & Confirm -->
       <div class="glass p-8 rounded-lg bg-white border border-slate-100 shadow-xl shadow-slate-200/50 space-y-6">
         <div class="flex items-center gap-3 text-slate-400 uppercase tracking-widest text-[10px] font-black">
@@ -155,36 +157,23 @@
         </div>
 
         <label class="flex items-start gap-4 cursor-pointer group">
-          <input type="checkbox" class="w-5 h-5 rounded border-2 border-slate-200 text-[#1E3A5F] focus:ring-blue-900/10 mt-1" />
+          <input type="checkbox" v-model="checks.confirmed" class="w-5 h-5 rounded border-2 border-slate-200 text-[#1E3A5F] focus:ring-blue-900/10 mt-1" />
           <span class="text-[10px] font-bold text-slate-500 leading-relaxed group-hover:text-slate-900 transition-colors">
             {{ $t('circulation.checkout.confirm_checkbox') }}
           </span>
         </label>
 
         <div class="space-y-3">
-          <button class="w-full py-5 bg-[#1E3A5F] hover:bg-[#152943] text-white rounded-2xl text-[11px] font-black uppercase tracking-[0.2em] shadow-xl shadow-blue-900/20 transition-all flex items-center justify-center gap-3">
-            {{ $t('circulation.checkout.btn_complete') }} <LucideCheckCircle2 class="w-4 h-4" />
+          <button @click="completeHandover" :disabled="!isReadyToComplete"
+                  :class="`w-full py-5 rounded-2xl text-[11px] font-black uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-3 ${isReadyToComplete ? 'bg-[#1E3A5F] hover:bg-[#152943] text-white shadow-xl shadow-blue-900/20' : 'bg-slate-100 text-slate-400 cursor-not-allowed'}`">
+            <span v-if="isSubmitting">Processing...</span>
+            <template v-else>
+              {{ $t('circulation.checkout.btn_complete') }} <LucideCheckCircle2 class="w-4 h-4" />
+            </template>
           </button>
-          <button class="w-full py-4 bg-white border border-slate-200 text-slate-400 hover:bg-slate-50 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] transition-all">
+          <button @click="selectedRequest = null" class="w-full py-4 bg-white border border-slate-200 text-slate-400 hover:bg-slate-50 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] transition-all">
             {{ $t('circulation.checkout.btn_cancel') }}
           </button>
-        </div>
-      </div>
-
-      <!-- Handover Stats -->
-      <div class="px-8 space-y-4">
-        <div class="flex items-center justify-between text-[10px] font-black uppercase tracking-widest">
-          <span class="text-slate-400">{{ $t('circulation.checkout.stats.today_total') }}</span>
-          <span class="text-[#1E3A5F]">24</span>
-        </div>
-        <div class="space-y-2">
-          <div class="flex items-center justify-between text-[10px] font-black uppercase tracking-widest">
-            <span class="text-slate-400">{{ $t('circulation.checkout.stats.success_rate') }}</span>
-            <span class="text-emerald-500">98.5%</span>
-          </div>
-          <div class="h-1.5 bg-slate-100 rounded-full overflow-hidden">
-            <div class="h-full bg-emerald-500 w-[98.5%] rounded-full shadow-lg shadow-emerald-500/20"></div>
-          </div>
         </div>
       </div>
     </div>
@@ -192,42 +181,114 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { 
   LucideClock, LucideShieldCheck, LucideFileStack, 
   LucideScanBarcode, LucideQrCode, LucidePenTool, 
   LucideSignature, LucideCheckCircle2 
 } from 'lucide-vue-next'
+import { useApi } from '@/composables/useApi'
+import { useToast } from '~/composables/useToast'
+import { useI18n } from 'vue-i18n'
 
-const queue = ref([
-  {
-    no: '#REQ-2023-0892',
-    name: 'Budi Santoso',
-    dept: 'Finance & Tax Dept',
-    time: '14:00 - 15:00',
-    docs: [
-      { id: 'DOC-AF102', name: 'Tax Invoice - Q2 Vendor Group', type: 'Original Copy', pages: 12, notePlaceholder: 'e.g. Good condition' },
-      { id: 'DOC-AF105', name: 'Lease Agreement - Building C', type: 'Original Copy', pages: 45, notePlaceholder: 'e.g. Good condition' },
-      { id: 'DOC-AF109', name: 'PO #9812 - IT Infrastructure', type: 'Duplicate Copy', pages: 2, notePlaceholder: 'Slightly creased corner' }
-    ]
-  },
-  {
-    no: '#REQ-2023-0895',
-    name: 'Siti Aminah',
-    dept: 'Legal Affairs',
-    time: '15:30 - 16:30',
-    docs: []
-  },
-  {
-    no: '#REQ-2023-0901',
-    name: 'Robert Downey',
-    dept: 'Human Resources',
-    time: 'Tomorrow',
-    docs: []
+const { $api } = useApi()
+const toast = useToast()
+const { t } = useI18n()
+const config = useRuntimeConfig()
+
+const queue = ref([])
+const selectedRequest = ref(null)
+const isLoading = ref(false)
+const isSubmitting = ref(false)
+
+const checks = ref({
+  id: false,
+  code: false,
+  confirmed: false
+})
+
+const isReadyToComplete = computed(() => {
+  if (!selectedRequest.value) return false
+  if (!checks.value.id || !checks.value.code || !checks.value.confirmed) return false
+  // Ensure all docs are handed over
+  const allHandedOver = selectedRequest.value.docs.every(d => d.handedOver)
+  return allHandedOver
+})
+
+const fetchQueue = async () => {
+  isLoading.value = true
+  try {
+    const res = await $api(`${config.public.apiBase}/loans`)
+    if (res && res.data) {
+      queue.value = res.data
+        .filter(l => l.rawStatus === 'l2_approved')
+        .map(l => ({
+          id: l.id,
+          no: l.no,
+          name: l.userName || 'Requester',
+          dept: l.departmentName || '-',
+          time: l.readyDate || 'Today',
+        }))
+        
+      if (queue.value.length > 0 && !selectedRequest.value) {
+        await selectRequest(queue.value[0])
+      } else if (queue.value.length === 0) {
+        selectedRequest.value = null
+      }
+    }
+  } catch (err) {
+    console.error('Failed to fetch checkout queue:', err)
+    toast.error('Gagal mengambil antrean serah terima')
+  } finally {
+    isLoading.value = false
   }
-])
+}
 
-const selectedRequest = ref(queue.value[0])
+const selectRequest = async (req) => {
+  checks.value = { id: false, code: false, confirmed: false }
+  
+  try {
+    const res = await $api(`${config.public.apiBase}/loans/${req.id}`)
+    if (res && res.data) {
+      selectedRequest.value = {
+        ...req,
+        docs: (res.data.items || []).map(item => ({
+          id: item.id,
+          name: item.document_title,
+          type: item.category || 'Original Copy',
+          handedOver: false,
+          note: ''
+        }))
+      }
+    }
+  } catch (err) {
+    console.error('Failed to fetch loan details:', err)
+    toast.error('Gagal memuat detail permintaan')
+  }
+}
+
+const completeHandover = async () => {
+  if (!isReadyToComplete.value || !selectedRequest.value) return
+  
+  isSubmitting.value = true
+  try {
+    await $api(`${config.public.apiBase}/loans/${selectedRequest.value.id}/approve`, {
+      method: 'POST'
+    })
+    toast.success('Serah terima berhasil, status menjadi on loan!')
+    selectedRequest.value = null
+    await fetchQueue()
+  } catch (err) {
+    console.error('Failed to complete handover:', err)
+    toast.error('Gagal menyelesaikan serah terima')
+  } finally {
+    isSubmitting.value = false
+  }
+}
+
+onMounted(() => {
+  fetchQueue()
+})
 </script>
 
 <style scoped>

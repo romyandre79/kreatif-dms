@@ -1,0 +1,286 @@
+{
+  "circulation": {
+    "pickup": {
+      "stats": {
+        "waiting": "Waiting Preparation",
+        "ready_today": "Ready Today",
+        "sla_risk": "SLA Risk",
+        "high_priority": "High Priority"
+      },
+      "active_requests": "Active Requests ({count})",
+      "search_placeholder": "Search by request number, requestor, dept...",
+      "table": {
+        "approved_at": "Approved {time}",
+        "dept": "Department",
+        "status_complete": "Verification Complete",
+        "docs_count": "{count} Documents",
+        "btn_review": "Review Preparation"
+      },
+      "detail": {
+        "title": "Pickup Preparation Detail",
+        "approved_summary": "Approval Summary",
+        "reason": "Reason",
+        "priority": "Priority",
+        "priority_level": "{level} Priority",
+        "reviewer_note": "Reviewer Note",
+        "checklist_title": "Document Checklist ({count})",
+        "checklist_step": "Step {current} of {total}",
+        "btn_found": "Found",
+        "btn_not_found": "Not Found",
+        "btn_damaged": "Damaged",
+        "admin_note": "Admin Note",
+        "admin_note_placeholder": "Add checklist notes...",
+        "btn_ready": "Mark Ready for Pickup",
+        "btn_escalate": "Escalate Request",
+        "btn_return": "Return Request"
+      },
+      "empty": {
+        "title": "No Request Selected",
+        "desc": "Select a request from the queue to start preparation checklist."
+      }
+    },
+    "checkout": {
+      "pickup_queue": "Pickup Queue",
+      "pending_count": "{count} Pending",
+      "status_ready": "Ready",
+      "pickup_time": "Pickup: {time}",
+      "verification_title": "Pickup Verification",
+      "req_no": "Request No",
+      "pickup_code": "Pickup Code",
+      "requester_name": "Requester Name",
+      "dept": "Department",
+      "pickup_window": "Pickup Window",
+      "checklist_title": "Verification Checklist",
+      "checklist_id": "Verify Requester Identity Card (KTP/Badge)",
+      "checklist_code": "Verify Pickup Security Code",
+      "handover_title": "Document Handover",
+      "selected_count": "{count} Selected",
+      "table": {
+        "doc_id": "Document ID",
+        "doc_name": "Document Name",
+        "handover": "Handover",
+        "condition": "Condition/Notes",
+        "note_placeholder": "e.g. Good condition"
+      },
+      "scan_confirm": "Scan & Confirm",
+      "scan_hint": "Scan QR/Barcode to Confirm",
+      "scan_desc": "Use scanner device to verify document barcodes upon handover",
+      "signature_title": "Signature & Handover Confirmation",
+      "signature_area": "Signature Area",
+      "btn_clear": "Clear",
+      "confirm_checkbox": "I confirm that all selected documents have been physically handed over to the requester in good condition.",
+      "btn_complete": "Complete Handover",
+      "btn_cancel": "Cancel",
+      "stats": {
+        "today_total": "Total Handover Today",
+        "success_rate": "Success Rate"
+      }
+    },
+    "checkin": {
+      "title": "Document Check-in (Return)",
+      "late_return": "Late Return Alert",
+      "req_no": "Request No",
+      "requester_name": "Requester",
+      "due_date": "Due Date",
+      "return_date": "Return Date",
+      "late_status": "Late Status",
+      "overdue_days": "{count} Days Overdue",
+      "checklist_title": "Return Checklist",
+      "checklist_hint": "Check physical condition of each document",
+      "table": {
+        "doc_title": "Document Title",
+        "system_id": "System ID",
+        "expected": "Expected",
+        "actual_condition": "Actual Condition",
+        "notes": "Notes",
+        "status_complete": "Returned",
+        "note_placeholder": "Write damage or return notes...",
+        "damage_reason_req": "Specify damage details"
+      },
+      "conditions": {
+        "complete": "Complete / Intact",
+        "damaged": "Damaged",
+        "missing": "Missing Pages"
+      },
+      "evidence": {
+        "title": "Condition Evidence",
+        "required": "Required for Damaged/Missing",
+        "upload_label": "Upload Photo Evidence",
+        "upload_hint": "PNG, JPG up to 5MB",
+        "admin_note": "Return Admin Note",
+        "admin_note_placeholder": "Enter administrative notes here..."
+      },
+      "footer": {
+        "btn_complete": "Process Return Check-in",
+        "btn_save_issue": "Report Damage & Save",
+        "hint": "Make sure all documents are physically verified"
+      },
+      "modal": {
+        "title": "Check-in Successful",
+        "desc": "The return has been processed. Status updated.",
+        "btn_dashboard": "Go to Dashboard",
+        "btn_print": "Print Return Slip"
+      }
+    },
+    "inbox": {
+      "title": "Circulation Inbox",
+      "subtitle": "Manage routing approvals and tasks",
+      "details": {
+        "status_update": "Status Update",
+        "status_msg": "Ready for review and approval",
+        "info": {
+          "sender": "Sender",
+          "classification": "Classification",
+          "length": "Length",
+          "due_date": "Due Date",
+          "days_left": "{count} Days Left"
+        },
+        "actions": {
+          "download": "Download",
+          "preview": "Preview",
+          "disposisi": "Forward / Disposition"
+        }
+      },
+      "routing": {
+        "title": "Routing Status",
+        "steps": {
+          "head_legal": "Head of Legal",
+          "gm_legal": "GM Legal",
+          "section_head": "Section Head",
+          "archive": "Archivist"
+        },
+        "you": "(You)"
+      }
+    },
+    "incoming": {
+      "viewer": {
+        "full_ocr": "Full OCR Text"
+      },
+      "form": {
+        "title": "Incoming Physical Document Registration",
+        "ocr_badge": "OCR Detected",
+        "sections": {
+          "identity": {
+            "title": "Document Identity",
+            "ref_no": "Reference No",
+            "sender": "Sender Organization"
+          },
+          "content": {
+            "title": "Document Content",
+            "doc_title": "Document Title",
+            "subject": "Subject / Summary"
+          },
+          "flags": {
+            "title": "Classification & Priority",
+            "urgent": "Urgent",
+            "normal": "Normal",
+            "confidential": "Confidential"
+          },
+          "manual": {
+            "title": "Manual Verification",
+            "check_1": "Check stamp authenticity",
+            "check_2": "Verify signature match",
+            "check_3": "Confirm page completeness"
+          }
+        },
+        "actions": {
+          "btn_back": "Back",
+          "btn_register": "Register Incoming Document"
+        }
+      }
+    },
+    "routing_slip": {
+      "title": "Routing Slip Generation",
+      "subtitle": "Create physical tracking slip for internal circulation",
+      "btn_back": "Back to Validation",
+      "btn_print": "Print Slip",
+      "doc_summary": {
+        "title": "Document Summary",
+        "ref": "Reference No",
+        "doc_title": "Title",
+        "classification": "Classification",
+        "sender": "Sender",
+        "received": "Received Date"
+      },
+      "slip": {
+        "header": {
+          "division": "Corporate Secretary & Legal Division",
+          "title": "INTERNAL DOCUMENT ROUTING SLIP"
+        },
+        "form": {
+          "sender": "Sender",
+          "subject": "Subject",
+          "date": "Date",
+          "nature": "Nature of Document",
+          "nature_vals": {
+            "urgent": "Urgent",
+            "normal": "Normal",
+            "confidential": "Confidential"
+          }
+        },
+        "table": {
+          "title": "CIRCULATION LOG & SIGNATURES",
+          "cols": {
+            "no": "No.",
+            "name": "Recipient Name / Role",
+            "date": "Date In",
+            "sign": "Signature",
+            "note": "Action Note / Instructions"
+          }
+        }
+      },
+      "routing_summary": {
+        "title": "Routing Summary",
+        "recipients": "Total Recipients",
+        "type": "Routing Method",
+        "type_val": "Sequential Routing",
+        "deadline": "Target Deadline"
+      }
+    },
+    "labels": {
+      "title": "Smart Label Tagging",
+      "subtitle": "Generate and encode document tags",
+      "preview": {
+        "quality": "Standard Quality",
+        "generated": "Generated {date}",
+        "type": "Original Copy"
+      },
+      "output": {
+        "title": "Output Format",
+        "print": "Direct Print",
+        "pdf": "Save as PDF",
+        "rfid_tag": "RFID Smart Label"
+      },
+      "printer": {
+        "title": "Printer Configuration",
+        "name": "Zebra ZT411 Industrial (Online)",
+        "btn_test": "Print Test Label"
+      },
+      "rfid": {
+        "ready": "RFID Writer Active",
+        "desc": "Encode document metadata directly into the smart label chip.",
+        "encoding": {
+          "title": "Encoding Scheme",
+          "ref_only": "Reference No Only",
+          "full": "Full Metadata Payload",
+          "url": "System URL Link"
+        },
+        "design_preview": "Design Preview",
+        "standard": "ISO 18000-6C Class 1 Gen 2 Standard"
+      }
+    },
+    "signature": {
+      "signed_by": "Signed by {name}",
+      "next": "Next: {name}",
+      "title": "Routing Signature",
+      "subtitle": "Affix your signature to complete routing step",
+      "tabs": {
+        "digital": "Draw Signature",
+        "upload": "Upload Image",
+        "typed": "Type Name"
+      },
+      "clear": "Clear Canvas",
+      "agreement": "I hereby record my signature and confirm document review."
+    }
+  }
+}

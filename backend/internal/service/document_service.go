@@ -23,6 +23,7 @@ import (
 	"image/jpeg"
 	"image/png"
 	"encoding/json"
+	"sort"
 	"strings"
 	"golang.org/x/image/font"
 	"golang.org/x/image/font/basicfont"
@@ -39,6 +40,13 @@ type DocumentService struct {
 
 func NewDocumentService(cfg config.Config, repo repository.Querier, storage *infra.StorageService, asynqClient *asynq.Client, notifSvc *NotificationService) *DocumentService {
 	return &DocumentService{cfg: cfg, repo: repo, storage: storage, asynq: asynqClient, notifSvc: notifSvc}
+}
+
+type ExtraFileParam struct {
+	FileName string
+	FileSize int64
+	MimeType string
+	Content  io.Reader
 }
 
 type UploadDocumentParams struct {
@@ -59,6 +67,7 @@ type UploadDocumentParams struct {
 	DocumentDate string
 	PageCount    int
 	Status       string
+	ExtraFiles   []ExtraFileParam
 }
 
 type UpdateDocumentParams struct {
@@ -143,6 +152,28 @@ func (s *DocumentService) UploadDocument(ctx context.Context, p UploadDocumentPa
 
 	log.Printf("[DocumentService] DB record created successfully: %s (Status: %s)", doc.ID, doc.Status)
 
+	// Save extra files to document_files table
+	if len(p.ExtraFiles) > 0 {
+		q, _ := s.repo.(*repository.Queries)
+		for i, extra := range p.ExtraFiles {
+			if extra.Content == nil {
+				continue
+			}
+			extraObjectName := fmt.Sprintf("%s/%s_%s", p.DepartmentID, uuid.New().String(), extra.FileName)
+			_, err = s.storage.Upload(ctx, extraObjectName, extra.Content, extra.FileSize, extra.MimeType, encryptEnabled)
+			if err != nil {
+				log.Printf("[DocumentService] Warning: failed to upload extra file %s: %v", extra.FileName, err)
+				continue
+			}
+			if q != nil {
+				_, err = q.CreateDocumentFile(ctx, doc.ID, extra.FileName, extraObjectName, extra.FileSize, extra.MimeType, int32(i))
+				if err != nil {
+					log.Printf("[DocumentService] Warning: failed to save extra file record %s: %v", extra.FileName, err)
+				}
+			}
+		}
+	}
+
 	// If it's a draft, stop here (no OCR, no approval)
 	if doc.Status == "draft" {
 		return doc, nil
@@ -215,6 +246,17 @@ func (s *DocumentService) UploadDocument(ctx context.Context, p UploadDocumentPa
 	return doc, nil
 }
 
+func (s *DocumentService) GetDocumentFiles(ctx context.Context, docID uuid.UUID) ([]repository.DocumentFile, error) {
+	q, ok := s.repo.(*repository.Queries)
+	if !ok {
+		return nil, fmt.Errorf("unsupported repository type for document files")
+	}
+	return q.ListDocumentFiles(ctx, docID)
+}
+
+func (s *DocumentService) GetDocumentBasic(ctx context.Context, id uuid.UUID) (repository.GetDocumentRow, error) {
+	return s.repo.GetDocument(ctx, id)
+}
 
 func (s *DocumentService) GetWatermarkedPDF(ctx context.Context, docID uuid.UUID, userFullName string, position string) ([]byte, string, error) {
 	log.Printf("[DocumentService] Accessing watermarked PDF: %s (Requested by: %s)", docID, userFullName)
@@ -759,127 +801,122 @@ type TreeNode struct {
 	Type     string     `json:"type"`
 	Expanded bool       `json:"expanded"`
 	Active   bool       `json:"active"`
-	Count    int        `json:"count,omitempty"`
+	Count    int        `json:"count"`
 	Children []TreeNode `json:"children,omitempty"`
 }
 
 func (s *DocumentService) GetExplorerTree(ctx context.Context) ([]TreeNode, error) {
-	// 1. Get Hierarchy Config
-	setting, err := s.repo.GetSystemSetting(ctx, repository.GetSystemSettingParams{
-		Category: "explorer",
-		Key:      "folder_path",
-	})
-	path := "company,branch,department,year,rack,box,ordner"
-	if err == nil {
-		path = setting.Value.String
-	}
-	levels := strings.Split(path, ",")
-
-	// 2. Get Counts
-	counts, err := s.repo.GetDocumentHierarchyCounts(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	// 3. Fetch names for all entities
+	// Fetch all entities in the physical hierarchy
 	companies, _ := s.repo.ListCompanies(ctx)
 	branches, _ := s.repo.ListAllBranchesGlobal(ctx)
 	departments, _ := s.repo.ListAllDepartments(ctx)
 	racks, _ := s.repo.ListAllRacksGlobal(ctx)
 	boxes, _ := s.repo.ListAllBoxesGlobal(ctx)
 	ordners, _ := s.repo.ListAllOrdnersGlobal(ctx)
-	types, _ := s.repo.ListDocumentTypes(ctx)
 
-	// Build name maps
-	compMap := make(map[uuid.UUID]string)
-	for _, c := range companies { compMap[c.ID] = c.Name }
-	branchMap := make(map[uuid.UUID]string)
-	for _, b := range branches { branchMap[b.ID] = b.Name }
-	deptMap := make(map[uuid.UUID]string)
-	for _, d := range departments { deptMap[d.ID] = d.Name }
-	rackMap := make(map[uuid.UUID]string)
-	for _, r := range racks { rackMap[r.ID] = r.Name }
-	boxMap := make(map[uuid.UUID]string)
-	for _, b := range boxes { boxMap[b.ID] = b.Name }
-	ordnerMap := make(map[uuid.UUID]string)
-	for _, o := range ordners { ordnerMap[o.ID] = o.Name }
-	typeMap := make(map[uuid.UUID]string)
-	for _, t := range types { typeMap[t.ID] = t.Name }
+	// Fetch document counts (active docs only) — used purely for count lookup
+	counts, _ := s.repo.GetDocumentHierarchyCounts(ctx)
 
-	// 4. Build Tree
-	// We use a map to store nodes at each level to avoid duplicates under the same parent
-	type nodeKey struct {
-		level    int
-		id       string
-		parentID string
-	}
-	nodeCache := make(map[nodeKey]*TreeNode)
-
-	root := &TreeNode{ID: "root", Name: "ARSIP", Type: "root", Expanded: true, Children: []TreeNode{}}
-
+	// Build count lookup: ordnerID → year → count
+	ordnerYearCounts := make(map[string]map[int]int)
+	ordnerTotalCount := make(map[string]int)
 	for _, c := range counts {
-		currentNode := root
-		for i, level := range levels {
-			var id, name string
-			switch level {
-			case "company":
-				if c.CompanyID == uuid.Nil { continue }
-				id = c.CompanyID.String()
-				name = compMap[c.CompanyID]
-			case "branch":
-				if c.BranchID == uuid.Nil { continue }
-				id = c.BranchID.String()
-				name = branchMap[c.BranchID]
-			case "department":
-				if c.DepartmentID == uuid.Nil { continue }
-				id = c.DepartmentID.String()
-				name = deptMap[c.DepartmentID]
-			case "year":
-				if c.DocYear == 0 { continue }
-				id = fmt.Sprintf("year-%d", c.DocYear)
-				name = fmt.Sprintf("%d", c.DocYear)
-			case "rack":
-				if !c.RackID.Valid { continue }
-				id = uuid.UUID(c.RackID.Bytes).String()
-				name = rackMap[c.RackID.Bytes]
-			case "box":
-				if !c.BoxID.Valid { continue }
-				id = uuid.UUID(c.BoxID.Bytes).String()
-				name = boxMap[c.BoxID.Bytes]
-			case "ordner":
-				if !c.OrdnerID.Valid { continue }
-				id = uuid.UUID(c.OrdnerID.Bytes).String()
-				name = ordnerMap[c.OrdnerID.Bytes]
-			case "type":
-				if !c.TypeID.Valid { continue }
-				id = uuid.UUID(c.TypeID.Bytes).String()
-				name = typeMap[c.TypeID.Bytes]
+		if !c.OrdnerID.Valid {
+			continue
+		}
+		oid := uuid.UUID(c.OrdnerID.Bytes).String()
+		cnt := int(c.DocCount)
+		ordnerTotalCount[oid] += cnt
+		if c.DocYear > 0 {
+			if ordnerYearCounts[oid] == nil {
+				ordnerYearCounts[oid] = make(map[int]int)
 			}
-
-			if id == "" { continue }
-
-			key := nodeKey{level: i, id: id, parentID: currentNode.ID}
-			if node, ok := nodeCache[key]; ok {
-				node.Count += int(c.DocCount)
-				currentNode = node
-			} else {
-				newNode := &TreeNode{
-					ID:    id,
-					Name:  name,
-					Type:  level,
-					Count: int(c.DocCount),
-				}
-				nodeCache[key] = newNode
-				currentNode.Children = append(currentNode.Children, *newNode)
-				// Since we append a copy, we need to get the pointer to the copy in the slice
-				currentNode = &currentNode.Children[len(currentNode.Children)-1]
-				// Update cache to point to the one in the slice
-				nodeCache[key] = currentNode
-			}
+			ordnerYearCounts[oid][int(c.DocYear)] += cnt
 		}
 	}
 
-	return root.Children, nil
+	// Box is transparent: build ordner → rack mapping directly (skipping box level)
+	boxToRack := make(map[uuid.UUID]uuid.UUID)
+	for _, b := range boxes {
+		boxToRack[b.ID] = b.RackID
+	}
+
+	// Build tree: company → branch → department → rack → ordner → year
+	// All entities appear regardless of document count (count = 0 if no documents)
+	result := make([]TreeNode, 0, len(companies))
+
+	for _, company := range companies {
+		compNode := TreeNode{ID: company.ID.String(), Name: company.Name, Type: "company"}
+
+		for _, branch := range branches {
+			if branch.CompanyID != company.ID {
+				continue
+			}
+			branchNode := TreeNode{ID: branch.ID.String(), Name: branch.Name, Type: "branch"}
+
+			for _, dept := range departments {
+				if dept.BranchID != branch.ID {
+					continue
+				}
+				deptNode := TreeNode{ID: dept.ID.String(), Name: dept.Name, Type: "department"}
+
+				for _, rack := range racks {
+					if rack.DepartmentID != dept.ID {
+						continue
+					}
+					rackNode := TreeNode{ID: rack.ID.String(), Name: rack.Name, Type: "rack"}
+
+					for _, ordner := range ordners {
+						if boxToRack[ordner.BoxID] != rack.ID {
+							continue
+						}
+						oid := ordner.ID.String()
+						totalCount := ordnerTotalCount[oid]
+
+						ordnerNode := TreeNode{
+							ID:    oid,
+							Name:  ordner.Name,
+							Type:  "ordner",
+							Count: totalCount,
+						}
+
+						// Year sub-nodes only appear when there are actual documents
+						if yearMap := ordnerYearCounts[oid]; len(yearMap) > 0 {
+							years := make([]int, 0, len(yearMap))
+							for y := range yearMap {
+								years = append(years, y)
+							}
+							sort.Ints(years)
+							for _, y := range years {
+								ordnerNode.Children = append(ordnerNode.Children, TreeNode{
+									ID:    fmt.Sprintf("year-%d-%s", y, oid),
+									Name:  fmt.Sprintf("%d", y),
+									Type:  "year",
+									Count: yearMap[y],
+								})
+							}
+						}
+
+						rackNode.Count += totalCount
+						rackNode.Children = append(rackNode.Children, ordnerNode)
+					}
+
+					deptNode.Count += rackNode.Count
+					deptNode.Children = append(deptNode.Children, rackNode)
+				}
+
+				branchNode.Count += deptNode.Count
+				branchNode.Children = append(branchNode.Children, deptNode)
+			}
+
+			compNode.Count += branchNode.Count
+			compNode.Children = append(compNode.Children, branchNode)
+		}
+
+		result = append(result, compNode)
+	}
+
+	return result, nil
 }
 
 func (s *DocumentService) FilterDocuments(ctx context.Context, params repository.SearchDocumentsParams) ([]repository.SearchDocumentsRow, error) {
@@ -1033,6 +1070,13 @@ func (s *DocumentService) ApproveLoanRequest(ctx context.Context, loanID uuid.UU
 	} else if loan.Status == "l1_approved" {
 		if err := s.repo.UpdateLoanRequestStatus(ctx, repository.UpdateLoanRequestStatusParams{
 			ID:     loanID,
+			Status: "l2_approved",
+		}); err != nil {
+			return err
+		}
+	} else if loan.Status == "l2_approved" {
+		if err := s.repo.UpdateLoanRequestStatus(ctx, repository.UpdateLoanRequestStatusParams{
+			ID:     loanID,
 			Status: "active",
 		}); err != nil {
 			return err
@@ -1145,4 +1189,12 @@ func (s *DocumentService) RejectLoanRequestAction(ctx context.Context, loanID uu
 
 	return nil
 }
+
+func (s *DocumentService) GetSystemSetting(ctx context.Context, category, key string) (repository.SystemSetting, error) {
+	return s.repo.GetSystemSetting(ctx, repository.GetSystemSettingParams{
+		Category: category,
+		Key:      key,
+	})
+}
+
 

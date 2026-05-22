@@ -6,29 +6,31 @@
       <div class="grid grid-cols-4 gap-6" v-motion-slide-visible-bottom>
         <div class="glass p-8 rounded-3xl bg-white border border-slate-100 shadow-xl shadow-slate-200/50">
           <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4">{{ $t('circulation.pickup.stats.waiting') }}</p>
-          <p class="text-4xl font-black text-[#1E3A5F]">12</p>
+          <p class="text-4xl font-black text-[#1E3A5F]">{{ stats.waiting }}</p>
         </div>
         <div class="glass p-8 rounded-3xl bg-white border border-slate-100 shadow-xl shadow-slate-200/50">
           <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4">{{ $t('circulation.pickup.stats.ready_today') }}</p>
-          <p class="text-4xl font-black text-[#1E3A5F]">8</p>
+          <p class="text-4xl font-black text-[#1E3A5F]">{{ stats.readyToday }}</p>
         </div>
         <div class="glass p-8 rounded-3xl bg-white border border-slate-100 shadow-xl shadow-slate-200/50">
           <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4">{{ $t('circulation.pickup.stats.sla_risk') }}</p>
-          <p class="text-4xl font-black text-red-500">2</p>
+          <p class="text-4xl font-black text-red-500">{{ stats.slaRisk }}</p>
         </div>
         <div class="glass p-8 rounded-3xl bg-white border border-slate-100 shadow-xl shadow-slate-200/50">
           <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4 text-orange-500">{{ $t('circulation.pickup.stats.high_priority') }}</p>
-          <p class="text-4xl font-black text-orange-500">5</p>
+          <p class="text-4xl font-black text-orange-500">{{ stats.highPriority }}</p>
         </div>
       </div>
 
       <!-- Queue Header -->
       <div class="flex items-center justify-between">
-        <h2 class="text-xl font-black text-[#1E3A5F] uppercase tracking-tight">{{ $t('circulation.pickup.active_requests', { count: 12 }) }}</h2>
+        <h2 class="text-xl font-black text-[#1E3A5F] uppercase tracking-tight">
+          {{ $t('circulation.pickup.active_requests', { count: filteredQueue.length }) }}
+        </h2>
         <div class="flex items-center gap-4">
           <div class="relative group w-80">
             <LucideSearch class="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-primary-500 transition-colors" />
-            <input type="text" :placeholder="$t('circulation.pickup.search_placeholder')" 
+            <input type="text" v-model="searchQuery" :placeholder="$t('circulation.pickup.search_placeholder')" 
                    class="w-full pl-12 pr-6 py-4 bg-white border border-slate-200 rounded-2xl text-xs font-bold outline-none focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 transition-all shadow-sm" />
           </div>
           <button class="p-4 bg-white border border-slate-200 rounded-2xl text-slate-400 hover:text-slate-600 transition-all shadow-sm">
@@ -39,8 +41,14 @@
 
       <!-- Requests List -->
       <div class="space-y-4">
-        <div v-for="req in queue" :key="req.no" 
-             @click="selectedRequest = req"
+        <div v-if="isLoading" class="text-center py-16 text-sm font-bold text-slate-400 italic">
+          Loading...
+        </div>
+        <div v-else-if="filteredQueue.length === 0" class="text-center py-16 text-sm font-bold text-slate-400 italic">
+          Tidak ada antrean persiapan pengambilan.
+        </div>
+        <div v-else v-for="req in filteredQueue" :key="req.no" 
+             @click="selectRequest(req)"
              :class="`group p-8 bg-white rounded-lg border transition-all cursor-pointer flex items-center justify-between shadow-xl shadow-slate-200/30 ${selectedRequest?.no === req.no ? 'border-primary-500 ring-4 ring-primary-500/10' : 'border-slate-100 hover:border-slate-300'}`">
           <div class="flex items-center gap-8">
             <div class="flex items-center gap-4 min-w-[200px]">
@@ -48,7 +56,9 @@
               <div>
                 <p class="text-lg font-black text-[#1E3A5F] group-hover:text-primary-600 transition-colors">{{ req.no }}</p>
                 <p class="text-xs font-bold text-slate-600">{{ req.requestor }}</p>
-                <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">{{ $t('circulation.pickup.table.approved_at', { time: req.approvedAt }) }}</p>
+                <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">
+                  {{ $t('circulation.pickup.table.approved_at', { time: req.approvedAt }) }}
+                </p>
               </div>
             </div>
             
@@ -69,7 +79,7 @@
             </div>
           </div>
 
-          <button class="px-8 py-4 bg-slate-50 border border-slate-200 text-[#1E3A5F] rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-primary-500 hover:text-white hover:border-primary-500 transition-all">
+          <button @click.stop="selectRequest(req)" class="px-8 py-4 bg-slate-50 border border-slate-200 text-[#1E3A5F] rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-primary-500 hover:text-white hover:border-primary-500 transition-all">
             {{ $t('circulation.pickup.table.btn_review') }}
           </button>
         </div>
@@ -120,7 +130,7 @@
           <div class="space-y-6">
             <div class="flex items-center justify-between">
               <h4 class="text-xs font-black text-[#1E3A5F] uppercase tracking-widest">{{ $t('circulation.pickup.detail.checklist_title', { count: selectedRequest.docsCount }) }}</h4>
-              <span class="text-[9px] font-bold text-slate-400 uppercase">{{ $t('circulation.pickup.detail.checklist_step', { current: 3, total: selectedRequest.docsCount }) }}</span>
+              <span class="text-[9px] font-bold text-slate-400 uppercase">{{ $t('circulation.pickup.detail.checklist_step', { current: checkedCount, total: selectedRequest.docsCount }) }}</span>
             </div>
             <div class="space-y-4">
               <div v-for="doc in selectedRequest.documents" :key="doc.name" class="p-6 bg-white border border-slate-100 rounded-3xl space-y-6 group hover:border-primary-100 transition-colors">
@@ -139,6 +149,12 @@
                   </div>
                   <div v-if="doc.status === 'found'" class="text-emerald-500">
                     <LucideCheckCircle2 class="w-5 h-5" />
+                  </div>
+                  <div v-else-if="doc.status === 'not_found'" class="text-red-500">
+                    <LucideX class="w-5 h-5" />
+                  </div>
+                  <div v-else-if="doc.status === 'damaged'" class="text-orange-500">
+                    <LucideAlertTriangle class="w-5 h-5" />
                   </div>
                 </div>
 
@@ -160,7 +176,7 @@
           <!-- Admin Note -->
           <div class="space-y-4 pt-6 border-t border-slate-50">
             <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest">{{ $t('circulation.pickup.detail.admin_note') }}</label>
-            <textarea :placeholder="$t('circulation.pickup.detail.admin_note_placeholder')" 
+            <textarea v-model="adminNote" :placeholder="$t('circulation.pickup.detail.admin_note_placeholder')" 
                       rows="3" 
                       class="w-full p-6 bg-slate-50 border border-slate-100 rounded-3xl text-sm font-medium text-slate-600 outline-none focus:ring-4 focus:ring-primary-500/5 focus:border-primary-500 transition-all resize-none"></textarea>
           </div>
@@ -168,14 +184,14 @@
 
         <!-- Footer Actions -->
         <div class="p-10 border-t border-slate-50 bg-slate-50/20 space-y-4">
-          <button class="w-full py-5 bg-[#1E3A5F] hover:bg-[#152943] text-white rounded-2xl text-xs font-black uppercase tracking-[0.2em] shadow-xl shadow-blue-900/20 transition-all">
+          <button @click="markReady" class="w-full py-5 bg-[#1E3A5F] hover:bg-[#152943] text-white rounded-2xl text-xs font-black uppercase tracking-[0.2em] shadow-xl shadow-blue-900/20 transition-all">
             {{ $t('circulation.pickup.detail.btn_ready') }}
           </button>
           <div class="grid grid-cols-2 gap-4">
             <button class="py-4 border border-slate-200 text-slate-400 hover:bg-slate-50 rounded-2xl text-[9px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2">
               <LucideAlertTriangle class="w-3.5 h-3.5" /> {{ $t('circulation.pickup.detail.btn_escalate') }}
             </button>
-            <button class="py-4 border border-slate-200 text-slate-400 hover:bg-slate-50 rounded-2xl text-[9px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2">
+            <button @click="returnRequest" class="py-4 border border-slate-200 text-slate-400 hover:bg-slate-50 rounded-2xl text-[9px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2">
               <LucideRotateCcw class="w-3.5 h-3.5" /> {{ $t('circulation.pickup.detail.btn_return') }}
             </button>
           </div>
@@ -199,58 +215,171 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { 
   LucideSearch, LucideFilter, LucideFileStack, LucideX, 
   LucideFileText, LucideMapPin, LucideCheckCircle2, 
   LucideAlertTriangle, LucideRotateCcw, LucideBox
 } from 'lucide-vue-next'
+import { useApi } from '@/composables/useApi'
+import { useToast } from '~/composables/useToast'
+import { useI18n } from 'vue-i18n'
 
-const queue = ref([
-  {
-    no: 'REQ-2024-001',
-    requestor: 'John Doe',
-    dept: 'Human Resources',
-    approvedAt: '2h ago',
-    priority: 'High',
-    docsCount: 5,
-    reason: 'Legal Review',
-    reviewerNote: 'Ensure all employment contracts are original copies.',
-    documents: [
-      { name: 'Employment_Contract_JD01.pdf', location: 'Cabinet A1, Box 05', status: 'found' },
-      { name: 'ID_Card_Copy_JD01.pdf', location: 'Cabinet A1, Box 05', status: 'none' },
-      { name: 'NDA_Agreement_JD01.pdf', location: 'Cabinet B2, Box 12', status: 'none' }
-    ]
-  },
-  {
-    no: 'REQ-2024-004',
-    requestor: 'Jane Smith',
-    dept: 'Procurement',
-    approvedAt: '4h ago',
-    priority: 'Normal',
-    docsCount: 3,
-    reason: 'Vendor Audit',
-    reviewerNote: 'Check for wet signatures on page 12.',
-    documents: [
-      { name: 'Vendor_Agreement_V2.pdf', location: 'Cabinet C3, Box 01', status: 'none' }
-    ]
-  },
-  {
-    no: 'REQ-2024-007',
-    requestor: 'Robert King',
-    dept: 'Finance',
-    approvedAt: '1d ago',
-    priority: 'Normal',
-    docsCount: 12,
-    reason: 'Internal Audit',
-    reviewerNote: 'Full ledger documents for Q4.',
-    documents: [
-      { name: 'Q4_Tax_Report.pdf', location: 'Cabinet D1, Box 08', status: 'none' }
-    ]
+const { $api } = useApi()
+const toast = useToast()
+const { t } = useI18n()
+const config = useRuntimeConfig()
+
+const allLoans = ref([])
+const queue = ref([])
+const selectedRequest = ref(null)
+const isLoading = ref(false)
+const searchQuery = ref('')
+const adminNote = ref('')
+
+const stats = computed(() => {
+  const waiting = queue.value.length
+  const readyToday = allLoans.value.filter(l => l.rawStatus === 'active').length
+  const highPriority = queue.value.filter(l => l.priority === 'High').length
+  const slaRisk = queue.value.filter(l => l.priority === 'High').length
+  
+  return { waiting, readyToday, highPriority, slaRisk }
+})
+
+const filteredQueue = computed(() => {
+  if (!searchQuery.value) return queue.value
+  const query = searchQuery.value.toLowerCase()
+  return queue.value.filter(req => 
+    (req.no && req.no.toLowerCase().includes(query)) ||
+    (req.requestor && req.requestor.toLowerCase().includes(query)) ||
+    (req.dept && req.dept.toLowerCase().includes(query))
+  )
+})
+
+const checkedCount = computed(() => {
+  if (!selectedRequest.value || !selectedRequest.value.documents) return 0
+  return selectedRequest.value.documents.filter(d => d.status !== 'none').length
+})
+
+const fetchQueue = async () => {
+  isLoading.value = true
+  try {
+    const res = await $api(`${config.public.apiBase}/loans`)
+    if (res && res.data) {
+      allLoans.value = res.data
+      
+      // Map loans queue
+      queue.value = res.data
+        .filter(l => l.rawStatus === 'l1_approved')
+        .map(l => ({
+          id: l.id,
+          no: l.no,
+          requestor: l.userName || 'User',
+          dept: l.departmentName || '-',
+          approvedAt: l.approvedDate || '-',
+          priority: l.priority || 'Normal',
+          docsCount: l.docsCount || 0,
+          purpose: l.purpose || '-',
+          l2RejectionReason: l.l2RejectionReason || '-'
+        }))
+        
+      if (queue.value.length > 0) {
+        // Keep selection if same ID is still in queue, else select first
+        const currentId = selectedRequest.value?.id
+        const stillInQueue = queue.value.find(l => l.id === currentId)
+        if (stillInQueue) {
+          await selectRequest(stillInQueue)
+        } else {
+          await selectRequest(queue.value[0])
+        }
+      } else {
+        selectedRequest.value = null
+      }
+    }
+  } catch (err) {
+    console.error('Failed to fetch pickup queue:', err)
+    toast.error('Gagal mengambil antrean persiapan pengambilan')
+  } finally {
+    isLoading.value = false
   }
-])
+}
 
-const selectedRequest = ref(queue.value[0])
+const selectRequest = async (req) => {
+  try {
+    const res = await $api(`${config.public.apiBase}/loans/${req.id}`)
+    if (res && res.data) {
+      selectedRequest.value = {
+        id: req.id,
+        no: req.no,
+        requestor: req.requestor,
+        dept: req.dept,
+        approvedAt: req.approvedAt,
+        priority: req.priority,
+        docsCount: req.docsCount,
+        reason: req.purpose,
+        reviewerNote: req.l2RejectionReason,
+        documents: (res.data.items || []).map(item => ({
+          id: item.id,
+          name: item.document_title,
+          location: 'Cabinet A1, Box 05', // Mock location fallback
+          status: 'none'
+        }))
+      }
+      adminNote.value = ''
+    }
+  } catch (err) {
+    console.error('Failed to fetch loan details:', err)
+    toast.error('Gagal mengambil detail peminjaman')
+  }
+}
+
+const markReady = async () => {
+  if (!selectedRequest.value) return
+  
+  const unverified = selectedRequest.value.documents.filter(d => d.status === 'none')
+  if (unverified.length > 0) {
+    if (!confirm(`Ada ${unverified.length} dokumen yang belum diverifikasi. Lanjutkan?`)) {
+      return
+    }
+  }
+
+  try {
+    await $api(`${config.public.apiBase}/loans/${selectedRequest.value.id}/approve`, {
+      method: 'POST'
+    })
+    toast.success('Permintaan berhasil ditandai siap serah terima!')
+    navigateTo('/circulation/checkout')
+  } catch (err) {
+    console.error('Failed to mark ready:', err)
+    toast.error('Gagal memproses serah terima')
+  }
+}
+
+const returnRequest = async () => {
+  if (!selectedRequest.value) return
+  const reason = prompt('Masukkan alasan pengembalian:')
+  if (reason === null) return // Canceled
+  if (!reason.trim()) {
+    toast.error('Alasan pengembalian wajib diisi')
+    return
+  }
+  
+  try {
+    await $api(`${config.public.apiBase}/loans/${selectedRequest.value.id}/reject`, {
+      method: 'POST',
+      body: { reason }
+    })
+    toast.success('Permintaan berhasil dikembalikan')
+    await fetchQueue()
+  } catch (err) {
+    console.error('Failed to return request:', err)
+    toast.error('Gagal mengembalikan permintaan')
+  }
+}
+
+onMounted(() => {
+  fetchQueue()
+})
 </script>
 
 <style scoped>

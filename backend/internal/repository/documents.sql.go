@@ -433,7 +433,13 @@ func (q *Queries) GetDocumentLoanHistory(ctx context.Context, documentID uuid.UU
 
 const getDocumentWithDetails = `-- name: GetDocumentWithDetails :one
 SELECT 
-    d.id, d.title, d.description, d.file_name, d.file_path, d.file_size, d.mime_type, d.checksum, d.company_id, d.branch_id, d.department_id, d.rack_id, d.box_id, d.ordner_id, d.owner_id, d.current_version, d.status, d.tags, d.metadata, d.extracted_text, d.is_ocr_processed, d.created_at, d.updated_at, d.batch_id, d.retention_years, d.retention_expiry_date, d.sensitivity, d.circulation_id, d.minio_bucket, d.es_indexed, d.type_id, d.current_manifest_id, d.physical_status,
+    d.id, d.title, d.description, d.file_name, d.file_path, d.file_size, d.mime_type, d.checksum, d.company_id, d.branch_id, d.department_id, d.rack_id, d.box_id, d.ordner_id, d.owner_id, d.current_version,
+    CASE WHEN EXISTS (
+        SELECT 1 FROM loan_request_items lri 
+        JOIN loan_requests lr ON lri.loan_request_id = lr.id 
+        WHERE lri.document_id = d.id AND lr.status IN ('active', 'overdue')
+    ) THEN 'on_loan' ELSE d.status END as status,
+    d.tags, d.metadata, d.extracted_text, d.is_ocr_processed, d.created_at, d.updated_at, d.batch_id, d.retention_years, d.retention_expiry_date, d.sensitivity, d.circulation_id, d.minio_bucket, d.es_indexed, d.type_id, d.current_manifest_id, d.physical_status,
     dt.name as type_name,
     dt.category_id,
     c.name as company_name,
@@ -480,7 +486,7 @@ type GetDocumentWithDetailsRow struct {
 	OrdnerID            pgtype.UUID        `json:"ordner_id"`
 	OwnerID             uuid.UUID          `json:"owner_id"`
 	CurrentVersion      int32              `json:"current_version"`
-	Status              string             `json:"status"`
+	Status              interface{}        `json:"status"`
 	Tags                []string           `json:"tags"`
 	Metadata            json.RawMessage    `json:"metadata"`
 	ExtractedText       pgtype.Text        `json:"extracted_text"`
@@ -793,7 +799,13 @@ func (q *Queries) ListOCRJobs(ctx context.Context, arg ListOCRJobsParams) ([]Lis
 
 const listRecentDocuments = `-- name: ListRecentDocuments :many
 SELECT 
-    d.id, d.title, d.status, d.created_at, d.mime_type, d.file_size, d.metadata,
+    d.id, d.title, 
+    CASE WHEN EXISTS (
+        SELECT 1 FROM loan_request_items lri 
+        JOIN loan_requests lr ON lri.loan_request_id = lr.id 
+        WHERE lri.document_id = d.id AND lr.status IN ('active', 'overdue')
+    ) THEN 'on_loan' ELSE d.status END as status,
+    d.created_at, d.mime_type, d.file_size, d.metadata,
     d.physical_status,
     dt.name as type_name,
     dept.name as department_name,
@@ -814,7 +826,7 @@ type ListRecentDocumentsParams struct {
 type ListRecentDocumentsRow struct {
 	ID             uuid.UUID          `json:"id"`
 	Title          string             `json:"title"`
-	Status         string             `json:"status"`
+	Status         interface{}        `json:"status"`
 	CreatedAt      pgtype.Timestamptz `json:"created_at"`
 	MimeType       pgtype.Text        `json:"mime_type"`
 	FileSize       pgtype.Int8        `json:"file_size"`
@@ -859,7 +871,13 @@ func (q *Queries) ListRecentDocuments(ctx context.Context, arg ListRecentDocumen
 
 const listRecentDocumentsByOwner = `-- name: ListRecentDocumentsByOwner :many
 SELECT 
-    d.id, d.title, d.status, d.created_at, d.mime_type, d.file_size, d.metadata,
+    d.id, d.title, 
+    CASE WHEN EXISTS (
+        SELECT 1 FROM loan_request_items lri 
+        JOIN loan_requests lr ON lri.loan_request_id = lr.id 
+        WHERE lri.document_id = d.id AND lr.status IN ('active', 'overdue')
+    ) THEN 'on_loan' ELSE d.status END as status,
+    d.created_at, d.mime_type, d.file_size, d.metadata,
     d.physical_status,
     dt.name as type_name,
     dept.name as department_name,
@@ -881,7 +899,7 @@ type ListRecentDocumentsByOwnerParams struct {
 type ListRecentDocumentsByOwnerRow struct {
 	ID             uuid.UUID          `json:"id"`
 	Title          string             `json:"title"`
-	Status         string             `json:"status"`
+	Status         interface{}        `json:"status"`
 	CreatedAt      pgtype.Timestamptz `json:"created_at"`
 	MimeType       pgtype.Text        `json:"mime_type"`
 	FileSize       pgtype.Int8        `json:"file_size"`
@@ -926,7 +944,13 @@ func (q *Queries) ListRecentDocumentsByOwner(ctx context.Context, arg ListRecent
 
 const searchDocuments = `-- name: SearchDocuments :many
 SELECT 
-    d.id, d.title, d.status, d.created_at, d.mime_type, d.file_size, d.metadata,
+    d.id, d.title, 
+    CASE WHEN EXISTS (
+        SELECT 1 FROM loan_request_items lri 
+        JOIN loan_requests lr ON lri.loan_request_id = lr.id 
+        WHERE lri.document_id = d.id AND lr.status IN ('active', 'overdue')
+    ) THEN 'on_loan' ELSE d.status END as status,
+    d.created_at, d.mime_type, d.file_size, d.metadata,
     d.physical_status,
     dt.name as type_name,
     dept.name as department_name,
@@ -963,7 +987,7 @@ type SearchDocumentsParams struct {
 type SearchDocumentsRow struct {
 	ID             uuid.UUID          `json:"id"`
 	Title          string             `json:"title"`
-	Status         string             `json:"status"`
+	Status         interface{}        `json:"status"`
 	CreatedAt      pgtype.Timestamptz `json:"created_at"`
 	MimeType       pgtype.Text        `json:"mime_type"`
 	FileSize       pgtype.Int8        `json:"file_size"`

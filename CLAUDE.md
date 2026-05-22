@@ -405,8 +405,10 @@ Test files: `internal/auth/jwt_test.go`, `internal/middleware/auth_test.go`, `in
 - `backend/internal/service/document_service.go` - Business logic
 - `frontend/nuxt.config.ts` - Frontend framework setup
 - `frontend/app/stores/auth.ts` - Auth state management
+- `frontend/design.md` - **Frontend UI/UX style guide** (colors, typography, components, spacing, dark mode — WAJIB dibaca sebelum mengerjakan frontend)
 - `docker-compose.yml` - Infrastructure definition
 - `PROJECT_PLAN.md` - High-level requirements
+- `DETAIL_PROJECT.md` - Per-feature implementation status (frontend, backend, database)
 
 ---
 

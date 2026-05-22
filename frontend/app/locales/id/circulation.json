@@ -1,0 +1,286 @@
+{
+  "circulation": {
+    "pickup": {
+      "stats": {
+        "waiting": "Menunggu Persiapan",
+        "ready_today": "Siap Hari Ini",
+        "sla_risk": "Risiko SLA",
+        "high_priority": "Prioritas Tinggi"
+      },
+      "active_requests": "Permintaan Aktif ({count})",
+      "search_placeholder": "Cari nomor request, peminta, departemen...",
+      "table": {
+        "approved_at": "Disetujui {time}",
+        "dept": "Departemen",
+        "status_complete": "Verifikasi Selesai",
+        "docs_count": "{count} Dokumen",
+        "btn_review": "Tinjau Persiapan"
+      },
+      "detail": {
+        "title": "Detail Persiapan Pengambilan",
+        "approved_summary": "Ringkasan Persetujuan",
+        "reason": "Alasan",
+        "priority": "Prioritas",
+        "priority_level": "Prioritas {level}",
+        "reviewer_note": "Catatan Reviewer",
+        "checklist_title": "Checklist Dokumen ({count})",
+        "checklist_step": "Langkah {current} dari {total}",
+        "btn_found": "Ditemukan",
+        "btn_not_found": "Tidak Ditemukan",
+        "btn_damaged": "Rusak",
+        "admin_note": "Catatan Admin",
+        "admin_note_placeholder": "Tambah catatan checklist...",
+        "btn_ready": "Tandai Siap Serah Terima",
+        "btn_escalate": "Eskalasi Permintaan",
+        "btn_return": "Kembalikan Permintaan"
+      },
+      "empty": {
+        "title": "Tidak Ada Permintaan Dipilih",
+        "desc": "Pilih permintaan dari antrean untuk memulai checklist persiapan."
+      }
+    },
+    "checkout": {
+      "pickup_queue": "Antrean Pengambilan",
+      "pending_count": "{count} Menunggu",
+      "status_ready": "Siap",
+      "pickup_time": "Pengambilan: {time}",
+      "verification_title": "Verifikasi Pengambilan",
+      "req_no": "No. Permintaan",
+      "pickup_code": "Kode Pengambilan",
+      "requester_name": "Nama Peminta",
+      "dept": "Departemen",
+      "pickup_window": "Jendela Pengambilan",
+      "checklist_title": "Checklist Verifikasi",
+      "checklist_id": "Verifikasi Kartu Identitas Peminta (KTP/Badge)",
+      "checklist_code": "Verifikasi Kode Keamanan Pengambilan",
+      "handover_title": "Serah Terima Dokumen",
+      "selected_count": "{count} Dipilih",
+      "table": {
+        "doc_id": "ID Dokumen",
+        "doc_name": "Nama Dokumen",
+        "handover": "Serah Terima",
+        "condition": "Kondisi/Catatan",
+        "note_placeholder": "misal: Kondisi baik"
+      },
+      "scan_confirm": "Pindai & Konfirmasi",
+      "scan_hint": "Scan QR/Barcode untuk Konfirmasi",
+      "scan_desc": "Gunakan perangkat pemindai untuk memverifikasi barcode dokumen saat serah terima",
+      "signature_title": "Tanda Tangan & Konfirmasi Serah Terima",
+      "signature_area": "Area Tanda Tangan",
+      "btn_clear": "Bersihkan",
+      "confirm_checkbox": "Saya mengonfirmasi bahwa semua dokumen yang dipilih telah diserahterimakan secara fisik kepada peminta dalam kondisi baik.",
+      "btn_complete": "Selesaikan Serah Terima",
+      "btn_cancel": "Batal",
+      "stats": {
+        "today_total": "Total Serah Terima Hari Ini",
+        "success_rate": "Tingkat Keberhasilan"
+      }
+    },
+    "checkin": {
+      "title": "Check-in Dokumen (Kembali)",
+      "late_return": "Peringatan Pengembalian Terlambat",
+      "req_no": "No. Permintaan",
+      "requester_name": "Peminjam",
+      "due_date": "Batas Waktu",
+      "return_date": "Tanggal Kembali",
+      "late_status": "Status Keterlambatan",
+      "overdue_days": "Terlambat {count} Hari",
+      "checklist_title": "Checklist Pengembalian",
+      "checklist_hint": "Periksa kondisi fisik setiap dokumen",
+      "table": {
+        "doc_title": "Judul Dokumen",
+        "system_id": "ID Sistem",
+        "expected": "Diharapkan",
+        "actual_condition": "Kondisi Aktual",
+        "notes": "Catatan",
+        "status_complete": "Dikembalikan",
+        "note_placeholder": "Tulis catatan kerusakan atau pengembalian...",
+        "damage_reason_req": "Tentukan detail kerusakan"
+      },
+      "conditions": {
+        "complete": "Lengkap / Utuh",
+        "damaged": "Rusak",
+        "missing": "Halaman Hilang"
+      },
+      "evidence": {
+        "title": "Bukti Kondisi",
+        "required": "Wajib untuk Rusak/Hilang",
+        "upload_label": "Unggah Foto Bukti",
+        "upload_hint": "PNG, JPG hingga 5MB",
+        "admin_note": "Catatan Admin Pengembalian",
+        "admin_note_placeholder": "Masukkan catatan administratif di sini..."
+      },
+      "footer": {
+        "btn_complete": "Proses Check-in Pengembalian",
+        "btn_save_issue": "Laporkan Kerusakan & Simpan",
+        "hint": "Pastikan semua dokumen telah diverifikasi secara fisik"
+      },
+      "modal": {
+        "title": "Check-in Berhasil",
+        "desc": "Pengembalian telah diproses. Status diperbarui.",
+        "btn_dashboard": "Ke Dashboard",
+        "btn_print": "Cetak Slip Pengembalian"
+      }
+    },
+    "inbox": {
+      "title": "Inbox Sirkulasi",
+      "subtitle": "Kelola persetujuan rute dan tugas",
+      "details": {
+        "status_update": "Pembaruan Status",
+        "status_msg": "Siap untuk ditinjau dan disetujui",
+        "info": {
+          "sender": "Pengirim",
+          "classification": "Klasifikasi",
+          "length": "Panjang",
+          "due_date": "Batas Waktu",
+          "days_left": "Sisa {count} Hari"
+        },
+        "actions": {
+          "download": "Unduh",
+          "preview": "Pratinjau",
+          "disposisi": "Teruskan / Disposisi"
+        }
+      },
+      "routing": {
+        "title": "Status Rute",
+        "steps": {
+          "head_legal": "Kepala Bidang Hukum",
+          "gm_legal": "GM Legal",
+          "section_head": "Kepala Seksi",
+          "archive": "Arsiparis"
+        },
+        "you": "(Anda)"
+      }
+    },
+    "incoming": {
+      "viewer": {
+        "full_ocr": "Teks OCR Lengkap"
+      },
+      "form": {
+        "title": "Registrasi Dokumen Fisik Masuk",
+        "ocr_badge": "OCR Terdeteksi",
+        "sections": {
+          "identity": {
+            "title": "Identitas Dokumen",
+            "ref_no": "No. Referensi",
+            "sender": "Organisasi Pengirim"
+          },
+          "content": {
+            "title": "Isi Dokumen",
+            "doc_title": "Judul Dokumen",
+            "subject": "Subjek / Ringkasan"
+          },
+          "flags": {
+            "title": "Klasifikasi & Prioritas",
+            "urgent": "Mendesak",
+            "normal": "Normal",
+            "confidential": "Rahasia"
+          },
+          "manual": {
+            "title": "Verifikasi Manual",
+            "check_1": "Periksa keaslian stempel",
+            "check_2": "Verifikasi kecocokan tanda tangan",
+            "check_3": "Konfirmasi kelengkapan halaman"
+          }
+        },
+        "actions": {
+          "btn_back": "Kembali",
+          "btn_register": "Registrasikan Dokumen Masuk"
+        }
+      }
+    },
+    "routing_slip": {
+      "title": "Pembuatan Slip Rute",
+      "subtitle": "Buat slip pelacakan fisik untuk sirkulasi internal",
+      "btn_back": "Kembali ke Validasi",
+      "btn_print": "Cetak Slip",
+      "doc_summary": {
+        "title": "Ringkasan Dokumen",
+        "ref": "No. Referensi",
+        "doc_title": "Judul",
+        "classification": "Klasifikasi",
+        "sender": "Pengirim",
+        "received": "Tanggal Diterima"
+      },
+      "slip": {
+        "header": {
+          "division": "Sekretaris Perusahaan & Divisi Hukum",
+          "title": "SLIP RUTE DOKUMEN INTERNAL"
+        },
+        "form": {
+          "sender": "Pengirim",
+          "subject": "Subjek",
+          "date": "Tanggal",
+          "nature": "Sifat Dokumen",
+          "nature_vals": {
+            "urgent": "Mendesak",
+            "normal": "Normal",
+            "confidential": "Rahasia"
+          }
+        },
+        "table": {
+          "title": "LOG SIRKULASI & TANDA TANGAN",
+          "cols": {
+            "no": "No.",
+            "name": "Nama Penerima / Jabatan",
+            "date": "Tgl Masuk",
+            "sign": "Tanda Tangan",
+            "note": "Catatan Tindakan / Instruksi"
+          }
+        }
+      },
+      "routing_summary": {
+        "title": "Ringkasan Rute",
+        "recipients": "Total Penerima",
+        "type": "Metode Rute",
+        "type_val": "Rute Berurutan",
+        "deadline": "Target Batas Waktu"
+      }
+    },
+    "labels": {
+      "title": "Tagging Label Pintar",
+      "subtitle": "Buat dan enkoding tag dokumen",
+      "preview": {
+        "quality": "Kualitas Standar",
+        "generated": "Dibuat {date}",
+        "type": "Salinan Asli"
+      },
+      "output": {
+        "title": "Format Output",
+        "print": "Cetak Langsung",
+        "pdf": "Simpan sebagai PDF",
+        "rfid_tag": "Label Pintar RFID"
+      },
+      "printer": {
+        "title": "Konfigurasi Printer",
+        "name": "Zebra ZT411 Industrial (Online)",
+        "btn_test": "Cetak Label Tes"
+      },
+      "rfid": {
+        "ready": "RFID Writer Aktif",
+        "desc": "Enkoding metadata dokumen langsung ke dalam chip label pintar.",
+        "encoding": {
+          "title": "Skema Enkoding",
+          "ref_only": "Hanya No. Referensi",
+          "full": "Payload Metadata Lengkap",
+          "url": "Link URL Sistem"
+        },
+        "design_preview": "Pratinjau Desain",
+        "standard": "Standar ISO 18000-6C Class 1 Gen 2"
+      }
+    },
+    "signature": {
+      "signed_by": "Ditandatangani oleh {name}",
+      "next": "Berikutnya: {name}",
+      "title": "Tanda Tangan Rute",
+      "subtitle": "Bubuhkan tanda tangan Anda untuk menyelesaikan langkah rute",
+      "tabs": {
+        "digital": "Gambar Tanda Tangan",
+        "upload": "Unggah Gambar",
+        "typed": "Ketik Nama"
+      },
+      "clear": "Bersihkan Kanvas",
+      "agreement": "Dengan ini saya membubuhkan tanda tangan dan mengonfirmasi peninjauan dokumen."
+    }
+  }
+}

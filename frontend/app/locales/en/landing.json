@@ -5,7 +5,8 @@
       "solutions": "Solutions",
       "security": "Security",
       "sign_in": "Sign In",
-      "get_started": "Get Started"
+      "get_started": "Get Started",
+      "pricing": "Pricing"
     },
     "hero": {
       "badge": "New: Gemini AI Integration",
@@ -33,6 +34,37 @@
       "uptime": "System Uptime",
       "companies": "Organizations",
       "ai": "AI Ops / Second"
+    },
+    "pricing": {
+      "title": "Simple, Transparent Pricing",
+      "subtitle": "Choose the right plan for your organization. Scale up or down anytime.",
+      "popular": "Most Popular",
+      "per_month": "/month",
+      "get_started": "Get Started",
+      "contact_sales": "Contact Sales",
+      "custom_price": "Custom",
+      "plans": {
+        "free": {
+          "name": "Free",
+          "desc": "Perfect for individuals and small teams just getting started.",
+          "features": ["1 user account", "5 GB storage", "Up to 30 documents", "Basic search", "Email support"]
+        },
+        "basic": {
+          "name": "Basic",
+          "desc": "Ideal for growing teams that need more capacity and features.",
+          "features": ["Up to 5 users", "15 GB storage", "Up to 100 documents", "Full-text search", "3×8 working hours support"]
+        },
+        "advance": {
+          "name": "Advance",
+          "desc": "For organizations ready for AI-powered document workflows.",
+          "features": ["Up to 20 users", "Up to 1,000 documents", "50 GB storage", "Full-text search", "2×8 working hours support"]
+        },
+        "pro": {
+          "name": "Pro",
+          "desc": "Unlimited power and full control for large enterprises.",
+          "features": ["Unlimited users", "1 TB+ storage", "Unlimited documents", "All AI features", "API access", "Custom integrations", "99.9% SLA", "Dedicated support"]
+        }
+      }
     },
     "footer": {
       "desc": "Smart document management solutions for your enterprise's digital future.",

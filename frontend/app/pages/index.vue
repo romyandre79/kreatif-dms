@@ -13,6 +13,7 @@
         <a href="#features" class="text-sm font-medium text-slate-400 hover:text-white transition-colors">{{ $t('landing.nav.features') }}</a>
         <a href="#solutions" class="text-sm font-medium text-slate-400 hover:text-white transition-colors">{{ $t('landing.nav.solutions') }}</a>
         <a href="#security" class="text-sm font-medium text-slate-400 hover:text-white transition-colors">{{ $t('landing.nav.security') }}</a>
+        <a href="#pricing" class="text-sm font-medium text-slate-400 hover:text-white transition-colors">{{ $t('landing.nav.pricing') }}</a>
       </div>
 
       <div class="flex items-center gap-4">
@@ -194,6 +195,93 @@
       </div>
     </section>
 
+    <!-- Pricing Section -->
+    <section id="pricing" class="py-24 px-6 relative">
+      <div class="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-5xl h-[500px] bg-primary-500/8 blur-[150px] rounded-full -z-10"></div>
+      <div class="max-w-7xl mx-auto">
+        <div class="text-center max-w-2xl mx-auto mb-16" v-motion-fade-visible>
+          <h2 class="text-4xl font-bold mb-4">{{ $t('landing.pricing.title') }}</h2>
+          <p class="text-slate-400">{{ $t('landing.pricing.subtitle') }}</p>
+        </div>
+
+        <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6 items-start">
+          <div
+            v-for="(plan, i) in pricingPlans"
+            :key="i"
+            v-motion-slide-visible-bottom
+            :class="[
+              'relative flex flex-col rounded-3xl p-8 transition-all duration-300',
+              plan.popular
+                ? 'glass border border-primary-500/50 shadow-2xl shadow-primary-500/20 lg:-translate-y-4'
+                : 'glass hover:border-white/10'
+            ]"
+          >
+            <!-- Popular badge -->
+            <div v-if="plan.popular" class="absolute -top-4 left-1/2 -translate-x-1/2">
+              <span class="px-4 py-1.5 bg-primary-500 rounded-full text-xs font-bold uppercase tracking-widest whitespace-nowrap shadow-lg shadow-primary-500/40">
+                {{ $t('landing.pricing.popular') }}
+              </span>
+            </div>
+
+            <!-- Icon & name -->
+            <div class="mb-6">
+              <div :class="['w-12 h-12 rounded-2xl flex items-center justify-center mb-4', plan.popular ? 'bg-primary-500/20 border border-primary-500/30' : 'bg-slate-800/80']">
+                <component :is="plan.icon" :class="['w-6 h-6', plan.popular ? 'text-primary-400' : 'text-slate-400']" />
+              </div>
+              <h3 class="text-xl font-bold">{{ $t(plan.nameKey) }}</h3>
+            </div>
+
+            <!-- Price -->
+            <div class="mb-3">
+              <div v-if="!plan.enterprise" class="flex items-end gap-1">
+                <span class="text-4xl font-extrabold">{{ plan.currency }}{{ plan.price }}</span>
+                <span class="text-slate-500 mb-1 text-sm">{{ $t('landing.pricing.per_month') }}</span>
+              </div>
+              <div v-else>
+                <span class="text-4xl font-extrabold">{{ $t('landing.pricing.custom_price') }}</span>
+              </div>
+            </div>
+
+            <!-- Description -->
+            <p class="text-sm text-slate-400 mb-8 leading-relaxed">{{ $t(plan.descKey) }}</p>
+
+            <!-- Features -->
+            <ul class="space-y-3 mb-8 flex-1">
+              <li v-for="(feature, fi) in plan.features" :key="fi" class="flex items-start gap-2.5 text-sm">
+                <LucideCheck :class="['w-4 h-4 mt-0.5 flex-shrink-0', plan.popular ? 'text-primary-400' : 'text-green-500']" />
+                <span class="text-slate-300">{{ feature }}</span>
+              </li>
+            </ul>
+
+            <!-- CTA -->
+            <a
+              v-if="plan.enterprise"
+              :href="plan.ctaHref"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="w-full py-3 rounded-2xl text-sm font-bold text-center transition-all block bg-white/5 border border-white/20 text-white hover:bg-white/10"
+            >
+              {{ $t('landing.pricing.contact_sales') }}
+            </a>
+            <a
+              v-else
+              :href="plan.ctaHref"
+              target="_blank"
+              rel="noopener noreferrer"
+              :class="[
+                'w-full py-3 rounded-2xl text-sm font-bold text-center transition-all block',
+                plan.popular
+                  ? 'bg-primary-500 text-white hover:bg-primary-400 shadow-lg shadow-primary-500/30'
+                  : 'bg-white/5 border border-white/10 text-white hover:bg-white/10'
+              ]"
+            >
+              {{ $t('landing.pricing.get_started') }}
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- Stats Section -->
     <section class="py-20 border-y border-white/5 bg-white/[0.02]">
       <div class="max-w-7xl mx-auto px-6 grid grid-cols-2 lg:grid-cols-4 gap-12 text-center">
@@ -223,7 +311,7 @@
           <ul class="space-y-4 text-sm text-slate-500">
             <li><a href="#" class="hover:text-white transition-colors">{{ $t('landing.nav.features') }}</a></li>
             <li><a href="#" class="hover:text-white transition-colors">{{ $t('landing.nav.security') }}</a></li>
-            <li><a href="#" class="hover:text-white transition-colors">{{ $t('landing.footer.pricing') }}</a></li>
+            <li><a href="#pricing" class="hover:text-white transition-colors">{{ $t('landing.footer.pricing') }}</a></li>
           </ul>
         </div>
         <div>
@@ -247,21 +335,25 @@
 </template>
 
 <script setup>
-import { 
-  LucideFileStack, 
-  LucideArrowRight, 
-  LucideScanText, 
-  LucideShieldCheck, 
-  LucideZap, 
-  LucideSearch, 
-  LucideCpu, 
+import {
+  LucideFileStack,
+  LucideArrowRight,
+  LucideScanText,
+  LucideShieldCheck,
+  LucideZap,
+  LucideSearch,
+  LucideCpu,
   LucideCloud,
   LucideLanguages,
   LucideCheck,
-  LucideLayoutDashboard
+  LucideLayoutDashboard,
+  LucideLock,
+  LucideUser,
+  LucideRocket,
+  LucideCrown
 } from 'lucide-vue-next'
 
-const { locale, locales, setLocale, t } = useI18n()
+const { locale, locales, setLocale, t, tm, rt } = useI18n()
 const auth = useAuthStore()
 
 useHead({
@@ -311,6 +403,56 @@ const stats = [
   { labelKey: 'landing.stats.companies', value: '500+' },
   { labelKey: 'landing.stats.ai', value: '250' }
 ]
+
+const waLink = (type) =>
+  `https://wa.me/6281932701147?text=${encodeURIComponent(`Halo, saya ingin berlangganan Kreatif DMS tipe ${type}`)}`
+
+const pricingPlans = computed(() => [
+  {
+    nameKey: 'landing.pricing.plans.free.name',
+    currency: '$',
+    price: '0',
+    enterprise: false,
+    popular: false,
+    icon: LucideUser,
+    descKey: 'landing.pricing.plans.free.desc',
+    features: tm('landing.pricing.plans.free.features').map(f => rt(f)),
+    ctaHref: waLink('Free')
+  },
+  {
+    nameKey: 'landing.pricing.plans.basic.name',
+    currency: '$',
+    price: '53',
+    enterprise: false,
+    popular: false,
+    icon: LucideZap,
+    descKey: 'landing.pricing.plans.basic.desc',
+    features: tm('landing.pricing.plans.basic.features').map(f => rt(f)),
+    ctaHref: waLink('Basic')
+  },
+  {
+    nameKey: 'landing.pricing.plans.advance.name',
+    currency: '$',
+    price: '167',
+    enterprise: false,
+    popular: true,
+    icon: LucideRocket,
+    descKey: 'landing.pricing.plans.advance.desc',
+    features: tm('landing.pricing.plans.advance.features').map(f => rt(f)),
+    ctaHref: waLink('Advance')
+  },
+  {
+    nameKey: 'landing.pricing.plans.pro.name',
+    currency: '',
+    price: null,
+    enterprise: true,
+    popular: false,
+    icon: LucideCrown,
+    descKey: 'landing.pricing.plans.pro.desc',
+    features: tm('landing.pricing.plans.pro.features').map(f => rt(f)),
+    ctaHref: waLink('Pro')
+  }
+])
 </script>
 
 <style scoped>

@@ -1,7 +1,7 @@
 <template>
   <div class="flex h-[calc(100vh-theme(spacing.20)-1rem)] -m-2 overflow-hidden bg-[#F8FAFC]">
     <!-- Left Sidebar: Document Explorer -->
-    <aside class="w-80 border-r border-slate-200 bg-white flex flex-col overflow-hidden">
+    <aside class="w-80 shrink-0 border-r border-slate-200 bg-white flex flex-col overflow-hidden">
       <div class="p-6 space-y-6">
         <h2 class="text-lg font-bold text-slate-800">{{ $t('documents.explorer.title') }}</h2>
         
@@ -20,11 +20,15 @@
         <div v-if="isLoadingTree" class="p-4 space-y-4">
           <div v-for="i in 5" :key="i" class="h-8 bg-slate-50 animate-pulse rounded-lg"></div>
         </div>
+        <div v-else-if="folderTree.length === 0" class="flex flex-col items-center justify-center py-12 px-4 text-center">
+          <LucideFolderOpen class="w-12 h-12 text-slate-200 mb-3" />
+          <p class="text-sm font-bold text-slate-400">{{ $t('documents.explorer.empty') }}</p>
+        </div>
         <div v-else class="space-y-1">
-          <ExplorerNode 
-            v-for="node in folderTree" 
-            :key="node.id" 
-            :node="node" 
+          <ExplorerNode
+            v-for="node in folderTree"
+            :key="node.id"
+            :node="node"
             @select="handleNodeSelect"
           />
         </div>
@@ -114,15 +118,39 @@
                   <p class="text-sm text-slate-500 leading-relaxed line-clamp-2 italic" v-html="res.snippet"></p>
                   <div class="flex flex-wrap gap-2 pt-2">
                     <span v-for="tag in res.tags" :key="tag" class="px-3 py-1 bg-slate-50 border border-slate-100 text-slate-400 text-[9px] font-black rounded-lg uppercase tracking-widest">{{ tag }}</span>
-                    <div class="flex items-center gap-1.5 ml-2 px-3 py-1 bg-green-50 text-green-600 rounded-lg text-[9px] font-black uppercase tracking-widest border border-green-100">
-                      <div class="w-1 h-1 rounded-full bg-green-500"></div>
-                      {{ $t('documents.filters.available') }}
+                    <div 
+                      class="flex items-center gap-1.5 ml-2 px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest border"
+                      :class="!isDocSelectable(res)
+                        ? 'bg-blue-50 text-blue-600 border-blue-100' 
+                        : 'bg-green-50 text-green-600 border-green-100'"
+                    >
+                      <div 
+                        class="w-1.5 h-1.5 rounded-full" 
+                        :class="!isDocSelectable(res) ? 'bg-blue-500' : 'bg-green-500'"
+                      ></div>
+                      {{ !isDocSelectable(res) ? $t('documents.filters.on_loan') : $t('documents.filters.available') }}
                     </div>
                   </div>
                 </div>
                 <div class="flex items-center gap-2">
                   <button @click="viewDocument(res)" class="p-3 bg-slate-50 rounded-2xl text-slate-400 hover:text-primary-600 hover:bg-primary-50 transition-all"><LucideEye class="w-5 h-5" /></button>
-                  <button class="p-3 bg-slate-50 rounded-2xl text-slate-400 hover:text-primary-600 hover:bg-primary-50 transition-all"><LucideShoppingCart class="w-5 h-5" /></button>
+                  <button 
+                    @click.stop="handleQuickLoan(res)"
+                    :disabled="!isDocSelectable(res)"
+                    class="p-3 rounded-2xl transition-all"
+                    :class="[
+                      cartStore.isInCart(res.original_id || res.id) ? 'text-primary-600 bg-primary-50 ring-1 ring-primary-100' : 
+                      (!isDocSelectable(res))
+                        ? 'text-slate-200 cursor-not-allowed bg-slate-50/50'
+                        : 'text-slate-400 hover:text-primary-600 hover:bg-primary-50 bg-slate-50'
+                    ]"
+                  >
+                    <LucideShoppingCart v-if="isDocSelectable(res)" class="w-5 h-5" />
+                    <div v-else class="relative w-5 h-5 flex items-center justify-center text-slate-300">
+                      <LucideShoppingCart class="w-5 h-5 text-slate-200" />
+                      <div class="absolute w-[120%] h-[1.5px] bg-slate-300 rotate-45 origin-center"></div>
+                    </div>
+                  </button>
                 </div>
               </div>
             </div>
@@ -173,6 +201,16 @@
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-50">
+              <tr v-if="documents.length === 0">
+                <td colspan="7" class="py-20 text-center">
+                  <div class="flex flex-col items-center gap-3">
+                    <div class="w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center">
+                      <LucideFileText class="w-8 h-8 text-slate-200" />
+                    </div>
+                    <p class="text-sm font-bold text-slate-400">{{ $t('documents.explorer.no_documents') }}</p>
+                  </div>
+                </td>
+              </tr>
               <tr v-for="doc in documents" :key="doc.id" class="group hover:bg-slate-50/50 transition-colors">
                 <td class="pl-8 py-6">
                   <input 
@@ -223,7 +261,11 @@
                           : 'text-slate-400 hover:text-primary-500 hover:bg-primary-50'
                       ]"
                     >
-                      <LucideShoppingCart class="w-5 h-5" :class="{ 'opacity-50': !isDocSelectable(doc) }" />
+                      <LucideShoppingCart v-if="isDocSelectable(doc)" class="w-5 h-5" />
+                      <div v-else class="relative w-5 h-5 flex items-center justify-center text-slate-300">
+                        <LucideShoppingCart class="w-5 h-5 text-slate-200" />
+                        <div class="absolute w-[120%] h-[1.5px] bg-slate-300 rotate-45 origin-center"></div>
+                      </div>
                     </button>
                   </div>
                 </td>
@@ -386,24 +428,33 @@ const updateSearchResults = (q) => {
     searchResults.value = [
       {
         id: 'LGL-AKR-001-2026-005',
+        original_id: 'LGL-AKR-001-2026-005',
         name: t('documents.mock.search.result_1_name'),
         path: `${t('documents.mock.root_folder')} > ${t('documents.mock.legal')} > 2026 > ${t('documents.mock.docs.type_contract')}`,
         snippet: t('documents.mock.search.result_1_snippet'),
-        tags: [t('documents.mock.legal'), t('documents.mock.docs.type_contract'), '2026']
+        tags: [t('documents.mock.legal'), t('documents.mock.docs.type_contract'), '2026'],
+        rawStatus: 'on_loan',
+        physicalStatus: 'none'
       },
       {
         id: 'LGL-AKR-2025-015',
+        original_id: 'LGL-AKR-2025-015',
         name: t('documents.mock.search.result_2_name'),
         path: `${t('documents.mock.root_folder')} > ${t('documents.mock.legal')} > 2025 > ADDENDUM`,
         snippet: t('documents.mock.search.result_2_snippet'),
-        tags: [t('documents.mock.legal'), 'ADDENDUM', '2025']
+        tags: [t('documents.mock.legal'), 'ADDENDUM', '2025'],
+        rawStatus: 'active',
+        physicalStatus: 'none'
       },
       {
         id: 'HR-SOP-2026-001',
+        original_id: 'HR-SOP-2026-001',
         name: t('documents.mock.search.result_3_name'),
         path: `${t('documents.mock.root_folder')} > GA / HR > 2026 > SOP`,
         snippet: t('documents.mock.search.result_3_snippet'),
-        tags: ['HR', 'SOP', '2026']
+        tags: ['HR', 'SOP', '2026'],
+        rawStatus: 'active',
+        physicalStatus: 'none'
       }
     ]
   } else {

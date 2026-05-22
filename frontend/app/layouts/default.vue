@@ -433,6 +433,14 @@ const iconMap = {
 
 const getIcon = (key) => iconMap[key] || LucideFileText
 
+const getLoansPath = () => {
+  const role = auth.user?.role
+  if (role === 'admin doc controller' || role === 'kepala doc controller' || role === 'superadmin') {
+    return '/circulation/checkout'
+  }
+  return '/loans/my'
+}
+
 const fetchDynamicMenu = async () => {
   try {
     const res = await $api(`${config.public.apiBase}/auth/me/menu`)
@@ -442,8 +450,8 @@ const fetchDynamicMenu = async () => {
         let path = item.path
         if (path === '/registration/new') {
           path = '/documents/upload'
-        } else if (path === '/circulation/checkout' || path === '/loans/request' || path === '/loans') {
-          path = '/loans/my'
+        } else if (path === '/circulation/checkout' || path === '/loans/request' || path === '/loans' || path === '/loans/my') {
+          path = getLoansPath()
         } else if (path === '/approvals/submissions') {
           path = '/approvals'
         }
@@ -455,8 +463,8 @@ const fetchDynamicMenu = async () => {
             let childPath = child.path
             if (childPath === '/registration/new') {
               childPath = '/documents/upload'
-            } else if (childPath === '/circulation/checkout' || childPath === '/loans/request' || childPath === '/loans') {
-              childPath = '/loans/my'
+            } else if (childPath === '/circulation/checkout' || childPath === '/loans/request' || childPath === '/loans' || childPath === '/loans/my') {
+              childPath = getLoansPath()
             } else if (childPath === '/approvals/submissions') {
               childPath = '/approvals'
             }

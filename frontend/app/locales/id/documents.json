@@ -6,6 +6,8 @@
       "search_placeholder": "Cari folder...",
       "stats_total": "Total {count} dokumen",
       "root": "ARSIP",
+      "empty": "Belum ada folder",
+      "no_documents": "Tidak ada dokumen di folder ini",
       "view_cart": "LIHAT KERANJANG",
       "cart_suffix": "dalam keranjang",
       "ready_loan": "Antrean Pinjam Fisik"
