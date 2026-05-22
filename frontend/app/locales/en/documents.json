@@ -6,6 +6,8 @@
       "search_placeholder": "Filter folders...",
       "stats_total": "Total {count} documents",
       "root": "ARCHIVE",
+      "empty": "No folders yet",
+      "no_documents": "No documents in this folder",
       "view_cart": "VIEW CART",
       "cart_suffix": "in cart",
       "ready_loan": "Physical Loan Queue"

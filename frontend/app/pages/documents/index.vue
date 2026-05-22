@@ -1,7 +1,7 @@
 <template>
   <div class="flex h-[calc(100vh-theme(spacing.20)-1rem)] -m-2 overflow-hidden bg-[#F8FAFC]">
     <!-- Left Sidebar: Document Explorer -->
-    <aside class="w-80 border-r border-slate-200 bg-white flex flex-col overflow-hidden">
+    <aside class="w-80 shrink-0 border-r border-slate-200 bg-white flex flex-col overflow-hidden">
       <div class="p-6 space-y-6">
         <h2 class="text-lg font-bold text-slate-800">{{ $t('documents.explorer.title') }}</h2>
         
@@ -20,11 +20,15 @@
         <div v-if="isLoadingTree" class="p-4 space-y-4">
           <div v-for="i in 5" :key="i" class="h-8 bg-slate-50 animate-pulse rounded-lg"></div>
         </div>
+        <div v-else-if="folderTree.length === 0" class="flex flex-col items-center justify-center py-12 px-4 text-center">
+          <LucideFolderOpen class="w-12 h-12 text-slate-200 mb-3" />
+          <p class="text-sm font-bold text-slate-400">{{ $t('documents.explorer.empty') }}</p>
+        </div>
         <div v-else class="space-y-1">
-          <ExplorerNode 
-            v-for="node in folderTree" 
-            :key="node.id" 
-            :node="node" 
+          <ExplorerNode
+            v-for="node in folderTree"
+            :key="node.id"
+            :node="node"
             @select="handleNodeSelect"
           />
         </div>
@@ -197,6 +201,16 @@
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-50">
+              <tr v-if="documents.length === 0">
+                <td colspan="7" class="py-20 text-center">
+                  <div class="flex flex-col items-center gap-3">
+                    <div class="w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center">
+                      <LucideFileText class="w-8 h-8 text-slate-200" />
+                    </div>
+                    <p class="text-sm font-bold text-slate-400">{{ $t('documents.explorer.no_documents') }}</p>
+                  </div>
+                </td>
+              </tr>
               <tr v-for="doc in documents" :key="doc.id" class="group hover:bg-slate-50/50 transition-colors">
                 <td class="pl-8 py-6">
                   <input 

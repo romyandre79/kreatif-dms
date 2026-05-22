@@ -5,7 +5,8 @@
       "solutions": "Solusi",
       "security": "Keamanan",
       "sign_in": "Masuk",
-      "get_started": "Mulai Sekarang"
+      "get_started": "Mulai Sekarang",
+      "pricing": "Harga"
     },
     "hero": {
       "badge": "Terbaru: Integrasi AI Gemini",
@@ -33,6 +34,37 @@
       "uptime": "Waktu Aktif",
       "companies": "Perusahaan",
       "ai": "Proses AI / Detik"
+    },
+    "pricing": {
+      "title": "Harga yang Sederhana dan Transparan",
+      "subtitle": "Pilih paket yang sesuai dengan kebutuhan organisasi Anda. Tingkatkan atau turunkan kapan saja.",
+      "popular": "Paling Populer",
+      "per_month": "/bulan",
+      "get_started": "Mulai Sekarang",
+      "contact_sales": "Hubungi Sales",
+      "custom_price": "Kustom",
+      "plans": {
+        "free": {
+          "name": "Gratis",
+          "desc": "Sempurna untuk individu dan tim kecil yang baru memulai.",
+          "features": ["1 akun pengguna", "Penyimpanan 5 GB", "Hingga 30 dokumen", "Pencarian dasar", "Dukungan email"]
+        },
+        "basic": {
+          "name": "Basic",
+          "desc": "Ideal untuk tim yang berkembang dan membutuhkan lebih banyak kapasitas.",
+          "features": ["Hingga 5 pengguna", "Penyimpanan 15 GB", "Hingga 100 dokumen", "Pencarian teks lengkap", "Dukungan 3x8 jam kerja"]
+        },
+        "advance": {
+          "name": "Advance",
+          "desc": "Untuk organisasi yang siap menggunakan alur kerja dokumen bertenaga AI.",
+          "features": ["Hingga 20 pengguna", "Hingga 1.000 dokumen", "Penyimpanan 50 GB", "Pencarian teks lengkap", "Dukungan 2x8 jam kerja"]
+        },
+        "pro": {
+          "name": "Pro",
+          "desc": "Kekuatan penuh dan kendali total untuk perusahaan besar.",
+          "features": ["Pengguna tak terbatas", "Penyimpanan 1 TB+", "Dokumen tak terbatas", "Semua fitur AI", "Akses API", "Integrasi kustom", "SLA 99,9%", "Dukungan khusus"]
+        }
+      }
     },
     "footer": {
       "desc": "Solusi manajemen dokumen cerdas untuk masa depan digital perusahaan Anda.",
