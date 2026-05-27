@@ -32,14 +32,15 @@ import (
 
 type DocumentService struct {
 	cfg      config.Config
+	db       repository.DBTX
 	repo     repository.Querier
 	storage  *infra.StorageService
 	asynq    *asynq.Client
 	notifSvc *NotificationService
 }
 
-func NewDocumentService(cfg config.Config, repo repository.Querier, storage *infra.StorageService, asynqClient *asynq.Client, notifSvc *NotificationService) *DocumentService {
-	return &DocumentService{cfg: cfg, repo: repo, storage: storage, asynq: asynqClient, notifSvc: notifSvc}
+func NewDocumentService(cfg config.Config, db repository.DBTX, repo repository.Querier, storage *infra.StorageService, asynqClient *asynq.Client, notifSvc *NotificationService) *DocumentService {
+	return &DocumentService{cfg: cfg, db: db, repo: repo, storage: storage, asynq: asynqClient, notifSvc: notifSvc}
 }
 
 type ExtraFileParam struct {
@@ -252,6 +253,83 @@ func (s *DocumentService) GetDocumentFiles(ctx context.Context, docID uuid.UUID)
 		return nil, fmt.Errorf("unsupported repository type for document files")
 	}
 	return q.ListDocumentFiles(ctx, docID)
+}
+
+// GetWatermarkedFilePreview downloads an extra file from MinIO and applies watermark.
+// It verifies the file belongs to the given docID before serving.
+func (s *DocumentService) GetWatermarkedFilePreview(ctx context.Context, docID, fileID uuid.UUID, userFullName string) ([]byte, string, error) {
+	q, ok := s.repo.(*repository.Queries)
+	if !ok {
+		return nil, "", fmt.Errorf("unsupported repository type for file preview")
+	}
+
+	file, err := q.GetDocumentFileByID(ctx, fileID)
+	if err != nil {
+		return nil, "", fmt.Errorf("file not found: %w", err)
+	}
+	if file.DocumentID != docID {
+		return nil, "", fmt.Errorf("file does not belong to document")
+	}
+
+	reader, err := s.storage.Download(ctx, file.FilePath)
+	if err != nil {
+		return nil, "", fmt.Errorf("failed to download file from storage: %w", err)
+	}
+	defer reader.Close()
+
+	content, err := io.ReadAll(reader)
+	if err != nil {
+		return nil, "", err
+	}
+
+	// Watermark settings (same as primary preview)
+	wmNode, _ := s.repo.GetIntegrationNodeByType(ctx, "WATERMARK")
+	wmText := "CONFIDENTIAL - {user} - {date}"
+	wmOpacity := 0.3
+	wmPos := "diagonal"
+
+	if wmNode.ConfigJson != nil {
+		var wmConfig map[string]interface{}
+		if json.Unmarshal(wmNode.ConfigJson, &wmConfig) == nil {
+			if t, ok := wmConfig["text"].(string); ok { wmText = t }
+			if o, ok := wmConfig["opacity"].(float64); ok { wmOpacity = o }
+			if p, ok := wmConfig["position"].(string); ok { wmPos = p }
+		}
+	}
+
+	watermarkText := strings.ReplaceAll(wmText, "{user}", strings.ToUpper(userFullName))
+	watermarkText = strings.ReplaceAll(watermarkText, "{date}", time.Now().Format("2006-01-02"))
+
+	mimeType := file.MimeType
+	if mimeType == "application/octet-stream" || mimeType == "" {
+		lower := strings.ToLower(file.FileName)
+		if strings.HasSuffix(lower, ".pdf") {
+			mimeType = "application/pdf"
+		} else if strings.HasSuffix(lower, ".jpg") || strings.HasSuffix(lower, ".jpeg") || strings.HasSuffix(lower, ".png") {
+			mimeType = "image/jpeg"
+		}
+	}
+
+	if mimeType != "application/pdf" {
+		watermarked, err := s.applyImageWatermark(content, watermarkText, mimeType, wmOpacity)
+		if err != nil {
+			return content, file.MimeType, nil
+		}
+		return watermarked, file.MimeType, nil
+	}
+
+	rot := "45"
+	if wmPos == "center" { rot = "0" }
+	wmDesc := fmt.Sprintf("font:Helvetica, points:24, scale:0.5, op:%.1f, rot:%s", wmOpacity, rot)
+	wm, err := api.TextWatermark(watermarkText, wmDesc, true, false, types.POINTS)
+	if err != nil {
+		return content, file.MimeType, nil
+	}
+	var out bytes.Buffer
+	if err := api.AddWatermarks(bytes.NewReader(content), &out, nil, wm, nil); err != nil {
+		return content, file.MimeType, nil
+	}
+	return out.Bytes(), file.MimeType, nil
 }
 
 func (s *DocumentService) GetDocumentBasic(ctx context.Context, id uuid.UUID) (repository.GetDocumentRow, error) {
@@ -1197,4 +1275,153 @@ func (s *DocumentService) GetSystemSetting(ctx context.Context, category, key st
 	})
 }
 
+// GetMySubmissions returns all documents submitted by the given user with their approval status.
+func (s *DocumentService) GetMySubmissions(ctx context.Context, ownerID uuid.UUID, statusFilter, searchQuery string, limit, offset int) ([]DeptSubmissionRow, int64, error) {
+	const countSQL = `
+		SELECT COUNT(*)
+		FROM documents d
+		WHERE d.owner_id = $1
+		  AND ($2 = '' OR d.status = $2)
+		  AND ($3 = '' OR d.title ILIKE '%' || $3 || '%')
+	`
+	var total int64
+	if err := s.db.QueryRow(ctx, countSQL, ownerID, statusFilter, searchQuery).Scan(&total); err != nil {
+		return nil, 0, err
+	}
 
+	const listSQL = `
+		SELECT
+			d.id::text,
+			d.title,
+			d.status,
+			COALESCE(d.sensitivity, ''),
+			d.created_at,
+			COALESCE(d.file_size, 0),
+			COALESCE(u.full_name, ''),
+			COALESCE(u.email, ''),
+			COALESCE(dt.name, ''),
+			COALESCE(aw.status, ''),
+			COALESCE(aw.decision_note, ''),
+			COALESCE(approver.full_name, ''),
+			aw.decided_at
+		FROM documents d
+		LEFT JOIN users u ON d.owner_id = u.id
+		LEFT JOIN document_types dt ON d.type_id = dt.id
+		LEFT JOIN LATERAL (
+			SELECT status, decision_note, decided_at, approver_id
+			FROM approval_workflows
+			WHERE entity_id = d.id
+			ORDER BY created_at DESC LIMIT 1
+		) aw ON TRUE
+		LEFT JOIN users approver ON aw.approver_id = approver.id
+		WHERE d.owner_id = $1
+		  AND ($2 = '' OR d.status = $2)
+		  AND ($3 = '' OR d.title ILIKE '%' || $3 || '%')
+		ORDER BY d.created_at DESC
+		LIMIT $4 OFFSET $5
+	`
+	rows, err := s.db.Query(ctx, listSQL, ownerID, statusFilter, searchQuery, limit, offset)
+	if err != nil {
+		return nil, 0, err
+	}
+	defer rows.Close()
+
+	var results []DeptSubmissionRow
+	for rows.Next() {
+		var r DeptSubmissionRow
+		if err := rows.Scan(
+			&r.ID, &r.Title, &r.Status, &r.Sensitivity,
+			&r.CreatedAt, &r.FileSize, &r.OwnerName, &r.OwnerEmail,
+			&r.TypeName, &r.ApprovalStatus, &r.ApprovalNote,
+			&r.ApproverName, &r.DecidedAt,
+		); err != nil {
+			return nil, 0, err
+		}
+		results = append(results, r)
+	}
+	return results, total, rows.Err()
+}
+
+// DeptSubmissionRow holds the result of GetDeptSubmissions
+type DeptSubmissionRow struct {
+	ID             string     `json:"id"`
+	Title          string     `json:"title"`
+	Status         string     `json:"status"`
+	Sensitivity    string     `json:"sensitivity"`
+	CreatedAt      time.Time  `json:"created_at"`
+	FileSize       int64      `json:"file_size"`
+	OwnerName      string     `json:"owner_name"`
+	OwnerEmail     string     `json:"owner_email"`
+	TypeName       string     `json:"type_name"`
+	ApprovalStatus string     `json:"approval_status"`
+	ApprovalNote   string     `json:"approval_note"`
+	ApproverName   string     `json:"approver_name"`
+	DecidedAt      *time.Time `json:"decided_at"`
+}
+
+func (s *DocumentService) GetDeptSubmissions(ctx context.Context, deptID uuid.UUID, statusFilter, searchQuery string, limit, offset int) ([]DeptSubmissionRow, int64, error) {
+	const countSQL = `
+		SELECT COUNT(*)
+		FROM documents d
+		LEFT JOIN users u ON d.owner_id = u.id
+		WHERE d.department_id = $1
+		  AND ($2 = '' OR d.status = $2)
+		  AND ($3 = '' OR d.title ILIKE '%' || $3 || '%' OR u.full_name ILIKE '%' || $3 || '%')
+	`
+	var total int64
+	if err := s.db.QueryRow(ctx, countSQL, deptID, statusFilter, searchQuery).Scan(&total); err != nil {
+		return nil, 0, err
+	}
+
+	const listSQL = `
+		SELECT
+			d.id::text,
+			d.title,
+			d.status,
+			COALESCE(d.sensitivity, ''),
+			d.created_at,
+			COALESCE(d.file_size, 0),
+			COALESCE(u.full_name, ''),
+			COALESCE(u.email, ''),
+			COALESCE(dt.name, ''),
+			COALESCE(aw.status, ''),
+			COALESCE(aw.decision_note, ''),
+			COALESCE(approver.full_name, ''),
+			aw.decided_at
+		FROM documents d
+		LEFT JOIN users u ON d.owner_id = u.id
+		LEFT JOIN document_types dt ON d.type_id = dt.id
+		LEFT JOIN LATERAL (
+			SELECT status, decision_note, decided_at, approver_id
+			FROM approval_workflows
+			WHERE entity_id = d.id
+			ORDER BY created_at DESC LIMIT 1
+		) aw ON TRUE
+		LEFT JOIN users approver ON aw.approver_id = approver.id
+		WHERE d.department_id = $1
+		  AND ($2 = '' OR d.status = $2)
+		  AND ($3 = '' OR d.title ILIKE '%' || $3 || '%' OR u.full_name ILIKE '%' || $3 || '%')
+		ORDER BY d.created_at DESC
+		LIMIT $4 OFFSET $5
+	`
+	rows, err := s.db.Query(ctx, listSQL, deptID, statusFilter, searchQuery, limit, offset)
+	if err != nil {
+		return nil, 0, err
+	}
+	defer rows.Close()
+
+	var results []DeptSubmissionRow
+	for rows.Next() {
+		var r DeptSubmissionRow
+		if err := rows.Scan(
+			&r.ID, &r.Title, &r.Status, &r.Sensitivity,
+			&r.CreatedAt, &r.FileSize, &r.OwnerName, &r.OwnerEmail,
+			&r.TypeName, &r.ApprovalStatus, &r.ApprovalNote,
+			&r.ApproverName, &r.DecidedAt,
+		); err != nil {
+			return nil, 0, err
+		}
+		results = append(results, r)
+	}
+	return results, total, rows.Err()
+}

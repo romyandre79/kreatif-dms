@@ -320,7 +320,7 @@ const quickActions = [
   { label: t('dashboard.user.quick_actions.items.submit'), icon: LucideUpload, path: '/documents/upload' },
   { label: t('dashboard.user.quick_actions.items.loan'), icon: LucideBookOpen, path: '/loans/request' },
   { label: t('dashboard.user.quick_actions.items.search'), icon: LucideSearch, path: '/documents' },
-  { label: t('dashboard.user.quick_actions.items.track'), icon: LucideLocateFixed, path: '/documents' },
+  { label: t('dashboard.user.quick_actions.items.track'), icon: LucideLocateFixed, path: '/documents/my-submissions' },
 ]
 
 

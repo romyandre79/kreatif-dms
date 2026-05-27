@@ -301,6 +301,46 @@ func (h *DocumentHandler) Preview(c fiber.Ctx) error {
 	
 	return c.Send(pdfData)
 }
+// PreviewFile serves a watermarked preview of an extra file (from document_files table).
+// @Summary Preview an extra file attached to a document
+// @Tags Documents
+// @Produce application/pdf
+// @Param id path string true "Document ID"
+// @Param fileId path string true "File ID"
+// @Success 200
+// @Router /documents/{id}/files/{fileId}/preview [get]
+// @Security BearerAuth
+func (h *DocumentHandler) PreviewFile(c fiber.Ctx) error {
+	docID, err := uuid.Parse(c.Params("id"))
+	if err != nil {
+		return response.Error(c, fiber.StatusBadRequest, "Invalid document ID", err.Error())
+	}
+	fileID, err := uuid.Parse(c.Params("fileId"))
+	if err != nil {
+		return response.Error(c, fiber.StatusBadRequest, "Invalid file ID", err.Error())
+	}
+
+	userName := "Authorized User"
+	if val := c.Locals("user_name"); val != nil {
+		userName = val.(string)
+	}
+
+	data, mimeType, err := h.svc.GetWatermarkedFilePreview(c.Context(), docID, fileID, userName)
+	if err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to generate preview", err.Error())
+	}
+
+	if mimeType == "" {
+		mimeType = "application/pdf"
+	}
+
+	c.Set("Content-Type", mimeType)
+	c.Set("Content-Disposition", "inline")
+	c.Response().Header.Del("X-Frame-Options")
+	c.Set("Content-Security-Policy", "frame-ancestors *")
+	return c.Send(data)
+}
+
 func (h *DocumentHandler) List(c fiber.Ctx) error {
 	limit, _ := strconv.Atoi(c.Query("limit", "10"))
 	mine := c.Query("mine") == "true"
@@ -626,3 +666,97 @@ func (h *DocumentHandler) UpdateExplorerConfig(c fiber.Ctx) error {
 	
 	return response.Success(c, fiber.StatusOK, "Explorer config updated", nil)
 }
+
+// GetMySubmissions returns all documents submitted by the authenticated user with approval status.
+// @Summary Get my submissions
+// @Tags Documents
+// @Produce json
+// @Param status query string false "Filter by status"
+// @Param q query string false "Search by title"
+// @Param page query int false "Page number (default 1)"
+// @Param limit query int false "Items per page (default 20)"
+// @Success 200 {object} response.APIResponse
+// @Router /documents/my-submissions [get]
+// @Security BearerAuth
+func (h *DocumentHandler) GetMySubmissions(c fiber.Ctx) error {
+	userID := c.Locals("user_id").(uuid.UUID)
+	statusFilter := strings.TrimSpace(c.Query("status"))
+	searchQuery := strings.TrimSpace(c.Query("q"))
+
+	limit, _ := strconv.Atoi(c.Query("limit", "20"))
+	page, _ := strconv.Atoi(c.Query("page", "1"))
+	if page < 1 { page = 1 }
+	if limit < 1 || limit > 100 { limit = 20 }
+	offset := (page - 1) * limit
+
+	items, total, err := h.svc.GetMySubmissions(c.Context(), userID, statusFilter, searchQuery, limit, offset)
+	if err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to get submissions", err.Error())
+	}
+
+	totalPages := int64(1)
+	if total > 0 {
+		totalPages = (total + int64(limit) - 1) / int64(limit)
+	}
+
+	return response.Success(c, fiber.StatusOK, "My submissions retrieved", fiber.Map{
+		"items": items,
+		"pagination": fiber.Map{
+			"total":       total,
+			"page":        page,
+			"limit":       limit,
+			"total_pages": totalPages,
+		},
+	})
+}
+
+// GetDeptSubmissions returns all document submissions in the authenticated user's department.
+// @Summary Get department submission status
+// @Tags Documents
+// @Produce json
+// @Param status query string false "Filter by status (pending, approved, rejected, active, draft)"
+// @Param q query string false "Search by title or submitter name"
+// @Param page query int false "Page number (default 1)"
+// @Param limit query int false "Items per page (default 20)"
+// @Success 200 {object} response.APIResponse
+// @Router /documents/submissions [get]
+// @Security BearerAuth
+func (h *DocumentHandler) GetDeptSubmissions(c fiber.Ctx) error {
+	userID := c.Locals("user_id").(uuid.UUID)
+
+	user, err := h.svc.GetUser(c.Context(), userID)
+	if err != nil || !user.DepartmentID.Valid {
+		return response.Error(c, fiber.StatusBadRequest, "Department not found for current user", "")
+	}
+	deptID := user.DepartmentID.Bytes
+
+	statusFilter := strings.TrimSpace(c.Query("status"))
+	searchQuery := strings.TrimSpace(c.Query("q"))
+
+	limit, _ := strconv.Atoi(c.Query("limit", "20"))
+	page, _ := strconv.Atoi(c.Query("page", "1"))
+	if page < 1 { page = 1 }
+	if limit < 1 || limit > 100 { limit = 20 }
+	offset := (page - 1) * limit
+
+	items, total, err := h.svc.GetDeptSubmissions(c.Context(), deptID, statusFilter, searchQuery, limit, offset)
+	if err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to get submissions", err.Error())
+	}
+
+	totalPages := int64(1)
+	if total > 0 {
+		totalPages = (total + int64(limit) - 1) / int64(limit)
+	}
+
+	return response.Success(c, fiber.StatusOK, "Submissions retrieved", fiber.Map{
+		"items": items,
+		"pagination": fiber.Map{
+			"total":       total,
+			"page":        page,
+			"limit":       limit,
+			"total_pages": totalPages,
+		},
+	})
+}
+

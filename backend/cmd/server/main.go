@@ -155,7 +155,7 @@ func main() {
 	waSvc := infra.NewWhatsAppService(repo)
 	authSvc := service.NewAuthService(repo, cfg, ldapSvc, emailSvc)
 	notifSvc := service.NewNotificationService(repo, waSvc, emailSvc)
-	docSvc := service.NewDocumentService(cfg, repo, storageSvc, asynqClient, notifSvc)
+	docSvc := service.NewDocumentService(cfg, dbPool, repo, storageSvc, asynqClient, notifSvc)
 	searchSvc := infra.NewSearchService(es)
 	aiSvc := infra.NewAIService(repo, cfg)
 	_ = service.NewCacheService(rdb) // Initialized for performance later
@@ -263,11 +263,14 @@ func main() {
 	docGroup.Get("/:id/image", docHandler.GetImage)
 	docGroup.Get("/:id/loans", docHandler.GetLoans)
 	docGroup.Get("/:id/files", docHandler.ListFiles)
+	docGroup.Get("/:id/files/:fileId/preview", docHandler.PreviewFile)
 	docGroup.Get("/:id/ocr", docHandler.GetOCRData)
 	docGroup.Post("/:id/approve", docHandler.Approve)
 	docGroup.Post("/:id/reject", docHandler.Reject)
 	docGroup.Post("/bulk-approve", docHandler.BulkApprove)
 	docGroup.Post("/bulk-reject", docHandler.BulkReject)
+	docGroup.Get("/my-submissions", docHandler.GetMySubmissions)
+	docGroup.Get("/submissions", docHandler.GetDeptSubmissions)
 	
 	// Explorer Routes
 	docGroup.Get("/explorer/tree", docHandler.GetExplorerTree)

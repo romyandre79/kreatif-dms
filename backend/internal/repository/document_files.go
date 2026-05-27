@@ -30,6 +30,19 @@ func (q *Queries) CreateDocumentFile(ctx context.Context, documentID uuid.UUID, 
 	return f, err
 }
 
+func (q *Queries) GetDocumentFileByID(ctx context.Context, fileID uuid.UUID) (DocumentFile, error) {
+	const query = `
+		SELECT id, document_id, file_name, file_path, file_size, mime_type, sort_order, created_at
+		FROM document_files
+		WHERE id = $1
+	`
+	var f DocumentFile
+	err := q.db.QueryRow(ctx, query, fileID).Scan(
+		&f.ID, &f.DocumentID, &f.FileName, &f.FilePath, &f.FileSize, &f.MimeType, &f.SortOrder, &f.CreatedAt,
+	)
+	return f, err
+}
+
 func (q *Queries) ListDocumentFiles(ctx context.Context, documentID uuid.UUID) ([]DocumentFile, error) {
 	const query = `
 		SELECT id, document_id, file_name, file_path, file_size, mime_type, sort_order, created_at

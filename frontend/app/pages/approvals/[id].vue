@@ -120,13 +120,15 @@
                   <LucideFileText class="w-6 h-6" />
                 </div>
                 <div>
-                  <p class="text-sm font-black text-[#1E3A5F] uppercase tracking-tight">{{ file.filename || file.file_name || 'Document File' }}</p>
-                  <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">{{ (file.size / 1024).toFixed(1) }} KB</p>
+                  <div class="flex items-center gap-2">
+                    <p class="text-sm font-black text-[#1E3A5F] uppercase tracking-tight">{{ file.file_name || file.filename || 'Document File' }}</p>
+                    <span v-if="file.is_primary" class="px-1.5 py-0.5 rounded text-[8px] font-black uppercase tracking-widest bg-primary-50 text-primary-600 border border-primary-100">Utama</span>
+                  </div>
+                  <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">{{ ((file.file_size || file.size || 0) / 1024).toFixed(1) }} KB • {{ file.mime_type || '—' }}</p>
                 </div>
               </div>
               <div class="flex items-center gap-3">
                 <button @click="previewFile(file)" class="px-4 py-2 bg-slate-50 text-slate-600 rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-slate-100 transition-all border border-slate-100">Preview</button>
-                <a :href="file.url || file.file_path" download class="p-2 text-slate-300 hover:text-slate-600 transition-colors"><LucideDownload class="w-5 h-5" /></a>
               </div>
             </div>
             <div v-if="!attachedFiles.length" class="text-center py-10">
@@ -469,37 +471,29 @@ const showApproveModal = ref(false)
 const submitting = ref(false)
 
 // Fetch Data
-const { data: docRes } = await useAsyncData(`approval-${route.params.id}`, () => 
+const { data: docRes } = await useAsyncData(`approval-${route.params.id}`, () =>
   $api(`/documents/${route.params.id}`)
 )
 const doc = computed(() => docRes.value?.data)
 
-// Robust file detection
-const attachedFiles = computed(() => {
-  if (!doc.value) return []
-  
-  const files = []
-  const nested = doc.value.files || doc.value.attachments || doc.value.metadata?.files || doc.value.metadata?.attachments || []
-  files.push(...nested)
-  
-  if (doc.value.file_name || doc.value.filename) {
-    const exists = files.some(f => (f.filename || f.file_name) === (doc.value.filename || doc.value.file_name))
-    if (!exists) {
-      files.push({
-        id: doc.value.id,
-        filename: doc.value.filename || doc.value.file_name,
-        file_name: doc.value.filename || doc.value.file_name,
-        size: doc.value.file_size || doc.value.size || 0,
-        url: doc.value.url || doc.value.file_path || `${useRuntimeConfig().public.apiBase}/documents/${doc.value.id}/preview?token=${useAuthStore().accessToken}`
-      })
-    }
-  }
-  return files
-})
+// Fetch all files (primary + extra) from dedicated files endpoint
+const { data: filesRes } = await useAsyncData(`approval-files-${route.params.id}`, () =>
+  $api(`/documents/${route.params.id}/files`)
+)
+const attachedFiles = computed(() => filesRes.value?.data || [])
 
 const previewFile = (file) => {
-  if (file.id) navigateTo(`/documents/${file.id}`)
-  else alert('Preview not available for this file')
+  const config = useRuntimeConfig()
+  const token = localStorage.getItem('kreatif_access_token') || ''
+  const docId = route.params.id
+
+  let url
+  if (file.is_primary) {
+    url = `${config.public.apiBase}/documents/${docId}/preview?token=${token}`
+  } else {
+    url = `${config.public.apiBase}/documents/${docId}/files/${file.id}/preview?token=${token}`
+  }
+  window.open(url, '_blank')
 }
 
 const confirmApprove = async () => {
