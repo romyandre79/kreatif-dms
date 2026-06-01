@@ -289,10 +289,14 @@ func main() {
 	loanGroup.Post("/", loanHandler.Submit)
 	loanGroup.Get("/my", loanHandler.ListMyLoans)
 	loanGroup.Get("/penalty-policy", loanHandler.GetPenaltyPolicy)
+	loanGroup.Get("/extensions", loanHandler.ListExtensions)
 	loanGroup.Get("/", loanHandler.ListAll)
 	loanGroup.Get("/:id", loanHandler.GetByID)
 	loanGroup.Post("/:id/approve", loanHandler.Approve)
 	loanGroup.Post("/:id/reject", loanHandler.Reject)
+	loanGroup.Post("/:id/extend", loanHandler.RequestExtension)
+	loanGroup.Post("/extensions/:id/approve", loanHandler.ApproveExtension)
+	loanGroup.Post("/extensions/:id/reject", loanHandler.RejectExtension)
 
 	// Master Data Routes
 	masterGroup := api.Group("/master")

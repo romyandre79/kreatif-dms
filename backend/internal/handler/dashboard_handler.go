@@ -52,14 +52,17 @@ func (h *DashboardHandler) GetSummary(c fiber.Ctx) error {
 			activities = []repository.GetRecentActivitiesRow{}
 		}
 
-		tasks, err := h.svc.GetPriorityTasks(c.Context(), 10)
+		tasks, err := h.svc.GetRepo().GetUserPriorityTasks(c.Context(), repository.GetUserPriorityTasksParams{
+			ApproverID: userID,
+			Limit:      10,
+		})
 		if err != nil {
-			tasks = []repository.GetPriorityTasksRow{}
+			tasks = []repository.GetUserPriorityTasksRow{}
 		}
 
 		// Filter out loan_requests if role is not kepala doc controller
 		if role != "kepala doc controller" && role != "kepala dc" {
-			var filteredTasks []repository.GetPriorityTasksRow
+			var filteredTasks []repository.GetUserPriorityTasksRow
 			for _, t := range tasks {
 				if t.EntityType != "loan_request" && t.EntityType != "loan" {
 					filteredTasks = append(filteredTasks, t)

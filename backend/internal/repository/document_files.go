@@ -2,21 +2,12 @@ package repository
 
 import (
 	"context"
-	"time"
 
 	"github.com/google/uuid"
 )
 
-type DocumentFile struct {
-	ID         uuid.UUID
-	DocumentID uuid.UUID
-	FileName   string
-	FilePath   string
-	FileSize   int64
-	MimeType   string
-	SortOrder  int32
-	CreatedAt  time.Time
-}
+
+
 
 func (q *Queries) CreateDocumentFile(ctx context.Context, documentID uuid.UUID, fileName, filePath string, fileSize int64, mimeType string, sortOrder int32) (DocumentFile, error) {
 	const query = `

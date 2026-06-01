@@ -33,6 +33,7 @@ type Querier interface {
 	CreateDocumentCategory(ctx context.Context, arg CreateDocumentCategoryParams) (DocumentCategory, error)
 	CreateDocumentType(ctx context.Context, arg CreateDocumentTypeParams) (DocumentType, error)
 	CreateIntegrationNode(ctx context.Context, arg CreateIntegrationNodeParams) (IntegrationNode, error)
+	CreateLoanExtension(ctx context.Context, arg CreateLoanExtensionParams) (LoanExtension, error)
 	CreateLoanRequest(ctx context.Context, arg CreateLoanRequestParams) (LoanRequest, error)
 	CreateLoanRequestItem(ctx context.Context, arg CreateLoanRequestItemParams) (LoanRequestItem, error)
 	CreateNotification(ctx context.Context, arg CreateNotificationParams) (Notification, error)
@@ -61,6 +62,7 @@ type Querier interface {
 	DeleteRole(ctx context.Context, id int32) error
 	DeleteSystemModule(ctx context.Context, id string) error
 	DeleteUser(ctx context.Context, id uuid.UUID) error
+	ExtendLoanRequestDueDate(ctx context.Context, arg ExtendLoanRequestDueDateParams) error
 	FindEligibleBoxes(ctx context.Context, arg FindEligibleBoxesParams) ([]FindEligibleBoxesRow, error)
 	GetActiveAnnouncement(ctx context.Context) (Announcement, error)
 	GetActiveDocControllers(ctx context.Context) ([]GetActiveDocControllersRow, error)
@@ -88,6 +90,7 @@ type Querier interface {
 	GetLabelingStats(ctx context.Context) (GetLabelingStatsRow, error)
 	GetLastSsoSyncLog(ctx context.Context) (SsoSyncLog, error)
 	GetLatestApprovalTaskByEntity(ctx context.Context, arg GetLatestApprovalTaskByEntityParams) (ApprovalWorkflow, error)
+	GetLoanExtension(ctx context.Context, id uuid.UUID) (GetLoanExtensionRow, error)
 	GetLoanRequest(ctx context.Context, id uuid.UUID) (GetLoanRequestRow, error)
 	GetLoanRequestItems(ctx context.Context, loanRequestID uuid.UUID) ([]GetLoanRequestItemsRow, error)
 	GetManagerDailyStats(ctx context.Context, headID pgtype.UUID) (GetManagerDailyStatsRow, error)
@@ -101,6 +104,7 @@ type Querier interface {
 	GetOCRJobByEntity(ctx context.Context, arg GetOCRJobByEntityParams) (OcrJob, error)
 	GetOrdner(ctx context.Context, id uuid.UUID) (Ordner, error)
 	GetPendingCountsByType(ctx context.Context, approverID uuid.UUID) ([]GetPendingCountsByTypeRow, error)
+	GetPendingLoanExtensionByLoanRequest(ctx context.Context, loanRequestID uuid.UUID) (LoanExtension, error)
 	GetPriorityTasks(ctx context.Context, limit int32) ([]GetPriorityTasksRow, error)
 	GetProfileByID(ctx context.Context, id uuid.UUID) (GetProfileByIDRow, error)
 	GetRack(ctx context.Context, id uuid.UUID) (Rack, error)
@@ -152,6 +156,7 @@ type Querier interface {
 	// Ordners
 	ListOrdners(ctx context.Context, boxID uuid.UUID) ([]Ordner, error)
 	ListPendingDocumentsWithoutManifest(ctx context.Context) ([]ListPendingDocumentsWithoutManifestRow, error)
+	ListPendingLoanExtensionsForApprover(ctx context.Context, approverID uuid.UUID) ([]ListPendingLoanExtensionsForApproverRow, error)
 	ListPendingManifests(ctx context.Context) ([]ListPendingManifestsRow, error)
 	ListPendingUsers(ctx context.Context) ([]User, error)
 	ListPermissionsByRole(ctx context.Context, roleID int32) ([]ListPermissionsByRoleRow, error)
@@ -199,6 +204,7 @@ type Querier interface {
 	UpdateEmailTemplate(ctx context.Context, arg UpdateEmailTemplateParams) (EmailTemplate, error)
 	UpdateIntegrationNodeConfig(ctx context.Context, arg UpdateIntegrationNodeConfigParams) (IntegrationNode, error)
 	UpdateIntegrationNodeStatus(ctx context.Context, arg UpdateIntegrationNodeStatusParams) (IntegrationNode, error)
+	UpdateLoanExtensionStatus(ctx context.Context, arg UpdateLoanExtensionStatusParams) error
 	UpdateLoanRequestStatus(ctx context.Context, arg UpdateLoanRequestStatusParams) error
 	UpdateManifestItemStatus(ctx context.Context, arg UpdateManifestItemStatusParams) error
 	UpdateManifestItemStatusBulk(ctx context.Context, arg UpdateManifestItemStatusBulkParams) error

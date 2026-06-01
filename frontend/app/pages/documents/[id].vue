@@ -12,7 +12,7 @@
         </button>
         <div class="space-y-1">
           <h1 class="text-2xl font-black text-[#1E3A5F] dark:text-white tracking-tight uppercase">{{ doc?.title || $t('documents.detail.loading') }}</h1>
-          <p v-if="doc?.file_name" class="text-sm font-bold text-slate-400 uppercase tracking-widest">{{ doc?.file_name }}</p>
+          <p v-if="activeFile?.file_name" class="text-sm font-bold text-slate-400 uppercase tracking-widest">{{ activeFile?.file_name }}</p>
         </div>
       </div>
     </div>
@@ -62,26 +62,45 @@
           </div>
         </div>
       </div>
+
+      <!-- Document Files/Attachments Bar (Show only if more than 1 file) -->
+      <div v-if="files && files.length > 1" class="bg-[#3c4043] px-4 py-2.5 flex flex-wrap gap-2 border-b border-white/10 select-none">
+        <button 
+          v-for="file in files" 
+          :key="file.id"
+          @click="activeFile = file"
+          :class="`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-2 transition-all duration-300 ${
+            activeFile?.id === file.id 
+              ? 'bg-[#1E3A5F] text-white shadow-lg border border-blue-500/20' 
+              : 'bg-[#2a2d30] text-slate-400 hover:text-white hover:bg-[#323639] border border-transparent'
+          }`"
+        >
+          <LucideFileText class="w-3.5 h-3.5" :class="activeFile?.id === file.id ? 'text-blue-400' : 'text-slate-400'" />
+          <span class="truncate max-w-[200px]">{{ file.file_name }}</span>
+          <span class="text-[9px] font-bold opacity-60">({{ (file.file_size / 1024 / 1024).toFixed(2) }} MB)</span>
+          <span v-if="file.is_primary" class="text-[8px] px-1.5 py-0.5 bg-blue-500/20 text-blue-300 rounded font-black uppercase tracking-widest">Main</span>
+        </button>
+      </div>
       
       <!-- Viewer Content Area -->
       <div 
         class="bg-[#8E9194] p-0 flex flex-col justify-start overflow-auto relative transition-all"
-        :class="isEnlarged ? 'h-[calc(100vh-60px)]' : 'min-h-[600px]'"
+        :class="isEnlarged ? 'h-[calc(100vh-100px)]' : 'min-h-[600px]'"
       >
         <!-- Debug Info (Only in Dev) -->
         <div class="absolute top-4 right-4 bg-black/50 text-white text-[8px] px-2 py-1 rounded z-10 font-mono" v-if="!isEnlarged">
-          MIME: {{ doc?.mime_type }}
+          MIME: {{ activeFile?.mime_type }}
         </div>
 
         <div class="flex justify-center p-4 min-h-full">
           <iframe 
-            v-if="doc?.mime_type === 'application/pdf' || (doc?.mime_type === 'application/octet-stream' && doc?.file_name?.toLowerCase().endsWith('.pdf'))"
+            v-if="activeFile?.mime_type === 'application/pdf' || (activeFile?.mime_type === 'application/octet-stream' && activeFile?.file_name?.toLowerCase().endsWith('.pdf'))"
             :src="documentUrl" 
             class="w-full border-none transition-transform duration-300 shadow-2xl"
             :class="isEnlarged ? 'h-full' : 'h-[800px]'"
             :style="{ transform: `scale(${zoomLevel / 100})`, transformOrigin: 'top center' }"
           ></iframe>
-          <div v-else-if="doc?.mime_type?.startsWith('image/')" class="flex justify-center w-full">
+          <div v-else-if="activeFile?.mime_type?.startsWith('image/')" class="flex justify-center w-full">
             <img 
               :src="documentUrl" 
               class="max-w-full shadow-2xl transition-transform duration-300 object-contain" 
@@ -91,7 +110,7 @@
           <div v-else class="flex flex-col items-center justify-center text-white/50 py-20 w-full">
             <LucideFileText class="w-20 h-20 mb-4 opacity-20" />
             <p class="text-xs font-black uppercase tracking-[0.2em]">{{ $t('documents.detail.viewer.no_preview') }}</p>
-            <p class="text-[10px] mt-2 opacity-50 uppercase tracking-widest">{{ doc?.mime_type }}</p>
+            <p class="text-[10px] mt-2 opacity-50 uppercase tracking-widest">{{ activeFile?.mime_type }}</p>
           </div>
         </div>
         
@@ -261,7 +280,7 @@ const config = useRuntimeConfig()
 const { $api } = useApi()
 const cartStore = useCartStore()
 
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { 
   LucideArrowLeft, LucideMenu, LucideMinus, LucidePlus, LucidePrinter, LucideDownload, 
   LucideShoppingCart, LucideFileDown, LucideMoreHorizontal, LucideHome, LucideLayers, LucideBox,
@@ -304,8 +323,21 @@ const { data: loansRes } = await useAsyncData(`loans-${route.params.id}`, () =>
   $api(`/documents/${route.params.id}/loans`)
 )
 
+const { data: filesRes } = await useAsyncData(`files-${route.params.id}`, () =>
+  $api(`/documents/${route.params.id}/files`).catch(() => ({ data: [] }))
+)
+
 const doc = computed(() => docRes.value?.data)
 const loans = computed(() => loansRes.value?.data || [])
+const files = computed(() => filesRes.value?.data || [])
+
+const activeFile = ref(null)
+
+watch(files, (newFiles) => {
+  if (newFiles && newFiles.length > 0 && !activeFile.value) {
+    activeFile.value = newFiles.find(f => f.is_primary) || newFiles[0]
+  }
+}, { immediate: true })
 
 const approveDocument = async () => {
   // TODO: Call API to approve
@@ -318,9 +350,13 @@ const rejectDocument = async () => {
 }
 
 const documentUrl = computed(() => {
-  if (!doc.value) return ''
+  if (!doc.value || !activeFile.value) return ''
   const auth = useAuthStore()
-  return `${config.public.apiBase}/documents/${doc.value.id}/preview?token=${auth.accessToken}`
+  if (activeFile.value.is_primary) {
+    return `${config.public.apiBase}/documents/${doc.value.id}/preview?token=${auth.accessToken}`
+  } else {
+    return `${config.public.apiBase}/documents/${doc.value.id}/files/${activeFile.value.id}/preview?token=${auth.accessToken}`
+  }
 })
 
 const physicalStatus = computed(() => doc.value?.physical_status?.String || doc.value?.physical_status || 'none')

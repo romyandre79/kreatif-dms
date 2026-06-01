@@ -103,3 +103,61 @@ WHERE request_no LIKE 'LOAN-' || to_char(NOW(), 'YYYY-MM') || '-%';
 UPDATE loan_requests
 SET status = 'returned', l2_approved_by = $2, l2_rejection_reason = $3, updated_at = NOW()
 WHERE id = $1;
+
+-- name: CreateLoanExtension :one
+INSERT INTO loan_extensions (
+    loan_request_id, requested_by, extension_days, reason, status
+) VALUES (
+    $1, $2, $3, $4, 'pending'
+) RETURNING id, loan_request_id, requested_by, extension_days, reason, status, approved_by, decided_at, created_at;
+
+-- name: GetLoanExtension :one
+SELECT 
+    le.id, le.loan_request_id, le.requested_by, le.extension_days, le.reason, 
+    le.status, le.approved_by, le.decided_at, le.created_at,
+    u.full_name as requested_by_name,
+    lr.request_no, lr.due_date as current_due_date
+FROM loan_extensions le
+JOIN users u ON le.requested_by = u.id
+JOIN loan_requests lr ON le.loan_request_id = lr.id
+WHERE le.id = $1 LIMIT 1;
+
+-- name: GetPendingLoanExtensionByLoanRequest :one
+SELECT id, loan_request_id, requested_by, extension_days, reason, status, approved_by, decided_at, created_at 
+FROM loan_extensions
+WHERE loan_request_id = $1 AND status = 'pending'
+LIMIT 1;
+
+-- name: UpdateLoanExtensionStatus :exec
+UPDATE loan_extensions
+SET status = $2, approved_by = $3, decided_at = NOW()
+WHERE id = $1;
+
+-- name: ExtendLoanRequestDueDate :exec
+UPDATE loan_requests
+SET due_date = due_date + ($2::int * interval '1 day'), 
+    status = 'active', 
+    updated_at = NOW()
+WHERE id = $1;
+
+-- name: ListPendingLoanExtensionsForApprover :many
+SELECT 
+    le.id as extension_id,
+    le.loan_request_id,
+    le.extension_days,
+    le.reason,
+    le.status as extension_status,
+    le.created_at as extension_created_at,
+    lr.request_no,
+    lr.due_date as current_due_date,
+    u.full_name as requestor_name,
+    u.avatar_url as requestor_avatar,
+    aw.id as task_id,
+    aw.level as approval_level
+FROM loan_extensions le
+JOIN loan_requests lr ON le.loan_request_id = lr.id
+JOIN users u ON le.requested_by = u.id
+JOIN approval_workflows aw ON aw.entity_id = le.id AND aw.entity_type = 'loan_extension'
+WHERE aw.approver_id = $1 AND aw.status = 'pending'
+ORDER BY le.created_at DESC;
+

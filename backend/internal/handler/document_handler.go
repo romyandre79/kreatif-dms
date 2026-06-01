@@ -335,7 +335,22 @@ func (h *DocumentHandler) PreviewFile(c fiber.Ctx) error {
 	}
 
 	c.Set("Content-Type", mimeType)
-	c.Set("Content-Disposition", "inline")
+	
+	disposition := "inline"
+	if c.Query("download") == "true" {
+		files, err := h.svc.GetDocumentFiles(c.Context(), docID)
+		filename := "document_file.pdf"
+		if err == nil {
+			for _, f := range files {
+				if f.ID == fileID {
+					filename = f.FileName
+					break
+				}
+			}
+		}
+		disposition = fmt.Sprintf("attachment; filename=\"%s\"", filename)
+	}
+	c.Set("Content-Disposition", disposition)
 	c.Response().Header.Del("X-Frame-Options")
 	c.Set("Content-Security-Policy", "frame-ancestors *")
 	return c.Send(data)

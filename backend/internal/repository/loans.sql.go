@@ -52,6 +52,43 @@ func (q *Queries) CountUserLoanRequests(ctx context.Context, userID uuid.UUID) (
 	return count, err
 }
 
+const createLoanExtension = `-- name: CreateLoanExtension :one
+INSERT INTO loan_extensions (
+    loan_request_id, requested_by, extension_days, reason, status
+) VALUES (
+    $1, $2, $3, $4, 'pending'
+) RETURNING id, loan_request_id, requested_by, extension_days, reason, status, approved_by, decided_at, created_at
+`
+
+type CreateLoanExtensionParams struct {
+	LoanRequestID uuid.UUID `json:"loan_request_id"`
+	RequestedBy   uuid.UUID `json:"requested_by"`
+	ExtensionDays int32     `json:"extension_days"`
+	Reason        string    `json:"reason"`
+}
+
+func (q *Queries) CreateLoanExtension(ctx context.Context, arg CreateLoanExtensionParams) (LoanExtension, error) {
+	row := q.db.QueryRow(ctx, createLoanExtension,
+		arg.LoanRequestID,
+		arg.RequestedBy,
+		arg.ExtensionDays,
+		arg.Reason,
+	)
+	var i LoanExtension
+	err := row.Scan(
+		&i.ID,
+		&i.LoanRequestID,
+		&i.RequestedBy,
+		&i.ExtensionDays,
+		&i.Reason,
+		&i.Status,
+		&i.ApprovedBy,
+		&i.DecidedAt,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
 const createLoanRequest = `-- name: CreateLoanRequest :one
 INSERT INTO loan_requests (
     request_no, user_id, purpose, duration_days, notes, status,
@@ -149,6 +186,71 @@ func (q *Queries) CreateLoanRequestItem(ctx context.Context, arg CreateLoanReque
 		&i.PickedUpAt,
 		&i.ReturnedAt,
 		&i.CreatedAt,
+	)
+	return i, err
+}
+
+const extendLoanRequestDueDate = `-- name: ExtendLoanRequestDueDate :exec
+UPDATE loan_requests
+SET due_date = due_date + ($2::int * interval '1 day'), 
+    status = 'active', 
+    updated_at = NOW()
+WHERE id = $1
+`
+
+type ExtendLoanRequestDueDateParams struct {
+	ID      uuid.UUID `json:"id"`
+	Column2 int32     `json:"column_2"`
+}
+
+func (q *Queries) ExtendLoanRequestDueDate(ctx context.Context, arg ExtendLoanRequestDueDateParams) error {
+	_, err := q.db.Exec(ctx, extendLoanRequestDueDate, arg.ID, arg.Column2)
+	return err
+}
+
+const getLoanExtension = `-- name: GetLoanExtension :one
+SELECT 
+    le.id, le.loan_request_id, le.requested_by, le.extension_days, le.reason, 
+    le.status, le.approved_by, le.decided_at, le.created_at,
+    u.full_name as requested_by_name,
+    lr.request_no, lr.due_date as current_due_date
+FROM loan_extensions le
+JOIN users u ON le.requested_by = u.id
+JOIN loan_requests lr ON le.loan_request_id = lr.id
+WHERE le.id = $1 LIMIT 1
+`
+
+type GetLoanExtensionRow struct {
+	ID              uuid.UUID          `json:"id"`
+	LoanRequestID   uuid.UUID          `json:"loan_request_id"`
+	RequestedBy     uuid.UUID          `json:"requested_by"`
+	ExtensionDays   int32              `json:"extension_days"`
+	Reason          string             `json:"reason"`
+	Status          pgtype.Text        `json:"status"`
+	ApprovedBy      pgtype.UUID        `json:"approved_by"`
+	DecidedAt       pgtype.Timestamptz `json:"decided_at"`
+	CreatedAt       pgtype.Timestamptz `json:"created_at"`
+	RequestedByName string             `json:"requested_by_name"`
+	RequestNo       string             `json:"request_no"`
+	CurrentDueDate  pgtype.Timestamptz `json:"current_due_date"`
+}
+
+func (q *Queries) GetLoanExtension(ctx context.Context, id uuid.UUID) (GetLoanExtensionRow, error) {
+	row := q.db.QueryRow(ctx, getLoanExtension, id)
+	var i GetLoanExtensionRow
+	err := row.Scan(
+		&i.ID,
+		&i.LoanRequestID,
+		&i.RequestedBy,
+		&i.ExtensionDays,
+		&i.Reason,
+		&i.Status,
+		&i.ApprovedBy,
+		&i.DecidedAt,
+		&i.CreatedAt,
+		&i.RequestedByName,
+		&i.RequestNo,
+		&i.CurrentDueDate,
 	)
 	return i, err
 }
@@ -295,6 +397,30 @@ func (q *Queries) GetNextLoanRequestNo(ctx context.Context) (int32, error) {
 	return next_seq, err
 }
 
+const getPendingLoanExtensionByLoanRequest = `-- name: GetPendingLoanExtensionByLoanRequest :one
+SELECT id, loan_request_id, requested_by, extension_days, reason, status, approved_by, decided_at, created_at 
+FROM loan_extensions
+WHERE loan_request_id = $1 AND status = 'pending'
+LIMIT 1
+`
+
+func (q *Queries) GetPendingLoanExtensionByLoanRequest(ctx context.Context, loanRequestID uuid.UUID) (LoanExtension, error) {
+	row := q.db.QueryRow(ctx, getPendingLoanExtensionByLoanRequest, loanRequestID)
+	var i LoanExtension
+	err := row.Scan(
+		&i.ID,
+		&i.LoanRequestID,
+		&i.RequestedBy,
+		&i.ExtensionDays,
+		&i.Reason,
+		&i.Status,
+		&i.ApprovedBy,
+		&i.DecidedAt,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
 const listAllLoanRequests = `-- name: ListAllLoanRequests :many
 SELECT 
     lr.id, lr.request_no, lr.user_id, lr.purpose, lr.duration_days, lr.notes, 
@@ -367,6 +493,76 @@ func (q *Queries) ListAllLoanRequests(ctx context.Context, limit int32) ([]ListA
 			&i.UserName,
 			&i.DepartmentName,
 			&i.ItemsCount,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listPendingLoanExtensionsForApprover = `-- name: ListPendingLoanExtensionsForApprover :many
+SELECT 
+    le.id as extension_id,
+    le.loan_request_id,
+    le.extension_days,
+    le.reason,
+    le.status as extension_status,
+    le.created_at as extension_created_at,
+    lr.request_no,
+    lr.due_date as current_due_date,
+    u.full_name as requestor_name,
+    u.avatar_url as requestor_avatar,
+    aw.id as task_id,
+    aw.level as approval_level
+FROM loan_extensions le
+JOIN loan_requests lr ON le.loan_request_id = lr.id
+JOIN users u ON le.requested_by = u.id
+JOIN approval_workflows aw ON aw.entity_id = le.id AND aw.entity_type = 'loan_extension'
+WHERE aw.approver_id = $1 AND aw.status = 'pending'
+ORDER BY le.created_at DESC
+`
+
+type ListPendingLoanExtensionsForApproverRow struct {
+	ExtensionID        uuid.UUID          `json:"extension_id"`
+	LoanRequestID      uuid.UUID          `json:"loan_request_id"`
+	ExtensionDays      int32              `json:"extension_days"`
+	Reason             string             `json:"reason"`
+	ExtensionStatus    pgtype.Text        `json:"extension_status"`
+	ExtensionCreatedAt pgtype.Timestamptz `json:"extension_created_at"`
+	RequestNo          string             `json:"request_no"`
+	CurrentDueDate     pgtype.Timestamptz `json:"current_due_date"`
+	RequestorName      string             `json:"requestor_name"`
+	RequestorAvatar    pgtype.Text        `json:"requestor_avatar"`
+	TaskID             uuid.UUID          `json:"task_id"`
+	ApprovalLevel      int32              `json:"approval_level"`
+}
+
+func (q *Queries) ListPendingLoanExtensionsForApprover(ctx context.Context, approverID uuid.UUID) ([]ListPendingLoanExtensionsForApproverRow, error) {
+	rows, err := q.db.Query(ctx, listPendingLoanExtensionsForApprover, approverID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListPendingLoanExtensionsForApproverRow
+	for rows.Next() {
+		var i ListPendingLoanExtensionsForApproverRow
+		if err := rows.Scan(
+			&i.ExtensionID,
+			&i.LoanRequestID,
+			&i.ExtensionDays,
+			&i.Reason,
+			&i.ExtensionStatus,
+			&i.ExtensionCreatedAt,
+			&i.RequestNo,
+			&i.CurrentDueDate,
+			&i.RequestorName,
+			&i.RequestorAvatar,
+			&i.TaskID,
+			&i.ApprovalLevel,
 		); err != nil {
 			return nil, err
 		}
@@ -492,6 +688,23 @@ type RejectLoanRequestL2Params struct {
 
 func (q *Queries) RejectLoanRequestL2(ctx context.Context, arg RejectLoanRequestL2Params) error {
 	_, err := q.db.Exec(ctx, rejectLoanRequestL2, arg.ID, arg.L2ApprovedBy, arg.L2RejectionReason)
+	return err
+}
+
+const updateLoanExtensionStatus = `-- name: UpdateLoanExtensionStatus :exec
+UPDATE loan_extensions
+SET status = $2, approved_by = $3, decided_at = NOW()
+WHERE id = $1
+`
+
+type UpdateLoanExtensionStatusParams struct {
+	ID         uuid.UUID   `json:"id"`
+	Status     pgtype.Text `json:"status"`
+	ApprovedBy pgtype.UUID `json:"approved_by"`
+}
+
+func (q *Queries) UpdateLoanExtensionStatus(ctx context.Context, arg UpdateLoanExtensionStatusParams) error {
+	_, err := q.db.Exec(ctx, updateLoanExtensionStatus, arg.ID, arg.Status, arg.ApprovedBy)
 	return err
 }
 

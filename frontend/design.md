@@ -572,6 +572,14 @@ Section margin: space-y-6 (24px) — jarak antar section dalam halaman
 
 > Hindari `p-10` (40px) atau `gap-12` (48px) kecuali untuk hero section / halaman spesial.
 
+### Compact & Mobile-Friendly Standards
+Untuk mengoptimalkan ruang vertikal agar tidak terlalu banyak ruang kosong (whitespace) namun tetap ramah perangkat seluler (mobile friendly):
+- **Paddings**: Gunakan padding yang lebih kecil (`p-4` atau `p-5`) di mobile dan batasi maksimal `p-6` di desktop. Ini menghindari pemborosan ruang pada layar kecil.
+- **Gaps & Grid**: Gunakan `gap-4` atau `gap-5` untuk jarak grid. Hindari `gap-8` atau lebih besar di area kerja utama. Gunakan breakpoint `lg:` untuk memisahkan layout kolom (misal: `grid-cols-1 lg:grid-cols-3`) agar otomatis mengalir menjadi satu kolom di mobile.
+- **Vertical Spacing**: Gunakan `space-y-4` atau `space-y-5` untuk menumpuk elemen. Ini merapatkan susunan komponen tanpa membuatnya terasa berhimpitan.
+- **Textarea & Input**: Batasi baris input seperti textarea ke `rows="3"` dengan padding `p-4` untuk menghemat tinggi lipatan layar (viewport height).
+- **Responsive Font & Text**: Gunakan kombinasi text responsif (misal: `text-2xl lg:text-3xl` untuk judul utama) agar font mengecil secara proporsional di layar handphone.
+
 ---
 
 ## 17. Responsive Design

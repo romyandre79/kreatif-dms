@@ -291,6 +291,17 @@ type DocumentCirculation struct {
 	DepartmentID    pgtype.UUID        `json:"department_id"`
 }
 
+type DocumentFile struct {
+	ID         uuid.UUID          `json:"id"`
+	DocumentID uuid.UUID          `json:"document_id"`
+	FileName   string             `json:"file_name"`
+	FilePath   string             `json:"file_path"`
+	FileSize   int64              `json:"file_size"`
+	MimeType   string             `json:"mime_type"`
+	SortOrder  int32              `json:"sort_order"`
+	CreatedAt  pgtype.Timestamptz `json:"created_at"`
+}
+
 type DocumentRegistration struct {
 	ID                  uuid.UUID          `json:"id"`
 	SourceFilename      string             `json:"source_filename"`

@@ -37,8 +37,9 @@
             </thead>
             <tbody class="divide-y divide-slate-50">
               <tr v-for="req in queue" :key="req.no" 
-                  @click="navigateTo(`/approvals/${req.no}`)"
-                  class="group cursor-pointer transition-all hover:bg-slate-50/50">
+                  @click="selectedRequest = req"
+                  class="group cursor-pointer transition-all hover:bg-slate-50/50"
+                  :class="selectedRequest?.id === req.id ? 'bg-slate-50/70 border-l-4 border-[#1E3A5F]' : ''">
                 <td class="px-8 py-8">
                   <p class="text-sm font-black uppercase tracking-tight text-[#1E3A5F] group-hover:text-primary-600 transition-colors">{{ req.no }}</p>
                 </td>
@@ -94,7 +95,7 @@
               </div>
               
               <div class="p-8 bg-slate-50/50 border border-slate-100 rounded-lg space-y-6">
-                <p class="text-[10px] font-black text-primary-600 uppercase tracking-widest">{{ $t('approvals.extensions.detail.docs_linked', { count: 5 }) }}</p>
+                <p class="text-[10px] font-black text-primary-600 uppercase tracking-widest">{{ $t('approvals.extensions.detail.docs_linked', { count: selectedRequest.docs?.length || 0 }) }}</p>
                 <div class="space-y-3">
                   <div v-for="doc in selectedRequest.docs" :key="doc" class="flex items-center gap-4 p-4 bg-white border border-slate-100 rounded-2xl">
                     <LucideFileText class="w-4 h-4 text-slate-300" />
@@ -146,11 +147,11 @@
 
           <!-- Actions -->
           <div class="p-10 border-t border-slate-50 space-y-4 bg-slate-50/20">
-            <!-- Rejection Notes (Optional) -->
             <Transition name="fade">
               <div v-if="showRejectionNotes" class="space-y-4 pt-6" v-motion-slide-bottom>
                 <p class="text-[10px] font-black text-slate-300 uppercase tracking-widest">{{ $t('approvals.extensions.detail.rejection.title') }}</p>
-                <textarea :placeholder="$t('approvals.extensions.detail.rejection.placeholder')" 
+                <textarea v-model="rejectionReasonText"
+                          :placeholder="$t('approvals.extensions.detail.rejection.placeholder')" 
                           rows="3" 
                           class="w-full p-6 bg-slate-50 border border-slate-100 rounded-3xl text-sm font-medium text-slate-600 outline-none focus:ring-4 focus:ring-primary-500/5 focus:border-primary-500 transition-all resize-none"></textarea>
               </div>
@@ -237,59 +238,104 @@ import {
 } from 'lucide-vue-next'
 
 const route = useRoute()
+const { $api } = useApi()
 const showPinModal = ref(false)
 const showRejectionNotes = ref(false)
+const rejectionReasonText = ref('')
+const isLoading = ref(false)
 
-const queue = ref([
-  {
-    no: 'REQ-2023-001',
-    requestor: 'Budi Santoso',
-    avatar: 'https://i.pravatar.cc/150?u=budi',
-    currentDue: 'Oct 15, 2023',
-    days: 7,
-    newDue: 'Oct 22, 2023',
-    reason: 'Audit preparation',
-    risk: 'Low',
-    docs: ['Sertifikat Tanah A-12', 'Akta Jual Beli #901-22']
-  },
-  {
-    no: 'REQ-2023-002',
-    requestor: 'Siti Aminah',
-    avatar: 'https://i.pravatar.cc/150?u=siti',
-    currentDue: 'Oct 16, 2023',
-    days: 14,
-    newDue: 'Oct 30, 2023',
-    reason: 'Project closure delays',
-    risk: 'Med',
-    docs: ['Contract_Vendor_IT.pdf', 'Legal_Opinion_Q4.docx']
+const queue = ref([])
+const selectedRequest = ref(null)
+
+const fetchExtensions = async () => {
+  isLoading.value = true
+  try {
+    const res = await $api('/loans/extensions')
+    if (res && res.data) {
+      queue.value = res.data
+      
+      const targetId = route.query.id
+      if (targetId) {
+        const found = queue.value.find(q => q.id === targetId || q.no === targetId || q.no.includes(targetId))
+        if (found) {
+          selectedRequest.value = found
+        } else if (queue.value.length > 0) {
+          selectedRequest.value = queue.value[0]
+        } else {
+          selectedRequest.value = null
+        }
+      } else if (queue.value.length > 0) {
+        selectedRequest.value = queue.value[0]
+      } else {
+        selectedRequest.value = null
+      }
+    } else {
+      queue.value = []
+      selectedRequest.value = null
+    }
+  } catch (err) {
+    console.error('Failed to fetch extensions:', err)
+  } finally {
+    isLoading.value = false
   }
-])
-
-const selectedRequest = ref(queue.value[0])
-
-const confirmPin = () => {
-  alert(`Perpanjangan untuk ${selectedRequest.value.no} telah disetujui.`)
-  showPinModal.value = false
 }
 
-const handleReject = () => {
+const confirmPin = async () => {
+  if (!selectedRequest.value) return
+  
+  try {
+    const res = await $api(`/loans/extensions/${selectedRequest.value.id}/approve`, {
+      method: 'POST'
+    })
+    if (res.status === 'success' || res.success) {
+      alert(`Perpanjangan untuk ${selectedRequest.value.no} telah disetujui.`)
+      showPinModal.value = false
+      await fetchExtensions()
+    } else {
+      alert(res.message || 'Gagal menyetujui perpanjangan.')
+    }
+  } catch (err) {
+    console.error(err)
+    alert(err?.data?.message || 'Terjadi kesalahan saat menyetujui perpanjangan.')
+  }
+}
+
+const handleReject = async () => {
   if (!showRejectionNotes.value) {
     showRejectionNotes.value = true
     return
   }
   
-  alert(`Permohonan ${selectedRequest.value.no} telah ditolak.`)
-  showRejectionNotes.value = false
+  if (!rejectionReasonText.value || rejectionReasonText.value.trim() === '') {
+    alert('Alasan penolakan wajib diisi.')
+    return
+  }
+  
+  if (!selectedRequest.value) return
+  
+  try {
+    const res = await $api(`/loans/extensions/${selectedRequest.value.id}/reject`, {
+      method: 'POST',
+      body: {
+        reason: rejectionReasonText.value
+      }
+    })
+    if (res.status === 'success' || res.success) {
+      alert(`Permohonan ${selectedRequest.value.no} telah ditolak.`)
+      showRejectionNotes.value = false
+      rejectionReasonText.value = ''
+      await fetchExtensions()
+    } else {
+      alert(res.message || 'Gagal menolak perpanjangan.')
+    }
+  } catch (err) {
+    console.error(err)
+    alert(err?.data?.message || 'Terjadi kesalahan saat menolak perpanjangan.')
+  }
 }
 
 onMounted(() => {
-  const targetId = route.query.id
-  if (targetId) {
-    const found = queue.value.find(q => q.no === targetId || q.no.includes(targetId) || targetId.includes(q.no))
-    if (found) {
-      selectedRequest.value = found
-    }
-  }
+  fetchExtensions()
 })
 </script>
 

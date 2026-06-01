@@ -568,7 +568,89 @@ func (s *DocumentService) GetLoanHistory(ctx context.Context, docID uuid.UUID) (
 	return s.repo.GetDocumentLoanHistory(ctx, docID)
 }
 func (s *DocumentService) ApproveDocument(ctx context.Context, docID uuid.UUID, notes string) error {
-	// 1. Update workflow status
+	// 1. Retrieve the latest approval task to check level
+	task, err := s.repo.GetLatestApprovalTaskByEntity(ctx, repository.GetLatestApprovalTaskByEntityParams{
+		EntityID:   docID,
+		EntityType: "document_upload",
+	})
+
+	// Fallback to original flow if no task is found
+	if err != nil {
+		log.Printf("[DocumentService] No approval task found for doc %s, defaulting to immediate approval: %v", docID, err)
+		if err := s.repo.ApproveTask(ctx, repository.ApproveTaskParams{
+			EntityID:     docID,
+			DecisionNote: pgtype.Text{String: notes, Valid: notes != ""},
+		}); err != nil {
+			return err
+		}
+		return s.finalizeDocumentApproval(ctx, docID, notes)
+	}
+
+	if task.Level == 1 {
+		// --- LEVEL 1 APPROVAL (Department Head approved) ---
+		// A. Update Level 1 pending task to 'approved'
+		if err := s.repo.ApproveTask(ctx, repository.ApproveTaskParams{
+			EntityID:     docID,
+			DecisionNote: pgtype.Text{String: notes, Valid: notes != ""},
+		}); err != nil {
+			return err
+		}
+
+		// B. Fetch Level 2 users (superadmin, admin doc controller, kepala doc controller)
+		roles := []string{"superadmin", "admin doc controller", "kepala doc controller"}
+		admins, err := s.repo.ListUsersByRoles(ctx, roles)
+		if err != nil {
+			return fmt.Errorf("failed to fetch Level 2 approvers: %v", err)
+		}
+
+		// C. Create Level 2 approval tasks
+		for _, admin := range admins {
+			_, err = s.repo.CreateApprovalTask(ctx, repository.CreateApprovalTaskParams{
+				EntityType: "document_upload",
+				EntityID:   docID,
+				ApproverID: admin.ID,
+				Level:      2,
+			})
+			if err != nil {
+				log.Printf("[DocumentService] Error creating L2 approval task for user %s: %v", admin.ID, err)
+			}
+		}
+
+		// D. Send notification to Level 2 users (Async)
+		go func() {
+			bgCtx := context.Background()
+			doc, err := s.repo.GetDocument(bgCtx, docID)
+			if err != nil {
+				log.Printf("[DocumentService] Error getting doc for L1 approval notification: %v", err)
+				return
+			}
+			owner, _ := s.repo.GetUserByID(bgCtx, doc.OwnerID)
+
+			for _, admin := range admins {
+				metaDC := map[string]string{
+					"docTitle":    doc.Title,
+					"ownerName":   owner.FullName,
+					"approveLink": fmt.Sprintf("%s/approvals/%s", s.cfg.AppURL, docID),
+				}
+				metaDCJSON, _ := json.Marshal(metaDC)
+				_, _ = s.notifSvc.CreateNotification(bgCtx, repository.CreateNotificationParams{
+					UserID:     admin.ID,
+					Title:      "Permintaan Persetujuan Dokumen (L2)",
+					Body:       pgtype.Text{String: fmt.Sprintf("Dokumen '%s' dari %s disetujui Kepala Departemen dan memerlukan persetujuan Level 2 Anda.", doc.Title, owner.FullName), Valid: true},
+					Type:       "doc-approval-l2",
+					EntityType: pgtype.Text{String: "document", Valid: true},
+					EntityID:   pgtype.UUID{Bytes: docID, Valid: true},
+					Channel:    pgtype.Text{String: "email", Valid: true},
+					Metadata:   metaDCJSON,
+				})
+			}
+		}()
+
+		return nil
+	}
+
+	// --- LEVEL 2 APPROVAL (DC / Superadmin approved) ---
+	// A. Update Level 2 pending task(s) to 'approved'
 	if err := s.repo.ApproveTask(ctx, repository.ApproveTaskParams{
 		EntityID:     docID,
 		DecisionNote: pgtype.Text{String: notes, Valid: notes != ""},
@@ -576,7 +658,12 @@ func (s *DocumentService) ApproveDocument(ctx context.Context, docID uuid.UUID, 
 		return err
 	}
 
-	// 2. Update document status to 'approved' (waiting physical) and physical_status to 'pending'
+	// B. Finalize document status to 'approved' and physical status to 'pending'
+	return s.finalizeDocumentApproval(ctx, docID, notes)
+}
+
+func (s *DocumentService) finalizeDocumentApproval(ctx context.Context, docID uuid.UUID, notes string) error {
+	// Update document status to 'approved' (waiting physical) and physical_status to 'pending'
 	err := s.repo.UpdateDocumentStatus(ctx, repository.UpdateDocumentStatusParams{
 		ID:     docID,
 		Status: "approved",
@@ -592,7 +679,7 @@ func (s *DocumentService) ApproveDocument(ctx context.Context, docID uuid.UUID, 
 		return err
 	}
 
-	// 3. Trigger Notifications (Async)
+	// Trigger Notifications (Async)
 	go func() {
 		bgCtx := context.Background()
 		doc, err := s.repo.GetDocument(bgCtx, docID)
@@ -602,7 +689,7 @@ func (s *DocumentService) ApproveDocument(ctx context.Context, docID uuid.UUID, 
 		}
 		owner, _ := s.repo.GetUserByID(bgCtx, doc.OwnerID)
 
-		// 3.1 Notify Owner
+		// Notify Owner
 		metaOwner := map[string]string{
 			"docTitle": doc.Title,
 			"notes":    notes,
@@ -619,7 +706,7 @@ func (s *DocumentService) ApproveDocument(ctx context.Context, docID uuid.UUID, 
 			Metadata:   metaOwnerJSON,
 		})
 
-		// 3.2 Notify DC Admins & Superadmin (Ready for Intake)
+		// Notify DC Admins & Superadmin (Ready for Intake)
 		roles := []string{"superadmin", "admin doc controller", "kepala doc controller"}
 		admins, err := s.repo.ListUsersByRoles(bgCtx, roles)
 		if err == nil {
@@ -1425,3 +1512,282 @@ func (s *DocumentService) GetDeptSubmissions(ctx context.Context, deptID uuid.UU
 	}
 	return results, total, rows.Err()
 }
+
+// ============================================================================
+// Loan Extension Service Methods
+// ============================================================================
+
+func (s *DocumentService) CreateLoanExtension(ctx context.Context, userID uuid.UUID, loanRequestID uuid.UUID, extensionDays int32, reason string) (repository.LoanExtension, error) {
+	log.Printf("[DocumentService] Creating loan extension request for loan %s by user %s", loanRequestID, userID)
+
+	// 1. Get loan request
+	loan, err := s.repo.GetLoanRequest(ctx, loanRequestID)
+	if err != nil {
+		return repository.LoanExtension{}, fmt.Errorf("failed to get loan request: %v", err)
+	}
+
+	// 2. Validate loan status
+	if loan.Status != "active" && loan.Status != "overdue" {
+		return repository.LoanExtension{}, fmt.Errorf("cannot request extension for loan with status: %s", loan.Status)
+	}
+
+	// 3. Check for existing pending extension request
+	_, err = s.repo.GetPendingLoanExtensionByLoanRequest(ctx, loanRequestID)
+	if err == nil {
+		return repository.LoanExtension{}, fmt.Errorf("a pending extension request already exists for this loan")
+	}
+
+	// 4. Create loan extension record
+	ext, err := s.repo.CreateLoanExtension(ctx, repository.CreateLoanExtensionParams{
+		LoanRequestID: loanRequestID,
+		RequestedBy:   userID,
+		ExtensionDays: extensionDays,
+		Reason:        reason,
+	})
+	if err != nil {
+		return repository.LoanExtension{}, fmt.Errorf("failed to create loan extension: %v", err)
+	}
+
+	// 5. Update loan request status to 'extension_pending'
+	err = s.repo.UpdateLoanRequestStatus(ctx, repository.UpdateLoanRequestStatusParams{
+		ID:     loanRequestID,
+		Status: "extension_pending",
+	})
+	if err != nil {
+		log.Printf("[DocumentService] Warning: failed to update loan request status: %v", err)
+	}
+
+	// 6. Create L1 approval task for Department Head
+	borrower, err := s.repo.GetUserByID(ctx, loan.UserID)
+	if err == nil && borrower.DepartmentID.Valid {
+		dept, err := s.repo.GetDepartment(ctx, borrower.DepartmentID.Bytes)
+		if err == nil && dept.HeadID.Valid {
+			log.Printf("[DocumentService] Creating L1 extension approval task for dept head: %s", dept.HeadID.Bytes)
+			_, err = s.repo.CreateApprovalTask(ctx, repository.CreateApprovalTaskParams{
+				EntityType: "loan_extension",
+				EntityID:   ext.ID,
+				ApproverID: dept.HeadID.Bytes,
+				Level:      1,
+			})
+			if err != nil {
+				log.Printf("[DocumentService] Error creating approval task: %v", err)
+			} else {
+				// Send notification to Department Head
+				meta := map[string]string{
+					"requestNo": loan.RequestNo,
+					"userName":  borrower.FullName,
+					"reason":    reason,
+					"days":      fmt.Sprintf("%d", extensionDays),
+				}
+				metaJSON, _ := json.Marshal(meta)
+				_, _ = s.notifSvc.CreateNotification(ctx, repository.CreateNotificationParams{
+					UserID:     dept.HeadID.Bytes,
+					Title:      "Pengajuan Perpanjangan Peminjaman",
+					Body:       pgtype.Text{String: fmt.Sprintf("%s mengajukan perpanjangan peminjaman %s selama %d hari", borrower.FullName, loan.RequestNo, extensionDays), Valid: true},
+					Type:       "loan-extension-pending-approval",
+					EntityType: pgtype.Text{String: "loan_extension", Valid: true},
+					EntityID:   pgtype.UUID{Bytes: ext.ID, Valid: true},
+					Channel:    pgtype.Text{String: "email", Valid: true},
+					Metadata:   metaJSON,
+				})
+				return ext, nil
+			}
+		}
+	}
+
+	// Fallback to L2 approval directly if no department head is found
+	log.Printf("[DocumentService] No dept head found. Escalating extension directly to Level 2")
+	roles := []string{"superadmin", "admin doc controller", "kepala doc controller"}
+	admins, err := s.repo.ListUsersByRoles(ctx, roles)
+	if err == nil {
+		for _, admin := range admins {
+			_, _ = s.repo.CreateApprovalTask(ctx, repository.CreateApprovalTaskParams{
+				EntityType: "loan_extension",
+				EntityID:   ext.ID,
+				ApproverID: admin.ID,
+				Level:      2,
+			})
+		}
+	}
+
+	return ext, nil
+}
+
+func (s *DocumentService) ListPendingLoanExtensions(ctx context.Context, userID uuid.UUID) ([]repository.ListPendingLoanExtensionsForApproverRow, error) {
+	return s.repo.ListPendingLoanExtensionsForApprover(ctx, userID)
+}
+
+func (s *DocumentService) ApproveLoanExtension(ctx context.Context, extensionID uuid.UUID, approverID uuid.UUID) error {
+	log.Printf("[DocumentService] Approving loan extension %s by user %s", extensionID, approverID)
+
+	// 1. Get extension details
+	ext, err := s.repo.GetLoanExtension(ctx, extensionID)
+	if err != nil {
+		return fmt.Errorf("failed to get loan extension: %v", err)
+	}
+
+	// 2. Get latest active task to identify current level
+	task, err := s.repo.GetLatestApprovalTaskByEntity(ctx, repository.GetLatestApprovalTaskByEntityParams{
+		EntityID:   extensionID,
+		EntityType: "loan_extension",
+	})
+	if err != nil {
+		return fmt.Errorf("no active task found for extension: %v", err)
+	}
+
+	if task.Level == 1 {
+		// --- LEVEL 1 APPROVAL ---
+		// Approve Level 1 task
+		err = s.repo.ApproveTask(ctx, repository.ApproveTaskParams{
+			EntityID:     extensionID,
+			DecisionNote: pgtype.Text{String: "Extension approved by Manager", Valid: true},
+		})
+		if err != nil {
+			return fmt.Errorf("failed to approve L1 task: %v", err)
+		}
+
+		// Create Level 2 tasks
+		roles := []string{"superadmin", "admin doc controller", "kepala doc controller"}
+		admins, err := s.repo.ListUsersByRoles(ctx, roles)
+		if err != nil {
+			return fmt.Errorf("failed to fetch Level 2 approvers: %v", err)
+		}
+
+		for _, admin := range admins {
+			_, err = s.repo.CreateApprovalTask(ctx, repository.CreateApprovalTaskParams{
+				EntityType: "loan_extension",
+				EntityID:   extensionID,
+				ApproverID: admin.ID,
+				Level:      2,
+			})
+			if err != nil {
+				log.Printf("[DocumentService] Error creating L2 approval task for user %s: %v", admin.ID, err)
+			}
+		}
+	} else if task.Level == 2 {
+		// --- LEVEL 2 APPROVAL ---
+		// Approve Level 2 task
+		err = s.repo.ApproveTask(ctx, repository.ApproveTaskParams{
+			EntityID:     extensionID,
+			DecisionNote: pgtype.Text{String: "Extension approved by DC / Admin", Valid: true},
+		})
+		if err != nil {
+			return fmt.Errorf("failed to approve L2 task: %v", err)
+		}
+
+		// Update extension status to 'approved'
+		err = s.repo.UpdateLoanExtensionStatus(ctx, repository.UpdateLoanExtensionStatusParams{
+			ID:         extensionID,
+			Status:     pgtype.Text{String: "approved", Valid: true},
+			ApprovedBy: pgtype.UUID{Bytes: approverID, Valid: true},
+		})
+		if err != nil {
+			return fmt.Errorf("failed to update extension status: %v", err)
+		}
+
+		// Extend loan request due date
+		err = s.repo.ExtendLoanRequestDueDate(ctx, repository.ExtendLoanRequestDueDateParams{
+			ID:      ext.LoanRequestID,
+			Column2: ext.ExtensionDays,
+		})
+		if err != nil {
+			return fmt.Errorf("failed to extend loan due date: %v", err)
+		}
+
+		// Notify requester (Async)
+		go func() {
+			bgCtx := context.Background()
+			meta := map[string]string{
+				"requestNo": ext.RequestNo,
+				"days":      fmt.Sprintf("%d", ext.ExtensionDays),
+			}
+			metaJSON, _ := json.Marshal(meta)
+
+			_, _ = s.notifSvc.CreateNotification(bgCtx, repository.CreateNotificationParams{
+				UserID:     ext.RequestedBy,
+				Title:      "Perpanjangan Peminjaman Disetujui",
+				Body:       pgtype.Text{String: fmt.Sprintf("Permohonan perpanjangan %s selama %d hari telah disetujui.", ext.RequestNo, ext.ExtensionDays), Valid: true},
+				Type:       "loan-extension-approved",
+				EntityType: pgtype.Text{String: "loan_request", Valid: true},
+				EntityID:   pgtype.UUID{Bytes: ext.LoanRequestID, Valid: true},
+				Channel:    pgtype.Text{String: "email", Valid: true},
+				Metadata:   metaJSON,
+			})
+		}()
+	}
+
+	return nil
+}
+
+func (s *DocumentService) RejectLoanExtension(ctx context.Context, extensionID uuid.UUID, approverID uuid.UUID, reason string) error {
+	log.Printf("[DocumentService] Rejecting loan extension %s by user %s. Reason: %s", extensionID, approverID, reason)
+
+	// 1. Get extension details
+	ext, err := s.repo.GetLoanExtension(ctx, extensionID)
+	if err != nil {
+		return fmt.Errorf("failed to get loan extension: %v", err)
+	}
+
+	// 2. Reject active approval tasks
+	err = s.repo.RejectTask(ctx, repository.RejectTaskParams{
+		EntityID:        extensionID,
+		DecisionNote:    pgtype.Text{String: "Extension rejected", Valid: true},
+		RejectionReason: pgtype.Text{String: reason, Valid: true},
+	})
+	if err != nil {
+		return fmt.Errorf("failed to reject approval task: %v", err)
+	}
+
+	// 3. Update extension status to 'rejected'
+	err = s.repo.UpdateLoanExtensionStatus(ctx, repository.UpdateLoanExtensionStatusParams{
+		ID:         extensionID,
+		Status:     pgtype.Text{String: "rejected", Valid: true},
+		ApprovedBy: pgtype.UUID{Bytes: approverID, Valid: true},
+	})
+	if err != nil {
+		return fmt.Errorf("failed to update extension status: %v", err)
+	}
+
+	// 4. Restore loan status to 'active' or 'overdue' based on original due date
+	loan, err := s.repo.GetLoanRequest(ctx, ext.LoanRequestID)
+	if err != nil {
+		return fmt.Errorf("failed to get loan request to reset status: %v", err)
+	}
+
+	newStatus := "active"
+	if loan.DueDate.Valid && time.Now().After(loan.DueDate.Time) {
+		newStatus = "overdue"
+	}
+
+	err = s.repo.UpdateLoanRequestStatus(ctx, repository.UpdateLoanRequestStatusParams{
+		ID:     ext.LoanRequestID,
+		Status: newStatus,
+	})
+	if err != nil {
+		return fmt.Errorf("failed to reset loan request status: %v", err)
+	}
+
+	// 5. Notify requester (Async)
+	go func() {
+		bgCtx := context.Background()
+		meta := map[string]string{
+			"requestNo": ext.RequestNo,
+			"reason":    reason,
+		}
+		metaJSON, _ := json.Marshal(meta)
+
+		_, _ = s.notifSvc.CreateNotification(bgCtx, repository.CreateNotificationParams{
+			UserID:     ext.RequestedBy,
+			Title:      "Perpanjangan Peminjaman Ditolak",
+			Body:       pgtype.Text{String: fmt.Sprintf("Permohonan perpanjangan %s ditolak. Alasan: %s", ext.RequestNo, reason), Valid: true},
+			Type:       "loan-extension-rejected",
+			EntityType: pgtype.Text{String: "loan_request", Valid: true},
+			EntityID:   pgtype.UUID{Bytes: ext.LoanRequestID, Valid: true},
+			Channel:    pgtype.Text{String: "email", Valid: true},
+			Metadata:   metaJSON,
+		})
+	}()
+
+	return nil
+}
+

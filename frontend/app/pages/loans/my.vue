@@ -360,8 +360,16 @@ const fetchLoans = async () => {
   try {
     const res = await $api(`${config.public.apiBase}/loans/my`)
     if (res && res.data) {
+      const prevSelectedId = selectedLoan.value?.id
       loans.value = res.data
-      if (loans.value.length > 0 && !selectedLoan.value) {
+      if (prevSelectedId) {
+        const found = loans.value.find(l => l.id === prevSelectedId)
+        if (found) {
+          selectedLoan.value = found
+        } else if (loans.value.length > 0) {
+          selectedLoan.value = loans.value[0]
+        }
+      } else if (loans.value.length > 0) {
         selectedLoan.value = loans.value[0]
       }
     }
@@ -460,20 +468,36 @@ const canReschedule = computed(() => {
   return raw === 'active' || raw === 'overdue' || selectedLoan.value.status === 'EXTENSION PENDING'
 })
 
-const submitExtension = () => {
-  // Update state for demo/placeholder for now
-  if (selectedLoan.value) {
-    selectedLoan.value.status = 'EXTENSION PENDING'
-    selectedLoan.value.statusColor = 'bg-orange-50 text-orange-500 border border-orange-100'
-    submissionSuccessDays.value = extensionDays.value
-    submissionSuccess.value = true
-    showExtensionModal.value = false
-    extensionReason.value = ''
+const submitExtension = async () => {
+  if (!selectedLoan.value) return
+  
+  try {
+    const res = await $api(`${config.public.apiBase}/loans/${selectedLoan.value.id}/extend`, {
+      method: 'POST',
+      body: {
+        extension_days: extensionDays.value,
+        reason: extensionReason.value
+      }
+    })
     
-    // Auto hide success banner after 5s
-    setTimeout(() => {
-      submissionSuccess.value = false
-    }, 5000)
+    if (res.status === 'success' || res.success) {
+      submissionSuccessDays.value = extensionDays.value
+      submissionSuccess.value = true
+      showExtensionModal.value = false
+      extensionReason.value = ''
+      
+      await fetchLoans()
+      
+      // Auto hide success banner after 5s
+      setTimeout(() => {
+        submissionSuccess.value = false
+      }, 5000)
+    } else {
+      alert(res.message || 'Gagal mengajukan perpanjangan.')
+    }
+  } catch (err) {
+    console.error('Error submitting extension:', err)
+    alert(err?.data?.message || 'Terjadi kesalahan saat mengajukan perpanjangan.')
   }
 }
 </script>
