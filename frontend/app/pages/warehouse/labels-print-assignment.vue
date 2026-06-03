@@ -2,20 +2,13 @@
   <div class="min-h-screen bg-[#F8FAFC] p-8 space-y-8" v-motion-fade>
     <!-- Breadcrumbs & Actions -->
     <div class="flex items-center justify-between">
-      <nav class="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400">
-        <NuxtLink to="/warehouse/labels" class="hover:text-primary-500">Inventory</NuxtLink>
-        <LucideChevronRight class="w-3 h-3" />
-        <NuxtLink to="/warehouse/labels" class="hover:text-primary-500">Labels</NuxtLink>
-        <LucideChevronRight class="w-3 h-3" />
-        <span class="text-[#1E3A5F]">Box Assignment</span>
-      </nav>
       <div class="flex items-center gap-4">
         <button @click="router.back()" class="px-6 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all">
           Cancel
         </button>
         <button 
           @click="handleFinalize" 
-          :disabled="!selectedBox || assigning" 
+          :disabled="assigning" 
           class="px-8 py-2.5 bg-[#1E3A5F] hover:bg-[#152943] text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-xl shadow-blue-900/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
         >
           <LucideCheckCircle v-if="!assigning" class="w-4 h-4" />
@@ -118,7 +111,7 @@
                 <div class="border-t border-slate-100 pt-4 space-y-1">
                   <p class="text-[8px] font-black text-slate-300 uppercase tracking-widest">HIERARCHY LOCATION</p>
                   <p class="text-sm font-black text-slate-500 tracking-tight uppercase truncate">
-                    {{ recommendedLocation?.rack_name || 'SELECT RACK' }} / {{ recommendedLocation?.location_detail?.split('•')[1]?.trim() || 'LVL-03' }}
+                    {{ recommendedLocation?.rack_name || 'SELECT RACK' }} / {{ recommendedLocation?.location_detail || 'LVL-03' }}
                   </p>
                 </div>
                 <div class="absolute inset-0 bg-[#1E3A5F]/0 group-hover:bg-[#1E3A5F]/5 transition-colors cursor-zoom-in"></div>
@@ -147,6 +140,7 @@
                   type="text" 
                   v-model="boxSearchQuery"
                   @input="handleBoxSearch"
+                  @keyup.enter="handleSearchEnter"
                   placeholder="Search box ID or location..." 
                   class="w-full pl-12 pr-5 py-4 bg-slate-50 border-none rounded-2xl text-xs font-bold outline-none ring-2 ring-transparent focus:ring-primary-500/10 focus:bg-white transition-all shadow-inner"
                 />
@@ -176,10 +170,19 @@
                 <span class="text-[9px] font-black text-[#1E3A5F] uppercase">{{ docIDs.length }} Items</span>
               </div>
               <ul class="space-y-3">
-                <li v-for="(id, idx) in docIDs.slice(0, 3)" :key="id" class="flex items-center gap-3">
+                <li v-for="(doc, idx) in selectedDocuments.slice(0, 3)" :key="doc.id" class="flex items-center gap-3">
                   <div class="w-1.5 h-1.5 bg-[#1E3A5F] rounded-full"></div>
-                  <span class="text-[10px] font-black text-[#1E3A5F] tracking-tight uppercase">AKR-CH-{{ id.substring(0,8).toUpperCase() }}</span>
+                  <div class="flex flex-col">
+                    <span class="text-[10px] font-black text-[#1E3A5F] tracking-tight uppercase">{{ doc.title }}</span>
+                    <span class="text-[8px] text-slate-400 font-medium">SYS-{{ doc.id.substring(0,8).toUpperCase() }}</span>
+                  </div>
                 </li>
+                <template v-if="selectedDocuments.length === 0">
+                  <li v-for="(id, idx) in docIDs.slice(0, 3)" :key="id" class="flex items-center gap-3">
+                    <div class="w-1.5 h-1.5 bg-[#1E3A5F] rounded-full"></div>
+                    <span class="text-[10px] font-black text-[#1E3A5F] tracking-tight uppercase">AKR-CH-{{ id.substring(0,8).toUpperCase() }}</span>
+                  </li>
+                </template>
                 <li v-if="docIDs.length > 3" class="text-[9px] font-bold text-slate-400 italic pl-4">
                   + {{ docIDs.length - 3 }} other documents
                 </li>
@@ -192,7 +195,7 @@
             <div class="space-y-3 pt-4">
               <button 
                 @click="handleFinalize"
-                :disabled="!selectedBox || assigning"
+                :disabled="assigning"
                 class="w-full py-5 bg-[#1E3A5F] text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-2xl shadow-blue-900/40 hover:bg-[#152943] transition-all flex items-center justify-center gap-3 disabled:opacity-50 group"
               >
                 <LucidePackage class="w-4 h-4 group-hover:scale-110 transition-transform" />
@@ -249,12 +252,15 @@ import {
   LucideExternalLink, LucideLayers
 } from 'lucide-vue-next'
 import { useApi } from '@/composables/useApi'
+import { useToast } from '~/composables/useToast'
 
 const route = useRoute()
 const router = useRouter()
 const { $api } = useApi()
+const toast = useToast()
 
 const docIDs = ref([])
+const selectedDocuments = ref([])
 const assigning = ref(false)
 const printing = ref(false)
 const boxSearchQuery = ref('')
@@ -270,12 +276,14 @@ onMounted(async () => {
   if (ids) {
     docIDs.value = ids.split(',')
     
-    // Fetch first document details for preview
+    // Fetch all selected documents for preview & list
     try {
-      const docRes = await $api(`/documents/${docIDs.value[0]}`)
-      firstDoc.value = docRes.data
+      const promises = docIDs.value.map(id => $api(`/documents/${id}`))
+      const responses = await Promise.all(promises)
+      selectedDocuments.value = responses.map(res => res.data)
+      firstDoc.value = selectedDocuments.value[0]
     } catch (err) {
-      console.error('Failed to fetch doc details:', err)
+      console.error('Failed to fetch selected documents:', err)
     }
 
     // Fetch smart recommendation from backend
@@ -328,21 +336,34 @@ const focusSearch = () => {
   searchInput.value?.focus()
 }
 
+const handleSearchEnter = () => {
+  if (boxSearchResults.value.length > 0) {
+    selectBox(boxSearchResults.value[0])
+  }
+}
+
 const triggerPrint = () => {
   printing.value = true
   setTimeout(() => {
     printing.value = false
-    alert('Simulasi: Label telah dikirim ke antrean printer.')
+    toast.info('Simulasi: Label telah dikirim ke antrean printer.')
   }, 3000)
 }
 
 const saveAsDraft = () => {
-  alert('Draft penugasan berhasil disimpan.')
+  toast.success('Draft penugasan berhasil disimpan.')
   router.push('/warehouse/labels')
 }
 
 const handleFinalize = async () => {
-  if (!selectedBox.value || docIDs.value.length === 0) return
+  if (!selectedBox.value) {
+    toast.warning('Silakan cari dan pilih boks penyimpanan terlebih dahulu.')
+    return
+  }
+  if (docIDs.value.length === 0) {
+    toast.error('Tidak ada dokumen yang dipilih.')
+    return
+  }
   
   assigning.value = true
   try {
@@ -360,10 +381,10 @@ const handleFinalize = async () => {
     await new Promise(resolve => setTimeout(resolve, 3000))
     printing.value = false
     
-    alert('Penugasan boks dan pencetakan label berhasil!')
+    toast.success('Penugasan boks dan pencetakan label berhasil!')
     router.push('/warehouse/labels')
   } catch (err) {
-    alert('Gagal menyelesaikan penugasan: ' + err.message)
+    toast.error('Gagal menyelesaikan penugasan: ' + err.message)
   } finally {
     assigning.value = false
   }

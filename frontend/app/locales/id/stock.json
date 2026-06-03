@@ -1,0 +1,218 @@
+{
+  "stock": {
+    "missions": {
+      "title": "Daftar Misi Audit",
+      "head_view": "(Tampilan Kepala)",
+      "subtitle": "Pantau dan kelola semua misi audit manual dan otomatis dari sistem.",
+      "tabs": {
+        "all": "Semua",
+        "scheduled": "Terjadwal",
+        "completed": "Selesai"
+      },
+      "stats": {
+        "pending": "Misi Tertunda",
+        "approval_req": "Butuh Persetujuan",
+        "active": "Operator Aktif",
+        "on_mission": "Dalam Misi",
+        "rate": "Tingkat Penyelesaian",
+        "vs_last_week": "{value} vs minggu lalu"
+      },
+      "search_placeholder": "Cari misi berdasarkan target atau operator...",
+      "table": {
+        "cols": {
+          "target": "Target Misi",
+          "schedule": "Detail Jadwal",
+          "operator": "Operator Ditugaskan",
+          "type": "Tipe",
+          "status": "Status",
+          "actions": "Aksi"
+        }
+      },
+      "pagination": "Menampilkan {start}-{end} dari {total} misi",
+      "tip": {
+        "title": "Tips Penerbitan Misi",
+        "desc": "Klik \"Terbitkan Misi Audit\" untuk membuat penugasan audit manual baru. Sistem secara otomatis menghasilkan misi untuk barang-barang berkecepatan tinggi setiap 30 hari."
+      }
+    },
+    "scan_execution": {
+      "title": "Eksekusi Scan",
+      "subtitle": "Lakukan audit fisik waktu-nyata dan pindai kode batang.",
+      "active_mission": {
+        "progress": "Kemajuan Misi",
+        "badge": "Misi Aktif",
+        "title": "Audit Stok Opname",
+        "id": "ID Misi: {id}",
+        "target": "Zona Target",
+        "expected": "Jumlah Terperkirakan",
+        "btn_start": "Mulai Audit",
+        "btn_details": "Lihat Detail"
+      },
+      "stats": {
+        "last_scan": "Aktivitas Pindaian Terakhir",
+        "verification": "Menunggu Verifikasi",
+        "team": "Tim Audit Aktif",
+        "hours_ago": "{count} jam lalu",
+        "pending": "3 Item Perlu Verifikasi",
+        "active_today": "{count} operator aktif hari ini"
+      },
+      "blind_audit": {
+        "alert": {
+          "title": "Mode Audit Buta Aktif",
+          "desc": "Sistem tidak akan menampilkan jumlah atau lokasi yang terperkirakan sampai pemindaian selesai. Pindai item fisik secara langsung."
+        },
+        "card": {
+          "title": "Pindai Barcode atau QR Code",
+          "subtitle": "Posisikan label QR atau barcode di dalam area kamera",
+          "waiting": "Menunggu pemindaian barcode...",
+          "btn_verify": "Verifikasi Hasil Pindai",
+          "btn_manual": "Input Kode Manual"
+        },
+        "footer": {
+          "rak": "ID Rak",
+          "zona": "Area Zona",
+          "level": "Tingkat Rak",
+          "not_detected": "Tidak Terdeteksi",
+          "not_determined": "Belum Ditentukan",
+          "required": "Wajib"
+        }
+      },
+      "active_session": {
+        "header": {
+          "label": "LOKASI SESI SAAT INI",
+          "val": "RAK A1 - A5 (DEPT. HUKUM)",
+          "live": "PELACAKAN LANGSUNG AKTIF"
+        },
+        "counter": {
+          "title": "ITEM TERVERIFIKASI DI ZONA INI",
+          "blind_hint": "Kode yang dipindai langsung diverifikasi terhadap inventaris server"
+        },
+        "last_scan": {
+          "title": "ITEM TERAKHIR DIPINDAI",
+          "result": "TERVERIFIKASI: {id}",
+          "verified": "COCOK TERVERIFIKASI"
+        },
+        "btn_continue": "Pindai Item Berikutnya",
+        "history": {
+          "title": "Log Pindaian Sesi",
+          "view_all": "Lihat Semua Log",
+          "match": "LOKASI COCOK",
+          "time_ago": "{count}m lalu"
+        }
+      },
+      "misplaced_alert": {
+        "header": "PERINGATAN KETIDAKCOCOKAN: SALAH LOKASI",
+        "badge": "SALAH LOKASI",
+        "scanned_id": "ID ITEM DIPINDAI",
+        "discrepancy": "Ketidakcocokan Terdeteksi",
+        "target_loc": "Lokasi seharusnya adalah {loc}",
+        "instruction": "Item dipindai secara fisik di {current}. Silakan kembalikan ke lokasi rak yang benar atau lakukan rekonsiliasi.",
+        "btn_acknowledge": "Pahami & Lanjutkan",
+        "btn_reconcile": "Buka Laporan Rekonsiliasi",
+        "log_info": "Kejadian ini telah dicatat dalam sistem. Dilaporkan oleh {name}."
+      }
+    },
+    "reconciliation": {
+      "badge": "Rekonsiliasi Stok Opname",
+      "title": "Laporan Rekonsiliasi",
+      "subtitle": "Dibuat pada {date}",
+      "btn_export": "Ekspor Laporan",
+      "btn_investigate": "Selesaikan Ketidakcocokan",
+      "summary": {
+        "match": {
+          "title": "Item Cocok",
+          "valid": "TERVERIFIKASI OK",
+          "desc": "Jumlah fisik sesuai dengan data sistem dengan sempurna."
+        },
+        "on_loan": {
+          "title": "Item Dipinjam",
+          "checked": "PINJAMAN AKTIF",
+          "desc": "Item sedang dipinjam oleh staf yang berwenang."
+        },
+        "missing": {
+          "title": "Item Hilang",
+          "action": "PERLU TINDAKAN",
+          "desc": "Ada dalam sistem tetapi tidak ditemukan saat audit."
+        },
+        "extra": {
+          "title": "Item Lebih",
+          "critical": "TEMUAN TAK TERDUGA",
+          "desc": "Item fisik ditemukan tetapi tidak terdaftar di sistem di sini."
+        }
+      },
+      "table": {
+        "title": "Detail Selisih Stok",
+        "tabs": {
+          "all": "Semua Selisih",
+          "location": "Filter per Lokasi"
+        },
+        "cols": {
+          "sku": "SKU / NAMA ITEM",
+          "sys_qty": "QTY SISTEM",
+          "phy_qty": "QTY FISIK",
+          "variance": "SELISIH",
+          "status": "STATUS",
+          "location": "LOKASI SEHARUSNYA"
+        },
+        "load_more": "Muat Lebih Banyak Item (tersisa {count})"
+      }
+    },
+    "resolution": {
+      "title": "Resolusi Ketidakcocokan",
+      "subtitle": "Tinjau dan selesaikan selisih inventaris dari audit terbaru",
+      "items": {
+        "title": "Ketidakcocokan yang Perlu Tindakan",
+        "pending": "{count} Menunggu Tindakan",
+        "extra": {
+          "badge": "ITEM LEBIH",
+          "suggested": "TINDAKAN YANG DISARANKAN",
+          "action_text": "PINDAHKAN KE {loc}",
+          "btn_update": "Pindahkan Item ke {loc} & Perbarui Inventaris"
+        },
+        "missing": {
+          "badge": "ITEM HILANG",
+          "checkbox": "Tandai Item sebagai 'Dinyatakan Hilang' & Sesuaikan Qty Sistem"
+        }
+      },
+      "details": {
+        "title": "Catatan Resolusi & Persetujuan",
+        "note_label": "Catatan Resolusi",
+        "note_placeholder": "Jelaskan mengapa ketidakcocokan ini terjadi dan tindakan fisik apa yang diambil...",
+        "note_hint": "Catatan akan dilampirkan ke log audit resmi dan dapat dilihat oleh auditor.",
+        "btn_submit": "Kirim Resolusi",
+        "btn_save": "Simpan Draf",
+        "actor": "DISELESAIKAN OLEH",
+        "authority": "ROLE ADMIN WAREHOUSE"
+      }
+    },
+    "validation": {
+      "title": "Validasi Akhir Audit",
+      "subtitle": "Tinjauan eksekutif dan validasi selisih audit yang belum terselesaikan",
+      "pending_badge": "MENUNGGU PERSETUJUAN KEPALA",
+      "unresolved": {
+        "title": "{count} ITEM HILANG YANG BELUM DISELESAIKAN",
+        "id": "ID Rekonsiliasi: {id}",
+        "cols": {
+          "code": "ID ITEM",
+          "desc": "DESKRIPSI & TIPE",
+          "sys_qty": "SIS",
+          "act_qty": "FIS",
+          "variance": "SELISIH",
+          "status": "STATUS YANG DIUSULKAN"
+        },
+        "lost_status": "NYATAKAN HILANG & HAPUS BUKU"
+      },
+      "actions": {
+        "note_title": "CATATAN PERSETUJUAN AKHIR",
+        "note_desc": "Menyetujui laporan ini akan memperbarui tingkat inventaris sistem utama secara permanen dan menghapus aset yang hilang.",
+        "btn_approve": "Setujui & Perbarui Inventaris",
+        "btn_reject": "Tolak & Audit Ulang"
+      }
+    },
+    "signature": {
+      "title": "Otorisasi Digital & Persetujuan",
+      "pin_placeholder": "Masukkan 6-digit PIN otorisasi aman Anda",
+      "pad_hint": "Tanda tangani di dalam kotak ini untuk menyelesaikan",
+      "title_sub": "Tanda Tangan"
+    }
+  }
+}

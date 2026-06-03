@@ -65,6 +65,7 @@
               <th class="p-6">System ID</th>
               <th class="p-6">Title</th>
               <th class="p-6">Department</th>
+              <th class="p-6">Box</th>
               <th class="p-6 text-right pr-8">Manifest Ref</th>
             </tr>
           </thead>
@@ -106,6 +107,12 @@
                 <span class="px-3 py-1 bg-blue-50 dark:bg-blue-900/20 text-blue-500 dark:text-blue-400 rounded-md text-[9px] font-black uppercase tracking-widest border border-blue-100 dark:border-blue-800/50">
                   {{ doc.department_name }}
                 </span>
+              </td>
+              <td class="p-6">
+                <span v-if="doc.box_name" class="px-3 py-1 bg-orange-50 dark:bg-orange-900/20 text-orange-500 dark:text-orange-400 rounded-md text-[9px] font-black uppercase tracking-widest border border-orange-100 dark:border-orange-800/50">
+                  {{ doc.box_name }}
+                </span>
+                <span v-else class="text-slate-400 text-[10px] font-bold italic uppercase tracking-wider">-</span>
               </td>
               <td class="p-6 text-right pr-8">
                 <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">{{ doc.manifest_no }}</span>

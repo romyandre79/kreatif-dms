@@ -45,6 +45,9 @@ type Querier interface {
 	CreateRfidTag(ctx context.Context, arg CreateRfidTagParams) (RfidTag, error)
 	CreateRole(ctx context.Context, arg CreateRoleParams) (Role, error)
 	CreateSsoSyncLog(ctx context.Context, arg CreateSsoSyncLogParams) (SsoSyncLog, error)
+	CreateStockItem(ctx context.Context, arg CreateStockItemParams) (StockOpnameItem, error)
+	CreateStockMission(ctx context.Context, arg CreateStockMissionParams) (StockOpnameMission, error)
+	CreateStockSession(ctx context.Context, arg CreateStockSessionParams) (StockOpnameSession, error)
 	CreateSystemModule(ctx context.Context, arg CreateSystemModuleParams) (SystemModule, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
 	DeactivateAllAnnouncements(ctx context.Context) error
@@ -82,6 +85,7 @@ type Querier interface {
 	GetDocumentType(ctx context.Context, id uuid.UUID) (DocumentType, error)
 	GetDocumentWithDetails(ctx context.Context, id uuid.UUID) (GetDocumentWithDetailsRow, error)
 	GetDocumentsByBatch(ctx context.Context, batchID pgtype.UUID) ([]Document, error)
+	GetDocumentsByTargetArea(ctx context.Context, name string) ([]GetDocumentsByTargetAreaRow, error)
 	GetEmailTemplateBySlug(ctx context.Context, slug string) (EmailTemplate, error)
 	GetIntakeStats(ctx context.Context) (GetIntakeStatsRow, error)
 	GetIntegrationNode(ctx context.Context, id uuid.UUID) (IntegrationNode, error)
@@ -114,6 +118,10 @@ type Querier interface {
 	GetRoleIDByName(ctx context.Context, name string) (int32, error)
 	GetRolePermissions(ctx context.Context, roleID int32) ([]GetRolePermissionsRow, error)
 	GetStagingStats(ctx context.Context) (GetStagingStatsRow, error)
+	GetStockItemBySku(ctx context.Context, arg GetStockItemBySkuParams) (StockOpnameItem, error)
+	GetStockMission(ctx context.Context, id uuid.UUID) (GetStockMissionRow, error)
+	GetStockMissionStats(ctx context.Context) (GetStockMissionStatsRow, error)
+	GetStockSession(ctx context.Context, id uuid.UUID) (StockOpnameSession, error)
 	GetSystemModule(ctx context.Context, id string) (SystemModule, error)
 	GetSystemSetting(ctx context.Context, arg GetSystemSettingParams) (SystemSetting, error)
 	// System Settings
@@ -172,6 +180,8 @@ type Querier interface {
 	ListRoles(ctx context.Context) ([]ListRolesRow, error)
 	ListSsoSyncLogs(ctx context.Context, arg ListSsoSyncLogsParams) ([]SsoSyncLog, error)
 	ListStagingManifests(ctx context.Context) ([]ListStagingManifestsRow, error)
+	ListStockItemsBySession(ctx context.Context, sessionID uuid.UUID) ([]StockOpnameItem, error)
+	ListStockMissions(ctx context.Context, arg ListStockMissionsParams) ([]ListStockMissionsRow, error)
 	// System Modules & Permissions
 	ListSystemModules(ctx context.Context) ([]SystemModule, error)
 	ListUserLoanRequests(ctx context.Context, userID uuid.UUID) ([]ListUserLoanRequestsRow, error)
@@ -216,6 +226,11 @@ type Querier interface {
 	UpdateRfidTagStatus(ctx context.Context, arg UpdateRfidTagStatusParams) (RfidTag, error)
 	UpdateRole(ctx context.Context, arg UpdateRoleParams) (Role, error)
 	UpdateSsoSyncLog(ctx context.Context, arg UpdateSsoSyncLogParams) (SsoSyncLog, error)
+	UpdateStockItemQuantity(ctx context.Context, arg UpdateStockItemQuantityParams) error
+	UpdateStockItemResolution(ctx context.Context, arg UpdateStockItemResolutionParams) error
+	UpdateStockMissionStatus(ctx context.Context, arg UpdateStockMissionStatusParams) error
+	UpdateStockSessionStatus(ctx context.Context, arg UpdateStockSessionStatusParams) error
+	UpdateStockSessionSummary(ctx context.Context, arg UpdateStockSessionSummaryParams) error
 	UpdateSystemModule(ctx context.Context, arg UpdateSystemModuleParams) (SystemModule, error)
 	UpdateTaskStatusByEntity(ctx context.Context, arg UpdateTaskStatusByEntityParams) error
 	UpdateUser(ctx context.Context, arg UpdateUserParams) (User, error)

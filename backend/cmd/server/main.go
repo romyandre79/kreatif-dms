@@ -164,6 +164,7 @@ func main() {
 	integrationMonitorSvc := service.NewIntegrationMonitorService(repo)
 	dashboardSvc := service.NewDashboardService(repo)
 	intakeSvc := service.NewIntakeService(repo, notifSvc)
+	stockSvc := service.NewStockService(repo)
 
 	
 	// Start Background Workers
@@ -181,6 +182,7 @@ func main() {
 	intakeHandler := handler.NewIntakeHandler(intakeSvc)
 	emailTemplateHandler := handler.NewEmailTemplateHandler(repo, emailSvc)
 	loanHandler := handler.NewLoanHandler(docSvc)
+	stockHandler := handler.NewStockHandler(stockSvc)
 
 
 	// Create Fiber App
@@ -441,6 +443,18 @@ func main() {
 	intakeGroup.Get("/boxes/search", intakeHandler.SearchBoxes)
 	intakeGroup.Post("/boxes/assign", intakeHandler.AssignToBox)
 	intakeGroup.Get("/boxes/recommend", intakeHandler.GetRecommendation)
+
+	// Stock / Audit routes
+	stockGroup := api.Group("/stock")
+	stockGroup.Use(middleware.AuthMiddleware(cfg.JWTSecret))
+	stockGroup.Get("/missions", stockHandler.GetMissions)
+	stockGroup.Get("/missions/stats", stockHandler.GetStats)
+	stockGroup.Post("/missions", stockHandler.CreateMission)
+	stockGroup.Post("/missions/:id/start", stockHandler.StartMission)
+	stockGroup.Get("/sessions/:id/items", stockHandler.GetSessionItems)
+	stockGroup.Post("/scan", stockHandler.ScanItem)
+	stockGroup.Put("/items/:id/resolve", stockHandler.ResolveItem)
+	stockGroup.Post("/sessions/:id/approve", stockHandler.ApproveSession)
 
 
 	// Health check

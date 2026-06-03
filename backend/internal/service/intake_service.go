@@ -69,6 +69,7 @@ type LabelingDocument struct {
 	DepartmentName string    `json:"department_name"`
 	ManifestNo     string    `json:"manifest_no"`
 	Status         string    `json:"status"`
+	BoxName        string    `json:"box_name"`
 }
 
 type LabelingStats struct {
@@ -620,12 +621,17 @@ func (s *IntakeService) ListLabelingDocuments(ctx context.Context, status string
 
 	result := make([]LabelingDocument, 0, len(items))
 	for _, item := range items {
+		boxName := ""
+		if item.BoxName.Valid {
+			boxName = item.BoxName.String
+		}
 		result = append(result, LabelingDocument{
 			DocumentID:     item.DocumentID,
 			Title:          item.Title,
 			DepartmentName: item.DepartmentName.String,
 			ManifestNo:     item.ManifestNo,
 			Status:         item.ManifestItemStatus,
+			BoxName:        boxName,
 		})
 	}
 	return result, nil

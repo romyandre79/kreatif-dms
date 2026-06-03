@@ -6,11 +6,13 @@ SELECT
     m.manifest_no,
     mi.status as manifest_item_status,
     d.physical_status,
-    d.created_at
+    d.created_at,
+    bx.name as box_name
 FROM documents d
 JOIN physical_manifest_items mi ON d.id = mi.document_id
 JOIN physical_manifests m ON mi.manifest_id = m.id
 LEFT JOIN departments dept ON d.department_id = dept.id
+LEFT JOIN boxes bx ON d.box_id = bx.id
 WHERE mi.status = $1
 ORDER BY d.created_at DESC;
 
@@ -59,7 +61,7 @@ FROM boxes b
 JOIN racks r ON b.rack_id = r.id
 JOIN departments d ON r.department_id = d.id
 WHERE r.department_id = @department_id
-  AND (r.allowed_category_ids IS NULL OR @category_id::uuid = ANY(r.allowed_category_ids))
+  AND (r.allowed_category_ids IS NULL OR array_length(r.allowed_category_ids, 1) IS NULL OR @category_id::uuid = ANY(r.allowed_category_ids))
   AND b.current_docs_count < b.max_docs_capacity
 ORDER BY (b.max_docs_capacity - b.current_docs_count) DESC
 LIMIT 5;
