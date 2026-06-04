@@ -87,3 +87,5 @@ FROM users u
 LEFT JOIN roles r ON u.role_id = r.id
 WHERE r.name = ANY($1::text[])
 AND u.status = 'approved';
+
+

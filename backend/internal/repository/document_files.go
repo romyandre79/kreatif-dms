@@ -2,21 +2,12 @@ package repository
 
 import (
 	"context"
-	"time"
 
 	"github.com/google/uuid"
 )
 
-type DocumentFile struct {
-	ID         uuid.UUID
-	DocumentID uuid.UUID
-	FileName   string
-	FilePath   string
-	FileSize   int64
-	MimeType   string
-	SortOrder  int32
-	CreatedAt  time.Time
-}
+
+
 
 func (q *Queries) CreateDocumentFile(ctx context.Context, documentID uuid.UUID, fileName, filePath string, fileSize int64, mimeType string, sortOrder int32) (DocumentFile, error) {
 	const query = `
@@ -27,6 +18,19 @@ func (q *Queries) CreateDocumentFile(ctx context.Context, documentID uuid.UUID, 
 	var f DocumentFile
 	row := q.db.QueryRow(ctx, query, documentID, fileName, filePath, fileSize, mimeType, sortOrder)
 	err := row.Scan(&f.ID, &f.DocumentID, &f.FileName, &f.FilePath, &f.FileSize, &f.MimeType, &f.SortOrder, &f.CreatedAt)
+	return f, err
+}
+
+func (q *Queries) GetDocumentFileByID(ctx context.Context, fileID uuid.UUID) (DocumentFile, error) {
+	const query = `
+		SELECT id, document_id, file_name, file_path, file_size, mime_type, sort_order, created_at
+		FROM document_files
+		WHERE id = $1
+	`
+	var f DocumentFile
+	err := q.db.QueryRow(ctx, query, fileID).Scan(
+		&f.ID, &f.DocumentID, &f.FileName, &f.FilePath, &f.FileSize, &f.MimeType, &f.SortOrder, &f.CreatedAt,
+	)
 	return f, err
 }
 

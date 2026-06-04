@@ -155,7 +155,7 @@ func main() {
 	waSvc := infra.NewWhatsAppService(repo)
 	authSvc := service.NewAuthService(repo, cfg, ldapSvc, emailSvc)
 	notifSvc := service.NewNotificationService(repo, waSvc, emailSvc)
-	docSvc := service.NewDocumentService(cfg, repo, storageSvc, asynqClient, notifSvc)
+	docSvc := service.NewDocumentService(cfg, dbPool, repo, storageSvc, asynqClient, notifSvc)
 	searchSvc := infra.NewSearchService(es)
 	aiSvc := infra.NewAIService(repo, cfg)
 	_ = service.NewCacheService(rdb) // Initialized for performance later
@@ -164,6 +164,7 @@ func main() {
 	integrationMonitorSvc := service.NewIntegrationMonitorService(repo)
 	dashboardSvc := service.NewDashboardService(repo)
 	intakeSvc := service.NewIntakeService(repo, notifSvc)
+	stockSvc := service.NewStockService(repo)
 
 	
 	// Start Background Workers
@@ -181,6 +182,7 @@ func main() {
 	intakeHandler := handler.NewIntakeHandler(intakeSvc)
 	emailTemplateHandler := handler.NewEmailTemplateHandler(repo, emailSvc)
 	loanHandler := handler.NewLoanHandler(docSvc)
+	stockHandler := handler.NewStockHandler(stockSvc)
 
 
 	// Create Fiber App
@@ -250,6 +252,10 @@ func main() {
 	userGroup.Get("/pending", middleware.RoleMiddleware("admin", "superadmin"), authHandler.ListPendingUsers)
 	userGroup.Post("/:id/approve", middleware.RoleMiddleware("admin", "superadmin"), authHandler.ApproveUser)
 
+	// Hierarchy Routes
+	api.Get("/admin/hierarchy", middleware.AuthMiddleware(cfg.JWTSecret), middleware.RoleMiddleware("admin", "superadmin"), userHandler.GetHierarchy)
+	api.Put("/admin/hierarchy/bulk-update", middleware.AuthMiddleware(cfg.JWTSecret), middleware.RoleMiddleware("admin", "superadmin"), userHandler.UpdateHierarchy)
+
 	// Document Routes
 	docGroup := api.Group("/documents")
 	docGroup.Use(middleware.AuthMiddleware(cfg.JWTSecret))
@@ -263,11 +269,14 @@ func main() {
 	docGroup.Get("/:id/image", docHandler.GetImage)
 	docGroup.Get("/:id/loans", docHandler.GetLoans)
 	docGroup.Get("/:id/files", docHandler.ListFiles)
+	docGroup.Get("/:id/files/:fileId/preview", docHandler.PreviewFile)
 	docGroup.Get("/:id/ocr", docHandler.GetOCRData)
 	docGroup.Post("/:id/approve", docHandler.Approve)
 	docGroup.Post("/:id/reject", docHandler.Reject)
 	docGroup.Post("/bulk-approve", docHandler.BulkApprove)
 	docGroup.Post("/bulk-reject", docHandler.BulkReject)
+	docGroup.Get("/my-submissions", docHandler.GetMySubmissions)
+	docGroup.Get("/submissions", docHandler.GetDeptSubmissions)
 	
 	// Explorer Routes
 	docGroup.Get("/explorer/tree", docHandler.GetExplorerTree)
@@ -286,10 +295,14 @@ func main() {
 	loanGroup.Post("/", loanHandler.Submit)
 	loanGroup.Get("/my", loanHandler.ListMyLoans)
 	loanGroup.Get("/penalty-policy", loanHandler.GetPenaltyPolicy)
+	loanGroup.Get("/extensions", loanHandler.ListExtensions)
 	loanGroup.Get("/", loanHandler.ListAll)
 	loanGroup.Get("/:id", loanHandler.GetByID)
 	loanGroup.Post("/:id/approve", loanHandler.Approve)
 	loanGroup.Post("/:id/reject", loanHandler.Reject)
+	loanGroup.Post("/:id/extend", loanHandler.RequestExtension)
+	loanGroup.Post("/extensions/:id/approve", loanHandler.ApproveExtension)
+	loanGroup.Post("/extensions/:id/reject", loanHandler.RejectExtension)
 
 	// Master Data Routes
 	masterGroup := api.Group("/master")
@@ -434,6 +447,18 @@ func main() {
 	intakeGroup.Get("/boxes/search", intakeHandler.SearchBoxes)
 	intakeGroup.Post("/boxes/assign", intakeHandler.AssignToBox)
 	intakeGroup.Get("/boxes/recommend", intakeHandler.GetRecommendation)
+
+	// Stock / Audit routes
+	stockGroup := api.Group("/stock")
+	stockGroup.Use(middleware.AuthMiddleware(cfg.JWTSecret))
+	stockGroup.Get("/missions", stockHandler.GetMissions)
+	stockGroup.Get("/missions/stats", stockHandler.GetStats)
+	stockGroup.Post("/missions", stockHandler.CreateMission)
+	stockGroup.Post("/missions/:id/start", stockHandler.StartMission)
+	stockGroup.Get("/sessions/:id/items", stockHandler.GetSessionItems)
+	stockGroup.Post("/scan", stockHandler.ScanItem)
+	stockGroup.Put("/items/:id/resolve", stockHandler.ResolveItem)
+	stockGroup.Post("/sessions/:id/approve", stockHandler.ApproveSession)
 
 
 	// Health check

@@ -5,93 +5,185 @@
       "total_boxes": "Total Boxes",
       "occupied_racks": "Occupied Racks",
       "available_space": "Available Space"
-    }
-  },
-  "warehouse_structure": {
-    "title": "Warehouse Structure",
-    "subtitle": "Manage physical document locations and rack settings",
-    "tabs": {
-      "overview": "Overview",
-      "racks": "Rack Management",
-      "aisles": "Aisles",
-      "floors": "Floors"
     },
-    "stats": {
-      "total_capacity": "Total Capacity",
-      "utilized": "Utilized",
-      "utilization_rate": "Utilization Rate",
-      "active_racks": "Active Racks",
-      "pending_maintenance": "Pending Maintenance"
+    "structure": {
+      "title": "Warehouse Location Structure",
+      "subtitle": "Manage physical document locations and rack settings",
+      "btn_print_batch": "Print Label Batch",
+      "checklist": {
+        "title": "Placement Verification Checklist",
+        "item_1": {
+          "title": "Verify Rack & Box Code",
+          "desc": "Ensure the physical codes on the rack and box match the system data."
+        },
+        "item_2": {
+          "title": "Check Slot Availability",
+          "desc": "Check if the target slot has enough space and is not full."
+        },
+        "item_3": {
+          "title": "Confirm RFID/QR Scan",
+          "desc": "Perform scanning of the RFID tag or QR code on the document for matching."
+        },
+        "btn_start": "Start Verification Scan"
+      },
+      "sop": {
+        "title": "Document Placement SOP",
+        "desc": "Every physical document must be scanned and placed according to the system-recommended slot/rack to maintain location tracking accuracy."
+      },
+      "assigned": {
+        "title": "Assigned Location",
+        "map_label": "Main Warehouse Map",
+        "fields": {
+          "zone": "Zone",
+          "row": "Row",
+          "level": "Rack/Level",
+          "slot": "Box Slot",
+          "batch": "Batch ID"
+        },
+        "btn_nav": "Show Navigation Route"
+      },
+      "tabs": {
+        "overview": "Overview",
+        "racks": "Rack Management",
+        "aisles": "Aisles",
+        "floors": "Floors"
+      },
+      "stats": {
+        "total_capacity": "Total Capacity",
+        "utilized": "Utilized",
+        "utilization_rate": "Utilization Rate",
+        "active_racks": "Active Racks",
+        "pending_maintenance": "Pending Maintenance"
+      },
+      "actions": {
+        "add_rack": "Add New Rack",
+        "add_aisle": "Add Aisle",
+        "export_map": "Export Map",
+        "print_labels": "Print Location Labels"
+      },
+      "table": {
+        "rack_id": "RACK ID",
+        "location": "LOCATION",
+        "capacity": "CAPACITY",
+        "status": "STATUS",
+        "action": "ACTION",
+        "status_full": "FULL",
+        "status_available": "AVAILABLE",
+        "status_warning": "NEAR FULL"
+      }
     },
-    "actions": {
-      "add_rack": "Add New Rack",
-      "add_aisle": "Add Aisle",
-      "export_map": "Export Map",
-      "print_labels": "Print Location Labels"
+    "scan": {
+      "title": "Warehouse Structure Scan",
+      "subtitle": "Map physical locations using handheld scanners",
+      "stepper": {
+        "step_1": "Scan Rack",
+        "step_2": "Scan Box",
+        "step_3": "Complete"
+      },
+      "rack_info": {
+        "title": "Target Rack Info",
+        "scanned": "SCANNED",
+        "code_label": "Rack Code",
+        "zone": "Zone",
+        "zone_val": "Zone A (IT)",
+        "category": "Category",
+        "cat_val": "Working Docs"
+      },
+      "box_verify": {
+        "title": "Box Verification",
+        "waiting": "WAITING SCAN...",
+        "code_label": "Scan Box QR",
+        "placeholder": "Point scanner or type box code...",
+        "match_found": "Box Matched",
+        "match_desc": "Box verified to be on the correct rack according to system."
+      },
+      "scanner": {
+        "hint": "Scan Barcode/QR Code on Box",
+        "auto": "AUTO SCANNING ACTIVE"
+      },
+      "summary": {
+        "title": "Scan Results Summary",
+        "ready": "READY TO CONFIRM",
+        "confidence": "Accuracy Level: {value}",
+        "btn_cancel": "Cancel",
+        "btn_confirm": "Confirm Placement"
+      },
+      "footer": {
+        "assignee": "ASSIGNEE",
+        "sync": "SYNC",
+        "location": "LOCATION"
+      }
     },
-    "table": {
-      "rack_id": "RACK ID",
-      "location": "LOCATION",
-      "capacity": "CAPACITY",
-      "status": "STATUS",
-      "action": "ACTION",
-      "status_full": "FULL",
-      "status_available": "AVAILABLE",
-      "status_warning": "NEAR FULL"
-    }
-  },
-  "warehouse_management": {
-    "title": "Warehouse Management",
-    "subtitle": "Manage physical storage and box inventory",
-    "stats": {
-      "total_boxes": "Total Boxes",
-      "occupied_racks": "Occupied Racks",
-      "storage_usage": "Storage Usage",
-      "total_capacity": "Total Capacity",
-      "vs_last_month": "{percent}% vs last month"
+    "management": {
+      "title": "Warehouse Management",
+      "subtitle": "Manage physical storage and box inventory",
+      "stats": {
+        "total_boxes": "Total Boxes",
+        "occupied_racks": "Occupied Racks",
+        "storage_usage": "Storage Usage",
+        "total_capacity": "Total Capacity",
+        "vs_last_month": "{percent}% vs last month"
+      },
+      "actions": {
+        "add_box": "Add Box",
+        "move_box": "Move Box",
+        "inventory_check": "Inventory Check",
+        "print_manifest": "Print Manifest"
+      },
+      "filters": {
+        "all_locations": "All Locations",
+        "floor": "Floor",
+        "aisle": "Aisle",
+        "status": "Status"
+      },
+      "table": {
+        "box_id": "BOX ID",
+        "location": "LOCATION",
+        "contents": "CONTENTS",
+        "last_audit": "LAST AUDIT",
+        "status": "STATUS",
+        "status_active": "Active",
+        "status_moved": "Moved",
+        "status_archived": "Archived"
+      }
     },
-    "actions": {
-      "add_box": "Add Box",
-      "move_box": "Move Box",
-      "inventory_check": "Inventory Check",
-      "print_manifest": "Print Manifest"
-    },
-    "filters": {
-      "all_locations": "All Locations",
-      "floor": "Floor",
-      "aisle": "Aisle",
-      "status": "Status"
-    },
-    "table": {
-      "box_id": "BOX ID",
-      "location": "LOCATION",
-      "contents": "CONTENTS",
-      "last_audit": "LAST AUDIT",
-      "status": "STATUS",
-      "status_active": "Active",
-      "status_moved": "Moved",
-      "status_archived": "Archived"
-    }
-  },
-  "warehouse_scan": {
-    "title": "Warehouse Structure Scan",
-    "subtitle": "Map physical locations using handheld scanners",
-    "form": {
-      "rack_code": "Rack Code",
-      "aisle_code": "Aisle Code",
-      "level": "Level",
-      "position": "Position"
-    },
-    "summary": {
-      "total_scanned": "Total Scanned",
-      "confidence": "Confidence Level",
-      "btn_cancel": "Cancel",
-      "btn_confirm": "Confirm"
-    },
-    "footer": {
-      "assignee": "ASSIGNEE",
-      "sync": "SYNC",
-      "location": "LOCATION"
+    "departments": {
+      "title": "Department Zoning",
+      "add": "Add New Zone",
+      "zoned": "{count} Racks Allocated",
+      "statuses": {
+        "active": "Active",
+        "reserved": "Reserved",
+        "locked": "Locked",
+        "standard": "Standard"
+      },
+      "map": {
+        "legend": {
+          "legal": "Legal & Compliance",
+          "finance": "Finance & Tax",
+          "generic": "General / Shared",
+          "locked": "Locked Area"
+        },
+        "layout": "Rack Layout: Zone {id}",
+        "capacity": "Total Capacity: {count} Boxes",
+        "allocated": "Allocation Rate: {val}%"
+      },
+      "editor": {
+        "title": "Zoning Rule Editor",
+        "action": "Allocation Action Type",
+        "reserve": "Reserve Area",
+        "release": "Release Area",
+        "target": "Target Department",
+        "date": "Effective Date",
+        "conflict": "Allocation Conflict Warning",
+        "conflict_desc": "This area is partially allocated to another department.",
+        "btn_apply": "Apply Zoning Rule"
+      },
+      "schedule": {
+        "title": "Active Allocation Schedule",
+        "permanent": "Permanent",
+        "expires": "Expires: {date}"
+      }
     }
   }
 }

@@ -1,0 +1,218 @@
+{
+  "stock": {
+    "missions": {
+      "title": "Audit Mission List",
+      "head_view": "(Head View)",
+      "subtitle": "Monitor and manage all system-generated and manual audit missions.",
+      "tabs": {
+        "all": "All",
+        "scheduled": "Scheduled",
+        "completed": "Completed"
+      },
+      "stats": {
+        "pending": "Pending Missions",
+        "approval_req": "Requires Approval",
+        "active": "Active Operators",
+        "on_mission": "On Mission",
+        "rate": "Completion Rate",
+        "vs_last_week": "{value} vs last week"
+      },
+      "search_placeholder": "Search mission by target or operator...",
+      "table": {
+        "cols": {
+          "target": "Mission Target",
+          "schedule": "Schedule Details",
+          "operator": "Assigned Operator",
+          "type": "Type",
+          "status": "Status",
+          "actions": "Actions"
+        }
+      },
+      "pagination": "Showing {start}-{end} of {total} missions",
+      "tip": {
+        "title": "Mission Publishing Tip",
+        "desc": "Click \"Terbitkan Misi Audit\" to create a new manual audit assignment. The system automatically generates missions for high-velocity items every 30 days."
+      }
+    },
+    "scan_execution": {
+      "title": "Scan Execution",
+      "subtitle": "Perform real-time physical audits and scan barcodes.",
+      "active_mission": {
+        "progress": "Mission Progress",
+        "badge": "Active Mission",
+        "title": "Stock Take Audit",
+        "id": "Mission ID: {id}",
+        "target": "Target Zone",
+        "expected": "Expected Qty",
+        "btn_start": "Start Audit",
+        "btn_details": "View Details"
+      },
+      "stats": {
+        "last_scan": "Last Scan Activity",
+        "verification": "Pending Verification",
+        "team": "Active Audit Team",
+        "hours_ago": "{count} hours ago",
+        "pending": "3 Items to Verify",
+        "active_today": "{count} operators active today"
+      },
+      "blind_audit": {
+        "alert": {
+          "title": "Blind Audit Mode Active",
+          "desc": "System will not display expected quantities or locations until scan is complete. Scan physical items directly."
+        },
+        "card": {
+          "title": "Scan Barcode or QR Code",
+          "subtitle": "Align QR label or barcode within the viewport area",
+          "waiting": "Waiting for barcode scan...",
+          "btn_verify": "Verify Item Scan",
+          "btn_manual": "Manual Input Code"
+        },
+        "footer": {
+          "rak": "Rack ID",
+          "zona": "Zone Area",
+          "level": "Shelf Level",
+          "not_detected": "Not Detected",
+          "not_determined": "Not Determined",
+          "required": "Required"
+        }
+      },
+      "active_session": {
+        "header": {
+          "label": "CURRENT SESSION LOCATION",
+          "val": "RACKS A1 - A5 (DEPT. LEGAL)",
+          "live": "LIVE TRACKING ACTIVE"
+        },
+        "counter": {
+          "title": "ITEMS VERIFIED IN THIS ZONE",
+          "blind_hint": "Scanned codes are instantly verified against server inventory"
+        },
+        "last_scan": {
+          "title": "LAST SCANNED ITEM",
+          "result": "VERIFIED: {id}",
+          "verified": "VERIFIED MATCH"
+        },
+        "btn_continue": "Scan Next Item",
+        "history": {
+          "title": "Session Scan Log",
+          "view_all": "View All Log",
+          "match": "LOCATION MATCH",
+          "time_ago": "{count}m ago"
+        }
+      },
+      "misplaced_alert": {
+        "header": "DISCREPANCY ALERT: MISPLACED ITEM",
+        "badge": "MISPLACED",
+        "scanned_id": "SCANNED ITEM ID",
+        "discrepancy": "Discrepancy Detected",
+        "target_loc": "Expected location is {loc}",
+        "instruction": "Item is physically scanned in {current}. Please return it to its correct shelf location or initiate reconciliation.",
+        "btn_acknowledge": "Acknowledge & Continue",
+        "btn_reconcile": "Open Reconciliation Report",
+        "log_info": "This incident has been logged. Reported by {name}."
+      }
+    },
+    "reconciliation": {
+      "badge": "Stock Take Reconciliation",
+      "title": "Reconciliation Report",
+      "subtitle": "Generated on {date}",
+      "btn_export": "Export Report",
+      "btn_investigate": "Resolve Discrepancies",
+      "summary": {
+        "match": {
+          "title": "Matching Items",
+          "valid": "VERIFIED OK",
+          "desc": "Physical quantity matches system count perfectly."
+        },
+        "on_loan": {
+          "title": "On-Loan Items",
+          "checked": "LOAN ACTIVE",
+          "desc": "Items currently checked out by authorized staff."
+        },
+        "missing": {
+          "title": "Missing Items",
+          "action": "ACTION REQUIRED",
+          "desc": "System count exists but item was not found."
+        },
+        "extra": {
+          "title": "Extra Items",
+          "critical": "UNEXPECTED FIND",
+          "desc": "Physical item found but system has no records here."
+        }
+      },
+      "table": {
+        "title": "Stock Variance Details",
+        "tabs": {
+          "all": "All Variance",
+          "location": "Filter by Location"
+        },
+        "cols": {
+          "sku": "SKU / ITEM NAME",
+          "sys_qty": "SYSTEM QTY",
+          "phy_qty": "PHYSICAL QTY",
+          "variance": "VARIANCE",
+          "status": "STATUS",
+          "location": "EXPECTED LOCATION"
+        },
+        "load_more": "Load More Items ({count} remaining)"
+      }
+    },
+    "resolution": {
+      "title": "Discrepancy Resolution",
+      "subtitle": "Review and resolve inventory discrepancies from the recent audit",
+      "items": {
+        "title": "Discrepancies Requiring Action",
+        "pending": "{count} Pending Action",
+        "extra": {
+          "badge": "EXTRA ITEM",
+          "suggested": "SUGGESTED ACTION",
+          "action_text": "RELOCATE TO {loc}",
+          "btn_update": "Move Item to {loc} & Update Inventory"
+        },
+        "missing": {
+          "badge": "MISSING ITEM",
+          "checkbox": "Mark Item as 'Declared Lost' & Adjust System Qty"
+        }
+      },
+      "details": {
+        "title": "Resolution Notes & Sign-off",
+        "note_label": "Resolution Notes",
+        "note_placeholder": "Describe why this discrepancy occurred and what physical action was taken...",
+        "note_hint": "Notes will be appended to the official audit log and are visible to auditors.",
+        "btn_submit": "Submit Resolution",
+        "btn_save": "Save Draft",
+        "actor": "RESOLVED BY",
+        "authority": "WAREHOUSE ADMIN ROLE"
+      }
+    },
+    "validation": {
+      "title": "Final Audit Validation",
+      "subtitle": "Executive review and validation of unresolved audit variances",
+      "pending_badge": "PENDING HEAD SIGN-OFF",
+      "unresolved": {
+        "title": "{count} UNRESOLVED MISSING ITEMS",
+        "id": "Reconciliation ID: {id}",
+        "cols": {
+          "code": "ITEM ID",
+          "desc": "DESCRIPTION & TYPE",
+          "sys_qty": "SYS",
+          "act_qty": "ACT",
+          "variance": "VAR",
+          "status": "PROPOSED STATUS"
+        },
+        "lost_status": "DECLARE LOST & WRITE OFF"
+      },
+      "actions": {
+        "note_title": "FINAL SIGN-OFF NOTE",
+        "note_desc": "Approving this report will permanently update the main system inventory levels and write off missing assets.",
+        "btn_approve": "Approve & Update Inventory",
+        "btn_reject": "Reject & Re-Audit"
+      }
+    },
+    "signature": {
+      "title": "Digital Authorization & Sign-off",
+      "pin_placeholder": "Enter your 6-digit secure authorization PIN",
+      "pad_hint": "Draw your signature inside this box to finalize",
+      "title_sub": "Draw Signature"
+    }
+  }
+}

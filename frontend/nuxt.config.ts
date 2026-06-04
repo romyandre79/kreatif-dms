@@ -46,7 +46,8 @@ export default defineNuxtConfig({
           'en/admin.json',
           'en/notifications.json',
           'en/intake.json',
-          'en/circulation.json'
+          'en/circulation.json',
+          'en/stock.json'
         ] 
       },
       { 
@@ -67,7 +68,8 @@ export default defineNuxtConfig({
           'id/admin.json',
           'id/notifications.json',
           'id/intake.json',
-          'id/circulation.json'
+          'id/circulation.json',
+          'id/stock.json'
         ] 
       }
     ],

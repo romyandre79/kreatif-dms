@@ -318,13 +318,16 @@ SELECT
     aw.level,
     aw.status,
     aw.created_at,
-    COALESCE(d.title, lr.request_no, '')::text as title,
-    COALESCE(u.full_name, u_lr.full_name, '')::text as staff_name
+    COALESCE(d.title, lr.request_no, le_lr.request_no, '')::text as title,
+    COALESCE(u.full_name, u_lr.full_name, u_le.full_name, '')::text as staff_name
 FROM approval_workflows aw
 LEFT JOIN documents d ON aw.entity_id = d.id AND (aw.entity_type = 'document_upload' OR aw.entity_type = 'document')
 LEFT JOIN users u ON d.owner_id = u.id
 LEFT JOIN loan_requests lr ON aw.entity_id = lr.id AND (aw.entity_type = 'loan_request' OR aw.entity_type = 'loan')
 LEFT JOIN users u_lr ON lr.user_id = u_lr.id
+LEFT JOIN loan_extensions le ON aw.entity_id = le.id AND (aw.entity_type = 'loan_extension' OR aw.entity_type = 'extension')
+LEFT JOIN loan_requests le_lr ON le.loan_request_id = le_lr.id
+LEFT JOIN users u_le ON le.requested_by = u_le.id
 WHERE aw.status = 'pending'
 UNION ALL
 SELECT
@@ -527,13 +530,16 @@ SELECT
     aw.level,
     aw.status,
     aw.created_at,
-    COALESCE(u.full_name, u_lr.full_name, '')::text as staff_name,
-    COALESCE(d.title, lr.request_no, '')::text as title
+    COALESCE(u.full_name, u_lr.full_name, u_le.full_name, '')::text as staff_name,
+    COALESCE(d.title, lr.request_no, le_lr.request_no, '')::text as title
 FROM approval_workflows aw
 LEFT JOIN documents d ON aw.entity_id = d.id AND (aw.entity_type = 'document_upload' OR aw.entity_type = 'document')
 LEFT JOIN users u ON d.owner_id = u.id
 LEFT JOIN loan_requests lr ON aw.entity_id = lr.id AND (aw.entity_type = 'loan_request' OR aw.entity_type = 'loan')
 LEFT JOIN users u_lr ON lr.user_id = u_lr.id
+LEFT JOIN loan_extensions le ON aw.entity_id = le.id AND (aw.entity_type = 'loan_extension' OR aw.entity_type = 'extension')
+LEFT JOIN loan_requests le_lr ON le.loan_request_id = le_lr.id
+LEFT JOIN users u_le ON le.requested_by = u_le.id
 WHERE aw.status = 'pending' AND (aw.approver_id = $1)
 UNION ALL
 SELECT

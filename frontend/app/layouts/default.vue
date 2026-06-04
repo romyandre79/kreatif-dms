@@ -418,6 +418,7 @@ const iconMap = {
   'roles': LucideShieldAlert,
   'users': LucideUserCog,
   'admin_pin': LucideLock,
+  'admin_hierarchy': LucideGitCompare,
   'LucideLock': LucideLock,
   'Dashboard': LucideLayoutDashboard,
   'Search': LucideSearch,
@@ -573,19 +574,25 @@ watch(() => route.path, () => {
     fetchDynamicMenu()
   }
 
-  // Find current menu item label
-  const findLabel = (items) => {
+  // Find current menu item label and auto-expand its parent
+  const findAndExpand = (items) => {
     for (const item of items) {
       if (item.path === route.path) return item.key
       if (item.children) {
-        const found = findLabel(item.children)
-        if (found) return found
+        for (const child of item.children) {
+          if (child.path === route.path) {
+            if (!openSubmenus.value.includes(item.key)) {
+              openSubmenus.value.push(item.key)
+            }
+            return child.key
+          }
+        }
       }
     }
     return null
   }
   
-  const key = findLabel(dynamicMenu.value)
+  const key = findAndExpand(dynamicMenu.value)
   if (key) {
     useHead({
       title: t('layout.menu.' + key)

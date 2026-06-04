@@ -32,14 +32,15 @@ import (
 
 type DocumentService struct {
 	cfg      config.Config
+	db       repository.DBTX
 	repo     repository.Querier
 	storage  *infra.StorageService
 	asynq    *asynq.Client
 	notifSvc *NotificationService
 }
 
-func NewDocumentService(cfg config.Config, repo repository.Querier, storage *infra.StorageService, asynqClient *asynq.Client, notifSvc *NotificationService) *DocumentService {
-	return &DocumentService{cfg: cfg, repo: repo, storage: storage, asynq: asynqClient, notifSvc: notifSvc}
+func NewDocumentService(cfg config.Config, db repository.DBTX, repo repository.Querier, storage *infra.StorageService, asynqClient *asynq.Client, notifSvc *NotificationService) *DocumentService {
+	return &DocumentService{cfg: cfg, db: db, repo: repo, storage: storage, asynq: asynqClient, notifSvc: notifSvc}
 }
 
 type ExtraFileParam struct {
@@ -252,6 +253,83 @@ func (s *DocumentService) GetDocumentFiles(ctx context.Context, docID uuid.UUID)
 		return nil, fmt.Errorf("unsupported repository type for document files")
 	}
 	return q.ListDocumentFiles(ctx, docID)
+}
+
+// GetWatermarkedFilePreview downloads an extra file from MinIO and applies watermark.
+// It verifies the file belongs to the given docID before serving.
+func (s *DocumentService) GetWatermarkedFilePreview(ctx context.Context, docID, fileID uuid.UUID, userFullName string) ([]byte, string, error) {
+	q, ok := s.repo.(*repository.Queries)
+	if !ok {
+		return nil, "", fmt.Errorf("unsupported repository type for file preview")
+	}
+
+	file, err := q.GetDocumentFileByID(ctx, fileID)
+	if err != nil {
+		return nil, "", fmt.Errorf("file not found: %w", err)
+	}
+	if file.DocumentID != docID {
+		return nil, "", fmt.Errorf("file does not belong to document")
+	}
+
+	reader, err := s.storage.Download(ctx, file.FilePath)
+	if err != nil {
+		return nil, "", fmt.Errorf("failed to download file from storage: %w", err)
+	}
+	defer reader.Close()
+
+	content, err := io.ReadAll(reader)
+	if err != nil {
+		return nil, "", err
+	}
+
+	// Watermark settings (same as primary preview)
+	wmNode, _ := s.repo.GetIntegrationNodeByType(ctx, "WATERMARK")
+	wmText := "CONFIDENTIAL - {user} - {date}"
+	wmOpacity := 0.3
+	wmPos := "diagonal"
+
+	if wmNode.ConfigJson != nil {
+		var wmConfig map[string]interface{}
+		if json.Unmarshal(wmNode.ConfigJson, &wmConfig) == nil {
+			if t, ok := wmConfig["text"].(string); ok { wmText = t }
+			if o, ok := wmConfig["opacity"].(float64); ok { wmOpacity = o }
+			if p, ok := wmConfig["position"].(string); ok { wmPos = p }
+		}
+	}
+
+	watermarkText := strings.ReplaceAll(wmText, "{user}", strings.ToUpper(userFullName))
+	watermarkText = strings.ReplaceAll(watermarkText, "{date}", time.Now().Format("2006-01-02"))
+
+	mimeType := file.MimeType
+	if mimeType == "application/octet-stream" || mimeType == "" {
+		lower := strings.ToLower(file.FileName)
+		if strings.HasSuffix(lower, ".pdf") {
+			mimeType = "application/pdf"
+		} else if strings.HasSuffix(lower, ".jpg") || strings.HasSuffix(lower, ".jpeg") || strings.HasSuffix(lower, ".png") {
+			mimeType = "image/jpeg"
+		}
+	}
+
+	if mimeType != "application/pdf" {
+		watermarked, err := s.applyImageWatermark(content, watermarkText, mimeType, wmOpacity)
+		if err != nil {
+			return content, file.MimeType, nil
+		}
+		return watermarked, file.MimeType, nil
+	}
+
+	rot := "45"
+	if wmPos == "center" { rot = "0" }
+	wmDesc := fmt.Sprintf("font:Helvetica, points:24, scale:0.5, op:%.1f, rot:%s", wmOpacity, rot)
+	wm, err := api.TextWatermark(watermarkText, wmDesc, true, false, types.POINTS)
+	if err != nil {
+		return content, file.MimeType, nil
+	}
+	var out bytes.Buffer
+	if err := api.AddWatermarks(bytes.NewReader(content), &out, nil, wm, nil); err != nil {
+		return content, file.MimeType, nil
+	}
+	return out.Bytes(), file.MimeType, nil
 }
 
 func (s *DocumentService) GetDocumentBasic(ctx context.Context, id uuid.UUID) (repository.GetDocumentRow, error) {
@@ -490,7 +568,89 @@ func (s *DocumentService) GetLoanHistory(ctx context.Context, docID uuid.UUID) (
 	return s.repo.GetDocumentLoanHistory(ctx, docID)
 }
 func (s *DocumentService) ApproveDocument(ctx context.Context, docID uuid.UUID, notes string) error {
-	// 1. Update workflow status
+	// 1. Retrieve the latest approval task to check level
+	task, err := s.repo.GetLatestApprovalTaskByEntity(ctx, repository.GetLatestApprovalTaskByEntityParams{
+		EntityID:   docID,
+		EntityType: "document_upload",
+	})
+
+	// Fallback to original flow if no task is found
+	if err != nil {
+		log.Printf("[DocumentService] No approval task found for doc %s, defaulting to immediate approval: %v", docID, err)
+		if err := s.repo.ApproveTask(ctx, repository.ApproveTaskParams{
+			EntityID:     docID,
+			DecisionNote: pgtype.Text{String: notes, Valid: notes != ""},
+		}); err != nil {
+			return err
+		}
+		return s.finalizeDocumentApproval(ctx, docID, notes)
+	}
+
+	if task.Level == 1 {
+		// --- LEVEL 1 APPROVAL (Department Head approved) ---
+		// A. Update Level 1 pending task to 'approved'
+		if err := s.repo.ApproveTask(ctx, repository.ApproveTaskParams{
+			EntityID:     docID,
+			DecisionNote: pgtype.Text{String: notes, Valid: notes != ""},
+		}); err != nil {
+			return err
+		}
+
+		// B. Fetch Level 2 users (superadmin, admin doc controller, kepala doc controller)
+		roles := []string{"superadmin", "admin doc controller", "kepala doc controller"}
+		admins, err := s.repo.ListUsersByRoles(ctx, roles)
+		if err != nil {
+			return fmt.Errorf("failed to fetch Level 2 approvers: %v", err)
+		}
+
+		// C. Create Level 2 approval tasks
+		for _, admin := range admins {
+			_, err = s.repo.CreateApprovalTask(ctx, repository.CreateApprovalTaskParams{
+				EntityType: "document_upload",
+				EntityID:   docID,
+				ApproverID: admin.ID,
+				Level:      2,
+			})
+			if err != nil {
+				log.Printf("[DocumentService] Error creating L2 approval task for user %s: %v", admin.ID, err)
+			}
+		}
+
+		// D. Send notification to Level 2 users (Async)
+		go func() {
+			bgCtx := context.Background()
+			doc, err := s.repo.GetDocument(bgCtx, docID)
+			if err != nil {
+				log.Printf("[DocumentService] Error getting doc for L1 approval notification: %v", err)
+				return
+			}
+			owner, _ := s.repo.GetUserByID(bgCtx, doc.OwnerID)
+
+			for _, admin := range admins {
+				metaDC := map[string]string{
+					"docTitle":    doc.Title,
+					"ownerName":   owner.FullName,
+					"approveLink": fmt.Sprintf("%s/approvals/%s", s.cfg.AppURL, docID),
+				}
+				metaDCJSON, _ := json.Marshal(metaDC)
+				_, _ = s.notifSvc.CreateNotification(bgCtx, repository.CreateNotificationParams{
+					UserID:     admin.ID,
+					Title:      "Permintaan Persetujuan Dokumen (L2)",
+					Body:       pgtype.Text{String: fmt.Sprintf("Dokumen '%s' dari %s disetujui Kepala Departemen dan memerlukan persetujuan Level 2 Anda.", doc.Title, owner.FullName), Valid: true},
+					Type:       "doc-approval-l2",
+					EntityType: pgtype.Text{String: "document", Valid: true},
+					EntityID:   pgtype.UUID{Bytes: docID, Valid: true},
+					Channel:    pgtype.Text{String: "email", Valid: true},
+					Metadata:   metaDCJSON,
+				})
+			}
+		}()
+
+		return nil
+	}
+
+	// --- LEVEL 2 APPROVAL (DC / Superadmin approved) ---
+	// A. Update Level 2 pending task(s) to 'approved'
 	if err := s.repo.ApproveTask(ctx, repository.ApproveTaskParams{
 		EntityID:     docID,
 		DecisionNote: pgtype.Text{String: notes, Valid: notes != ""},
@@ -498,7 +658,12 @@ func (s *DocumentService) ApproveDocument(ctx context.Context, docID uuid.UUID, 
 		return err
 	}
 
-	// 2. Update document status to 'approved' (waiting physical) and physical_status to 'pending'
+	// B. Finalize document status to 'approved' and physical status to 'pending'
+	return s.finalizeDocumentApproval(ctx, docID, notes)
+}
+
+func (s *DocumentService) finalizeDocumentApproval(ctx context.Context, docID uuid.UUID, notes string) error {
+	// Update document status to 'approved' (waiting physical) and physical_status to 'pending'
 	err := s.repo.UpdateDocumentStatus(ctx, repository.UpdateDocumentStatusParams{
 		ID:     docID,
 		Status: "approved",
@@ -514,7 +679,7 @@ func (s *DocumentService) ApproveDocument(ctx context.Context, docID uuid.UUID, 
 		return err
 	}
 
-	// 3. Trigger Notifications (Async)
+	// Trigger Notifications (Async)
 	go func() {
 		bgCtx := context.Background()
 		doc, err := s.repo.GetDocument(bgCtx, docID)
@@ -524,7 +689,7 @@ func (s *DocumentService) ApproveDocument(ctx context.Context, docID uuid.UUID, 
 		}
 		owner, _ := s.repo.GetUserByID(bgCtx, doc.OwnerID)
 
-		// 3.1 Notify Owner
+		// Notify Owner
 		metaOwner := map[string]string{
 			"docTitle": doc.Title,
 			"notes":    notes,
@@ -541,7 +706,7 @@ func (s *DocumentService) ApproveDocument(ctx context.Context, docID uuid.UUID, 
 			Metadata:   metaOwnerJSON,
 		})
 
-		// 3.2 Notify DC Admins & Superadmin (Ready for Intake)
+		// Notify DC Admins & Superadmin (Ready for Intake)
 		roles := []string{"superadmin", "admin doc controller", "kepala doc controller"}
 		admins, err := s.repo.ListUsersByRoles(bgCtx, roles)
 		if err == nil {
@@ -966,12 +1131,25 @@ func (s *DocumentService) CreateLoanRequest(ctx context.Context, p CreateLoanReq
 	}
 	requestNo := fmt.Sprintf("LOAN-%s-%05d", time.Now().Format("2006-01"), nextSeq)
 
+	// Fetch default duration from system settings
+	durationDays := p.DurationDays
+	setting, err := s.GetSystemSetting(ctx, "general", "default_loan_duration_days")
+	if err == nil && setting.Value.Valid && setting.Value.String != "" {
+		var parsed int
+		if _, err := fmt.Sscanf(setting.Value.String, "%d", &parsed); err == nil && parsed > 0 {
+			durationDays = int32(parsed)
+		}
+	}
+	if durationDays <= 0 {
+		durationDays = 7
+	}
+
 	// 3. Create loan request
 	loanReq, err := s.repo.CreateLoanRequest(ctx, repository.CreateLoanRequestParams{
 		RequestNo:    requestNo,
 		UserID:       p.UserID,
 		Purpose:      p.Purpose,
-		DurationDays: p.DurationDays,
+		DurationDays: durationDays,
 		Notes:        pgtype.Text{String: p.Notes, Valid: p.Notes != ""},
 		CompanyID:    companyID,
 		BranchID:     branchID,
@@ -1195,6 +1373,462 @@ func (s *DocumentService) GetSystemSetting(ctx context.Context, category, key st
 		Category: category,
 		Key:      key,
 	})
+}
+
+// GetMySubmissions returns all documents submitted by the given user with their approval status.
+func (s *DocumentService) GetMySubmissions(ctx context.Context, ownerID uuid.UUID, statusFilter, searchQuery string, limit, offset int) ([]DeptSubmissionRow, int64, error) {
+	const countSQL = `
+		SELECT COUNT(*)
+		FROM documents d
+		WHERE d.owner_id = $1
+		  AND ($2 = '' OR d.status = $2)
+		  AND ($3 = '' OR d.title ILIKE '%' || $3 || '%')
+	`
+	var total int64
+	if err := s.db.QueryRow(ctx, countSQL, ownerID, statusFilter, searchQuery).Scan(&total); err != nil {
+		return nil, 0, err
+	}
+
+	const listSQL = `
+		SELECT
+			d.id::text,
+			d.title,
+			d.status,
+			COALESCE(d.sensitivity, ''),
+			d.created_at,
+			COALESCE(d.file_size, 0),
+			COALESCE(u.full_name, ''),
+			COALESCE(u.email, ''),
+			COALESCE(dt.name, ''),
+			COALESCE(aw.status, ''),
+			COALESCE(aw.decision_note, ''),
+			COALESCE(approver.full_name, ''),
+			aw.decided_at
+		FROM documents d
+		LEFT JOIN users u ON d.owner_id = u.id
+		LEFT JOIN document_types dt ON d.type_id = dt.id
+		LEFT JOIN LATERAL (
+			SELECT status, decision_note, decided_at, approver_id
+			FROM approval_workflows
+			WHERE entity_id = d.id
+			ORDER BY created_at DESC LIMIT 1
+		) aw ON TRUE
+		LEFT JOIN users approver ON aw.approver_id = approver.id
+		WHERE d.owner_id = $1
+		  AND ($2 = '' OR d.status = $2)
+		  AND ($3 = '' OR d.title ILIKE '%' || $3 || '%')
+		ORDER BY d.created_at DESC
+		LIMIT $4 OFFSET $5
+	`
+	rows, err := s.db.Query(ctx, listSQL, ownerID, statusFilter, searchQuery, limit, offset)
+	if err != nil {
+		return nil, 0, err
+	}
+	defer rows.Close()
+
+	var results []DeptSubmissionRow
+	for rows.Next() {
+		var r DeptSubmissionRow
+		if err := rows.Scan(
+			&r.ID, &r.Title, &r.Status, &r.Sensitivity,
+			&r.CreatedAt, &r.FileSize, &r.OwnerName, &r.OwnerEmail,
+			&r.TypeName, &r.ApprovalStatus, &r.ApprovalNote,
+			&r.ApproverName, &r.DecidedAt,
+		); err != nil {
+			return nil, 0, err
+		}
+		results = append(results, r)
+	}
+	return results, total, rows.Err()
+}
+
+// DeptSubmissionRow holds the result of GetDeptSubmissions
+type DeptSubmissionRow struct {
+	ID             string     `json:"id"`
+	Title          string     `json:"title"`
+	Status         string     `json:"status"`
+	Sensitivity    string     `json:"sensitivity"`
+	CreatedAt      time.Time  `json:"created_at"`
+	FileSize       int64      `json:"file_size"`
+	OwnerName      string     `json:"owner_name"`
+	OwnerEmail     string     `json:"owner_email"`
+	TypeName       string     `json:"type_name"`
+	ApprovalStatus string     `json:"approval_status"`
+	ApprovalNote   string     `json:"approval_note"`
+	ApproverName   string     `json:"approver_name"`
+	DecidedAt      *time.Time `json:"decided_at"`
+}
+
+func (s *DocumentService) GetDeptSubmissions(ctx context.Context, deptID uuid.UUID, statusFilter, searchQuery string, limit, offset int) ([]DeptSubmissionRow, int64, error) {
+	const countSQL = `
+		SELECT COUNT(*)
+		FROM documents d
+		LEFT JOIN users u ON d.owner_id = u.id
+		WHERE d.department_id = $1
+		  AND ($2 = '' OR d.status = $2)
+		  AND ($3 = '' OR d.title ILIKE '%' || $3 || '%' OR u.full_name ILIKE '%' || $3 || '%')
+	`
+	var total int64
+	if err := s.db.QueryRow(ctx, countSQL, deptID, statusFilter, searchQuery).Scan(&total); err != nil {
+		return nil, 0, err
+	}
+
+	const listSQL = `
+		SELECT
+			d.id::text,
+			d.title,
+			d.status,
+			COALESCE(d.sensitivity, ''),
+			d.created_at,
+			COALESCE(d.file_size, 0),
+			COALESCE(u.full_name, ''),
+			COALESCE(u.email, ''),
+			COALESCE(dt.name, ''),
+			COALESCE(aw.status, ''),
+			COALESCE(aw.decision_note, ''),
+			COALESCE(approver.full_name, ''),
+			aw.decided_at
+		FROM documents d
+		LEFT JOIN users u ON d.owner_id = u.id
+		LEFT JOIN document_types dt ON d.type_id = dt.id
+		LEFT JOIN LATERAL (
+			SELECT status, decision_note, decided_at, approver_id
+			FROM approval_workflows
+			WHERE entity_id = d.id
+			ORDER BY created_at DESC LIMIT 1
+		) aw ON TRUE
+		LEFT JOIN users approver ON aw.approver_id = approver.id
+		WHERE d.department_id = $1
+		  AND ($2 = '' OR d.status = $2)
+		  AND ($3 = '' OR d.title ILIKE '%' || $3 || '%' OR u.full_name ILIKE '%' || $3 || '%')
+		ORDER BY d.created_at DESC
+		LIMIT $4 OFFSET $5
+	`
+	rows, err := s.db.Query(ctx, listSQL, deptID, statusFilter, searchQuery, limit, offset)
+	if err != nil {
+		return nil, 0, err
+	}
+	defer rows.Close()
+
+	var results []DeptSubmissionRow
+	for rows.Next() {
+		var r DeptSubmissionRow
+		if err := rows.Scan(
+			&r.ID, &r.Title, &r.Status, &r.Sensitivity,
+			&r.CreatedAt, &r.FileSize, &r.OwnerName, &r.OwnerEmail,
+			&r.TypeName, &r.ApprovalStatus, &r.ApprovalNote,
+			&r.ApproverName, &r.DecidedAt,
+		); err != nil {
+			return nil, 0, err
+		}
+		results = append(results, r)
+	}
+	return results, total, rows.Err()
+}
+
+// ============================================================================
+// Loan Extension Service Methods
+// ============================================================================
+
+func (s *DocumentService) CreateLoanExtension(ctx context.Context, userID uuid.UUID, loanRequestID uuid.UUID, extensionDays int32, reason string) (repository.LoanExtension, error) {
+	log.Printf("[DocumentService] Creating loan extension request for loan %s by user %s", loanRequestID, userID)
+
+	// 1. Get loan request
+	loan, err := s.repo.GetLoanRequest(ctx, loanRequestID)
+	if err != nil {
+		return repository.LoanExtension{}, fmt.Errorf("failed to get loan request: %v", err)
+	}
+
+	// 2. Validate loan status
+	if loan.Status != "active" && loan.Status != "overdue" {
+		return repository.LoanExtension{}, fmt.Errorf("cannot request extension for loan with status: %s", loan.Status)
+	}
+
+	// 3. Check for existing pending extension request
+	_, err = s.repo.GetPendingLoanExtensionByLoanRequest(ctx, loanRequestID)
+	if err == nil {
+		return repository.LoanExtension{}, fmt.Errorf("a pending extension request already exists for this loan")
+	}
+
+	// 4. Create loan extension record
+	ext, err := s.repo.CreateLoanExtension(ctx, repository.CreateLoanExtensionParams{
+		LoanRequestID: loanRequestID,
+		RequestedBy:   userID,
+		ExtensionDays: extensionDays,
+		Reason:        reason,
+	})
+	if err != nil {
+		return repository.LoanExtension{}, fmt.Errorf("failed to create loan extension: %v", err)
+	}
+
+	// 5. Update loan request status to 'extension_pending'
+	err = s.repo.UpdateLoanRequestStatus(ctx, repository.UpdateLoanRequestStatusParams{
+		ID:     loanRequestID,
+		Status: "extension_pending",
+	})
+	if err != nil {
+		log.Printf("[DocumentService] Warning: failed to update loan request status: %v", err)
+	}
+
+	// 6. Create L1 approval task for Department Head
+	borrower, err := s.repo.GetUserByID(ctx, loan.UserID)
+	if err == nil && borrower.DepartmentID.Valid {
+		dept, err := s.repo.GetDepartment(ctx, borrower.DepartmentID.Bytes)
+		if err == nil && dept.HeadID.Valid {
+			log.Printf("[DocumentService] Creating L1 extension approval task for dept head: %s", dept.HeadID.Bytes)
+			_, err = s.repo.CreateApprovalTask(ctx, repository.CreateApprovalTaskParams{
+				EntityType: "loan_extension",
+				EntityID:   ext.ID,
+				ApproverID: dept.HeadID.Bytes,
+				Level:      1,
+			})
+			if err != nil {
+				log.Printf("[DocumentService] Error creating approval task: %v", err)
+			} else {
+				// Send notification to Department Head
+				meta := map[string]string{
+					"requestNo": loan.RequestNo,
+					"userName":  borrower.FullName,
+					"reason":    reason,
+					"days":      fmt.Sprintf("%d", extensionDays),
+				}
+				metaJSON, _ := json.Marshal(meta)
+				_, _ = s.notifSvc.CreateNotification(ctx, repository.CreateNotificationParams{
+					UserID:     dept.HeadID.Bytes,
+					Title:      "Pengajuan Perpanjangan Peminjaman",
+					Body:       pgtype.Text{String: fmt.Sprintf("%s mengajukan perpanjangan peminjaman %s selama %d hari", borrower.FullName, loan.RequestNo, extensionDays), Valid: true},
+					Type:       "loan-extension-pending-approval",
+					EntityType: pgtype.Text{String: "loan_extension", Valid: true},
+					EntityID:   pgtype.UUID{Bytes: ext.ID, Valid: true},
+					Channel:    pgtype.Text{String: "email", Valid: true},
+					Metadata:   metaJSON,
+				})
+				return ext, nil
+			}
+		}
+	}
+
+	// Fallback to L2 approval directly if no department head is found
+	log.Printf("[DocumentService] No dept head found. Escalating extension directly to Level 2")
+	roles := []string{"superadmin", "admin doc controller", "kepala doc controller"}
+	admins, err := s.repo.ListUsersByRoles(ctx, roles)
+	if err == nil {
+		for _, admin := range admins {
+			_, _ = s.repo.CreateApprovalTask(ctx, repository.CreateApprovalTaskParams{
+				EntityType: "loan_extension",
+				EntityID:   ext.ID,
+				ApproverID: admin.ID,
+				Level:      2,
+			})
+		}
+	}
+
+	return ext, nil
+}
+
+func (s *DocumentService) ListPendingLoanExtensions(ctx context.Context, userID uuid.UUID) ([]repository.ListPendingLoanExtensionsForApproverRow, error) {
+	return s.repo.ListPendingLoanExtensionsForApprover(ctx, userID)
+}
+
+func (s *DocumentService) ApproveLoanExtension(ctx context.Context, extensionID uuid.UUID, approverID uuid.UUID) error {
+	log.Printf("[DocumentService] Approving loan extension %s by user %s", extensionID, approverID)
+
+	// 1. Get extension details
+	ext, err := s.repo.GetLoanExtension(ctx, extensionID)
+	if err != nil {
+		return fmt.Errorf("failed to get loan extension: %v", err)
+	}
+
+	// 2. Get latest active task to identify current level
+	task, err := s.repo.GetLatestApprovalTaskByEntity(ctx, repository.GetLatestApprovalTaskByEntityParams{
+		EntityID:   extensionID,
+		EntityType: "loan_extension",
+	})
+	if err != nil {
+		return fmt.Errorf("no active task found for extension: %v", err)
+	}
+
+	if task.Level == 1 {
+		// --- LEVEL 1 APPROVAL ---
+		// Approve Level 1 task
+		err = s.repo.ApproveTask(ctx, repository.ApproveTaskParams{
+			EntityID:     extensionID,
+			DecisionNote: pgtype.Text{String: "Extension approved by Manager", Valid: true},
+		})
+		if err != nil {
+			return fmt.Errorf("failed to approve L1 task: %v", err)
+		}
+
+		// Create Level 2 tasks
+		roles := []string{"superadmin", "admin doc controller", "kepala doc controller"}
+		admins, err := s.repo.ListUsersByRoles(ctx, roles)
+		if err != nil {
+			return fmt.Errorf("failed to fetch Level 2 approvers: %v", err)
+		}
+
+		for _, admin := range admins {
+			_, err = s.repo.CreateApprovalTask(ctx, repository.CreateApprovalTaskParams{
+				EntityType: "loan_extension",
+				EntityID:   extensionID,
+				ApproverID: admin.ID,
+				Level:      2,
+			})
+			if err != nil {
+				log.Printf("[DocumentService] Error creating L2 approval task for user %s: %v", admin.ID, err)
+			}
+		}
+	} else if task.Level == 2 {
+		// --- LEVEL 2 APPROVAL ---
+		// Approve Level 2 task
+		err = s.repo.ApproveTask(ctx, repository.ApproveTaskParams{
+			EntityID:     extensionID,
+			DecisionNote: pgtype.Text{String: "Extension approved by DC / Admin", Valid: true},
+		})
+		if err != nil {
+			return fmt.Errorf("failed to approve L2 task: %v", err)
+		}
+
+		// Update extension status to 'approved'
+		err = s.repo.UpdateLoanExtensionStatus(ctx, repository.UpdateLoanExtensionStatusParams{
+			ID:         extensionID,
+			Status:     pgtype.Text{String: "approved", Valid: true},
+			ApprovedBy: pgtype.UUID{Bytes: approverID, Valid: true},
+		})
+		if err != nil {
+			return fmt.Errorf("failed to update extension status: %v", err)
+		}
+
+		// Extend loan request due date
+		err = s.repo.ExtendLoanRequestDueDate(ctx, repository.ExtendLoanRequestDueDateParams{
+			ID:      ext.LoanRequestID,
+			Column2: ext.ExtensionDays,
+		})
+		if err != nil {
+			return fmt.Errorf("failed to extend loan due date: %v", err)
+		}
+
+		// Notify requester (Async)
+		go func() {
+			bgCtx := context.Background()
+			meta := map[string]string{
+				"requestNo": ext.RequestNo,
+				"days":      fmt.Sprintf("%d", ext.ExtensionDays),
+			}
+			metaJSON, _ := json.Marshal(meta)
+
+			_, _ = s.notifSvc.CreateNotification(bgCtx, repository.CreateNotificationParams{
+				UserID:     ext.RequestedBy,
+				Title:      "Perpanjangan Peminjaman Disetujui",
+				Body:       pgtype.Text{String: fmt.Sprintf("Permohonan perpanjangan %s selama %d hari telah disetujui.", ext.RequestNo, ext.ExtensionDays), Valid: true},
+				Type:       "loan-extension-approved",
+				EntityType: pgtype.Text{String: "loan_request", Valid: true},
+				EntityID:   pgtype.UUID{Bytes: ext.LoanRequestID, Valid: true},
+				Channel:    pgtype.Text{String: "email", Valid: true},
+				Metadata:   metaJSON,
+			})
+		}()
+	}
+
+	return nil
+}
+
+func (s *DocumentService) RejectLoanExtension(ctx context.Context, extensionID uuid.UUID, approverID uuid.UUID, reason string) error {
+	log.Printf("[DocumentService] Rejecting loan extension %s by user %s. Reason: %s", extensionID, approverID, reason)
+
+	// 1. Get extension details
+	ext, err := s.repo.GetLoanExtension(ctx, extensionID)
+	if err != nil {
+		return fmt.Errorf("failed to get loan extension: %v", err)
+	}
+
+	// 2. Reject active approval tasks
+	err = s.repo.RejectTask(ctx, repository.RejectTaskParams{
+		EntityID:        extensionID,
+		DecisionNote:    pgtype.Text{String: "Extension rejected", Valid: true},
+		RejectionReason: pgtype.Text{String: reason, Valid: true},
+	})
+	if err != nil {
+		return fmt.Errorf("failed to reject approval task: %v", err)
+	}
+
+	// 3. Update extension status to 'rejected'
+	err = s.repo.UpdateLoanExtensionStatus(ctx, repository.UpdateLoanExtensionStatusParams{
+		ID:         extensionID,
+		Status:     pgtype.Text{String: "rejected", Valid: true},
+		ApprovedBy: pgtype.UUID{Bytes: approverID, Valid: true},
+	})
+	if err != nil {
+		return fmt.Errorf("failed to update extension status: %v", err)
+	}
+
+	// 4. Restore loan status to 'active' or 'overdue' based on original due date
+	loan, err := s.repo.GetLoanRequest(ctx, ext.LoanRequestID)
+	if err != nil {
+		return fmt.Errorf("failed to get loan request to reset status: %v", err)
+	}
+
+	newStatus := "active"
+	if loan.DueDate.Valid && time.Now().After(loan.DueDate.Time) {
+		newStatus = "overdue"
+	}
+
+	err = s.repo.UpdateLoanRequestStatus(ctx, repository.UpdateLoanRequestStatusParams{
+		ID:     ext.LoanRequestID,
+		Status: newStatus,
+	})
+	if err != nil {
+		return fmt.Errorf("failed to reset loan request status: %v", err)
+	}
+
+	// 5. Notify requester (Async)
+	go func() {
+		bgCtx := context.Background()
+		meta := map[string]string{
+			"requestNo": ext.RequestNo,
+			"reason":    reason,
+		}
+		metaJSON, _ := json.Marshal(meta)
+
+		_, _ = s.notifSvc.CreateNotification(bgCtx, repository.CreateNotificationParams{
+			UserID:     ext.RequestedBy,
+			Title:      "Perpanjangan Peminjaman Ditolak",
+			Body:       pgtype.Text{String: fmt.Sprintf("Permohonan perpanjangan %s ditolak. Alasan: %s", ext.RequestNo, reason), Valid: true},
+			Type:       "loan-extension-rejected",
+			EntityType: pgtype.Text{String: "loan_request", Valid: true},
+			EntityID:   pgtype.UUID{Bytes: ext.LoanRequestID, Valid: true},
+			Channel:    pgtype.Text{String: "email", Valid: true},
+			Metadata:   metaJSON,
+		})
+	}()
+
+	return nil
+}
+
+func (s *DocumentService) GetStorageUsage(ctx context.Context) (int64, error) {
+	var docSize int64
+	err := s.db.QueryRow(ctx, "SELECT COALESCE(SUM(file_size), 0) FROM documents").Scan(&docSize)
+	if err != nil {
+		return 0, err
+	}
+
+	return docSize, nil
+}
+
+func (s *DocumentService) GetStorageLimit(ctx context.Context) (int64, error) {
+	var limitStr string
+	err := s.db.QueryRow(ctx, "SELECT value FROM system_settings WHERE category = 'storage' AND key = 'storage_limit'").Scan(&limitStr)
+	if err != nil {
+		// Default to 100 GB in bytes
+		return 100 * 1024 * 1024 * 1024, nil
+	}
+
+	var limitGB int64
+	_, err = fmt.Sscanf(limitStr, "%d", &limitGB)
+	if err != nil {
+		return 100 * 1024 * 1024 * 1024, nil
+	}
+
+	return limitGB * 1024 * 1024 * 1024, nil
 }
 
 

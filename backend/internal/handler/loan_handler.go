@@ -403,3 +403,130 @@ func (h *LoanHandler) GetPenaltyPolicy(c fiber.Ctx) error {
 	})
 }
 
+// RequestExtension submits a new loan extension request
+func (h *LoanHandler) RequestExtension(c fiber.Ctx) error {
+	userID := c.Locals("user_id").(uuid.UUID)
+	loanID, err := uuid.Parse(c.Params("id"))
+	if err != nil {
+		return response.Error(c, fiber.StatusBadRequest, "Invalid loan ID", err.Error())
+	}
+
+	var req struct {
+		ExtensionDays int    `json:"extension_days"`
+		Reason        string `json:"reason"`
+	}
+
+	if err := c.Bind().JSON(&req); err != nil {
+		return response.Error(c, fiber.StatusBadRequest, "Invalid request body", err.Error())
+	}
+
+	if req.ExtensionDays <= 0 || req.ExtensionDays > 14 {
+		return response.Error(c, fiber.StatusBadRequest, "Extension days must be between 1 and 14 days", "")
+	}
+
+	if req.Reason == "" {
+		return response.Error(c, fiber.StatusBadRequest, "Reason is required", "")
+	}
+
+	ext, err := h.svc.CreateLoanExtension(c.Context(), userID, loanID, int32(req.ExtensionDays), req.Reason)
+	if err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to submit extension request", err.Error())
+	}
+
+	return response.Success(c, fiber.StatusCreated, "Extension request submitted successfully", ext)
+}
+
+// ListExtensions lists all pending loan extensions for the current user (approver)
+func (h *LoanHandler) ListExtensions(c fiber.Ctx) error {
+	userID := c.Locals("user_id").(uuid.UUID)
+
+	extensions, err := h.svc.ListPendingLoanExtensions(c.Context(), userID)
+	if err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to retrieve pending extensions", err.Error())
+	}
+
+	formatted := make([]fiber.Map, 0, len(extensions))
+	for _, ext := range extensions {
+		// fetch items
+		items, _ := h.svc.GetLoanRequestItems(c.Context(), ext.LoanRequestID)
+		var docs []string
+		for _, item := range items {
+			title := item.DocumentTitle
+			if title == "" {
+				title = item.DocumentFilename.String
+			}
+			docs = append(docs, title)
+		}
+
+		var newDueDate time.Time
+		if ext.CurrentDueDate.Valid {
+			newDueDate = ext.CurrentDueDate.Time.AddDate(0, 0, int(ext.ExtensionDays))
+		}
+
+		avatarUrl := "https://i.pravatar.cc/150?u=" + ext.RequestorName
+		if ext.RequestorAvatar.Valid && ext.RequestorAvatar.String != "" {
+			avatarUrl = ext.RequestorAvatar.String
+		}
+
+		formatted = append(formatted, fiber.Map{
+			"id":         ext.ExtensionID,
+			"no":         ext.RequestNo,
+			"requestor":  ext.RequestorName,
+			"avatar":     avatarUrl,
+			"currentDue": ext.CurrentDueDate.Time.Format("Jan 02, 2006"),
+			"days":       ext.ExtensionDays,
+			"newDue":     newDueDate.Format("Jan 02, 2006"),
+			"reason":     ext.Reason,
+			"risk":       "Low",
+			"docs":       docs,
+			"loanId":     ext.LoanRequestID,
+			"taskId":     ext.TaskID,
+			"level":      ext.ApprovalLevel,
+		})
+	}
+
+	return response.Success(c, fiber.StatusOK, "Pending extensions retrieved successfully", formatted)
+}
+
+// ApproveExtension approves a loan extension request
+func (h *LoanHandler) ApproveExtension(c fiber.Ctx) error {
+	userID := c.Locals("user_id").(uuid.UUID)
+	extensionID, err := uuid.Parse(c.Params("id"))
+	if err != nil {
+		return response.Error(c, fiber.StatusBadRequest, "Invalid extension ID", err.Error())
+	}
+
+	err = h.svc.ApproveLoanExtension(c.Context(), extensionID, userID)
+	if err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to approve extension", err.Error())
+	}
+
+	return response.Success(c, fiber.StatusOK, "Extension approved successfully", nil)
+}
+
+// RejectExtension rejects a loan extension request
+func (h *LoanHandler) RejectExtension(c fiber.Ctx) error {
+	userID := c.Locals("user_id").(uuid.UUID)
+	extensionID, err := uuid.Parse(c.Params("id"))
+	if err != nil {
+		return response.Error(c, fiber.StatusBadRequest, "Invalid extension ID", err.Error())
+	}
+
+	var req struct {
+		Reason string `json:"reason"`
+	}
+	c.Bind().JSON(&req)
+
+	if req.Reason == "" {
+		req.Reason = "Extension request rejected by approver"
+	}
+
+	err = h.svc.RejectLoanExtension(c.Context(), extensionID, userID, req.Reason)
+	if err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to reject extension", err.Error())
+	}
+
+	return response.Success(c, fiber.StatusOK, "Extension rejected successfully", nil)
+}
+
+

@@ -112,7 +112,9 @@
       "inbound_registration": "Inbound Registration",
       "email_templates": "Email Templates",
       "doc_category": "Document Category Master",
-      "loan_duration": "Loan Durations"
+      "loan_duration": "Loan Durations",
+      "config_folder_path": "Folder Path Configuration",
+      "admin_hierarchy": "Hierarchy & Reporting"
     }
   }
 }

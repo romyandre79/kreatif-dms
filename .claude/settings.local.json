@@ -12,7 +12,8 @@
       "Bash(go run *)",
       "Bash(Get-ChildItem -Path \"C:\\\\lara\\\\www\\\\kreatif\\\\kreatif-dms\\\\backend\" -Recurse -Depth 2)",
       "Bash(Select-Object FullName)",
-      "Bash(Get-ChildItem -Path \"C:\\\\lara\\\\www\\\\kreatif\\\\kreatif-dms\\\\backend\" -Recurse -Filter \"*.sql\")"
+      "Bash(Get-ChildItem -Path \"C:\\\\lara\\\\www\\\\kreatif\\\\kreatif-dms\\\\backend\" -Recurse -Filter \"*.sql\")",
+      "Bash(Get-ChildItem *)"
     ]
   }
 }

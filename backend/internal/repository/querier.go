@@ -33,6 +33,7 @@ type Querier interface {
 	CreateDocumentCategory(ctx context.Context, arg CreateDocumentCategoryParams) (DocumentCategory, error)
 	CreateDocumentType(ctx context.Context, arg CreateDocumentTypeParams) (DocumentType, error)
 	CreateIntegrationNode(ctx context.Context, arg CreateIntegrationNodeParams) (IntegrationNode, error)
+	CreateLoanExtension(ctx context.Context, arg CreateLoanExtensionParams) (LoanExtension, error)
 	CreateLoanRequest(ctx context.Context, arg CreateLoanRequestParams) (LoanRequest, error)
 	CreateLoanRequestItem(ctx context.Context, arg CreateLoanRequestItemParams) (LoanRequestItem, error)
 	CreateNotification(ctx context.Context, arg CreateNotificationParams) (Notification, error)
@@ -44,6 +45,9 @@ type Querier interface {
 	CreateRfidTag(ctx context.Context, arg CreateRfidTagParams) (RfidTag, error)
 	CreateRole(ctx context.Context, arg CreateRoleParams) (Role, error)
 	CreateSsoSyncLog(ctx context.Context, arg CreateSsoSyncLogParams) (SsoSyncLog, error)
+	CreateStockItem(ctx context.Context, arg CreateStockItemParams) (StockOpnameItem, error)
+	CreateStockMission(ctx context.Context, arg CreateStockMissionParams) (StockOpnameMission, error)
+	CreateStockSession(ctx context.Context, arg CreateStockSessionParams) (StockOpnameSession, error)
 	CreateSystemModule(ctx context.Context, arg CreateSystemModuleParams) (SystemModule, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
 	DeactivateAllAnnouncements(ctx context.Context) error
@@ -61,6 +65,7 @@ type Querier interface {
 	DeleteRole(ctx context.Context, id int32) error
 	DeleteSystemModule(ctx context.Context, id string) error
 	DeleteUser(ctx context.Context, id uuid.UUID) error
+	ExtendLoanRequestDueDate(ctx context.Context, arg ExtendLoanRequestDueDateParams) error
 	FindEligibleBoxes(ctx context.Context, arg FindEligibleBoxesParams) ([]FindEligibleBoxesRow, error)
 	GetActiveAnnouncement(ctx context.Context) (Announcement, error)
 	GetActiveDocControllers(ctx context.Context) ([]GetActiveDocControllersRow, error)
@@ -69,9 +74,12 @@ type Querier interface {
 	GetBatch(ctx context.Context, id uuid.UUID) (ProcessingBatch, error)
 	GetBox(ctx context.Context, id uuid.UUID) (Box, error)
 	GetBranch(ctx context.Context, id uuid.UUID) (Branch, error)
+	GetBranches(ctx context.Context) ([]GetBranchesRow, error)
+	GetCompanies(ctx context.Context) ([]GetCompaniesRow, error)
 	GetCompany(ctx context.Context, id uuid.UUID) (Company, error)
 	GetDailyStats(ctx context.Context) (GetDailyStatsRow, error)
 	GetDepartment(ctx context.Context, id uuid.UUID) (Department, error)
+	GetDepartments(ctx context.Context) ([]GetDepartmentsRow, error)
 	GetDocument(ctx context.Context, id uuid.UUID) (GetDocumentRow, error)
 	GetDocumentByShortID(ctx context.Context, dollar_1 pgtype.Text) (GetDocumentByShortIDRow, error)
 	GetDocumentCategory(ctx context.Context, id uuid.UUID) (DocumentCategory, error)
@@ -80,6 +88,7 @@ type Querier interface {
 	GetDocumentType(ctx context.Context, id uuid.UUID) (DocumentType, error)
 	GetDocumentWithDetails(ctx context.Context, id uuid.UUID) (GetDocumentWithDetailsRow, error)
 	GetDocumentsByBatch(ctx context.Context, batchID pgtype.UUID) ([]Document, error)
+	GetDocumentsByTargetArea(ctx context.Context, name string) ([]GetDocumentsByTargetAreaRow, error)
 	GetEmailTemplateBySlug(ctx context.Context, slug string) (EmailTemplate, error)
 	GetIntakeStats(ctx context.Context) (GetIntakeStatsRow, error)
 	GetIntegrationNode(ctx context.Context, id uuid.UUID) (IntegrationNode, error)
@@ -88,6 +97,7 @@ type Querier interface {
 	GetLabelingStats(ctx context.Context) (GetLabelingStatsRow, error)
 	GetLastSsoSyncLog(ctx context.Context) (SsoSyncLog, error)
 	GetLatestApprovalTaskByEntity(ctx context.Context, arg GetLatestApprovalTaskByEntityParams) (ApprovalWorkflow, error)
+	GetLoanExtension(ctx context.Context, id uuid.UUID) (GetLoanExtensionRow, error)
 	GetLoanRequest(ctx context.Context, id uuid.UUID) (GetLoanRequestRow, error)
 	GetLoanRequestItems(ctx context.Context, loanRequestID uuid.UUID) ([]GetLoanRequestItemsRow, error)
 	GetManagerDailyStats(ctx context.Context, headID pgtype.UUID) (GetManagerDailyStatsRow, error)
@@ -101,6 +111,7 @@ type Querier interface {
 	GetOCRJobByEntity(ctx context.Context, arg GetOCRJobByEntityParams) (OcrJob, error)
 	GetOrdner(ctx context.Context, id uuid.UUID) (Ordner, error)
 	GetPendingCountsByType(ctx context.Context, approverID uuid.UUID) ([]GetPendingCountsByTypeRow, error)
+	GetPendingLoanExtensionByLoanRequest(ctx context.Context, loanRequestID uuid.UUID) (LoanExtension, error)
 	GetPriorityTasks(ctx context.Context, limit int32) ([]GetPriorityTasksRow, error)
 	GetProfileByID(ctx context.Context, id uuid.UUID) (GetProfileByIDRow, error)
 	GetRack(ctx context.Context, id uuid.UUID) (Rack, error)
@@ -110,6 +121,10 @@ type Querier interface {
 	GetRoleIDByName(ctx context.Context, name string) (int32, error)
 	GetRolePermissions(ctx context.Context, roleID int32) ([]GetRolePermissionsRow, error)
 	GetStagingStats(ctx context.Context) (GetStagingStatsRow, error)
+	GetStockItemBySku(ctx context.Context, arg GetStockItemBySkuParams) (StockOpnameItem, error)
+	GetStockMission(ctx context.Context, id uuid.UUID) (GetStockMissionRow, error)
+	GetStockMissionStats(ctx context.Context) (GetStockMissionStatsRow, error)
+	GetStockSession(ctx context.Context, id uuid.UUID) (StockOpnameSession, error)
 	GetSystemModule(ctx context.Context, id string) (SystemModule, error)
 	GetSystemSetting(ctx context.Context, arg GetSystemSettingParams) (SystemSetting, error)
 	// System Settings
@@ -121,6 +136,7 @@ type Querier interface {
 	GetUserLoanHistory(ctx context.Context, arg GetUserLoanHistoryParams) ([]GetUserLoanHistoryRow, error)
 	GetUserPriorityTasks(ctx context.Context, arg GetUserPriorityTasksParams) ([]GetUserPriorityTasksRow, error)
 	GetUserRecentActivities(ctx context.Context, arg GetUserRecentActivitiesParams) ([]GetUserRecentActivitiesRow, error)
+	GetUsersForHierarchy(ctx context.Context) ([]GetUsersForHierarchyRow, error)
 	GetWarehouseTopology(ctx context.Context) ([]GetWarehouseTopologyRow, error)
 	ListActivityLogs(ctx context.Context, arg ListActivityLogsParams) ([]ListActivityLogsRow, error)
 	ListAllBoxesGlobal(ctx context.Context) ([]ListAllBoxesGlobalRow, error)
@@ -152,6 +168,7 @@ type Querier interface {
 	// Ordners
 	ListOrdners(ctx context.Context, boxID uuid.UUID) ([]Ordner, error)
 	ListPendingDocumentsWithoutManifest(ctx context.Context) ([]ListPendingDocumentsWithoutManifestRow, error)
+	ListPendingLoanExtensionsForApprover(ctx context.Context, approverID uuid.UUID) ([]ListPendingLoanExtensionsForApproverRow, error)
 	ListPendingManifests(ctx context.Context) ([]ListPendingManifestsRow, error)
 	ListPendingUsers(ctx context.Context) ([]User, error)
 	ListPermissionsByRole(ctx context.Context, roleID int32) ([]ListPermissionsByRoleRow, error)
@@ -167,6 +184,8 @@ type Querier interface {
 	ListRoles(ctx context.Context) ([]ListRolesRow, error)
 	ListSsoSyncLogs(ctx context.Context, arg ListSsoSyncLogsParams) ([]SsoSyncLog, error)
 	ListStagingManifests(ctx context.Context) ([]ListStagingManifestsRow, error)
+	ListStockItemsBySession(ctx context.Context, sessionID uuid.UUID) ([]StockOpnameItem, error)
+	ListStockMissions(ctx context.Context, arg ListStockMissionsParams) ([]ListStockMissionsRow, error)
 	// System Modules & Permissions
 	ListSystemModules(ctx context.Context) ([]SystemModule, error)
 	ListUserLoanRequests(ctx context.Context, userID uuid.UUID) ([]ListUserLoanRequestsRow, error)
@@ -187,6 +206,7 @@ type Querier interface {
 	UpdateCompany(ctx context.Context, arg UpdateCompanyParams) (Company, error)
 	UpdateCompanyLogo(ctx context.Context, arg UpdateCompanyLogoParams) error
 	UpdateDepartment(ctx context.Context, arg UpdateDepartmentParams) (Department, error)
+	UpdateDepartmentHead(ctx context.Context, arg UpdateDepartmentHeadParams) error
 	UpdateDocument(ctx context.Context, arg UpdateDocumentParams) (Document, error)
 	UpdateDocumentCategory(ctx context.Context, arg UpdateDocumentCategoryParams) (DocumentCategory, error)
 	UpdateDocumentIndexing(ctx context.Context, arg UpdateDocumentIndexingParams) error
@@ -199,6 +219,7 @@ type Querier interface {
 	UpdateEmailTemplate(ctx context.Context, arg UpdateEmailTemplateParams) (EmailTemplate, error)
 	UpdateIntegrationNodeConfig(ctx context.Context, arg UpdateIntegrationNodeConfigParams) (IntegrationNode, error)
 	UpdateIntegrationNodeStatus(ctx context.Context, arg UpdateIntegrationNodeStatusParams) (IntegrationNode, error)
+	UpdateLoanExtensionStatus(ctx context.Context, arg UpdateLoanExtensionStatusParams) error
 	UpdateLoanRequestStatus(ctx context.Context, arg UpdateLoanRequestStatusParams) error
 	UpdateManifestItemStatus(ctx context.Context, arg UpdateManifestItemStatusParams) error
 	UpdateManifestItemStatusBulk(ctx context.Context, arg UpdateManifestItemStatusBulkParams) error
@@ -210,9 +231,15 @@ type Querier interface {
 	UpdateRfidTagStatus(ctx context.Context, arg UpdateRfidTagStatusParams) (RfidTag, error)
 	UpdateRole(ctx context.Context, arg UpdateRoleParams) (Role, error)
 	UpdateSsoSyncLog(ctx context.Context, arg UpdateSsoSyncLogParams) (SsoSyncLog, error)
+	UpdateStockItemQuantity(ctx context.Context, arg UpdateStockItemQuantityParams) error
+	UpdateStockItemResolution(ctx context.Context, arg UpdateStockItemResolutionParams) error
+	UpdateStockMissionStatus(ctx context.Context, arg UpdateStockMissionStatusParams) error
+	UpdateStockSessionStatus(ctx context.Context, arg UpdateStockSessionStatusParams) error
+	UpdateStockSessionSummary(ctx context.Context, arg UpdateStockSessionSummaryParams) error
 	UpdateSystemModule(ctx context.Context, arg UpdateSystemModuleParams) (SystemModule, error)
 	UpdateTaskStatusByEntity(ctx context.Context, arg UpdateTaskStatusByEntityParams) error
 	UpdateUser(ctx context.Context, arg UpdateUserParams) (User, error)
+	UpdateUserDepartment(ctx context.Context, arg UpdateUserDepartmentParams) error
 	UpdateUserMFASecret(ctx context.Context, arg UpdateUserMFASecretParams) error
 	UpdateUserPIN(ctx context.Context, arg UpdateUserPINParams) error
 	UpdateUserPassword(ctx context.Context, arg UpdateUserPasswordParams) error
