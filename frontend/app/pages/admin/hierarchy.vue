@@ -182,11 +182,11 @@
             <!-- Selected User Identity -->
             <div class="bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800/80 p-3.5 rounded-2xl flex items-center gap-3 text-left">
               <div class="w-10 h-10 rounded-full overflow-hidden bg-gradient-to-br from-[#1E3A5F] to-[#2d5a8f] flex-shrink-0 flex items-center justify-center text-white font-bold text-xs">
-                {{ selectedEmployee.name.split(' ').map(n => n[0]).join('') }}
+                {{ selectedEmployee.full_name ? selectedEmployee.full_name.split(' ').map(n => n[0]).join('').substring(0,2) : '?' }}
               </div>
               <div>
-                <h5 class="text-xs font-black text-[#1E3A5F] dark:text-white uppercase tracking-tight">{{ selectedEmployee.name }}</h5>
-                <p class="text-[9px] text-slate-500 font-bold uppercase tracking-wider mt-0.5">{{ selectedEmployee.role }}</p>
+                <h5 class="text-xs font-black text-[#1E3A5F] dark:text-white uppercase tracking-tight">{{ selectedEmployee.full_name }}</h5>
+                <p class="text-[9px] text-slate-500 font-bold uppercase tracking-wider mt-0.5">{{ selectedEmployee.role_name }}</p>
               </div>
             </div>
 
@@ -283,13 +283,12 @@ import { useToast } from '~/composables/useToast'
 import { useRuntimeConfig } from '#app'
 
 definePageMeta({
-  layout: 'admin',
-  middleware: 'auth'
+  layout: 'default'
 })
 
 const toast = useToast()
 const config = useRuntimeConfig()
-const { $api } = useNuxtApp()
+const { $api } = useApi()
 
 // UI State
 const viewMode = ref('chart') // 'split', 'tree', 'chart'
@@ -573,16 +572,29 @@ const treeData = computed(() => {
   
   // Prepare companies
   const roots = []
-  companies.value.forEach(company => {
-    const companyNode = { data: { ...company, type: 'company' }, children: [] }
-    
-    branches.value.forEach(branch => {
-      if (branch.company_id === company.id) {
-        companyNode.children.push(branchMap[branch.id])
-      }
+  
+  if (companies.value && companies.value.length > 0) {
+    companies.value.forEach(company => {
+      const companyNode = { data: { ...company, type: 'company' }, children: [] }
+      
+      branches.value.forEach(branch => {
+        if (branch.company_id === company.id) {
+          companyNode.children.push(branchMap[branch.id])
+        }
+      })
+      roots.push(companyNode)
     })
-    roots.push(companyNode)
-  })
+  } else if (branches.value && branches.value.length > 0) {
+    // If no companies, treat branches as roots
+    branches.value.forEach(branch => {
+      roots.push(branchMap[branch.id])
+    })
+  } else {
+    // If no companies and no branches, treat departments as roots
+    departments.value.forEach(dept => {
+      roots.push(deptMap[dept.id])
+    })
+  }
   
   return roots
 })
@@ -791,6 +803,9 @@ const hasConflicts = ref(false)
   transform: translateZ(0);
 }
 
+</style>
+
+<style>
 /* ====== CSS Tree Connector Lines ====== */
 .org-tree {
   display: flex;
