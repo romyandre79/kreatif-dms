@@ -5,93 +5,185 @@
       "total_boxes": "Total Kotak",
       "occupied_racks": "Rak Terisi",
       "available_space": "Ruang Tersedia"
-    }
-  },
-  "warehouse_structure": {
-    "title": "Struktur Gudang",
-    "subtitle": "Kelola lokasi fisik dokumen dan pengaturan rak",
-    "tabs": {
-      "overview": "Ikhtisar",
-      "racks": "Manajemen Rak",
-      "aisles": "Lorong",
-      "floors": "Lantai"
     },
-    "stats": {
-      "total_capacity": "Total Kapasitas",
-      "utilized": "Terisi",
-      "utilization_rate": "Tingkat Pemanfaatan",
-      "active_racks": "Rak Aktif",
-      "pending_maintenance": "Perawatan Tertunda"
+    "structure": {
+      "title": "Struktur Lokasi Gudang",
+      "subtitle": "Kelola lokasi fisik dokumen dan pengaturan rak",
+      "btn_print_batch": "Cetak Batch Label",
+      "checklist": {
+        "title": "Ceklis Verifikasi Penempatan",
+        "item_1": {
+          "title": "Verifikasi Kode Rak & Box",
+          "desc": "Pastikan kode fisik pada rak dan box sesuai dengan data di sistem."
+        },
+        "item_2": {
+          "title": "Pemeriksaan Ketersediaan Slot",
+          "desc": "Periksa apakah slot yang dituju memiliki ruang yang cukup dan tidak penuh."
+        },
+        "item_3": {
+          "title": "Konfirmasi Scan RFID/QR",
+          "desc": "Lakukan pemindaian tag RFID atau kode QR pada dokumen untuk pencocokan."
+        },
+        "btn_start": "Mulai Pemindaian Verifikasi"
+      },
+      "sop": {
+        "title": "SOP Penempatan Dokumen",
+        "desc": "Setiap dokumen fisik wajib dipindai dan ditempatkan sesuai dengan slot/rak yang direkomendasikan sistem untuk menjaga akurasi pelacakan lokasi."
+      },
+      "assigned": {
+        "title": "Lokasi yang Ditugaskan",
+        "map_label": "Peta Gudang Utama",
+        "fields": {
+          "zone": "Zona",
+          "row": "Baris",
+          "level": "Rak/Tingkat",
+          "slot": "Slot Boks",
+          "batch": "Batch ID"
+        },
+        "btn_nav": "Tunjukkan Rute Navigasi"
+      },
+      "tabs": {
+        "overview": "Ikhtisar",
+        "racks": "Manajemen Rak",
+        "aisles": "Lorong",
+        "floors": "Lantai"
+      },
+      "stats": {
+        "total_capacity": "Total Kapasitas",
+        "utilized": "Terisi",
+        "utilization_rate": "Tingkat Pemanfaatan",
+        "active_racks": "Rak Aktif",
+        "pending_maintenance": "Perawatan Tertunda"
+      },
+      "actions": {
+        "add_rack": "Tambah Rak Baru",
+        "add_aisle": "Tambah Lorong",
+        "export_map": "Ekspor Peta",
+        "print_labels": "Cetak Label Lokasi"
+      },
+      "table": {
+        "rack_id": "ID RAK",
+        "location": "LOKASI",
+        "capacity": "KAPASITAS",
+        "status": "STATUS",
+        "action": "AKSI",
+        "status_full": "PENUH",
+        "status_available": "TERSEDIA",
+        "status_warning": "HAMPIR PENUH"
+      }
     },
-    "actions": {
-      "add_rack": "Tambah Rak Baru",
-      "add_aisle": "Tambah Lorong",
-      "export_map": "Ekspor Peta",
-      "print_labels": "Cetak Label Lokasi"
+    "scan": {
+      "title": "Pemindaian Struktur Gudang",
+      "subtitle": "Pemetaan lokasi fisik menggunakan scanner genggam",
+      "stepper": {
+        "step_1": "Pindai Rak",
+        "step_2": "Pindai Box",
+        "step_3": "Selesai"
+      },
+      "rack_info": {
+        "title": "Informasi Rak Target",
+        "scanned": "TERPINDAI",
+        "code_label": "Kode Rak",
+        "zone": "Zona",
+        "zone_val": "Zona A (IT)",
+        "category": "Kategori",
+        "cat_val": "Dokumen Kerja"
+      },
+      "box_verify": {
+        "title": "Verifikasi Boks",
+        "waiting": "MENUNGGU SCAN...",
+        "code_label": "Pindai QR Boks",
+        "placeholder": "Arahkan scanner atau ketik kode boks...",
+        "match_found": "Boks Cocok",
+        "match_desc": "Boks terverifikasi berada di rak yang benar sesuai sistem."
+      },
+      "scanner": {
+        "hint": "Pindai Barcode/QR Code pada Boks",
+        "auto": "PEMINDAIAN OTOMATIS AKTIF"
+      },
+      "summary": {
+        "title": "Ringkasan Hasil Pemindaian",
+        "ready": "SIAP DIKONFIRMASI",
+        "confidence": "Tingkat Akurasi: {value}",
+        "btn_cancel": "Batal",
+        "btn_confirm": "Konfirmasi Penempatan"
+      },
+      "footer": {
+        "assignee": "PETUGAS",
+        "sync": "SINKRONISASI",
+        "location": "LOKASI"
+      }
     },
-    "table": {
-      "rack_id": "ID RAK",
-      "location": "LOKASI",
-      "capacity": "KAPASITAS",
-      "status": "STATUS",
-      "action": "AKSI",
-      "status_full": "PENUH",
-      "status_available": "TERSEDIA",
-      "status_warning": "HAMPIR PENUH"
-    }
-  },
-  "warehouse_management": {
-    "title": "Manajemen Gudang",
-    "subtitle": "Kelola penyimpanan fisik dan inventaris kotak",
-    "stats": {
-      "total_boxes": "Total Kotak",
-      "occupied_racks": "Rak Terisi",
-      "storage_usage": "Penggunaan Gudang",
-      "total_capacity": "Kapasitas Total",
-      "vs_last_month": "{percent}% vs bulan lalu"
+    "management": {
+      "title": "Manajemen Gudang",
+      "subtitle": "Kelola penyimpanan fisik dan inventaris kotak",
+      "stats": {
+        "total_boxes": "Total Kotak",
+        "occupied_racks": "Rak Terisi",
+        "storage_usage": "Penggunaan Gudang",
+        "total_capacity": "Kapasitas Total",
+        "vs_last_month": "{percent}% vs bulan lalu"
+      },
+      "actions": {
+        "add_box": "Tambah Kotak",
+        "move_box": "Pindah Kotak",
+        "inventory_check": "Cek Inventaris",
+        "print_manifest": "Cetak Manifest"
+      },
+      "filters": {
+        "all_locations": "Semua Lokasi",
+        "floor": "Lantai",
+        "aisle": "Lorong",
+        "status": "Status"
+      },
+      "table": {
+        "box_id": "ID KOTAK",
+        "location": "LOKASI",
+        "contents": "ISI",
+        "last_audit": "AUDIT TERAKHIR",
+        "status": "STATUS",
+        "status_active": "Aktif",
+        "status_moved": "Pindah",
+        "status_archived": "Diarsipkan"
+      }
     },
-    "actions": {
-      "add_box": "Tambah Kotak",
-      "move_box": "Pindah Kotak",
-      "inventory_check": "Cek Inventaris",
-      "print_manifest": "Cetak Manifest"
-    },
-    "filters": {
-      "all_locations": "Semua Lokasi",
-      "floor": "Lantai",
-      "aisle": "Lorong",
-      "status": "Status"
-    },
-    "table": {
-      "box_id": "ID KOTAK",
-      "location": "LOKASI",
-      "contents": "ISI",
-      "last_audit": "AUDIT TERAKHIR",
-      "status": "STATUS",
-      "status_active": "Aktif",
-      "status_moved": "Pindah",
-      "status_archived": "Diarsipkan"
-    }
-  },
-  "warehouse_scan": {
-    "title": "Pemindaian Struktur Gudang",
-    "subtitle": "Pemetaan lokasi fisik menggunakan scanner genggam",
-    "form": {
-      "rack_code": "Kode Rak",
-      "aisle_code": "Kode Lorong",
-      "level": "Tingkat",
-      "position": "Posisi"
-    },
-    "summary": {
-      "total_scanned": "Total Dipindai",
-      "confidence": "Tingkat Akurasi",
-      "btn_cancel": "Batal",
-      "btn_confirm": "Konfirmasi"
-    },
-    "footer": {
-      "assignee": "PETUGAS",
-      "sync": "SINKRONISASI",
-      "location": "LOKASI"
+    "departments": {
+      "title": "Zonasi Departemen",
+      "add": "Tambah Zona Baru",
+      "zoned": "{count} Rak Teralokasi",
+      "statuses": {
+        "active": "Aktif",
+        "reserved": "Cadangan",
+        "locked": "Terkunci",
+        "standard": "Standar"
+      },
+      "map": {
+        "legend": {
+          "legal": "Legal & Compliance",
+          "finance": "Finance & Tax",
+          "generic": "Umum / Shared",
+          "locked": "Area Terkunci"
+        },
+        "layout": "Tata Letak Rak: Zona {id}",
+        "capacity": "Total Kapasitas: {count} Boks",
+        "allocated": "Tingkat Alokasi: {val}%"
+      },
+      "editor": {
+        "title": "Editor Aturan Zonasi",
+        "action": "Jenis Aksi Alokasi",
+        "reserve": "Cadangkan Area",
+        "release": "Lepas Area",
+        "target": "Departemen Target",
+        "date": "Tanggal Efektif",
+        "conflict": "Peringatan Konflik Alokasi",
+        "conflict_desc": "Area ini sebagian telah dialokasikan untuk departemen lain.",
+        "btn_apply": "Terapkan Aturan Zonasi"
+      },
+      "schedule": {
+        "title": "Jadwal Alokasi Aktif",
+        "permanent": "Permanen",
+        "expires": "Berakhir: {date}"
+      }
     }
   }
 }

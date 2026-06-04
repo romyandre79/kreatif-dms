@@ -418,6 +418,7 @@ const iconMap = {
   'roles': LucideShieldAlert,
   'users': LucideUserCog,
   'admin_pin': LucideLock,
+  'admin_hierarchy': LucideGitCompare,
   'LucideLock': LucideLock,
   'Dashboard': LucideLayoutDashboard,
   'Search': LucideSearch,

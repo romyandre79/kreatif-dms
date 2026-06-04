@@ -5,9 +5,6 @@
       <!-- Page Header -->
       <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div class="space-y-1">
-          <div class="flex items-center gap-2 text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">
-            {{ $t('warehouse.structure.breadcrumbs') }}
-          </div>
           <h1 class="text-2xl font-black text-[#1E3A5F] dark:text-white tracking-tight uppercase">
             {{ $t('warehouse.structure.title') }}
           </h1>

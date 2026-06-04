@@ -121,7 +121,9 @@
       "staging_area": "Staging Area",
       "email_templates": "Email Templates",
       "doc_category": "Master Kategori Dokumen",
-      "loan_duration": "Durasi Pinjam"
+      "loan_duration": "Durasi Pinjam",
+      "config_folder_path": "Konfigurasi Path Folder",
+      "admin_hierarchy": "Struktur & Hierarki"
     }
   }
 }

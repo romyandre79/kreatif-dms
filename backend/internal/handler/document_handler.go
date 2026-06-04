@@ -648,8 +648,22 @@ func (h *DocumentHandler) GetExplorerConfig(c fiber.Ctx) error {
 			config[s.Key] = s.Value.String
 		}
 	}
+
+	storageUsed, err := h.svc.GetStorageUsage(c.Context())
+	if err != nil {
+		storageUsed = 0
+	}
+
+	storageLimit, err := h.svc.GetStorageLimit(c.Context())
+	if err != nil {
+		storageLimit = 100 * 1024 * 1024 * 1024
+	}
 	
-	return response.Success(c, fiber.StatusOK, "Explorer config retrieved", config)
+	return response.Success(c, fiber.StatusOK, "Explorer config retrieved", fiber.Map{
+		"config":        config,
+		"storage_used":  storageUsed,
+		"storage_limit": storageLimit,
+	})
 }
 
 func (h *DocumentHandler) UpdateExplorerConfig(c fiber.Ctx) error {

@@ -1131,12 +1131,25 @@ func (s *DocumentService) CreateLoanRequest(ctx context.Context, p CreateLoanReq
 	}
 	requestNo := fmt.Sprintf("LOAN-%s-%05d", time.Now().Format("2006-01"), nextSeq)
 
+	// Fetch default duration from system settings
+	durationDays := p.DurationDays
+	setting, err := s.GetSystemSetting(ctx, "general", "default_loan_duration_days")
+	if err == nil && setting.Value.Valid && setting.Value.String != "" {
+		var parsed int
+		if _, err := fmt.Sscanf(setting.Value.String, "%d", &parsed); err == nil && parsed > 0 {
+			durationDays = int32(parsed)
+		}
+	}
+	if durationDays <= 0 {
+		durationDays = 7
+	}
+
 	// 3. Create loan request
 	loanReq, err := s.repo.CreateLoanRequest(ctx, repository.CreateLoanRequestParams{
 		RequestNo:    requestNo,
 		UserID:       p.UserID,
 		Purpose:      p.Purpose,
-		DurationDays: p.DurationDays,
+		DurationDays: durationDays,
 		Notes:        pgtype.Text{String: p.Notes, Valid: p.Notes != ""},
 		CompanyID:    companyID,
 		BranchID:     branchID,
@@ -1790,4 +1803,32 @@ func (s *DocumentService) RejectLoanExtension(ctx context.Context, extensionID u
 
 	return nil
 }
+
+func (s *DocumentService) GetStorageUsage(ctx context.Context) (int64, error) {
+	var docSize int64
+	err := s.db.QueryRow(ctx, "SELECT COALESCE(SUM(file_size), 0) FROM documents").Scan(&docSize)
+	if err != nil {
+		return 0, err
+	}
+
+	return docSize, nil
+}
+
+func (s *DocumentService) GetStorageLimit(ctx context.Context) (int64, error) {
+	var limitStr string
+	err := s.db.QueryRow(ctx, "SELECT value FROM system_settings WHERE category = 'storage' AND key = 'storage_limit'").Scan(&limitStr)
+	if err != nil {
+		// Default to 100 GB in bytes
+		return 100 * 1024 * 1024 * 1024, nil
+	}
+
+	var limitGB int64
+	_, err = fmt.Sscanf(limitStr, "%d", &limitGB)
+	if err != nil {
+		return 100 * 1024 * 1024 * 1024, nil
+	}
+
+	return limitGB * 1024 * 1024 * 1024, nil
+}
+
 

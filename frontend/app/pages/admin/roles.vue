@@ -20,66 +20,66 @@
 
     <div class="flex flex-1 overflow-hidden">
       <!-- Left Sidebar: Hierarchy -->
-      <aside class="w-80 border-r border-slate-200 dark:border-slate-800 bg-white/50 dark:bg-slate-900/50 backdrop-blur-xl flex flex-col">
-        <div class="p-8 space-y-6">
+      <aside class="w-64 border-r border-slate-200 dark:border-slate-800 bg-white/50 dark:bg-slate-900/50 backdrop-blur-xl flex flex-col">
+        <div class="p-4 space-y-3">
           <div class="space-y-1">
             <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Hierarchy Peran</h3>
           </div>
           
           <div class="relative group">
-            <LucideSearch class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-primary-500 transition-colors" />
+            <LucideSearch class="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 group-focus-within:text-primary-500 transition-colors" />
             <input 
               type="text" 
               v-model="searchRole"
               placeholder="Filter peran..."
-              class="w-full pl-11 pr-4 py-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-xs font-bold focus:outline-none focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 transition-all"
+              class="w-full pl-9 pr-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold focus:outline-none focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 transition-all"
             />
           </div>
         </div>
 
-        <nav class="flex-1 overflow-y-auto px-4 pb-8 custom-scrollbar space-y-1">
-          <div v-if="loadingRoles" class="p-8 text-center animate-pulse">
-            <div class="h-4 bg-slate-200 dark:bg-slate-800 rounded-full w-3/4 mx-auto mb-4"></div>
-            <div class="h-4 bg-slate-200 dark:bg-slate-800 rounded-full w-1/2 mx-auto"></div>
+        <nav class="flex-1 overflow-y-auto px-2.5 pb-4 custom-scrollbar space-y-1">
+          <div v-if="loadingRoles" class="p-4 text-center animate-pulse">
+            <div class="h-3 bg-slate-200 dark:bg-slate-800 rounded-full w-3/4 mx-auto mb-2.5"></div>
+            <div class="h-3 bg-slate-200 dark:bg-slate-800 rounded-full w-1/2 mx-auto"></div>
           </div>
           <button 
             v-for="role in filteredRoles" 
             :key="role.id"
             @click="selectRole(role)"
-            class="w-full flex items-center justify-between px-5 py-4 rounded-2xl transition-all duration-300 group relative"
+            class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl transition-all duration-300 group relative"
             :class="[
               selectedRole?.id === role.id 
-                ? 'bg-[#1E3A5F] text-white shadow-xl shadow-blue-900/20' 
-                : 'text-slate-500 dark:text-slate-400 hover:bg-white dark:hover:bg-slate-800 hover:shadow-md'
+                ? 'bg-[#1E3A5F] text-white shadow-lg shadow-blue-900/10' 
+                : 'text-slate-500 dark:text-slate-400 hover:bg-white dark:hover:bg-slate-800 hover:shadow-sm'
             ]"
           >
-            <div class="flex items-center gap-4 text-left">
-              <LucideShield class="w-5 h-5" :class="selectedRole?.id === role.id ? 'text-blue-400' : 'text-slate-400'" />
+            <div class="flex items-center gap-3 text-left">
+              <LucideShield class="w-4 h-4" :class="selectedRole?.id === role.id ? 'text-blue-400' : 'text-slate-400'" />
               <div>
-                <p class="text-[11px] font-black uppercase tracking-tight">{{ role.name }}</p>
-                <p v-if="role.disabled" class="text-[9px] font-bold opacity-60 uppercase">(Disabled)</p>
+                <p class="text-[10px] font-black uppercase tracking-tight">{{ role.name }}</p>
+                <p v-if="role.disabled" class="text-[8px] font-bold opacity-60 uppercase">(Disabled)</p>
               </div>
             </div>
-            <div v-if="selectedRole?.id === role.id" class="w-2 h-2 rounded-full bg-blue-400 animate-pulse"></div>
-            <LucideLock v-if="role.disabled" class="w-3 h-3 opacity-40" />
+            <div v-if="selectedRole?.id === role.id" class="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse"></div>
+            <LucideLock v-if="role.disabled" class="w-2.5 h-2.5 opacity-40" />
           </button>
         </nav>
       </aside>
 
       <!-- Center Content: Matrix -->
       <main class="flex-1 bg-white dark:bg-slate-900 flex flex-col overflow-hidden">
-        <header class="px-10 py-8 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/30 dark:bg-slate-900/30">
-          <div class="flex items-center gap-4 text-left">
-            <h2 class="text-lg font-black text-[#1E3A5F] dark:text-white uppercase tracking-tighter">Matriks Izin: {{ selectedRole?.name }}</h2>
+        <header class="px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/30 dark:bg-slate-900/30">
+          <div class="flex items-center gap-3 text-left">
+            <h2 class="text-sm font-black text-[#1E3A5F] dark:text-white uppercase tracking-tighter">Matriks Izin: {{ selectedRole?.name }}</h2>
           </div>
-          <div class="flex items-center gap-3 bg-slate-100 dark:bg-slate-800 p-1.5 rounded-xl">
-            <span class="text-[10px] font-black text-slate-500 uppercase px-3 tracking-widest">Full Access</span>
+          <div class="flex items-center gap-2 bg-slate-100 dark:bg-slate-800 p-1 rounded-lg">
+            <span class="text-[9px] font-black text-slate-500 uppercase px-2 tracking-widest">Full Access</span>
             <button 
               @click="toggleFullAccess"
-              class="w-10 h-5 rounded-full transition-all duration-500 relative p-1"
+              class="w-8 h-4 rounded-full transition-all duration-500 relative p-0.5"
               :class="isFullAccess ? 'bg-primary-500' : 'bg-slate-300 dark:bg-slate-700'"
             >
-              <div class="w-3 h-3 bg-white rounded-full shadow-sm transition-transform duration-500" :class="{ 'translate-x-5': isFullAccess }"></div>
+              <div class="w-3 h-3 bg-white rounded-full shadow-sm transition-transform duration-500" :class="{ 'translate-x-4': isFullAccess }"></div>
             </button>
           </div>
         </header>
@@ -91,21 +91,21 @@
           <table v-else class="w-full text-left border-collapse">
             <thead>
               <tr class="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] border-b border-slate-50 dark:border-slate-800 sticky top-0 bg-white dark:bg-slate-900 z-10">
-                <th class="p-8 pl-10 w-64">Modul</th>
-                <th v-for="action in actions" :key="action" class="p-4 text-center">{{ action }}</th>
+                <th class="py-3 px-6 pl-8 w-60">Modul</th>
+                <th v-for="action in actions" :key="action" class="py-3 px-2 text-center text-[9px]">{{ action }}</th>
               </tr>
             </thead>
             <tbody v-for="group in permissionGroups" :key="group.name">
               <tr class="bg-slate-50/50 dark:bg-slate-800/30">
-                <td colspan="10" class="px-10 py-3 text-[9px] font-black text-primary-500 uppercase tracking-widest border-y border-slate-100 dark:border-slate-800">
+                <td colspan="10" class="px-8 py-2 text-[9px] font-black text-primary-500 uppercase tracking-widest border-y border-slate-100 dark:border-slate-800">
                   {{ group.name }}
                 </td>
               </tr>
               <tr v-for="mod in group.modules" :key="mod.id" class="group hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-colors">
-                <td class="px-10 py-6">
-                  <span class="text-[11px] font-black text-[#1E3A5F] dark:text-slate-200 uppercase tracking-tight group-hover:text-primary-500 transition-colors">{{ mod.name }}</span>
+                <td class="px-8 py-3">
+                  <span class="text-[10px] font-black text-[#1E3A5F] dark:text-slate-200 uppercase tracking-tight group-hover:text-primary-500 transition-colors">{{ mod.name }}</span>
                 </td>
-                <td v-for="action in actions" :key="action" class="p-4 text-center">
+                <td v-for="action in actions" :key="action" class="py-3 px-2 text-center">
                   <label v-if="mod.allowed_actions.includes(action)" class="relative inline-flex items-center justify-center cursor-pointer group/check">
                     <input 
                       type="checkbox" 
@@ -113,11 +113,11 @@
                       @change="togglePermission(mod.id, action)"
                       class="sr-only peer"
                     >
-                    <div class="w-6 h-6 border-2 border-slate-200 dark:border-slate-700 rounded-lg peer-checked:bg-primary-500 peer-checked:border-primary-500 transition-all duration-300 flex items-center justify-center shadow-sm">
-                      <LucideCheck class="w-3.5 h-3.5 text-white scale-0 peer-checked:scale-100 transition-transform duration-300 stroke-[4px]" />
+                    <div class="w-5 h-5 border-2 border-slate-200 dark:border-slate-700 rounded peer-checked:bg-primary-500 peer-checked:border-primary-500 transition-all duration-300 flex items-center justify-center shadow-sm">
+                      <LucideCheck class="w-3.5 h-3.5 text-white scale-0 peer-checked:scale-100 transition-transform duration-300 stroke-[3px]" />
                     </div>
                   </label>
-                  <div v-else class="w-1.5 h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full mx-auto"></div>
+                  <div v-else class="w-1 h-1 bg-slate-100 dark:bg-slate-800 rounded-full mx-auto"></div>
                 </td>
               </tr>
             </tbody>
@@ -126,31 +126,31 @@
       </main>
 
       <!-- Right Panel: Info -->
-      <aside class="w-[400px] bg-slate-50/50 dark:bg-slate-900/50 border-l border-slate-200 dark:border-slate-800 flex flex-col p-4 overflow-y-auto custom-scrollbar gap-10">
+      <aside class="w-72 bg-slate-50/50 dark:bg-slate-900/50 border-l border-slate-200 dark:border-slate-800 flex flex-col p-4 overflow-y-auto custom-scrollbar gap-6">
         <!-- Role Header -->
-        <div class="flex items-start gap-6">
-          <div class="w-16 h-16 rounded-lg bg-white dark:bg-slate-800 shadow-xl border border-slate-100 dark:border-slate-700 flex items-center justify-center text-primary-500">
-            <LucideShieldCheck class="w-8 h-8" />
+        <div class="flex items-start gap-4">
+          <div class="w-11 h-11 rounded-lg bg-white dark:bg-slate-800 shadow border border-slate-100 dark:border-slate-700 flex items-center justify-center text-primary-500 flex-shrink-0">
+            <LucideShieldCheck class="w-6 h-6" />
           </div>
-          <div class="space-y-1 text-left">
-            <h2 class="text-2xl font-black text-[#1E3A5F] dark:text-white uppercase tracking-tight">{{ selectedRole?.name }}</h2>
-            <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">User Authority</p>
+          <div class="space-y-0.5 text-left">
+            <h2 class="text-base font-black text-[#1E3A5F] dark:text-white uppercase tracking-tight">{{ selectedRole?.name }}</h2>
+            <p class="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">User Authority</p>
           </div>
         </div>
 
         <!-- Description -->
-        <div class="space-y-3 text-left">
-          <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Deskripsi</label>
-          <p class="text-[12px] font-medium text-slate-500 dark:text-slate-400 leading-relaxed italic">
+        <div class="space-y-2 text-left">
+          <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Deskripsi</label>
+          <p class="text-[11px] font-medium text-slate-500 dark:text-slate-400 leading-relaxed italic">
             {{ selectedRole?.description || 'Tidak ada deskripsi untuk peran ini.' }}
           </p>
         </div>
 
         <!-- Stats Grid -->
-        <div class="grid grid-cols-2 gap-6">
-          <div class="p-6 bg-white dark:bg-slate-800/50 rounded-lg shadow-sm border border-slate-100 dark:border-slate-700 space-y-2 text-left">
-            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">User Aktif</p>
-            <p class="text-3xl font-black text-[#1E3A5F] dark:text-white tracking-tighter">{{ selectedRole?.user_count || 0 }}</p>
+        <div class="grid grid-cols-1 gap-4">
+          <div class="p-4 bg-white dark:bg-slate-800/50 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 space-y-1 text-left">
+            <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest">User Aktif</p>
+            <p class="text-2xl font-black text-[#1E3A5F] dark:text-white tracking-tighter">{{ selectedRole?.user_count || 0 }}</p>
           </div>
         </div>
 

@@ -119,7 +119,7 @@
       <div v-if="showModal" class="fixed inset-0 z-[150] flex items-center justify-center p-6">
         <div class="absolute inset-0 bg-slate-950/60 backdrop-blur-md" @click="showModal = false"></div>
         <div class="relative w-full max-w-2xl bg-white dark:bg-slate-900 rounded-lg shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
-          <header class="p-10 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+          <header class="shrink-0 p-10 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
             <div class="space-y-1">
               <h3 class="text-2xl font-black text-[#1E3A5F] dark:text-white uppercase tracking-tight">
                 {{ isEdit ? $t('admin.user_management.modal.title_edit') : $t('admin.user_management.modal.title_add') }}
@@ -131,7 +131,7 @@
             </button>
           </header>
 
-          <form @submit.prevent="saveUser" class="flex-1 overflow-y-auto p-10 space-y-10 custom-scrollbar overscroll-contain">
+          <form @submit.prevent="saveUser" class="flex-1 min-h-0 overflow-y-auto p-10 space-y-10 custom-scrollbar overscroll-contain">
             <!-- Profile Photos -->
             <div class="flex items-center gap-8 p-8 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-100 dark:border-slate-800">
               <!-- Avatar -->
@@ -282,7 +282,7 @@
             </div>
           </form>
 
-          <footer class="p-10 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 flex items-center justify-end gap-6">
+          <footer class="shrink-0 p-10 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 flex items-center justify-end gap-6">
             <button @click="showModal = false" class="px-8 py-4 text-[11px] font-black text-slate-400 hover:text-slate-600 uppercase tracking-widest transition-colors active:scale-95">
               {{ $t('admin.user_management.modal.btn_cancel') }}
             </button>

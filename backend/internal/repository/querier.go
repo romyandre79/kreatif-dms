@@ -74,9 +74,12 @@ type Querier interface {
 	GetBatch(ctx context.Context, id uuid.UUID) (ProcessingBatch, error)
 	GetBox(ctx context.Context, id uuid.UUID) (Box, error)
 	GetBranch(ctx context.Context, id uuid.UUID) (Branch, error)
+	GetBranches(ctx context.Context) ([]GetBranchesRow, error)
+	GetCompanies(ctx context.Context) ([]GetCompaniesRow, error)
 	GetCompany(ctx context.Context, id uuid.UUID) (Company, error)
 	GetDailyStats(ctx context.Context) (GetDailyStatsRow, error)
 	GetDepartment(ctx context.Context, id uuid.UUID) (Department, error)
+	GetDepartments(ctx context.Context) ([]GetDepartmentsRow, error)
 	GetDocument(ctx context.Context, id uuid.UUID) (GetDocumentRow, error)
 	GetDocumentByShortID(ctx context.Context, dollar_1 pgtype.Text) (GetDocumentByShortIDRow, error)
 	GetDocumentCategory(ctx context.Context, id uuid.UUID) (DocumentCategory, error)
@@ -133,6 +136,7 @@ type Querier interface {
 	GetUserLoanHistory(ctx context.Context, arg GetUserLoanHistoryParams) ([]GetUserLoanHistoryRow, error)
 	GetUserPriorityTasks(ctx context.Context, arg GetUserPriorityTasksParams) ([]GetUserPriorityTasksRow, error)
 	GetUserRecentActivities(ctx context.Context, arg GetUserRecentActivitiesParams) ([]GetUserRecentActivitiesRow, error)
+	GetUsersForHierarchy(ctx context.Context) ([]GetUsersForHierarchyRow, error)
 	GetWarehouseTopology(ctx context.Context) ([]GetWarehouseTopologyRow, error)
 	ListActivityLogs(ctx context.Context, arg ListActivityLogsParams) ([]ListActivityLogsRow, error)
 	ListAllBoxesGlobal(ctx context.Context) ([]ListAllBoxesGlobalRow, error)
@@ -202,6 +206,7 @@ type Querier interface {
 	UpdateCompany(ctx context.Context, arg UpdateCompanyParams) (Company, error)
 	UpdateCompanyLogo(ctx context.Context, arg UpdateCompanyLogoParams) error
 	UpdateDepartment(ctx context.Context, arg UpdateDepartmentParams) (Department, error)
+	UpdateDepartmentHead(ctx context.Context, arg UpdateDepartmentHeadParams) error
 	UpdateDocument(ctx context.Context, arg UpdateDocumentParams) (Document, error)
 	UpdateDocumentCategory(ctx context.Context, arg UpdateDocumentCategoryParams) (DocumentCategory, error)
 	UpdateDocumentIndexing(ctx context.Context, arg UpdateDocumentIndexingParams) error
@@ -234,6 +239,7 @@ type Querier interface {
 	UpdateSystemModule(ctx context.Context, arg UpdateSystemModuleParams) (SystemModule, error)
 	UpdateTaskStatusByEntity(ctx context.Context, arg UpdateTaskStatusByEntityParams) error
 	UpdateUser(ctx context.Context, arg UpdateUserParams) (User, error)
+	UpdateUserDepartment(ctx context.Context, arg UpdateUserDepartmentParams) error
 	UpdateUserMFASecret(ctx context.Context, arg UpdateUserMFASecretParams) error
 	UpdateUserPIN(ctx context.Context, arg UpdateUserPINParams) error
 	UpdateUserPassword(ctx context.Context, arg UpdateUserPasswordParams) error

@@ -252,6 +252,10 @@ func main() {
 	userGroup.Get("/pending", middleware.RoleMiddleware("admin", "superadmin"), authHandler.ListPendingUsers)
 	userGroup.Post("/:id/approve", middleware.RoleMiddleware("admin", "superadmin"), authHandler.ApproveUser)
 
+	// Hierarchy Routes
+	api.Get("/admin/hierarchy", middleware.AuthMiddleware(cfg.JWTSecret), middleware.RoleMiddleware("admin", "superadmin"), userHandler.GetHierarchy)
+	api.Put("/admin/hierarchy/bulk-update", middleware.AuthMiddleware(cfg.JWTSecret), middleware.RoleMiddleware("admin", "superadmin"), userHandler.UpdateHierarchy)
+
 	// Document Routes
 	docGroup := api.Group("/documents")
 	docGroup.Use(middleware.AuthMiddleware(cfg.JWTSecret))
