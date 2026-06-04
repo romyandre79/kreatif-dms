@@ -29,6 +29,7 @@
       "bulk_upload": "Bulk Upload",
       "warehouse": "Warehouse Management",
       "structure": "Location Structure",
+      "warehouse_rack_override": "Rack Override",
       "occupancy": "Occupancy Map",
       "zonation": "Department Zonation",
       "print_qr": "Print QR Labels",

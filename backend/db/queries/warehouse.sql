@@ -61,6 +61,7 @@ FROM boxes b
 JOIN racks r ON b.rack_id = r.id
 JOIN departments d ON r.department_id = d.id
 WHERE r.department_id = @department_id
+  AND r.is_full_override = FALSE
   AND (r.allowed_category_ids IS NULL OR array_length(r.allowed_category_ids, 1) IS NULL OR @category_id::uuid = ANY(r.allowed_category_ids))
   AND b.current_docs_count < b.max_docs_capacity
 ORDER BY (b.max_docs_capacity - b.current_docs_count) DESC

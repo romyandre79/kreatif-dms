@@ -337,13 +337,17 @@ func main() {
 	masterGroup.Get("/departments", masterHandler.ListAllDepartments)
 	masterGroup.Post("/departments", masterHandler.CreateDepartment)
 	masterGroup.Put("/departments/:id", masterHandler.UpdateDepartment)
+	masterGroup.Put("/departments/:id/floor-plan", masterHandler.UpdateDepartmentFloorPlan)
 	masterGroup.Delete("/departments/:id", masterHandler.DeleteDepartment)
 	masterGroup.Get("/departments/export", masterHandler.ExportDepartments)
 	masterGroup.Post("/departments/import", masterHandler.ImportDepartments)
 
+	// Racks
 	masterGroup.Get("/racks", masterHandler.ListAllRacks)
 	masterGroup.Post("/racks", masterHandler.CreateRack)
 	masterGroup.Put("/racks/:id", masterHandler.UpdateRack)
+	masterGroup.Put("/racks/:id/coordinates", masterHandler.UpdateRackCoordinates)
+	masterGroup.Put("/racks/:id/override", masterHandler.UpdateRackOverride)
 	masterGroup.Delete("/racks/:id", masterHandler.DeleteRack)
 	masterGroup.Get("/racks/export", masterHandler.ExportRacks)
 	masterGroup.Post("/racks/import", masterHandler.ImportRacks)

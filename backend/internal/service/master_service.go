@@ -1501,3 +1501,30 @@ func (s *MasterService) UpdateWatermarkSettings(ctx context.Context, config map[
 	})
 	return err
 }
+func (s *MasterService) UpdateDepartmentFloorPlan(ctx context.Context, id uuid.UUID, floorPlanUrl string) (repository.Department, error) {
+	urlArg := pgtype.Text{String: floorPlanUrl, Valid: floorPlanUrl != ""}
+	return s.repo.UpdateDepartmentFloorPlan(ctx, repository.UpdateDepartmentFloorPlanParams{
+		ID:           id,
+		FloorPlanUrl: urlArg,
+	})
+}
+
+func (s *MasterService) UpdateRackMapCoordinates(ctx context.Context, id uuid.UUID, posX, posY float64) (repository.Rack, error) {
+	var px, py pgtype.Numeric
+	px.Scan(fmt.Sprintf("%.2f", posX))
+	py.Scan(fmt.Sprintf("%.2f", posY))
+
+	return s.repo.UpdateRackMapCoordinates(ctx, repository.UpdateRackMapCoordinatesParams{
+		ID:      id,
+		MapPosX: px,
+		MapPosY: py,
+	})
+}
+
+func (s *MasterService) UpdateRackOverrideStatus(ctx context.Context, id uuid.UUID, isFull bool, reason string) (repository.Rack, error) {
+	return s.repo.UpdateRackOverrideStatus(ctx, repository.UpdateRackOverrideStatusParams{
+		ID:             id,
+		IsFullOverride: pgtype.Bool{Bool: isFull, Valid: true},
+		OverrideReason: pgtype.Text{String: reason, Valid: reason != ""},
+	})
+}

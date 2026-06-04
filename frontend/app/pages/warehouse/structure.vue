@@ -19,9 +19,9 @@
       </div>
 
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-10">
-        <div class="lg:col-span-2 space-y-8">
+        <div class="lg:col-span-2 space-y-6">
           <!-- Verification Checklist -->
-          <div class="glass p-10 rounded-lg space-y-10">
+          <div class="glass p-8 rounded-lg space-y-8">
             <div class="flex items-center gap-3">
               <div class="w-10 h-10 rounded-xl bg-primary-50 dark:bg-primary-900/20 text-primary-500 flex items-center justify-center shadow-sm">
                 <LucideCheckSquare class="w-5 h-5" />
@@ -29,8 +29,8 @@
               <h3 class="text-sm font-black text-[#1E3A5F] dark:text-white uppercase tracking-widest">{{ $t('warehouse.structure.checklist.title') }}</h3>
             </div>
 
-            <div class="space-y-6">
-              <div v-for="(item, i) in [1, 2, 3]" :key="i" class="p-8 bg-slate-50/50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800 rounded-lg flex items-start gap-6 hover:border-primary-500/30 transition-all group">
+            <div class="space-y-4">
+              <div v-for="(item, i) in [1, 2, 3]" :key="i" class="p-5 bg-slate-50/50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800 rounded-lg flex items-start gap-5 hover:border-primary-500/30 transition-all group">
                 <div class="pt-1">
                   <div class="w-6 h-6 rounded border-2 border-slate-200 dark:border-slate-700 flex items-center justify-center group-hover:border-primary-500 transition-colors cursor-pointer">
                     <LucideCheck v-if="checked[i]" class="w-4 h-4 text-primary-500" />
@@ -64,21 +64,33 @@
         </div>
 
         <!-- Assigned Location Sidebar -->
-        <div class="space-y-8">
-          <div class="glass p-10 rounded-lg space-y-10" v-motion-slide-right>
+        <div class="space-y-6">
+          <div class="glass p-8 rounded-lg space-y-8" v-motion-slide-right>
             <div class="flex items-center gap-3">
               <LucideMapPin class="w-5 h-5 text-primary-500" />
               <h3 class="text-sm font-black text-[#1E3A5F] dark:text-white uppercase tracking-widest">{{ $t('warehouse.structure.assigned.title') }}</h3>
             </div>
 
-            <div class="aspect-square bg-slate-100 dark:bg-slate-800 rounded-lg overflow-hidden relative group">
-              <img src="https://api.mapbox.com/styles/v1/mapbox/dark-v10/static/106.8456, -6.2088,12,0,0/400x400?access_token=pk.eyJ1IjoiYmFyY2FiaWwiLCJhIjoiY2p3Z3R4Z3Q0MDByZDRicXl4bmZ6eXZwMiJ9.8_nF_E0wK_7w1p_8_v_8_w" class="w-full h-full object-cover grayscale opacity-60 group-hover:grayscale-0 group-hover:opacity-100 transition-all" />
-              <div class="absolute inset-0 flex items-center justify-center">
-                <div class="w-10 h-10 bg-primary-500/20 rounded-full animate-ping"></div>
-                <div class="absolute w-5 h-5 bg-primary-500 rounded-full ring-4 ring-white dark:ring-slate-900"></div>
-              </div>
-              <div class="absolute bottom-6 left-6 bg-slate-800/80 backdrop-blur-md px-4 py-2 rounded-xl border border-white/10">
-                <span class="text-[9px] font-black text-white uppercase tracking-widest">LIVE MAP • {{ $t('warehouse.structure.assigned.map_label') }}</span>
+            <div class="bg-slate-100 dark:bg-slate-800 rounded-lg overflow-hidden relative group">
+              <!-- Interactive Indoor Map Component -->
+              <IndoorMap 
+                :floorPlanUrl="mockFloorPlan"
+                :racks="mockRacks"
+                :activeRackId="'rck-1'"
+                :isEditing="isEditingMap"
+                :canEditLayout="true"
+                @update:floorPlan="handleFloorPlanUpdate"
+                @map-click="handleMapClick"
+              />
+
+              <div class="absolute bottom-4 left-4 bg-slate-800/80 backdrop-blur-md px-4 py-2 rounded-xl border border-white/10 flex items-center gap-3">
+                <span class="text-[9px] font-black text-white uppercase tracking-widest">LIVE MAP</span>
+                <button 
+                  @click="isEditingMap = !isEditingMap" 
+                  class="px-2 py-1 bg-primary-500 hover:bg-primary-600 text-white rounded text-[8px] font-bold tracking-wider transition-colors uppercase"
+                >
+                  {{ isEditingMap ? 'Selesai Edit' : 'Edit Pin' }}
+                </button>
               </div>
             </div>
 
@@ -247,10 +259,38 @@ import {
   LucideInfo, LucideMapPin, LucideQrCode, LucideCheckCircle2,
   LucideUser, LucideHistory
 } from 'lucide-vue-next'
+import IndoorMap from '~/components/Warehouse/IndoorMap.vue'
 
 const state = ref('checklist') // 'checklist', 'scan'
 const step = ref(2)
 const checked = ref([true, true, false])
+
+// Mock State for Indoor Map
+const isEditingMap = ref(false)
+const mockFloorPlan = ref('https://images.unsplash.com/photo-1524661135-423995f22d0b?auto=format&fit=crop&w=800&q=80')
+const mockRacks = ref([
+  { id: 'rck-1', name: 'RCK-A1-204-B', map_pos_x: 50, map_pos_y: 50 },
+  { id: 'rck-2', name: 'RCK-A2', map_pos_x: 30, map_pos_y: 60 }
+])
+
+const handleFloorPlanUpdate = (url) => {
+  mockFloorPlan.value = url
+  // Here we would call the API: 
+  // $api(`/master/departments/${deptId}/floor-plan`, { method: 'PUT', body: { floor_plan_url: url } })
+}
+
+const handleMapClick = (coords) => {
+  if (!isEditingMap.value) return
+  
+  // Update mock active rack position
+  const rack = mockRacks.value.find(r => r.id === 'rck-1')
+  if (rack) {
+    rack.map_pos_x = coords.x
+    rack.map_pos_y = coords.y
+    // Here we would call the API:
+    // $api(`/master/racks/${rack.id}/coordinates`, { method: 'PUT', body: { pos_x: coords.x, pos_y: coords.y } })
+  }
+}
 </script>
 
 <style scoped>

@@ -1,5 +1,5 @@
 <template>
-  <div class="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+  <div class="space-y-2 animate-in fade-in slide-in-from-bottom-4 duration-700">
     <!-- Page Header -->
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-white dark:bg-[#0D121F] p-8 rounded-lg border border-slate-200/60 dark:border-slate-800/40 shadow-sm relative overflow-hidden">
       <div class="absolute top-0 right-0 p-8 opacity-10">

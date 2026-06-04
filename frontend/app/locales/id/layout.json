@@ -35,6 +35,7 @@
       "bulk_upload": "Unggah Massal",
       "warehouse": "Manajemen Gudang",
       "structure": "Struktur Lokasi",
+      "warehouse_rack_override": "Override Rak",
       "occupancy": "Peta Okupansi",
       "zonation": "Zonasi Departemen",
       "print_qr": "Cetak Label QR",

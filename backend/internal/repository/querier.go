@@ -206,6 +206,7 @@ type Querier interface {
 	UpdateCompany(ctx context.Context, arg UpdateCompanyParams) (Company, error)
 	UpdateCompanyLogo(ctx context.Context, arg UpdateCompanyLogoParams) error
 	UpdateDepartment(ctx context.Context, arg UpdateDepartmentParams) (Department, error)
+	UpdateDepartmentFloorPlan(ctx context.Context, arg UpdateDepartmentFloorPlanParams) (Department, error)
 	UpdateDepartmentHead(ctx context.Context, arg UpdateDepartmentHeadParams) error
 	UpdateDocument(ctx context.Context, arg UpdateDocumentParams) (Document, error)
 	UpdateDocumentCategory(ctx context.Context, arg UpdateDocumentCategoryParams) (DocumentCategory, error)
@@ -227,6 +228,8 @@ type Querier interface {
 	UpdateManifestStatus(ctx context.Context, arg UpdateManifestStatusParams) error
 	UpdateOrdner(ctx context.Context, arg UpdateOrdnerParams) (Ordner, error)
 	UpdateRack(ctx context.Context, arg UpdateRackParams) (Rack, error)
+	UpdateRackMapCoordinates(ctx context.Context, arg UpdateRackMapCoordinatesParams) (Rack, error)
+	UpdateRackOverrideStatus(ctx context.Context, arg UpdateRackOverrideStatusParams) (Rack, error)
 	UpdateRetentionPolicy(ctx context.Context, arg UpdateRetentionPolicyParams) (RetentionPolicy, error)
 	UpdateRfidTagStatus(ctx context.Context, arg UpdateRfidTagStatusParams) (RfidTag, error)
 	UpdateRole(ctx context.Context, arg UpdateRoleParams) (Role, error)

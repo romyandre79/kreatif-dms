@@ -339,3 +339,11 @@ RETURNING *;
 
 -- name: DeleteDocumentType :exec
 DELETE FROM document_types WHERE id = $1;
+
+-- name: UpdateDepartmentFloorPlan :one
+UPDATE departments SET floor_plan_url = $2 WHERE id = $1 RETURNING *;
+
+-- name: UpdateRackMapCoordinates :one
+UPDATE racks SET map_pos_x = $2, map_pos_y = $3 WHERE id = $1 RETURNING *;
+-- name: UpdateRackOverrideStatus :one
+UPDATE racks SET is_full_override = $2, override_reason = $3 WHERE id = $1 RETURNING *;
