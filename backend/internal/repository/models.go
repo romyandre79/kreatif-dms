@@ -396,6 +396,13 @@ type FileStorageObject struct {
 	CreatedAt           pgtype.Timestamptz `json:"created_at"`
 }
 
+type Floor struct {
+	ID        uuid.UUID          `json:"id"`
+	Name      string             `json:"name"`
+	Code      string             `json:"code"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
+}
+
 type GeneratedLabel struct {
 	ID            uuid.UUID          `json:"id"`
 	LabelType     string             `json:"label_type"`
@@ -646,6 +653,7 @@ type Rack struct {
 	MapPosY            pgtype.Numeric     `json:"map_pos_y"`
 	IsFullOverride     pgtype.Bool        `json:"is_full_override"`
 	OverrideReason     pgtype.Text        `json:"override_reason"`
+	FloorID            pgtype.UUID        `json:"floor_id"`
 }
 
 type RackCapacity struct {

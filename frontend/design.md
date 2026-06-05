@@ -688,3 +688,34 @@ import { LucideFileText, LucideSearch, LucideCheckCircle2 } from 'lucide-vue-nex
 | i18n | @nuxtjs/i18n (id default, en) |
 | Security | nuxt-security (CSP headers) |
 | HTTP | Axios via `useApi` composable |
+
+---
+
+## 23. API Call Convention (HTTP Client)
+
+Gunakan composable `useApi` dari `~/composables/useApi` (atau `@/composables/useApi`) untuk berinteraksi dengan API backend.
+
+### Aturan Utama:
+1. **Dapatkan Client `$api` dari `useApi`**:
+   Jangan menggunakan `useNuxtApp()` untuk mendapatkan `$api`. Selalu panggil:
+   ```javascript
+   import { useApi } from '@/composables/useApi'
+   const { $api } = useApi()
+   ```
+2. **Response Format**:
+   API backend terstandarisasi mengembalikan data di dalam properti `.data`. Contoh format response:
+   ```json
+   {
+     "success": true,
+     "message": "...",
+     "data": [...] // Data aktual ada di sini
+   }
+   ```
+   Selalu akses `res.data` setelah memanggil `$api`:
+   ```javascript
+   const res = await $api('/master/racks')
+   racks.value = res.data || []
+   ```
+3. **Prefix URL Otomatis**:
+   Composable `useApi` otomatis menambahkan config `apiBase` (contoh: `/api/v1`) untuk relative paths, jadi cukup panggil path setelah prefix `/api/v1` (seperti `/master/racks`).
+

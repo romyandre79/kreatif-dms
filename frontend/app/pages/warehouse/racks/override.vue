@@ -75,6 +75,18 @@
               <h2 class="text-3xl font-black text-white uppercase tracking-tighter">{{ selectedRack.name }}</h2>
               <p class="text-[10px] font-black text-slate-300 uppercase tracking-widest">MASTER IDENTIFIER</p>
             </div>
+            
+            <!-- Full Override Watermark -->
+            <div 
+              v-if="form.is_full_override" 
+              class="absolute inset-0 flex items-center justify-center bg-red-950/25 backdrop-blur-[2px] transition-all"
+              v-motion-pop
+            >
+              <div class="bg-red-600/90 text-white border-2 border-white/20 px-10 py-5 rounded-2xl shadow-2xl flex items-center gap-4 transform -rotate-12 select-none">
+                <LucideLock class="w-7 h-7 text-white" />
+                <span class="text-base font-black uppercase tracking-[0.3em] whitespace-nowrap">FULL / CLOSED</span>
+              </div>
+            </div>
           </div>
 
           <div class="grid grid-cols-2 gap-4">
@@ -155,7 +167,7 @@
           <!-- Recommendations Checkbox -->
           <div class="flex items-start gap-3">
              <div 
-               @click="if(form.is_full_override) form.exclude_recommendation = !form.exclude_recommendation"
+               @click="form.is_full_override && (form.exclude_recommendation = !form.exclude_recommendation)"
                :class="[
                  'w-5 h-5 rounded border-2 flex items-center justify-center shrink-0 mt-0.5 transition-colors cursor-pointer',
                  form.exclude_recommendation ? 'bg-[#1E3A5F] border-[#1E3A5F]' : 'bg-transparent border-slate-300 dark:border-slate-600',
@@ -206,15 +218,13 @@ import {
   LucideServer, LucideLock, LucideInfo, LucideAlertTriangle,
   LucideCheck, LucideSave, LucideLoader2
 } from 'lucide-vue-next'
-import { useNuxtApp } from '#app'
+import { useApi } from '@/composables/useApi'
 
 definePageMeta({
-  layout: 'default',
-  middleware: ['auth', 'permission'],
-  permission: 'warehouse_rack_override'
+  layout: 'default'
 })
 
-const { $api } = useNuxtApp()
+const { $api } = useApi()
 const racks = ref([])
 const selectedRack = ref(null)
 
@@ -228,8 +238,8 @@ const isSaving = ref(false)
 
 const loadRacks = async () => {
   try {
-    const data = await $api('/master/racks')
-    racks.value = data || []
+    const res = await $api('/master/racks')
+    racks.value = res.data || []
   } catch (error) {
     console.error('Failed to load racks', error)
   }
@@ -255,7 +265,7 @@ const saveOverride = async () => {
   isSaving.value = true
 
   try {
-    const updated = await $api(`/master/racks/${selectedRack.value.id}/override`, {
+    const res = await $api(`/master/racks/${selectedRack.value.id}/override`, {
       method: 'PUT',
       body: {
         is_full_override: form.value.is_full_override,
@@ -263,15 +273,19 @@ const saveOverride = async () => {
       }
     })
 
+    const updated = res.data
+
     // Update local state
     const index = racks.value.findIndex(r => r.id === selectedRack.value.id)
-    if (index !== -1) {
+    if (index !== -1 && updated) {
       racks.value[index].is_full_override = updated.is_full_override
       racks.value[index].override_reason = updated.override_reason
     }
     
-    selectedRack.value.is_full_override = updated.is_full_override
-    selectedRack.value.override_reason = updated.override_reason
+    if (updated) {
+      selectedRack.value.is_full_override = updated.is_full_override
+      selectedRack.value.override_reason = updated.override_reason
+    }
     
     // Show success (use a toast or notification system here)
     alert('Status override berhasil diperbarui!')

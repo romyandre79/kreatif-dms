@@ -88,27 +88,48 @@ RETURNING *;
 -- name: DeleteDepartment :exec
 DELETE FROM departments WHERE id = $1;
 
+-- Floors
+-- name: ListFloors :many
+SELECT * FROM floors ORDER BY name;
+
+-- name: CreateFloor :one
+INSERT INTO floors (name, code) VALUES ($1, $2) RETURNING *;
+
+-- name: UpdateFloor :one
+UPDATE floors SET name = $2, code = $3 WHERE id = $1 RETURNING *;
+
+-- name: DeleteFloor :exec
+DELETE FROM floors WHERE id = $1;
+
 -- Racks
 -- name: ListRacks :many
 SELECT * FROM racks WHERE department_id = $1 ORDER BY name;
 
 -- name: ListAllRacksGlobal :many
-SELECT r.*, d.name as department_name, b.name as branch_name
+SELECT 
+    r.*, 
+    d.name as department_name, 
+    b.name as branch_name,
+    COALESCE((SELECT SUM(current_docs_count)::INT FROM boxes WHERE rack_id = r.id), 0)::INT as current_docs_count,
+    COALESCE((SELECT SUM(max_docs_capacity)::INT FROM boxes WHERE rack_id = r.id), 100)::INT as max_docs_capacity,
+    COALESCE(fl.name, '')::VARCHAR as floor_name,
+    COALESCE(fl.code, '')::VARCHAR as floor_code
 FROM racks r
 JOIN departments d ON r.department_id = d.id
 JOIN branches b ON d.branch_id = b.id
+LEFT JOIN floors fl ON r.floor_id = fl.id
 ORDER BY r.name;
 
 -- name: GetRack :one
 SELECT * FROM racks WHERE id = $1;
 
 -- name: CreateRack :one
-INSERT INTO racks (department_id, name, location_detail)
-VALUES ($1, $2, $3)
+INSERT INTO racks (department_id, name, location_detail, floor_id, map_pos_x, map_pos_y)
+VALUES ($1, $2, $3, $4, $5, $6)
 RETURNING *;
 
 -- name: UpdateRack :one
-UPDATE racks SET name = $2, location_detail = $3, department_id = $4
+UPDATE racks SET name = $2, location_detail = $3, department_id = $4, floor_id = $5, map_pos_x = $6, map_pos_y = $7
 WHERE id = $1
 RETURNING *;
 

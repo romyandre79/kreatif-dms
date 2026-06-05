@@ -245,7 +245,7 @@ func main() {
 	// User Routes
 	userGroup := api.Group("/users")
 	userGroup.Use(middleware.AuthMiddleware(cfg.JWTSecret))
-	userGroup.Get("/", middleware.RoleMiddleware("admin", "superadmin"), userHandler.List)
+	userGroup.Get("/", middleware.RoleMiddleware("admin", "superadmin", "manajer"), userHandler.List)
 	userGroup.Post("/", middleware.RoleMiddleware("admin", "superadmin"), userHandler.Register)
 	userGroup.Put("/:id", middleware.RoleMiddleware("admin", "superadmin"), userHandler.Update)
 	userGroup.Delete("/:id", middleware.RoleMiddleware("admin", "superadmin"), userHandler.Delete)
@@ -316,6 +316,19 @@ func main() {
 	masterGroup.Get("/announcements", masterHandler.ListAnnouncements)
 	masterGroup.Get("/document-types/export", middleware.RoleMiddleware("admin", "superadmin"), masterHandler.ExportDocumentTypes)
 
+	// Zonation support endpoints accessible to manajer
+	masterGroup.Get("/branches-all", middleware.RoleMiddleware("admin", "superadmin", "manajer"), masterHandler.ListAllBranchesGlobal)
+	masterGroup.Get("/departments", middleware.RoleMiddleware("admin", "superadmin", "manajer"), masterHandler.ListAllDepartments)
+	masterGroup.Post("/departments", middleware.RoleMiddleware("admin", "superadmin", "manajer"), masterHandler.CreateDepartment)
+	masterGroup.Get("/racks", middleware.RoleMiddleware("admin", "superadmin", "manajer"), masterHandler.ListAllRacks)
+	masterGroup.Put("/racks/:id", middleware.RoleMiddleware("admin", "superadmin", "manajer"), masterHandler.UpdateRack)
+	masterGroup.Put("/racks/:id/override", middleware.RoleMiddleware("admin", "superadmin", "manajer"), masterHandler.UpdateRackOverride)
+	masterGroup.Get("/racks/zonation-logs", middleware.RoleMiddleware("admin", "superadmin", "manajer"), masterHandler.GetZonationLogs)
+	masterGroup.Get("/floors", middleware.RoleMiddleware("admin", "superadmin", "manajer", "admin doc controller", "kepala doc controller"), masterHandler.ListAllFloors)
+	masterGroup.Post("/floors", middleware.RoleMiddleware("admin", "superadmin", "manajer", "admin doc controller", "kepala doc controller"), masterHandler.CreateFloor)
+	masterGroup.Put("/floors/:id", middleware.RoleMiddleware("admin", "superadmin", "manajer", "admin doc controller", "kepala doc controller"), masterHandler.UpdateFloor)
+	masterGroup.Delete("/floors/:id", middleware.RoleMiddleware("admin", "superadmin", "manajer", "admin doc controller", "kepala doc controller"), masterHandler.DeleteFloor)
+
 	// --- STRICTLY ADMIN/SUPERADMIN ROUTES ---
 	masterGroup.Use(middleware.RoleMiddleware("admin", "superadmin"))
 	masterGroup.Get("/companies", masterHandler.ListCompanies)
@@ -330,12 +343,9 @@ func main() {
 	masterGroup.Post("/branches", masterHandler.CreateBranch)
 	masterGroup.Put("/branches/:id", masterHandler.UpdateBranch)
 	masterGroup.Delete("/branches/:id", masterHandler.DeleteBranch)
-	masterGroup.Get("/branches-all", masterHandler.ListAllBranchesGlobal)
 	masterGroup.Get("/branches/export", masterHandler.ExportBranches)
 	masterGroup.Post("/branches/import", masterHandler.ImportBranches)
 	
-	masterGroup.Get("/departments", masterHandler.ListAllDepartments)
-	masterGroup.Post("/departments", masterHandler.CreateDepartment)
 	masterGroup.Put("/departments/:id", masterHandler.UpdateDepartment)
 	masterGroup.Put("/departments/:id/floor-plan", masterHandler.UpdateDepartmentFloorPlan)
 	masterGroup.Delete("/departments/:id", masterHandler.DeleteDepartment)
@@ -343,11 +353,8 @@ func main() {
 	masterGroup.Post("/departments/import", masterHandler.ImportDepartments)
 
 	// Racks
-	masterGroup.Get("/racks", masterHandler.ListAllRacks)
 	masterGroup.Post("/racks", masterHandler.CreateRack)
-	masterGroup.Put("/racks/:id", masterHandler.UpdateRack)
 	masterGroup.Put("/racks/:id/coordinates", masterHandler.UpdateRackCoordinates)
-	masterGroup.Put("/racks/:id/override", masterHandler.UpdateRackOverride)
 	masterGroup.Delete("/racks/:id", masterHandler.DeleteRack)
 	masterGroup.Get("/racks/export", masterHandler.ExportRacks)
 	masterGroup.Post("/racks/import", masterHandler.ImportRacks)
