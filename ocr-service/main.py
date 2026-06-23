@@ -243,6 +243,16 @@ async def process_ocr(
         avg_acc = sum(w['confidence'] for w in results) / len(results) if results else 0
         if avg_acc > 1.0:
             avg_acc = avg_acc / 100.0
+
+        if not ai_result:
+            logger.info("AI Analysis failed or disabled. Applying local OCR fallback.")
+            ai_result = {
+                "doc_type": "Document (Local OCR Fallback)",
+                "summary": f"Text extracted locally via EasyOCR from {filename}",
+                "entities": {},
+                "cleaned_text": all_text,
+                "confidence_score": avg_acc
+            }
         
         save_request_log({
             "start_time": start_time_str, "end_time": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
