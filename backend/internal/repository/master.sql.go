@@ -142,7 +142,7 @@ func (q *Queries) CreateCompany(ctx context.Context, arg CreateCompanyParams) (C
 const createDepartment = `-- name: CreateDepartment :one
 INSERT INTO departments (branch_id, name, head_id)
 VALUES ($1, $2, $3)
-RETURNING id, branch_id, name, head_id, created_at, max_docs_capacity, current_docs_count
+RETURNING id, branch_id, name, head_id, created_at, max_docs_capacity, current_docs_count, floor_plan_url
 `
 
 type CreateDepartmentParams struct {
@@ -162,6 +162,7 @@ func (q *Queries) CreateDepartment(ctx context.Context, arg CreateDepartmentPara
 		&i.CreatedAt,
 		&i.MaxDocsCapacity,
 		&i.CurrentDocsCount,
+		&i.FloorPlanUrl,
 	)
 	return i, err
 }
@@ -225,6 +226,27 @@ func (q *Queries) CreateDocumentType(ctx context.Context, arg CreateDocumentType
 	return i, err
 }
 
+const createFloor = `-- name: CreateFloor :one
+INSERT INTO floors (name, code) VALUES ($1, $2) RETURNING id, name, code, created_at
+`
+
+type CreateFloorParams struct {
+	Name string `json:"name"`
+	Code string `json:"code"`
+}
+
+func (q *Queries) CreateFloor(ctx context.Context, arg CreateFloorParams) (Floor, error) {
+	row := q.db.QueryRow(ctx, createFloor, arg.Name, arg.Code)
+	var i Floor
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Code,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
 const createOrdner = `-- name: CreateOrdner :one
 INSERT INTO ordners (box_id, name)
 VALUES ($1, $2)
@@ -250,19 +272,29 @@ func (q *Queries) CreateOrdner(ctx context.Context, arg CreateOrdnerParams) (Ord
 }
 
 const createRack = `-- name: CreateRack :one
-INSERT INTO racks (department_id, name, location_detail)
-VALUES ($1, $2, $3)
-RETURNING id, department_id, name, location_detail, created_at, max_boxes_capacity, allowed_category_ids, allowed_type_ids, current_boxes_count
+INSERT INTO racks (department_id, name, location_detail, floor_id, map_pos_x, map_pos_y)
+VALUES ($1, $2, $3, $4, $5, $6)
+RETURNING id, department_id, name, location_detail, created_at, max_boxes_capacity, allowed_category_ids, allowed_type_ids, current_boxes_count, map_pos_x, map_pos_y, is_full_override, override_reason, floor_id
 `
 
 type CreateRackParams struct {
-	DepartmentID   uuid.UUID   `json:"department_id"`
-	Name           string      `json:"name"`
-	LocationDetail pgtype.Text `json:"location_detail"`
+	DepartmentID   uuid.UUID      `json:"department_id"`
+	Name           string         `json:"name"`
+	LocationDetail pgtype.Text    `json:"location_detail"`
+	FloorID        pgtype.UUID    `json:"floor_id"`
+	MapPosX        pgtype.Numeric `json:"map_pos_x"`
+	MapPosY        pgtype.Numeric `json:"map_pos_y"`
 }
 
 func (q *Queries) CreateRack(ctx context.Context, arg CreateRackParams) (Rack, error) {
-	row := q.db.QueryRow(ctx, createRack, arg.DepartmentID, arg.Name, arg.LocationDetail)
+	row := q.db.QueryRow(ctx, createRack,
+		arg.DepartmentID,
+		arg.Name,
+		arg.LocationDetail,
+		arg.FloorID,
+		arg.MapPosX,
+		arg.MapPosY,
+	)
 	var i Rack
 	err := row.Scan(
 		&i.ID,
@@ -274,6 +306,11 @@ func (q *Queries) CreateRack(ctx context.Context, arg CreateRackParams) (Rack, e
 		&i.AllowedCategoryIds,
 		&i.AllowedTypeIds,
 		&i.CurrentBoxesCount,
+		&i.MapPosX,
+		&i.MapPosY,
+		&i.IsFullOverride,
+		&i.OverrideReason,
+		&i.FloorID,
 	)
 	return i, err
 }
@@ -458,6 +495,15 @@ func (q *Queries) DeleteDocumentType(ctx context.Context, id uuid.UUID) error {
 	return err
 }
 
+const deleteFloor = `-- name: DeleteFloor :exec
+DELETE FROM floors WHERE id = $1
+`
+
+func (q *Queries) DeleteFloor(ctx context.Context, id uuid.UUID) error {
+	_, err := q.db.Exec(ctx, deleteFloor, id)
+	return err
+}
+
 const deleteOrdner = `-- name: DeleteOrdner :exec
 DELETE FROM ordners WHERE id = $1
 `
@@ -566,7 +612,7 @@ func (q *Queries) GetCompany(ctx context.Context, id uuid.UUID) (Company, error)
 }
 
 const getDepartment = `-- name: GetDepartment :one
-SELECT id, branch_id, name, head_id, created_at, max_docs_capacity, current_docs_count FROM departments WHERE id = $1
+SELECT id, branch_id, name, head_id, created_at, max_docs_capacity, current_docs_count, floor_plan_url FROM departments WHERE id = $1
 `
 
 func (q *Queries) GetDepartment(ctx context.Context, id uuid.UUID) (Department, error) {
@@ -580,6 +626,7 @@ func (q *Queries) GetDepartment(ctx context.Context, id uuid.UUID) (Department, 
 		&i.CreatedAt,
 		&i.MaxDocsCapacity,
 		&i.CurrentDocsCount,
+		&i.FloorPlanUrl,
 	)
 	return i, err
 }
@@ -639,7 +686,7 @@ func (q *Queries) GetOrdner(ctx context.Context, id uuid.UUID) (Ordner, error) {
 }
 
 const getRack = `-- name: GetRack :one
-SELECT id, department_id, name, location_detail, created_at, max_boxes_capacity, allowed_category_ids, allowed_type_ids, current_boxes_count FROM racks WHERE id = $1
+SELECT id, department_id, name, location_detail, created_at, max_boxes_capacity, allowed_category_ids, allowed_type_ids, current_boxes_count, map_pos_x, map_pos_y, is_full_override, override_reason, floor_id FROM racks WHERE id = $1
 `
 
 func (q *Queries) GetRack(ctx context.Context, id uuid.UUID) (Rack, error) {
@@ -655,6 +702,11 @@ func (q *Queries) GetRack(ctx context.Context, id uuid.UUID) (Rack, error) {
 		&i.AllowedCategoryIds,
 		&i.AllowedTypeIds,
 		&i.CurrentBoxesCount,
+		&i.MapPosX,
+		&i.MapPosY,
+		&i.IsFullOverride,
+		&i.OverrideReason,
+		&i.FloorID,
 	)
 	return i, err
 }
@@ -969,7 +1021,7 @@ func (q *Queries) ListAllBranchesGlobal(ctx context.Context) ([]ListAllBranchesG
 
 const listAllDepartments = `-- name: ListAllDepartments :many
 SELECT 
-    d.id, d.branch_id, d.name, d.head_id, d.created_at, d.max_docs_capacity, d.current_docs_count, 
+    d.id, d.branch_id, d.name, d.head_id, d.created_at, d.max_docs_capacity, d.current_docs_count, d.floor_plan_url, 
     b.name as branch_name,
     u.full_name as head_name
 FROM departments d
@@ -986,6 +1038,7 @@ type ListAllDepartmentsRow struct {
 	CreatedAt        pgtype.Timestamptz `json:"created_at"`
 	MaxDocsCapacity  pgtype.Int4        `json:"max_docs_capacity"`
 	CurrentDocsCount pgtype.Int4        `json:"current_docs_count"`
+	FloorPlanUrl     pgtype.Text        `json:"floor_plan_url"`
 	BranchName       string             `json:"branch_name"`
 	HeadName         pgtype.Text        `json:"head_name"`
 }
@@ -1007,6 +1060,7 @@ func (q *Queries) ListAllDepartments(ctx context.Context) ([]ListAllDepartmentsR
 			&i.CreatedAt,
 			&i.MaxDocsCapacity,
 			&i.CurrentDocsCount,
+			&i.FloorPlanUrl,
 			&i.BranchName,
 			&i.HeadName,
 		); err != nil {
@@ -1067,10 +1121,18 @@ func (q *Queries) ListAllOrdnersGlobal(ctx context.Context) ([]ListAllOrdnersGlo
 }
 
 const listAllRacksGlobal = `-- name: ListAllRacksGlobal :many
-SELECT r.id, r.department_id, r.name, r.location_detail, r.created_at, r.max_boxes_capacity, r.allowed_category_ids, r.allowed_type_ids, r.current_boxes_count, d.name as department_name, b.name as branch_name
+SELECT 
+    r.id, r.department_id, r.name, r.location_detail, r.created_at, r.max_boxes_capacity, r.allowed_category_ids, r.allowed_type_ids, r.current_boxes_count, r.map_pos_x, r.map_pos_y, r.is_full_override, r.override_reason, r.floor_id, 
+    d.name as department_name, 
+    b.name as branch_name,
+    COALESCE((SELECT SUM(current_docs_count)::INT FROM boxes WHERE rack_id = r.id), 0)::INT as current_docs_count,
+    COALESCE((SELECT SUM(max_docs_capacity)::INT FROM boxes WHERE rack_id = r.id), 100)::INT as max_docs_capacity,
+    COALESCE(fl.name, '')::VARCHAR as floor_name,
+    COALESCE(fl.code, '')::VARCHAR as floor_code
 FROM racks r
 JOIN departments d ON r.department_id = d.id
 JOIN branches b ON d.branch_id = b.id
+LEFT JOIN floors fl ON r.floor_id = fl.id
 ORDER BY r.name
 `
 
@@ -1084,8 +1146,17 @@ type ListAllRacksGlobalRow struct {
 	AllowedCategoryIds []uuid.UUID        `json:"allowed_category_ids"`
 	AllowedTypeIds     []uuid.UUID        `json:"allowed_type_ids"`
 	CurrentBoxesCount  pgtype.Int4        `json:"current_boxes_count"`
+	MapPosX            pgtype.Numeric     `json:"map_pos_x"`
+	MapPosY            pgtype.Numeric     `json:"map_pos_y"`
+	IsFullOverride     pgtype.Bool        `json:"is_full_override"`
+	OverrideReason     pgtype.Text        `json:"override_reason"`
+	FloorID            pgtype.UUID        `json:"floor_id"`
 	DepartmentName     string             `json:"department_name"`
 	BranchName         string             `json:"branch_name"`
+	CurrentDocsCount   int32              `json:"current_docs_count"`
+	MaxDocsCapacity    int32              `json:"max_docs_capacity"`
+	FloorName          string             `json:"floor_name"`
+	FloorCode          string             `json:"floor_code"`
 }
 
 func (q *Queries) ListAllRacksGlobal(ctx context.Context) ([]ListAllRacksGlobalRow, error) {
@@ -1107,8 +1178,17 @@ func (q *Queries) ListAllRacksGlobal(ctx context.Context) ([]ListAllRacksGlobalR
 			&i.AllowedCategoryIds,
 			&i.AllowedTypeIds,
 			&i.CurrentBoxesCount,
+			&i.MapPosX,
+			&i.MapPosY,
+			&i.IsFullOverride,
+			&i.OverrideReason,
+			&i.FloorID,
 			&i.DepartmentName,
 			&i.BranchName,
+			&i.CurrentDocsCount,
+			&i.MaxDocsCapacity,
+			&i.FloorName,
+			&i.FloorCode,
 		); err != nil {
 			return nil, err
 		}
@@ -1225,7 +1305,7 @@ func (q *Queries) ListCompanies(ctx context.Context) ([]Company, error) {
 }
 
 const listDepartments = `-- name: ListDepartments :many
-SELECT id, branch_id, name, head_id, created_at, max_docs_capacity, current_docs_count FROM departments WHERE branch_id = $1 ORDER BY name
+SELECT id, branch_id, name, head_id, created_at, max_docs_capacity, current_docs_count, floor_plan_url FROM departments WHERE branch_id = $1 ORDER BY name
 `
 
 // Departments
@@ -1246,6 +1326,7 @@ func (q *Queries) ListDepartments(ctx context.Context, branchID uuid.UUID) ([]De
 			&i.CreatedAt,
 			&i.MaxDocsCapacity,
 			&i.CurrentDocsCount,
+			&i.FloorPlanUrl,
 		); err != nil {
 			return nil, err
 		}
@@ -1339,6 +1420,36 @@ func (q *Queries) ListDocumentTypes(ctx context.Context) ([]ListDocumentTypesRow
 	return items, nil
 }
 
+const listFloors = `-- name: ListFloors :many
+SELECT id, name, code, created_at FROM floors ORDER BY name
+`
+
+// Floors
+func (q *Queries) ListFloors(ctx context.Context) ([]Floor, error) {
+	rows, err := q.db.Query(ctx, listFloors)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Floor
+	for rows.Next() {
+		var i Floor
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.Code,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listOrdners = `-- name: ListOrdners :many
 SELECT id, box_id, name, created_at, max_docs_capacity FROM ordners WHERE box_id = $1 ORDER BY name
 `
@@ -1410,7 +1521,7 @@ func (q *Queries) ListPermissionsByRole(ctx context.Context, roleID int32) ([]Li
 }
 
 const listRacks = `-- name: ListRacks :many
-SELECT id, department_id, name, location_detail, created_at, max_boxes_capacity, allowed_category_ids, allowed_type_ids, current_boxes_count FROM racks WHERE department_id = $1 ORDER BY name
+SELECT id, department_id, name, location_detail, created_at, max_boxes_capacity, allowed_category_ids, allowed_type_ids, current_boxes_count, map_pos_x, map_pos_y, is_full_override, override_reason, floor_id FROM racks WHERE department_id = $1 ORDER BY name
 `
 
 // Racks
@@ -1433,6 +1544,11 @@ func (q *Queries) ListRacks(ctx context.Context, departmentID uuid.UUID) ([]Rack
 			&i.AllowedCategoryIds,
 			&i.AllowedTypeIds,
 			&i.CurrentBoxesCount,
+			&i.MapPosX,
+			&i.MapPosY,
+			&i.IsFullOverride,
+			&i.OverrideReason,
+			&i.FloorID,
 		); err != nil {
 			return nil, err
 		}
@@ -1715,7 +1831,7 @@ func (q *Queries) UpdateCompanyLogo(ctx context.Context, arg UpdateCompanyLogoPa
 const updateDepartment = `-- name: UpdateDepartment :one
 UPDATE departments SET name = $2, head_id = $3, branch_id = $4
 WHERE id = $1
-RETURNING id, branch_id, name, head_id, created_at, max_docs_capacity, current_docs_count
+RETURNING id, branch_id, name, head_id, created_at, max_docs_capacity, current_docs_count, floor_plan_url
 `
 
 type UpdateDepartmentParams struct {
@@ -1741,6 +1857,32 @@ func (q *Queries) UpdateDepartment(ctx context.Context, arg UpdateDepartmentPara
 		&i.CreatedAt,
 		&i.MaxDocsCapacity,
 		&i.CurrentDocsCount,
+		&i.FloorPlanUrl,
+	)
+	return i, err
+}
+
+const updateDepartmentFloorPlan = `-- name: UpdateDepartmentFloorPlan :one
+UPDATE departments SET floor_plan_url = $2 WHERE id = $1 RETURNING id, branch_id, name, head_id, created_at, max_docs_capacity, current_docs_count, floor_plan_url
+`
+
+type UpdateDepartmentFloorPlanParams struct {
+	ID           uuid.UUID   `json:"id"`
+	FloorPlanUrl pgtype.Text `json:"floor_plan_url"`
+}
+
+func (q *Queries) UpdateDepartmentFloorPlan(ctx context.Context, arg UpdateDepartmentFloorPlanParams) (Department, error) {
+	row := q.db.QueryRow(ctx, updateDepartmentFloorPlan, arg.ID, arg.FloorPlanUrl)
+	var i Department
+	err := row.Scan(
+		&i.ID,
+		&i.BranchID,
+		&i.Name,
+		&i.HeadID,
+		&i.CreatedAt,
+		&i.MaxDocsCapacity,
+		&i.CurrentDocsCount,
+		&i.FloorPlanUrl,
 	)
 	return i, err
 }
@@ -1812,6 +1954,28 @@ func (q *Queries) UpdateDocumentType(ctx context.Context, arg UpdateDocumentType
 	return i, err
 }
 
+const updateFloor = `-- name: UpdateFloor :one
+UPDATE floors SET name = $2, code = $3 WHERE id = $1 RETURNING id, name, code, created_at
+`
+
+type UpdateFloorParams struct {
+	ID   uuid.UUID `json:"id"`
+	Name string    `json:"name"`
+	Code string    `json:"code"`
+}
+
+func (q *Queries) UpdateFloor(ctx context.Context, arg UpdateFloorParams) (Floor, error) {
+	row := q.db.QueryRow(ctx, updateFloor, arg.ID, arg.Name, arg.Code)
+	var i Floor
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Code,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
 const updateOrdner = `-- name: UpdateOrdner :one
 UPDATE ordners SET name = $2, box_id = $3
 WHERE id = $1
@@ -1838,16 +2002,19 @@ func (q *Queries) UpdateOrdner(ctx context.Context, arg UpdateOrdnerParams) (Ord
 }
 
 const updateRack = `-- name: UpdateRack :one
-UPDATE racks SET name = $2, location_detail = $3, department_id = $4
+UPDATE racks SET name = $2, location_detail = $3, department_id = $4, floor_id = $5, map_pos_x = $6, map_pos_y = $7
 WHERE id = $1
-RETURNING id, department_id, name, location_detail, created_at, max_boxes_capacity, allowed_category_ids, allowed_type_ids, current_boxes_count
+RETURNING id, department_id, name, location_detail, created_at, max_boxes_capacity, allowed_category_ids, allowed_type_ids, current_boxes_count, map_pos_x, map_pos_y, is_full_override, override_reason, floor_id
 `
 
 type UpdateRackParams struct {
-	ID             uuid.UUID   `json:"id"`
-	Name           string      `json:"name"`
-	LocationDetail pgtype.Text `json:"location_detail"`
-	DepartmentID   uuid.UUID   `json:"department_id"`
+	ID             uuid.UUID      `json:"id"`
+	Name           string         `json:"name"`
+	LocationDetail pgtype.Text    `json:"location_detail"`
+	DepartmentID   uuid.UUID      `json:"department_id"`
+	FloorID        pgtype.UUID    `json:"floor_id"`
+	MapPosX        pgtype.Numeric `json:"map_pos_x"`
+	MapPosY        pgtype.Numeric `json:"map_pos_y"`
 }
 
 func (q *Queries) UpdateRack(ctx context.Context, arg UpdateRackParams) (Rack, error) {
@@ -1856,6 +2023,9 @@ func (q *Queries) UpdateRack(ctx context.Context, arg UpdateRackParams) (Rack, e
 		arg.Name,
 		arg.LocationDetail,
 		arg.DepartmentID,
+		arg.FloorID,
+		arg.MapPosX,
+		arg.MapPosY,
 	)
 	var i Rack
 	err := row.Scan(
@@ -1868,6 +2038,75 @@ func (q *Queries) UpdateRack(ctx context.Context, arg UpdateRackParams) (Rack, e
 		&i.AllowedCategoryIds,
 		&i.AllowedTypeIds,
 		&i.CurrentBoxesCount,
+		&i.MapPosX,
+		&i.MapPosY,
+		&i.IsFullOverride,
+		&i.OverrideReason,
+		&i.FloorID,
+	)
+	return i, err
+}
+
+const updateRackMapCoordinates = `-- name: UpdateRackMapCoordinates :one
+UPDATE racks SET map_pos_x = $2, map_pos_y = $3 WHERE id = $1 RETURNING id, department_id, name, location_detail, created_at, max_boxes_capacity, allowed_category_ids, allowed_type_ids, current_boxes_count, map_pos_x, map_pos_y, is_full_override, override_reason, floor_id
+`
+
+type UpdateRackMapCoordinatesParams struct {
+	ID      uuid.UUID      `json:"id"`
+	MapPosX pgtype.Numeric `json:"map_pos_x"`
+	MapPosY pgtype.Numeric `json:"map_pos_y"`
+}
+
+func (q *Queries) UpdateRackMapCoordinates(ctx context.Context, arg UpdateRackMapCoordinatesParams) (Rack, error) {
+	row := q.db.QueryRow(ctx, updateRackMapCoordinates, arg.ID, arg.MapPosX, arg.MapPosY)
+	var i Rack
+	err := row.Scan(
+		&i.ID,
+		&i.DepartmentID,
+		&i.Name,
+		&i.LocationDetail,
+		&i.CreatedAt,
+		&i.MaxBoxesCapacity,
+		&i.AllowedCategoryIds,
+		&i.AllowedTypeIds,
+		&i.CurrentBoxesCount,
+		&i.MapPosX,
+		&i.MapPosY,
+		&i.IsFullOverride,
+		&i.OverrideReason,
+		&i.FloorID,
+	)
+	return i, err
+}
+
+const updateRackOverrideStatus = `-- name: UpdateRackOverrideStatus :one
+UPDATE racks SET is_full_override = $2, override_reason = $3 WHERE id = $1 RETURNING id, department_id, name, location_detail, created_at, max_boxes_capacity, allowed_category_ids, allowed_type_ids, current_boxes_count, map_pos_x, map_pos_y, is_full_override, override_reason, floor_id
+`
+
+type UpdateRackOverrideStatusParams struct {
+	ID             uuid.UUID   `json:"id"`
+	IsFullOverride pgtype.Bool `json:"is_full_override"`
+	OverrideReason pgtype.Text `json:"override_reason"`
+}
+
+func (q *Queries) UpdateRackOverrideStatus(ctx context.Context, arg UpdateRackOverrideStatusParams) (Rack, error) {
+	row := q.db.QueryRow(ctx, updateRackOverrideStatus, arg.ID, arg.IsFullOverride, arg.OverrideReason)
+	var i Rack
+	err := row.Scan(
+		&i.ID,
+		&i.DepartmentID,
+		&i.Name,
+		&i.LocationDetail,
+		&i.CreatedAt,
+		&i.MaxBoxesCapacity,
+		&i.AllowedCategoryIds,
+		&i.AllowedTypeIds,
+		&i.CurrentBoxesCount,
+		&i.MapPosX,
+		&i.MapPosY,
+		&i.IsFullOverride,
+		&i.OverrideReason,
+		&i.FloorID,
 	)
 	return i, err
 }

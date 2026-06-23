@@ -35,8 +35,8 @@
       "bulk_upload": "Unggah Massal",
       "warehouse": "Manajemen Gudang",
       "structure": "Struktur Lokasi",
+      "warehouse_rack_override": "Override Rak",
       "occupancy": "Peta Okupansi",
-      "zonation": "Zonasi Departemen",
       "print_qr": "Cetak Label QR",
       "search": "Pencarian Dokumen",
       "circulation": "Sirkulasi",
@@ -61,6 +61,7 @@
       "company": "Master Perusahaan",
       "branch": "Master Cabang",
       "dept": "Master Departemen",
+      "floor": "Master Lantai",
       "rack": "Master Rak",
       "box": "Master Box",
       "ordner": "Master Ordner",
@@ -123,7 +124,8 @@
       "doc_category": "Master Kategori Dokumen",
       "loan_duration": "Durasi Pinjam",
       "config_folder_path": "Konfigurasi Path Folder",
-      "admin_hierarchy": "Struktur & Hierarki"
+      "admin_hierarchy": "Struktur & Hierarki",
+      "dept_zonation": "Zonasi Departemen & Kontrol"
     }
   }
 }

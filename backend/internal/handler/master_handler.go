@@ -191,6 +191,70 @@ func (h *MasterHandler) ListAllRacks(c fiber.Ctx) error {
 	return response.Success(c, fiber.StatusOK, "Racks listed", racks)
 }
 
+func (h *MasterHandler) ListAllFloors(c fiber.Ctx) error {
+	floors, err := h.svc.ListFloors(c.Context())
+	if err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to list floors", err.Error())
+	}
+	return response.Success(c, fiber.StatusOK, "Floors listed", floors)
+}
+
+func (h *MasterHandler) CreateFloor(c fiber.Ctx) error {
+	req := new(CreateFloorRequest)
+	if err := c.Bind().JSON(req); err != nil {
+		return response.Error(c, fiber.StatusBadRequest, "Invalid request body", err.Error())
+	}
+
+	floor, err := h.svc.CreateFloor(c.Context(), req.Name, req.Code)
+	if err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to create floor", err.Error())
+	}
+
+	userID := c.Locals("user_id").(uuid.UUID)
+	h.svc.LogActivity(c.Context(), userID, "CREATE", "floor", &floor.ID, req, c.IP())
+
+	return response.Success(c, fiber.StatusCreated, "Floor created", floor)
+}
+
+func (h *MasterHandler) UpdateFloor(c fiber.Ctx) error {
+	id, err := uuid.Parse(c.Params("id"))
+	if err != nil {
+		return response.Error(c, fiber.StatusBadRequest, "Invalid floor ID", err.Error())
+	}
+
+	req := new(UpdateFloorRequest)
+	if err := c.Bind().JSON(req); err != nil {
+		return response.Error(c, fiber.StatusBadRequest, "Invalid request body", err.Error())
+	}
+
+	floor, err := h.svc.UpdateFloor(c.Context(), id, req.Name, req.Code)
+	if err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to update floor", err.Error())
+	}
+
+	userID := c.Locals("user_id").(uuid.UUID)
+	h.svc.LogActivity(c.Context(), userID, "UPDATE", "floor", &id, req, c.IP())
+
+	return response.Success(c, fiber.StatusOK, "Floor updated", floor)
+}
+
+func (h *MasterHandler) DeleteFloor(c fiber.Ctx) error {
+	id, err := uuid.Parse(c.Params("id"))
+	if err != nil {
+		return response.Error(c, fiber.StatusBadRequest, "Invalid floor ID", err.Error())
+	}
+
+	err = h.svc.DeleteFloor(c.Context(), id)
+	if err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to delete floor", err.Error())
+	}
+
+	userID := c.Locals("user_id").(uuid.UUID)
+	h.svc.LogActivity(c.Context(), userID, "DELETE", "floor", &id, nil, c.IP())
+
+	return response.Success(c, fiber.StatusOK, "Floor deleted", nil)
+}
+
 // CreateRack creates a new rack
 // @Summary Create a rack
 // @Description Create a new rack record
@@ -210,7 +274,16 @@ func (h *MasterHandler) CreateRack(c fiber.Ctx) error {
 	if err != nil {
 		return response.Error(c, fiber.StatusBadRequest, "Invalid department ID", err.Error())
 	}
-	rack, err := h.svc.CreateRack(c.Context(), deptID, req.Name, req.LocationDetail)
+
+	var floorID *uuid.UUID
+	if req.FloorID != nil && *req.FloorID != "" {
+		parsed, err := uuid.Parse(*req.FloorID)
+		if err == nil {
+			floorID = &parsed
+		}
+	}
+
+	rack, err := h.svc.CreateRack(c.Context(), deptID, req.Name, req.LocationDetail, floorID, req.MapPosX, req.MapPosY)
 	if err != nil {
 		return response.Error(c, fiber.StatusInternalServerError, "Failed to create rack", err.Error())
 	}
@@ -246,7 +319,16 @@ func (h *MasterHandler) UpdateRack(c fiber.Ctx) error {
 	if err != nil {
 		return response.Error(c, fiber.StatusBadRequest, "Invalid department ID", err.Error())
 	}
-	rack, err := h.svc.UpdateRack(c.Context(), id, deptID, req.Name, req.LocationDetail)
+
+	var floorID *uuid.UUID
+	if req.FloorID != nil && *req.FloorID != "" {
+		parsed, err := uuid.Parse(*req.FloorID)
+		if err == nil {
+			floorID = &parsed
+		}
+	}
+
+	rack, err := h.svc.UpdateRack(c.Context(), id, deptID, req.Name, req.LocationDetail, floorID, req.MapPosX, req.MapPosY)
 	if err != nil {
 		return response.Error(c, fiber.StatusInternalServerError, "Failed to update rack", err.Error())
 	}
@@ -1429,16 +1511,32 @@ type UpdateDepartmentRequest struct {
 	HeadID   *string `json:"head_id"`
 }
 
+type CreateFloorRequest struct {
+	Name string `json:"name"`
+	Code string `json:"code"`
+}
+
+type UpdateFloorRequest struct {
+	Name string `json:"name"`
+	Code string `json:"code"`
+}
+
 type CreateRackRequest struct {
-	DepartmentID   string `json:"department_id"`
-	Name           string `json:"name"`
-	LocationDetail string `json:"location_detail"`
+	DepartmentID   string   `json:"department_id"`
+	Name           string   `json:"name"`
+	LocationDetail string   `json:"location_detail"`
+	FloorID        *string  `json:"floor_id"`
+	MapPosX        *float64 `json:"map_pos_x"`
+	MapPosY        *float64 `json:"map_pos_y"`
 }
 
 type UpdateRackRequest struct {
-	DepartmentID   string `json:"department_id"`
-	Name           string `json:"name"`
-	LocationDetail string `json:"location_detail"`
+	DepartmentID   string   `json:"department_id"`
+	Name           string   `json:"name"`
+	LocationDetail string   `json:"location_detail"`
+	FloorID        *string  `json:"floor_id"`
+	MapPosX        *float64 `json:"map_pos_x"`
+	MapPosY        *float64 `json:"map_pos_y"`
 }
 
 type CreateBoxRequest struct {
@@ -1731,6 +1829,17 @@ func (h *MasterHandler) ListActivityLogs(c fiber.Ctx) error {
 	return response.Success(c, fiber.StatusOK, "Activity logs listed", logs)
 }
 
+func (h *MasterHandler) GetZonationLogs(c fiber.Ctx) error {
+	limit := int32(50)
+	offset := int32(0)
+	
+	logs, err := h.svc.GetZonationLogs(c.Context(), limit, offset)
+	if err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to get zonation logs", err.Error())
+	}
+	return response.Success(c, fiber.StatusOK, "Zonation logs listed", logs)
+}
+
 func (h *MasterHandler) ListSsoSyncLogs(c fiber.Ctx) error {
 	limit := int32(50)
 	offset := int32(0)
@@ -1822,4 +1931,83 @@ func (h *MasterHandler) RegisterScanner(c fiber.Ctx) error {
 	h.svc.LogActivity(c.Context(), userID, "REGISTER", "scanner", &node.ID, req, c.IP())
 
 	return response.Success(c, fiber.StatusOK, "Scanner registered successfully", node)
+}
+type UpdateDepartmentFloorPlanRequest struct {
+	FloorPlanUrl string `json:"floor_plan_url"`
+}
+
+func (h *MasterHandler) UpdateDepartmentFloorPlan(c fiber.Ctx) error {
+	id, err := uuid.Parse(c.Params("id"))
+	if err != nil {
+		return response.Error(c, fiber.StatusBadRequest, "Invalid department ID", err.Error())
+	}
+
+	req := new(UpdateDepartmentFloorPlanRequest)
+	if err := c.Bind().JSON(req); err != nil {
+		return response.Error(c, fiber.StatusBadRequest, "Invalid request body", err.Error())
+	}
+
+	dept, err := h.svc.UpdateDepartmentFloorPlan(c.Context(), id, req.FloorPlanUrl)
+	if err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to update department floor plan", err.Error())
+	}
+
+	userID := c.Locals("user_id").(uuid.UUID)
+	h.svc.LogActivity(c.Context(), userID, "UPDATE", "department_floor_plan", &id, req, c.IP())
+
+	return response.Success(c, fiber.StatusOK, "Department floor plan updated", dept)
+}
+
+type UpdateRackCoordinatesRequest struct {
+	PosX float64 `json:"pos_x"`
+	PosY float64 `json:"pos_y"`
+}
+
+func (h *MasterHandler) UpdateRackCoordinates(c fiber.Ctx) error {
+	id, err := uuid.Parse(c.Params("id"))
+	if err != nil {
+		return response.Error(c, fiber.StatusBadRequest, "Invalid rack ID", err.Error())
+	}
+
+	req := new(UpdateRackCoordinatesRequest)
+	if err := c.Bind().JSON(req); err != nil {
+		return response.Error(c, fiber.StatusBadRequest, "Invalid request body", err.Error())
+	}
+
+	rack, err := h.svc.UpdateRackMapCoordinates(c.Context(), id, req.PosX, req.PosY)
+	if err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to update rack coordinates", err.Error())
+	}
+
+	userID := c.Locals("user_id").(uuid.UUID)
+	h.svc.LogActivity(c.Context(), userID, "UPDATE", "rack_coordinates", &id, req, c.IP())
+
+	return response.Success(c, fiber.StatusOK, "Rack coordinates updated", rack)
+}
+
+type UpdateRackOverrideRequest struct {
+	IsFullOverride bool   `json:"is_full_override"`
+	OverrideReason string `json:"override_reason"`
+}
+
+func (h *MasterHandler) UpdateRackOverride(c fiber.Ctx) error {
+	id, err := uuid.Parse(c.Params("id"))
+	if err != nil {
+		return response.Error(c, fiber.StatusBadRequest, "Invalid ID format", err.Error())
+	}
+
+	req := new(UpdateRackOverrideRequest)
+	if err := c.Bind().JSON(req); err != nil {
+		return response.Error(c, fiber.StatusBadRequest, "Invalid request body", err.Error())
+	}
+
+	rack, err := h.svc.UpdateRackOverrideStatus(c.Context(), id, req.IsFullOverride, req.OverrideReason)
+	if err != nil {
+		return response.Error(c, fiber.StatusInternalServerError, "Failed to update rack override status", err.Error())
+	}
+
+	userID := c.Locals("user_id").(uuid.UUID)
+	h.svc.LogActivity(c.Context(), userID, "UPDATE", "rack_override_status", &id, req, c.IP())
+
+	return response.Success(c, fiber.StatusOK, "Rack override status updated", rack)
 }

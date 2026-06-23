@@ -185,6 +185,7 @@ type Department struct {
 	CreatedAt        pgtype.Timestamptz `json:"created_at"`
 	MaxDocsCapacity  pgtype.Int4        `json:"max_docs_capacity"`
 	CurrentDocsCount pgtype.Int4        `json:"current_docs_count"`
+	FloorPlanUrl     pgtype.Text        `json:"floor_plan_url"`
 }
 
 type DestructionLog struct {
@@ -393,6 +394,13 @@ type FileStorageObject struct {
 	DeletedAt           pgtype.Timestamptz `json:"deleted_at"`
 	UploadedBy          pgtype.UUID        `json:"uploaded_by"`
 	CreatedAt           pgtype.Timestamptz `json:"created_at"`
+}
+
+type Floor struct {
+	ID        uuid.UUID          `json:"id"`
+	Name      string             `json:"name"`
+	Code      string             `json:"code"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
 }
 
 type GeneratedLabel struct {
@@ -641,6 +649,11 @@ type Rack struct {
 	AllowedCategoryIds []uuid.UUID        `json:"allowed_category_ids"`
 	AllowedTypeIds     []uuid.UUID        `json:"allowed_type_ids"`
 	CurrentBoxesCount  pgtype.Int4        `json:"current_boxes_count"`
+	MapPosX            pgtype.Numeric     `json:"map_pos_x"`
+	MapPosY            pgtype.Numeric     `json:"map_pos_y"`
+	IsFullOverride     pgtype.Bool        `json:"is_full_override"`
+	OverrideReason     pgtype.Text        `json:"override_reason"`
+	FloorID            pgtype.UUID        `json:"floor_id"`
 }
 
 type RackCapacity struct {

@@ -32,6 +32,7 @@ type Querier interface {
 	CreateDocument(ctx context.Context, arg CreateDocumentParams) (Document, error)
 	CreateDocumentCategory(ctx context.Context, arg CreateDocumentCategoryParams) (DocumentCategory, error)
 	CreateDocumentType(ctx context.Context, arg CreateDocumentTypeParams) (DocumentType, error)
+	CreateFloor(ctx context.Context, arg CreateFloorParams) (Floor, error)
 	CreateIntegrationNode(ctx context.Context, arg CreateIntegrationNodeParams) (IntegrationNode, error)
 	CreateLoanExtension(ctx context.Context, arg CreateLoanExtensionParams) (LoanExtension, error)
 	CreateLoanRequest(ctx context.Context, arg CreateLoanRequestParams) (LoanRequest, error)
@@ -58,6 +59,7 @@ type Querier interface {
 	DeleteDepartment(ctx context.Context, id uuid.UUID) error
 	DeleteDocumentCategory(ctx context.Context, id uuid.UUID) error
 	DeleteDocumentType(ctx context.Context, id uuid.UUID) error
+	DeleteFloor(ctx context.Context, id uuid.UUID) error
 	DeleteIntegrationNode(ctx context.Context, id uuid.UUID) error
 	DeleteOrdner(ctx context.Context, id uuid.UUID) error
 	DeleteRack(ctx context.Context, id uuid.UUID) error
@@ -138,6 +140,7 @@ type Querier interface {
 	GetUserRecentActivities(ctx context.Context, arg GetUserRecentActivitiesParams) ([]GetUserRecentActivitiesRow, error)
 	GetUsersForHierarchy(ctx context.Context) ([]GetUsersForHierarchyRow, error)
 	GetWarehouseTopology(ctx context.Context) ([]GetWarehouseTopologyRow, error)
+	GetZonationLogs(ctx context.Context, arg GetZonationLogsParams) ([]GetZonationLogsRow, error)
 	ListActivityLogs(ctx context.Context, arg ListActivityLogsParams) ([]ListActivityLogsRow, error)
 	ListAllBoxesGlobal(ctx context.Context) ([]ListAllBoxesGlobalRow, error)
 	ListAllBranchesGlobal(ctx context.Context) ([]ListAllBranchesGlobalRow, error)
@@ -162,6 +165,8 @@ type Querier interface {
 	ListDocumentsByDepartment(ctx context.Context, departmentID uuid.UUID) ([]Document, error)
 	ListDocumentsForLabeling(ctx context.Context, status string) ([]ListDocumentsForLabelingRow, error)
 	ListEmailTemplates(ctx context.Context) ([]EmailTemplate, error)
+	// Floors
+	ListFloors(ctx context.Context) ([]Floor, error)
 	ListIntegrationNodes(ctx context.Context) ([]IntegrationNode, error)
 	ListNotifications(ctx context.Context, arg ListNotificationsParams) ([]Notification, error)
 	ListOCRJobs(ctx context.Context, arg ListOCRJobsParams) ([]ListOCRJobsRow, error)
@@ -206,6 +211,7 @@ type Querier interface {
 	UpdateCompany(ctx context.Context, arg UpdateCompanyParams) (Company, error)
 	UpdateCompanyLogo(ctx context.Context, arg UpdateCompanyLogoParams) error
 	UpdateDepartment(ctx context.Context, arg UpdateDepartmentParams) (Department, error)
+	UpdateDepartmentFloorPlan(ctx context.Context, arg UpdateDepartmentFloorPlanParams) (Department, error)
 	UpdateDepartmentHead(ctx context.Context, arg UpdateDepartmentHeadParams) error
 	UpdateDocument(ctx context.Context, arg UpdateDocumentParams) (Document, error)
 	UpdateDocumentCategory(ctx context.Context, arg UpdateDocumentCategoryParams) (DocumentCategory, error)
@@ -217,6 +223,7 @@ type Querier interface {
 	UpdateDocumentStatus(ctx context.Context, arg UpdateDocumentStatusParams) error
 	UpdateDocumentType(ctx context.Context, arg UpdateDocumentTypeParams) (DocumentType, error)
 	UpdateEmailTemplate(ctx context.Context, arg UpdateEmailTemplateParams) (EmailTemplate, error)
+	UpdateFloor(ctx context.Context, arg UpdateFloorParams) (Floor, error)
 	UpdateIntegrationNodeConfig(ctx context.Context, arg UpdateIntegrationNodeConfigParams) (IntegrationNode, error)
 	UpdateIntegrationNodeStatus(ctx context.Context, arg UpdateIntegrationNodeStatusParams) (IntegrationNode, error)
 	UpdateLoanExtensionStatus(ctx context.Context, arg UpdateLoanExtensionStatusParams) error
@@ -227,6 +234,8 @@ type Querier interface {
 	UpdateManifestStatus(ctx context.Context, arg UpdateManifestStatusParams) error
 	UpdateOrdner(ctx context.Context, arg UpdateOrdnerParams) (Ordner, error)
 	UpdateRack(ctx context.Context, arg UpdateRackParams) (Rack, error)
+	UpdateRackMapCoordinates(ctx context.Context, arg UpdateRackMapCoordinatesParams) (Rack, error)
+	UpdateRackOverrideStatus(ctx context.Context, arg UpdateRackOverrideStatusParams) (Rack, error)
 	UpdateRetentionPolicy(ctx context.Context, arg UpdateRetentionPolicyParams) (RetentionPolicy, error)
 	UpdateRfidTagStatus(ctx context.Context, arg UpdateRfidTagStatusParams) (RfidTag, error)
 	UpdateRole(ctx context.Context, arg UpdateRoleParams) (Role, error)

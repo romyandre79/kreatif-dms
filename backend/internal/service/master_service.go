@@ -476,20 +476,73 @@ func (s *MasterService) ListAllRacksGlobal(ctx context.Context) ([]repository.Li
 	return s.repo.ListAllRacksGlobal(ctx)
 }
 
-func (s *MasterService) CreateRack(ctx context.Context, deptID uuid.UUID, name string, locationDetail string) (repository.Rack, error) {
+func (s *MasterService) ListFloors(ctx context.Context) ([]repository.Floor, error) {
+	return s.repo.ListFloors(ctx)
+}
+
+func (s *MasterService) CreateFloor(ctx context.Context, name string, code string) (repository.Floor, error) {
+	return s.repo.CreateFloor(ctx, repository.CreateFloorParams{
+		Name: name,
+		Code: code,
+	})
+}
+
+func (s *MasterService) UpdateFloor(ctx context.Context, id uuid.UUID, name string, code string) (repository.Floor, error) {
+	return s.repo.UpdateFloor(ctx, repository.UpdateFloorParams{
+		ID:   id,
+		Name: name,
+		Code: code,
+	})
+}
+
+func (s *MasterService) DeleteFloor(ctx context.Context, id uuid.UUID) error {
+	return s.repo.DeleteFloor(ctx, id)
+}
+
+func (s *MasterService) CreateRack(ctx context.Context, deptID uuid.UUID, name string, locationDetail string, floorID *uuid.UUID, mapPosX *float64, mapPosY *float64) (repository.Rack, error) {
+	var fID pgtype.UUID
+	if floorID != nil {
+		fID = pgtype.UUID{Bytes: *floorID, Valid: true}
+	}
+	var px, py pgtype.Numeric
+	if mapPosX != nil {
+		px.Scan(fmt.Sprintf("%.2f", *mapPosX))
+	}
+	if mapPosY != nil {
+		py.Scan(fmt.Sprintf("%.2f", *mapPosY))
+	}
+
 	return s.repo.CreateRack(ctx, repository.CreateRackParams{
 		DepartmentID:   deptID,
 		Name:           name,
 		LocationDetail: pgtype.Text{String: locationDetail, Valid: locationDetail != ""},
+		FloorID:        fID,
+		MapPosX:        px,
+		MapPosY:        py,
 	})
 }
 
-func (s *MasterService) UpdateRack(ctx context.Context, id uuid.UUID, deptID uuid.UUID, name string, locationDetail string) (repository.Rack, error) {
+func (s *MasterService) UpdateRack(ctx context.Context, id uuid.UUID, deptID uuid.UUID, name string, locationDetail string, floorID *uuid.UUID, mapPosX *float64, mapPosY *float64) (repository.Rack, error) {
+	var fID pgtype.UUID
+	if floorID != nil {
+		fID = pgtype.UUID{Bytes: *floorID, Valid: true}
+	}
+	var px, py pgtype.Numeric
+	if mapPosX != nil {
+		px.Scan(fmt.Sprintf("%.2f", *mapPosX))
+	}
+	if mapPosY != nil {
+		py.Scan(fmt.Sprintf("%.2f", *mapPosY))
+	}
+
 	return s.repo.UpdateRack(ctx, repository.UpdateRackParams{
 		ID:             id,
 		DepartmentID:   deptID,
 		Name:           name,
 		LocationDetail: pgtype.Text{String: locationDetail, Valid: locationDetail != ""},
+		FloorID:        fID,
+		MapPosX:        px,
+		MapPosY:        py,
 	})
 }
 
@@ -563,6 +616,9 @@ func (s *MasterService) ImportRacks(ctx context.Context, r io.Reader) (int, erro
 			DepartmentID:   deptID,
 			Name:           name,
 			LocationDetail: pgtype.Text{String: locationDetail, Valid: locationDetail != ""},
+			FloorID:        pgtype.UUID{Valid: false},
+			MapPosX:        pgtype.Numeric{Valid: false},
+			MapPosY:        pgtype.Numeric{Valid: false},
 		})
 		if err == nil {
 			count++
@@ -1373,6 +1429,13 @@ func (s *MasterService) ListActivityLogs(ctx context.Context, limit, offset int3
 	})
 }
 
+func (s *MasterService) GetZonationLogs(ctx context.Context, limit, offset int32) ([]repository.GetZonationLogsRow, error) {
+	return s.repo.GetZonationLogs(ctx, repository.GetZonationLogsParams{
+		Limit:  limit,
+		Offset: offset,
+	})
+}
+
 func (s *MasterService) ListSsoSyncLogs(ctx context.Context, limit, offset int32) ([]repository.SsoSyncLog, error) {
 	return s.repo.ListSsoSyncLogs(ctx, repository.ListSsoSyncLogsParams{
 		Limit:  limit,
@@ -1500,4 +1563,31 @@ func (s *MasterService) UpdateWatermarkSettings(ctx context.Context, config map[
 		ConfigJson: configJSON,
 	})
 	return err
+}
+func (s *MasterService) UpdateDepartmentFloorPlan(ctx context.Context, id uuid.UUID, floorPlanUrl string) (repository.Department, error) {
+	urlArg := pgtype.Text{String: floorPlanUrl, Valid: floorPlanUrl != ""}
+	return s.repo.UpdateDepartmentFloorPlan(ctx, repository.UpdateDepartmentFloorPlanParams{
+		ID:           id,
+		FloorPlanUrl: urlArg,
+	})
+}
+
+func (s *MasterService) UpdateRackMapCoordinates(ctx context.Context, id uuid.UUID, posX, posY float64) (repository.Rack, error) {
+	var px, py pgtype.Numeric
+	px.Scan(fmt.Sprintf("%.2f", posX))
+	py.Scan(fmt.Sprintf("%.2f", posY))
+
+	return s.repo.UpdateRackMapCoordinates(ctx, repository.UpdateRackMapCoordinatesParams{
+		ID:      id,
+		MapPosX: px,
+		MapPosY: py,
+	})
+}
+
+func (s *MasterService) UpdateRackOverrideStatus(ctx context.Context, id uuid.UUID, isFull bool, reason string) (repository.Rack, error) {
+	return s.repo.UpdateRackOverrideStatus(ctx, repository.UpdateRackOverrideStatusParams{
+		ID:             id,
+		IsFullOverride: pgtype.Bool{Bool: isFull, Valid: true},
+		OverrideReason: pgtype.Text{String: reason, Valid: reason != ""},
+	})
 }

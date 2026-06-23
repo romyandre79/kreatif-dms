@@ -60,13 +60,16 @@
                     <th class="p-4 pl-8">{{ $t('admin.config.rack.table.name') }}</th>
                     <th class="p-4">{{ $t('admin.config.rack.table.dept') }}</th>
                     <th class="p-4">{{ $t('admin.config.rack.table.branch') }}</th>
+                    <th class="p-4">Lantai</th>
                     <th class="p-4">{{ $t('admin.config.rack.table.location') }}</th>
+                    <th class="p-4 text-center">Grid X</th>
+                    <th class="p-4 text-center">Grid Y</th>
                     <th class="p-4 pr-10 text-right">{{ $t('admin.metadata.table.actions') }}</th>
                   </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-50 dark:divide-slate-800">
                   <tr v-if="filteredRacks.length === 0" class="hover:bg-transparent">
-                     <td colspan="5" class="p-20 text-center">
+                     <td colspan="8" class="p-20 text-center">
                         <div class="flex flex-col items-center justify-center space-y-3 opacity-30">
                            <LucideArchive class="w-12 h-12 text-slate-300" />
                            <p class="text-xs font-black uppercase tracking-[0.2em] text-slate-400">{{ $t('common.no_data') }}</p>
@@ -105,6 +108,18 @@
                       <span class="text-sm font-bold text-slate-500 uppercase tracking-tight">{{ row.branch_name }}</span>
                     </td>
                     <td class="p-4">
+                      <div v-if="row.editing" class="max-w-[180px]">
+                        <select 
+                          v-model="row.floor_id" 
+                          class="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs font-bold outline-none focus:ring-2 focus:ring-blue-500/20 cursor-pointer"
+                        >
+                          <option :value="null">-- Pilih Lantai --</option>
+                          <option v-for="fl in floors" :key="fl.id" :value="fl.id">{{ fl.name }}</option>
+                        </select>
+                      </div>
+                      <span v-else class="text-xs font-bold text-slate-400 uppercase tracking-tight">{{ row.floor_name || '-' }}</span>
+                    </td>
+                    <td class="p-4">
                       <div v-if="row.editing" class="max-w-md">
                         <input 
                           type="text" 
@@ -114,6 +129,30 @@
                         />
                       </div>
                       <p v-else class="text-xs font-bold text-slate-400 uppercase tracking-tight">{{ row.location_detail || '-' }}</p>
+                    </td>
+                    <td class="p-4 text-center">
+                      <div v-if="row.editing">
+                        <input 
+                          type="number" 
+                          v-model.number="row.map_pos_x" 
+                          min="1" max="8" step="1"
+                          class="w-16 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs font-bold text-center outline-none focus:ring-2 focus:ring-blue-500/20" 
+                          placeholder="X"
+                        />
+                      </div>
+                      <span v-else class="text-xs font-bold text-slate-400">{{ formatCoord(row.map_pos_x) }}</span>
+                    </td>
+                    <td class="p-4 text-center">
+                      <div v-if="row.editing">
+                        <input 
+                          type="number" 
+                          v-model.number="row.map_pos_y" 
+                          min="1" max="8" step="1"
+                          class="w-16 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs font-bold text-center outline-none focus:ring-2 focus:ring-blue-500/20" 
+                          placeholder="Y"
+                        />
+                      </div>
+                      <span v-else class="text-xs font-bold text-slate-400">{{ formatCoord(row.map_pos_y) }}</span>
                     </td>
                     <td class="p-4 pr-10 text-right">
                       <div v-if="row.editing" class="flex justify-end gap-3">
@@ -263,6 +302,7 @@ const loading = ref(false)
 const error = ref('')
 const racks = ref([])
 const departments = ref([])
+const floors = ref([])
 const fileInput = ref(null)
 
 // Pagination state
@@ -276,17 +316,22 @@ const auth = useAuthStore()
 const fetchData = async () => {
   loading.value = true
   try {
-    const [racksRes, deptsRes] = await Promise.all([
+    const [racksRes, deptsRes, floorsRes] = await Promise.all([
       $api(`${config.public.apiBase}/master/racks`),
-      $api(`${config.public.apiBase}/master/departments`)
+      $api(`${config.public.apiBase}/master/departments`),
+      $api(`${config.public.apiBase}/master/floors`)
     ])
 
     racks.value = (racksRes.data || []).map(r => ({
       ...r,
+      floor_id: r.floor_id?.Valid !== false ? (r.floor_id?.Bytes || r.floor_id || null) : null,
+      map_pos_x: parseCoord(r.map_pos_x),
+      map_pos_y: parseCoord(r.map_pos_y),
       editing: false,
       isNew: false
     }))
     departments.value = deptsRes.data || []
+    floors.value = floorsRes.data || []
   } catch (err) {
     error.value = err.data?.message || t('admin.config.rack.error_fetch')
   } finally {
@@ -302,12 +347,35 @@ const departmentOptions = computed(() => {
   }))
 })
 
+// Parse coordinate from pgtype.Numeric or plain number
+const parseCoord = (val) => {
+  if (val === null || val === undefined) return null
+  if (typeof val === 'number') return val
+  if (typeof val === 'string') return parseFloat(val) || null
+  if (typeof val === 'object') {
+    if (val.Valid === false) return null
+    if (val.Int !== undefined && val.Exp !== undefined) {
+      return val.Int * Math.pow(10, val.Exp)
+    }
+  }
+  return null
+}
+
+// Format coordinate for display
+const formatCoord = (val) => {
+  const num = parseCoord(val)
+  return num !== null ? num : '-'
+}
+
 const addRow = () => {
   racks.value.unshift({
     id: '', 
     department_id: departments.value.length > 0 ? departments.value[0].id : '',
     name: '',
     location_detail: '',
+    floor_id: floors.value.length > 0 ? floors.value[0].id : null,
+    map_pos_x: null,
+    map_pos_y: null,
     editing: true,
     isNew: true
   })
@@ -348,7 +416,10 @@ const saveRow = async (row) => {
       body: {
         name: row.name,
         department_id: row.department_id,
-        location_detail: row.location_detail
+        location_detail: row.location_detail,
+        floor_id: row.floor_id || null,
+        map_pos_x: row.map_pos_x || null,
+        map_pos_y: row.map_pos_y || null
       }
     })
 

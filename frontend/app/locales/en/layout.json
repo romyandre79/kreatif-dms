@@ -29,8 +29,8 @@
       "bulk_upload": "Bulk Upload",
       "warehouse": "Warehouse Management",
       "structure": "Location Structure",
+      "warehouse_rack_override": "Rack Override",
       "occupancy": "Occupancy Map",
-      "zonation": "Department Zonation",
       "print_qr": "Print QR Labels",
       "search": "Document Search",
       "circulation": "Circulation",
@@ -54,6 +54,7 @@
       "company": "Company Master",
       "branch": "Branch Master",
       "dept": "Department Master",
+      "floor": "Floor Master",
       "rack": "Rack Master",
       "box": "Box Master",
       "ordner": "Ordner Master",
@@ -114,7 +115,8 @@
       "doc_category": "Document Category Master",
       "loan_duration": "Loan Durations",
       "config_folder_path": "Folder Path Configuration",
-      "admin_hierarchy": "Hierarchy & Reporting"
+      "admin_hierarchy": "Hierarchy & Reporting",
+      "dept_zonation": "Dept Zoning Control Center"
     }
   }
 }

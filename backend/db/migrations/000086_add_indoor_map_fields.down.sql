@@ -1,0 +1,3 @@
+ALTER TABLE racks DROP COLUMN IF EXISTS map_pos_y;
+ALTER TABLE racks DROP COLUMN IF EXISTS map_pos_x;
+ALTER TABLE departments DROP COLUMN IF EXISTS floor_plan_url;

@@ -110,6 +110,67 @@ func (q *Queries) GetActivityLogsByEntity(ctx context.Context, arg GetActivityLo
 	return items, nil
 }
 
+const getZonationLogs = `-- name: GetZonationLogs :many
+SELECT 
+    al.id,
+    al.created_at,
+    al.action,
+    al.details,
+    u.full_name as user_name,
+    COALESCE(r.name, '')::VARCHAR as rack_name,
+    COALESCE(d.name, '')::VARCHAR as department_name
+FROM activity_logs al
+JOIN users u ON al.user_id = u.id
+LEFT JOIN racks r ON al.entity_id = r.id
+LEFT JOIN departments d ON (CASE WHEN al.details->>'department_id' IS NOT NULL THEN (al.details->>'department_id')::UUID ELSE NULL END) = d.id
+WHERE al.entity_type = 'rack' AND al.action = 'UPDATE'
+ORDER BY al.created_at DESC
+LIMIT $1 OFFSET $2
+`
+
+type GetZonationLogsParams struct {
+	Limit  int32 `json:"limit"`
+	Offset int32 `json:"offset"`
+}
+
+type GetZonationLogsRow struct {
+	ID             uuid.UUID          `json:"id"`
+	CreatedAt      pgtype.Timestamptz `json:"created_at"`
+	Action         string             `json:"action"`
+	Details        []byte             `json:"details"`
+	UserName       string             `json:"user_name"`
+	RackName       string             `json:"rack_name"`
+	DepartmentName string             `json:"department_name"`
+}
+
+func (q *Queries) GetZonationLogs(ctx context.Context, arg GetZonationLogsParams) ([]GetZonationLogsRow, error) {
+	rows, err := q.db.Query(ctx, getZonationLogs, arg.Limit, arg.Offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetZonationLogsRow
+	for rows.Next() {
+		var i GetZonationLogsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.CreatedAt,
+			&i.Action,
+			&i.Details,
+			&i.UserName,
+			&i.RackName,
+			&i.DepartmentName,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listActivityLogs = `-- name: ListActivityLogs :many
 SELECT 
     al.id, al.user_id, al.action, al.entity_type, al.entity_id, al.details, al.ip_address, al.created_at, 
