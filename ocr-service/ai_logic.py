@@ -11,6 +11,7 @@ AI_ENABLED = os.getenv("AI_ENABLED", "false").lower() == "true"
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
 GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-1.5-flash")
 AI_VISION_ENABLED = os.getenv("AI_VISION_ENABLED", "false").lower() == "true"
+AI_TIMEOUT = float(os.getenv("AI_TIMEOUT", "15.0"))
 
 def get_ai_client(api_key: str = None):
     key = api_key or GEMINI_API_KEY
@@ -31,13 +32,16 @@ async def ocr_with_ai_vision(image_bytes: bytes, model: str = None, api_key: str
     logger.info(f"Using model: {model_name} for Vision OCR")
     
     try:
-        response = await asyncio.to_thread(
-            client.models.generate_content,
-            model=model_name,
-            contents=[
-                genai.types.Part.from_bytes(data=image_bytes, mime_type=mime_type),
-                "Extract all text from this document accurately. Maintain the structure and provide the raw text output."
-            ]
+        response = await asyncio.wait_for(
+            asyncio.to_thread(
+                client.models.generate_content,
+                model=model_name,
+                contents=[
+                    genai.types.Part.from_bytes(data=image_bytes, mime_type=mime_type),
+                    "Extract all text from this document accurately. Maintain the structure and provide the raw text output."
+                ]
+            ),
+            timeout=AI_TIMEOUT
         )
         return response.text
     except Exception as e:
@@ -83,10 +87,13 @@ async def analyze_with_ai(text: str, vision_text: str = None, model: str = None,
     }}
     """
     try:
-        response = await asyncio.to_thread(
-            client.models.generate_content, 
-            model=model_name, 
-            contents=prompt
+        response = await asyncio.wait_for(
+            asyncio.to_thread(
+                client.models.generate_content, 
+                model=model_name, 
+                contents=prompt
+            ),
+            timeout=AI_TIMEOUT
         )
         content = response.text
         if "```json" in content:
